@@ -57,13 +57,15 @@ final case class Analyse(@Recurse
                          @ExtraName("d") @ValueDescription("The directory to be analysed")
                          directory: Option[File],
                          @ExtraName("f") @ValueDescription("The format to output")
-                         format: String = "text")
+                         format: String = "text",
+                         @ExtraName("o") @ValueDescription("The output file destination")
+                         output: Option[File] = Option.empty)
     extends Command {
 
   def run(): Unit = {
     implicit val logger: Logger = utils.Logger.withLevel(getLogger, options.verbose.isDefined)
 
-    val formatter = Formatter(format)
+    val formatter = Formatter(format, output)
 
     formatter.begin()
     formatter.add(FileError("filename", "message"))
@@ -75,11 +77,14 @@ final case class Analyse(@Recurse
 object ArgumentParsers {
   implicit val fileParser: ArgParser[File] = {
     ArgParser.instance[File]("file") { path: String =>
-      Option(File(path)).filter(_.exists).fold[Either[String, File]](Left(s"The path $path does not exist"))(Right(_))
+      Right(File(path))
     }
   }
 
   implicit val boolean: ArgParser[Option[Unit]] = {
-    ArgParser.flag("flag")(_ => Right(Option(())))
+    ArgParser.flag("flag") {
+      case Some(_) => Right(Option(()))
+      case None    => Right(Option.empty)
+    }
   }
 }

@@ -57,7 +57,12 @@ abstract class CommandAppWithBaseCommand[D, T](implicit
   def appVersion: String = Messages[D].appVersion
   def progName: String = Messages[D].progName
 
-  def main(args: Array[String]): Unit =
+  def parse(args: Array[String])
+    : Either[String, (D, Seq[String], Option[Either[String, (String, T, Seq[String], Seq[String])]])] = {
+    commandParser.detailedParse(args)
+  }
+
+  def main(args: Array[String]): Unit = {
     commandParser.withHelp.detailedParse(args)(beforeCommandParser.withHelp) match {
       case Left(err) =>
         error(err)
@@ -97,5 +102,6 @@ abstract class CommandAppWithBaseCommand[D, T](implicit
             }
         }
     }
+  }
 
 }
