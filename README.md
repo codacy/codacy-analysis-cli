@@ -1,6 +1,6 @@
 # Codacy Analysis CLI
 
-## **ADD CODACY CODE AND COVERAGE BADGES**
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e490e1a232a04bccb113ff55b8126947)](https://www.codacy.com?utm_source=git@bitbucket.org&amp;utm_medium=referral&amp;utm_content=qamine/codacy-analysis-cli&amp;utm_campaign=Badge_Grade)
 
 Small command line interface to execute code analysis locally.
 
@@ -75,7 +75,7 @@ sbt codacyCoverage
 ### Local
 
 ```sh
-sbt "runMain com.codacy.analysis.cli.Main $PWD"
+sbt "runMain com.codacy.analysis.cli.Main"
 ```
 
 ### Docker
@@ -95,88 +95,3 @@ docker run \
 ```sh
 # TODO
 ```
-
-//// CONTINUE HERE
-
-## Configuration File
-
-* Java Properties:
-    * `config.file` - absolute path to the configuration file.
-    * `config.resource` - path to the configuration file provided through the resources.
-* Environment
-    * `CONFIG_FILE` - absolute path to the configuration file.
-    * `CONFIG_RESOURCE` - path to the configuration file provided through the resources.
-
-> Default: `-Dconfig.file=/etc/codacy/enterprise/application.conf`
-
-## Server Port
-
-* Java Properties - `http.port`
-* Environment - `HTTP_PORT`
-* Configuration File Property - `http.port`
-
-> Default: `8080`
-
-## Configuration File Options
-
-### Make Directories Configuration
-
-* Configuration File Property
-    * `make.directories` - config with the directory structure to create
-
-    **Example:**
-    
-        make.directories = [
-          {
-            root = "/base/directory"
-            children = [
-              {
-                filename = "path/to/my/directory"
-                group = "nogroup"
-                owner = "nobody"
-              }
-            ]
-          },
-          {
-            root = "/other/base/directory"
-            children = [
-              {
-                 filename = "path/to/my/other/directory"
-              }
-            ]
-          }
-        ]
-
-### Copy Files Configuration
-
-* Configuration File Property
-    * `copy.files` - config with the files to copy
-
-    **Example:**
-
-        copy.files = [
-          {
-            source = "/base/directory/to/my/file.log"
-            destination = {
-                filename = "path/to/my/file.log"
-                group = "nogroup"
-                owner = "nobody"
-            }
-          },
-          {
-            source = "/other/source/directory/to/my/other/file.log"
-            destination = {
-                filename = "path/to/my/other/file.log"
-            }
-          }
-        ]
-
-### Log Directories to Cleanup
-
-* Configuration File Property
-    * `cleanup.log.dirs` - absolute path to the directory where we should clean the log files
-
-### Docker Compose/Swarm File (v3) to remove old images
-
-* Configuration File Property
-    * `cleanup.compose.file` - absolute path to the file containing the services to remove old image versions
