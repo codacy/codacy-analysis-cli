@@ -36,10 +36,10 @@ class CleanerSpec extends Specification with NoLanguageFeatures {
     }
 
     "fail parse" in {
-      cli.parse(Array("bad-command", "--directory", "/tmp", "--tool", "pylint")) must beRight(
-        (DefaultCommand(None), List(), Some(Left("Command not found: bad-command"))))
-      cli.parse(Array("analyse", "--bad-parameter", "/tmp", "--tool", "pylint")) must beRight(
-        (DefaultCommand(None), List(), Some(Left("Unrecognized argument: --bad-parameter"))))
+      cli.parse(Array("bad-command", "--directory", "/tmp", "--tool", "pylint")) must beEqualTo(
+        Right(errorMsg("Command not found: bad-command")))
+      cli.parse(Array("analyse", "--bad-parameter", "/tmp", "--tool", "pylint")) must beEqualTo(
+        Right(errorMsg("Unrecognized argument: --bad-parameter")))
     }
 
     "output text to file" in {
@@ -78,4 +78,10 @@ class CleanerSpec extends Specification with NoLanguageFeatures {
     }
 
   }
+
+  private def errorMsg(message: String)
+    : (DefaultCommand, List[String], Option[Either[String, (String, Command, Seq[String], Seq[String])]]) = {
+    (DefaultCommand(None), List.empty[String], Some(Left(message)))
+  }
+
 }
