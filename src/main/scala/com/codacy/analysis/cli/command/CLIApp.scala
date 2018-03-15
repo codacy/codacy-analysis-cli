@@ -53,9 +53,9 @@ sealed trait Command extends Runnable {
 final case class Analyse(@Recurse
                          options: CommonOptions,
                          @ExtraName("t") @ValueDescription("The tool to analyse on the code")
-                         tool: Option[String],
+                         tool: String,
                          @ExtraName("d") @ValueDescription("The directory to be analysed")
-                         directory: Option[File],
+                         directory: File = File.currentWorkingDirectory,
                          @ExtraName("f") @ValueDescription("The format to output")
                          format: String = "text",
                          @ExtraName("o") @ValueDescription("The output file destination")
