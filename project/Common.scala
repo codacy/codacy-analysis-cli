@@ -8,6 +8,7 @@ import scala.util.Properties
 object Common {
 
   private val defaultDockerInstallationPath = "/opt/codacy"
+  private val dockerVersion = "docker-17.09.0-ce"
 
   val dockerSettings = Seq(
     packageName in Docker := packageName.value,
@@ -25,7 +26,16 @@ object Common {
         List(
           Cmd(
             "RUN",
-            s"""|apk add --no-cache --update bash &&
+            s"""|apk add --no-cache -t .deps --update wget ca-certificates tar &&
+                |apk add --no-cache --update bash &&
+                |wget https://download.docker.com/linux/static/stable/x86_64/$dockerVersion.tgz &&
+                |tar -xvf $dockerVersion.tgz --strip-components 1 docker/docker &&
+                |rm -rf $dockerVersion.tgz &&
+                |mv docker /usr/bin/docker &&
+                |chmod +x /usr/bin/docker &&
+                |ln -s /usr/bin/docker /usr/local/bin/docker &&
+                |chmod +x /usr/local/bin/docker &&
+                |apk del .deps &&
                 |rm -rf /tmp/*""".stripMargin.replaceAllLiterally(Properties.lineSeparator, " ")),
           cmd)
 

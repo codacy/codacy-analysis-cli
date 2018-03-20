@@ -6,11 +6,14 @@ import better.files.File
 import com.codacy.analysis.cli.model.Result
 import org.log4s.Logger
 
+trait FormatterCompanion {
+  def name: String
+  def apply(stream: PrintStream): Formatter
+}
+
 trait Formatter {
 
   def stream: PrintStream
-
-  def name: String
 
   def begin(): Unit
 
@@ -26,14 +29,16 @@ object Formatter {
 
   private val defaultPrintStream = Console.out
 
+  val defaultFormatter: FormatterCompanion = Text
+
+  val allFormatters: Set[FormatterCompanion] = Set(defaultFormatter, Json)
+
   def apply(name: String, file: Option[File] = Option.empty, printStream: Option[PrintStream] = Option.empty)(
     implicit logger: Logger): Formatter = {
-    val builder = name.toLowerCase match {
-      case "json" => new Json(_)
-      case "text" => new Text(_)
-      case _ =>
-        logger.warn(s"Could not find formatter for name $name using text as fallback")
-        new Text(_)
+
+    val builder = allFormatters.find(_.name.equalsIgnoreCase(name)).getOrElse {
+      logger.warn(s"Could not find formatter for name $name using ${defaultFormatter.name} as fallback")
+      defaultFormatter
     }
 
     val stream = file.map(asPrintStream).orElse(printStream).getOrElse(defaultPrintStream)

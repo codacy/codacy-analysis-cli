@@ -1,7 +1,6 @@
 import sbt.Keys._
 import sbt._
 
-//ceenasas
 val scalaBinaryVersionNumber = "2.12"
 val scalaVersionNumber = s"$scalaBinaryVersionNumber.4"
 
@@ -40,6 +39,7 @@ lazy val codacyAnalysisCli = project
 // Scapegoat
 scalaVersion in ThisBuild := scalaVersionNumber
 scalaBinaryVersion in ThisBuild := scalaBinaryVersionNumber
+scapegoatDisabledInspections in ThisBuild := Seq()
 scapegoatVersion in ThisBuild := "1.3.4"
 compile.in(Compile) := (if (sys.env.get("NO_SCAPEGOAT").isEmpty)
   compile.in(Compile).dependsOn(scapegoat)

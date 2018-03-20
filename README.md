@@ -100,7 +100,7 @@ sbt "runMain com.codacy.analysis.cli.Main"
 docker run \
   --interactive --tty --rm \
   --env CODACY_CODE="$PWD" \
-  --volume "$PWD":/code \
+  --volume "$PWD":/src \
   --volume /var/run/docker.sock:/var/run/docker.sock \
   --volume /tmp/codacy/cli:/tmp/codacy/cli \
   codacy/codacy-analysis-cli:<VERSION>
