@@ -70,6 +70,22 @@ sbt codacyCoverage
 
         sbt 'set version := "<VERSION>"' docker:publish
 
+## Install
+
+### MacOS
+
+```bash
+brew tap codacy/tap
+brew install codacy-analysis-cli
+```
+
+### Others
+
+```bash
+curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
+cd codacy-analysis-cli-* && sudo make install
+```
+
 ## Usage
 
 ### Local
@@ -93,5 +109,5 @@ docker run \
 ### Script
 
 ```sh
-# TODO
+codacy-analysis-cli
 ```
