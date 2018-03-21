@@ -1,7 +1,8 @@
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport.Docker
-import com.typesafe.sbt.packager.docker.{Cmd, DockerAlias}
+import com.typesafe.sbt.packager.docker.{Cmd, CmdLike, DockerAlias}
 import sbt.Keys._
+import sbt.{Def, _}
 
 import scala.util.Properties
 
@@ -10,7 +11,10 @@ object Common {
   private val defaultDockerInstallationPath = "/opt/codacy"
   private val dockerVersion = "docker-17.09.0-ce"
 
-  val dockerSettings = Seq(
+  val genericSettings: Seq[Def.Setting[Seq[Resolver]]] = Seq(
+    resolvers += "Codacy Public Mvn bucket" at "https://s3-eu-west-1.amazonaws.com/public.mvn.codacy.com")
+
+  val dockerSettings: Seq[Def.Setting[_]] = Seq(
     packageName in Docker := packageName.value,
     dockerAlias := DockerAlias(None, Some("codacy"), name.value, Some(version.value)),
     version in Docker := version.value,
@@ -42,7 +46,7 @@ object Common {
       case other => List(other)
     })
 
-  val compilerFlags = Seq(
+  val compilerFlags: Seq[String] = Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
     "-encoding",
     "utf-8", // Specify character encoding used by source files.

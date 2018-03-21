@@ -1,8 +1,10 @@
 package com.codacy.analysis.cli.command.analyse
 
 import better.files.File
+import codacy.docker.api
 import com.codacy.analysis.cli.model._
-import plugins.results.interface.scala.{PluginConfiguration, PluginRequest, Pattern}
+import com.codacy.analysis.cli.utils.FileHelper
+import plugins.results.interface.scala.{Pattern, PluginConfiguration, PluginRequest}
 import plugins.results.traits.IDockerPlugin
 import utils.PluginHelper
 
@@ -31,8 +33,16 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
       tool <- findTool(tool)
       res <- tool.run(request, Option(10.minutes))
     } yield {
-      (res.results.map(r => Issue(LineLocation(r.line), r.filename))(collection.breakOut): Set[Result]) ++
-        res.failedFiles.map(fe => FileError(fe, "Failed to analyse file."))
+      (res.results.map(
+        r =>
+          Issue(
+            api.Pattern.Id(r.patternIdentifier),
+            FileHelper.relativePath(r.filename),
+            Issue.Message(r.message),
+            r.level,
+            r.category,
+            LineLocation(r.line)))(collection.breakOut): Set[Result]) ++
+        res.failedFiles.map(fe => FileError(FileHelper.relativePath(fe), "Failed to analyse file."))
     }
   }
 

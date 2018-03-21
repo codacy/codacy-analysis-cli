@@ -49,7 +49,6 @@ class CleanerSpec extends Specification with NoLanguageFeatures {
         cli.main(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--output", file.pathAsString))
 
         file.contentAsString must beEqualTo("""|Starting analysis ...
-                                               |Found message in filename
                                                |Analysis complete
                                                |""".stripMargin)
       }).get()
@@ -72,7 +71,7 @@ class CleanerSpec extends Specification with NoLanguageFeatures {
             file.pathAsString))
 
         file.contentAsString must beEqualTo(
-          """|[{"FileError":{"filename":"filename","message":"message"}},{"Issue":{"location":{"LineLocation":{"line":1}},"filename":"filename"}},]
+          """|[]
              |""".stripMargin)
       }).get()
     }

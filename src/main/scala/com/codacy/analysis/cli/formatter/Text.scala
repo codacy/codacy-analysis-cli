@@ -23,10 +23,10 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
 
   def add(element: Result): Unit = {
     element match {
-      case Issue(LineLocation(line), filename) =>
+      case Issue(_, filename, _, _, _, LineLocation(line)) =>
         stream.println(s"Found issue in $filename:$line")
         stream.flush()
-      case Issue(FullLocation(line, position), filename) =>
+      case Issue(_, filename, _, _, _, FullLocation(line, position)) =>
         stream.println(s"Found issue in $filename:$line:$position")
         stream.flush()
       case FileError(filename, message) =>

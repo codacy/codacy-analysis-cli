@@ -18,4 +18,7 @@ object Dependencies {
 
   lazy val caseApp = "com.github.alexarchambault" %% "case-app" % "1.2.0"
 
+  lazy val codacyPluginsApi = "com.codacy" %% "codacy-plugins-api" % "1.0.12"
+  lazy val codacyPlugins = "codacy" %% "codacy-plugins" % "0.1.0-jenkins.1" classifier "assembly"
+
 }
