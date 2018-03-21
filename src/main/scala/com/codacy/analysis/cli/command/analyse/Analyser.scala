@@ -13,7 +13,7 @@ trait AnalyserCompanion[T[_]] {
 
 trait Analyser[T[_]] {
 
-  def analyse(tool: String, file: File, config: Configuration): T[Set[Result]]
+  def analyse(tool: String, directory: File, files: Set[File], config: Configuration): T[Set[Result]]
 
 }
 

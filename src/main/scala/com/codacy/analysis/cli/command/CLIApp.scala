@@ -76,7 +76,7 @@ final case class Analyse(@Recurse
                          options: CommonOptions,
                          @ExtraName("t") @ValueDescription("The tool to analyse on the code.")
                          tool: String,
-                         @Hidden @ExtraName("d") @ValueDescription("The directory to be analysed.")
+                         @ExtraName("d") @ValueDescription("The directory to be analysed.")
                          directory: File = Properties.codacyCode.getOrElse(File.currentWorkingDirectory),
                          @ExtraName("f") @ValueDescription(
                            s"The format to output. (${Formatter.allFormatters.map(_.name).mkString(", ")})")
@@ -95,7 +95,11 @@ final case class Analyse(@Recurse
   def run(): Unit = {
     formatterImpl.begin()
 
-    analyserImpl.analyse(tool, directory, FileCfg) match {
+    // TODO: Move this to the file processor
+    val baseDirectory = if (directory.isDirectory) directory else directory.parent
+    val filesToAnalyse = if (directory.isDirectory) directory.listRecursively.to[Set] else Set(directory)
+
+    analyserImpl.analyse(tool, baseDirectory, filesToAnalyse, FileCfg) match {
       case Success(res) =>
         logger.info(s"Completed analysis for $tool")
         res.foreach(formatterImpl.add)

@@ -2,7 +2,7 @@ package com.codacy.analysis.cli.command.analyse
 
 import better.files.File
 import com.codacy.analysis.cli.model._
-import plugins.results.interface.scala.{PluginConfiguration, PluginRequest}
+import plugins.results.interface.scala.{PluginConfiguration, PluginRequest, Pattern}
 import plugins.results.traits.IDockerPlugin
 import utils.PluginHelper
 
@@ -11,16 +11,24 @@ import scala.util.{Failure, Success, Try}
 
 class CodacyPluginsAnalyser extends Analyser[Try] {
 
-  override def analyse(tool: String, file: File, config: Configuration): Try[Set[Result]] = {
-    val directory = if (file.isDirectory) file else file.parent
-    val filesToAnalyse = if (file.isDirectory) file.listRecursively else Set(file)
-    // TODO: Do config parsing
+  override def analyse(tool: String, directory: File, files: Set[File], config: Configuration): Try[Set[Result]] = {
+    val pluginConfiguration = config match {
+      case CodacyCfg(patterns) =>
+        val pts: List[Pattern] = patterns.map { pt =>
+          val pms: Map[String, String] = pt.parameters.map(pm => (pm.name, pm.value))(collection.breakOut)
+          Pattern(pt.id, pms)
+        }(collection.breakOut)
+        PluginConfiguration(Option(pts), None)
+
+      case FileCfg =>
+        PluginConfiguration(None, None)
+    }
+
+    val request =
+      PluginRequest(directory.pathAsString, files.to[List].map(_.pathAsString), pluginConfiguration)
+
     for {
       tool <- findTool(tool)
-      request = PluginRequest(
-        directory.pathAsString,
-        filesToAnalyse.to[List].map(_.pathAsString),
-        PluginConfiguration(None, None))
       res <- tool.run(request, Option(10.minutes))
     } yield {
       (res.results.map(r => Issue(LineLocation(r.line), r.filename))(collection.breakOut): Set[Result]) ++
