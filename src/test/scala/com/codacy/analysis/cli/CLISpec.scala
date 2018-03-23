@@ -6,8 +6,9 @@ import com.codacy.analysis.cli.command.ArgumentParsers._
 import com.codacy.analysis.cli.command.{Command, CommandAppWithBaseCommand, DefaultCommand}
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
+import scala.sys.process._
 
-class CleanerSpec extends Specification with NoLanguageFeatures {
+class CLISpec extends Specification with NoLanguageFeatures {
 
   private val cli = new CommandAppWithBaseCommand[DefaultCommand, Command] {
     override def exit(code: Int): Unit = ()
@@ -49,8 +50,8 @@ class CleanerSpec extends Specification with NoLanguageFeatures {
         cli.main(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--output", file.pathAsString))
 
         file.contentAsString must beEqualTo("""|Starting analysis ...
-                                               |Analysis complete
-                                               |""".stripMargin)
+             |Analysis complete
+             |""".stripMargin)
       }).get()
     }
 
@@ -70,9 +71,34 @@ class CleanerSpec extends Specification with NoLanguageFeatures {
             "--output",
             file.pathAsString))
 
-        file.contentAsString must beEqualTo(
-          """|[]
+        file.contentAsString must beEqualTo("""|[]
              |""".stripMargin)
+      }).get()
+    }
+
+    "output correct issues for sample project without remote configuration" in {
+      (for {
+        directory <- File.temporaryDirectory()
+        file <- File.temporaryFile()
+      } yield {
+
+        Process(Seq("git", "clone", "git://github.com/codacy/codacy-brakeman", directory.pathAsString)).!
+        Process(Seq("git", "reset", "--hard", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38"), directory.toJava).!
+
+        cli.main(
+          Array(
+            "analyse",
+            "--directory",
+            directory./("src/main/resources/docs/directory-tests/rails4").pathAsString,
+            "--tool",
+            "brakeman",
+            "--format",
+            "json",
+            "--output",
+            file.pathAsString))
+
+        file.contentAsString must beEqualTo(
+          File.resource("com/codacy/analysis/cli/cli-output-brakeman-1.json").contentAsString)
       }).get()
     }
 
