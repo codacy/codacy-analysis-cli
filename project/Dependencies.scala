@@ -21,4 +21,6 @@ object Dependencies {
   lazy val codacyPluginsApi = "com.codacy" %% "codacy-plugins-api" % "1.0.12"
   lazy val codacyPlugins = "codacy" %% "codacy-plugins" % "0.1.0-jenkins.1" classifier "assembly"
 
+  lazy val fansi = "com.lihaoyi" %% "fansi" % "0.2.5"
+
 }

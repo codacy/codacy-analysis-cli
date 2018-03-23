@@ -25,7 +25,7 @@ object Analyser {
 
   def apply(name: String)(implicit logger: Logger): Analyser[Try] = {
     val builder = allAnalysers.find(_.name.equalsIgnoreCase(name)).getOrElse {
-      logger.warn(s"Could not find analyser for name $name using ${defaultAnalyser.name} as fallback")
+      logger.warn(s"Could not find analyser for name $name. Using ${defaultAnalyser.name} as fallback.")
       defaultAnalyser
     }
 

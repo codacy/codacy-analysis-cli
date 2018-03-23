@@ -74,20 +74,21 @@ sealed trait Command extends Runnable {
 
 final case class Analyse(@Recurse
                          options: CommonOptions,
-                         @ExtraName("t") @ValueDescription("The tool to analyse on the code.")
+                         @ExtraName("t") @ValueDescription("The tool to analyse the code.")
                          tool: String,
-                         @ExtraName("d") @ValueDescription("The directory to be analysed.")
+                         @ExtraName("d") @ValueDescription("The directory to analyse.")
                          directory: File = Properties.codacyCode.getOrElse(File.currentWorkingDirectory),
                          @ExtraName("f") @ValueDescription(
-                           s"The format to output. (${Formatter.allFormatters.map(_.name).mkString(", ")})")
+                           s"The output format. (${Formatter.allFormatters.map(_.name).mkString(", ")})")
                          format: String = Formatter.defaultFormatter.name,
-                         @ExtraName("o") @ValueDescription("The output file destination.")
+                         @ExtraName("o") @ValueDescription("The output destination file.")
                          output: Option[File] = Option.empty,
                          @Hidden @ExtraName("a") @ValueDescription(
                            s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")
                          analyser: String = Analyser.defaultAnalyser.name)
     extends Command {
 
+  // TODO: check if verbose is working
   private implicit val logger: Logger = utils.Logger.withLevel(getLogger, options.verbose.isDefined)
   private val formatterImpl: Formatter = Formatter(format, output)
   private val analyserImpl: Analyser[Try] = Analyser(analyser)
@@ -104,7 +105,7 @@ final case class Analyse(@Recurse
         logger.info(s"Completed analysis for $tool")
         res.foreach(formatterImpl.add)
       case Failure(e) =>
-        logger.error(e)(s"Failed to run analysis for $tool")
+        logger.error(e)(s"Failed analysis for $tool")
     }
 
     formatterImpl.end()

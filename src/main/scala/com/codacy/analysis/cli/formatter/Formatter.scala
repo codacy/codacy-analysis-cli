@@ -37,7 +37,7 @@ object Formatter {
     implicit logger: Logger): Formatter = {
 
     val builder = allFormatters.find(_.name.equalsIgnoreCase(name)).getOrElse {
-      logger.warn(s"Could not find formatter for name $name using ${defaultFormatter.name} as fallback")
+      logger.warn(s"Could not find formatter for name $name. Using ${defaultFormatter.name} as fallback.")
       defaultFormatter
     }
 
