@@ -58,14 +58,14 @@ object CodacyPluginsAnalyser extends AnalyserCompanion[Try] {
 
   val name: String = "codacy-plugins"
 
-  private val allToolShotNames = PluginHelper.dockerPlugins.map(_.shortName)
+  private val allToolShortNames = PluginHelper.dockerPlugins.map(_.shortName)
 
   override def apply(): Analyser[Try] = new CodacyPluginsAnalyser()
 
   object errors {
 
     def missingTool(tool: String): Exception = {
-      new Exception(s"Could not find tool for name=$tool in (${allToolShotNames.mkString(", ")})")
+      new Exception(s"Could not find tool for name=$tool in (${allToolShortNames.mkString(", ")})")
     }
   }
 
