@@ -14,7 +14,7 @@ log_error() {
 		Please check https://github.com/codacy/codacy-analysis-cli for alternative instructions.
 		
 	EOF
-  exit 1
+  exit 3
 }
 
 test_docker_socket() {
@@ -26,22 +26,51 @@ test_docker_socket() {
 }
 
 run() {
-  extra_args=()
-
-  # Test stdin and stdout
-  if [ -t 0 ] && [ -t 1 ]; then
-    extra_args+=("--tty")
-  fi
-
   docker run \
-    --interactive --rm \
+    --rm \
+    --env CODACY_CODE="$CODACY_CODE" \
     --volume /var/run/docker.sock:/var/run/docker.sock \
-    --name codacy-analysis-cli \
-    ${extra_args[@]} \
+    --volume "$CODACY_CODE":"$CODACY_CODE" \
+    --volume /tmp:/tmp \
     codacy/codacy-analysis-cli \
     "$@"
 }
 
+analysis_file() {
+  local filename="";
+  local is_filename=0;
+  for arg; do
+    case "$arg" in
+      -*)
+        case ${arg} in
+          -d | --directory)
+            is_filename=1 # next argument will be the directory or file
+            ;;
+        esac
+        ;;
+      *)
+        if [ ${is_filename} -eq 1 ]; then
+          if [ -n "$filename" ]; then
+            echo "Please provide only one file or directory to analyse" >&2
+            exit 1
+          else
+            is_filename=0
+            filename="$arg"
+          fi
+        fi
+        ;;
+    esac
+  done
+
+  if [ -n "$filename" ]; then
+    CODACY_CODE="$filename"
+  else
+    CODACY_CODE="$(pwd)"
+  fi
+}
+
 test_docker_socket
+
+analysis_file "$@"
 
 run "$@"

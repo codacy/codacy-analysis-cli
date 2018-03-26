@@ -4,10 +4,13 @@ import better.files.File
 import caseapp._
 import caseapp.core.ArgParser
 import com.codacy.analysis.cli.command.ArgumentParsers._
+import com.codacy.analysis.cli.command.analyse.Analyser
 import com.codacy.analysis.cli.formatter.Formatter
-import com.codacy.analysis.cli.model.{FileError, Issue, LineLocation}
+import com.codacy.analysis.cli.model.FileCfg
 import com.codacy.analysis.cli.utils
 import org.log4s.{Logger, getLogger}
+
+import scala.util.{Failure, Success, Try}
 
 abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command] {
   override final def run(command: Command, remainingArgs: RemainingArgs): Unit = {
@@ -23,8 +26,27 @@ abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command]
   }
 }
 
+object ArgumentParsers {
+  implicit val fileParser: ArgParser[File] = {
+    ArgParser.instance[File]("file") { path: String =>
+      Right(File(path))
+    }
+  }
+
+  implicit val boolean: ArgParser[Option[Unit]] = {
+    ArgParser.flag("flag") {
+      case Some(_) => Right(Option(()))
+      case None    => Right(Option.empty)
+    }
+  }
+}
+
 object Version {
   val version: String = Option(getClass.getPackage.getImplementationVersion).getOrElse("0.1.0-SNAPSHOT")
+}
+
+object Properties {
+  val codacyCode: Option[File] = sys.env.get("CODACY_CODE").map(File(_))
 }
 
 @AppName("Codacy Analysis Cli")
@@ -52,39 +74,40 @@ sealed trait Command extends Runnable {
 
 final case class Analyse(@Recurse
                          options: CommonOptions,
-                         @ExtraName("t") @ValueDescription("The tool to analyse on the code")
+                         @ExtraName("t") @ValueDescription("The tool to analyse the code.")
                          tool: String,
-                         @ExtraName("d") @ValueDescription("The directory to be analysed")
-                         directory: File = File.currentWorkingDirectory,
-                         @ExtraName("f") @ValueDescription("The format to output")
-                         format: String = "text",
-                         @ExtraName("o") @ValueDescription("The output file destination")
-                         output: Option[File] = Option.empty)
+                         @ExtraName("d") @ValueDescription("The directory to analyse.")
+                         directory: File = Properties.codacyCode.getOrElse(File.currentWorkingDirectory),
+                         @ExtraName("f") @ValueDescription(
+                           s"The output format. (${Formatter.allFormatters.map(_.name).mkString(", ")})")
+                         format: String = Formatter.defaultFormatter.name,
+                         @ExtraName("o") @ValueDescription("The output destination file.")
+                         output: Option[File] = Option.empty,
+                         @Hidden @ExtraName("a") @ValueDescription(
+                           s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")
+                         analyser: String = Analyser.defaultAnalyser.name)
     extends Command {
 
+  // TODO: check if verbose is working
+  private implicit val logger: Logger = utils.Logger.withLevel(getLogger, options.verbose.isDefined)
+  private val formatterImpl: Formatter = Formatter(format, output)
+  private val analyserImpl: Analyser[Try] = Analyser(analyser)
+
   def run(): Unit = {
-    implicit val logger: Logger = utils.Logger.withLevel(getLogger, options.verbose.isDefined)
+    formatterImpl.begin()
 
-    val formatter = Formatter(format, output)
+    // TODO: Move this to the file processor
+    val baseDirectory = if (directory.isDirectory) directory else directory.parent
+    val filesToAnalyse = if (directory.isDirectory) directory.listRecursively.to[Set] else Set(directory)
 
-    formatter.begin()
-    formatter.add(FileError("filename", "message"))
-    formatter.add(Issue(LineLocation(1), "filename"))
-    formatter.end()
-  }
-}
-
-object ArgumentParsers {
-  implicit val fileParser: ArgParser[File] = {
-    ArgParser.instance[File]("file") { path: String =>
-      Right(File(path))
+    analyserImpl.analyse(tool, baseDirectory, filesToAnalyse, FileCfg) match {
+      case Success(res) =>
+        logger.info(s"Completed analysis for $tool")
+        res.foreach(formatterImpl.add)
+      case Failure(e) =>
+        logger.error(e)(s"Failed analysis for $tool")
     }
-  }
 
-  implicit val boolean: ArgParser[Option[Unit]] = {
-    ArgParser.flag("flag") {
-      case Some(_) => Right(Option(()))
-      case None    => Right(Option.empty)
-    }
+    formatterImpl.end()
   }
 }

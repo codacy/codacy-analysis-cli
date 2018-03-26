@@ -1,15 +1,20 @@
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport.Docker
-import com.typesafe.sbt.packager.docker.{Cmd, DockerAlias}
+import com.typesafe.sbt.packager.docker.{Cmd, CmdLike, DockerAlias}
 import sbt.Keys._
+import sbt.{Def, _}
 
 import scala.util.Properties
 
 object Common {
 
   private val defaultDockerInstallationPath = "/opt/codacy"
+  private val dockerVersion = "docker-17.09.0-ce"
 
-  val dockerSettings = Seq(
+  val genericSettings: Seq[Def.Setting[Seq[Resolver]]] = Seq(
+    resolvers += "Codacy Public Mvn bucket" at "https://s3-eu-west-1.amazonaws.com/public.mvn.codacy.com")
+
+  val dockerSettings: Seq[Def.Setting[_]] = Seq(
     packageName in Docker := packageName.value,
     dockerAlias := DockerAlias(None, Some("codacy"), name.value, Some(version.value)),
     version in Docker := version.value,
@@ -25,14 +30,23 @@ object Common {
         List(
           Cmd(
             "RUN",
-            s"""|apk add --no-cache --update bash &&
+            s"""|apk add --no-cache -t .deps --update wget ca-certificates tar &&
+                |apk add --no-cache --update bash &&
+                |wget https://download.docker.com/linux/static/stable/x86_64/$dockerVersion.tgz &&
+                |tar -xvf $dockerVersion.tgz --strip-components 1 docker/docker &&
+                |rm -rf $dockerVersion.tgz &&
+                |mv docker /usr/bin/docker &&
+                |chmod +x /usr/bin/docker &&
+                |ln -s /usr/bin/docker /usr/local/bin/docker &&
+                |chmod +x /usr/local/bin/docker &&
+                |apk del .deps &&
                 |rm -rf /tmp/*""".stripMargin.replaceAllLiterally(Properties.lineSeparator, " ")),
           cmd)
 
       case other => List(other)
     })
 
-  val compilerFlags = Seq(
+  val compilerFlags: Seq[String] = Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
     "-encoding",
     "utf-8", // Specify character encoding used by source files.
