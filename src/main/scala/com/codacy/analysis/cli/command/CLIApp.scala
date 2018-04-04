@@ -8,8 +8,9 @@ import com.codacy.analysis.cli.clients.{CodacyClient, CodacyPlugins}
 import com.codacy.analysis.cli.command.ArgumentParsers._
 import com.codacy.analysis.cli.command.analyse.Analyser
 import com.codacy.analysis.cli.converters.ConfigurationHelper
+import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.Formatter
-import com.codacy.analysis.cli.model.{CodacyCfg, Configuration, FileCfg, Result}
+import com.codacy.analysis.cli.model.{CodacyCfg, Configuration, FileCfg}
 import com.codacy.analysis.cli.rules.AnalyseRules
 import com.codacy.analysis.cli.utils
 import org.log4s.{Logger, getLogger}
@@ -105,15 +106,22 @@ final case class Analyse(@Recurse
   private implicit val logger: Logger = utils.Logger.withLevel(getLogger, options.verbose.isDefined)
   private val formatterImpl: Formatter = Formatter(format, output)
   private val analyserImpl: Analyser[Try] = Analyser(analyser)
+  private val fileCollector: FileCollector[Try] = FileCollector.defaultCollector.apply()
   private lazy val analyseRules = new AnalyseRules(sys.env)
 
   def run(): Unit = {
     formatterImpl.begin()
+
     // TODO: Move this to the file processor
     val baseDirectory = if (directory.isDirectory) directory else directory.parent
     val filesToAnalyse = if (directory.isDirectory) directory.listRecursively.to[Set] else Set(directory)
 
-    withToolConfiguration(baseDirectory, filesToAnalyse, analyserImpl.analyse) match {
+    val result = for {
+      fileTarget <- fileCollector.list(tool, directory, null, toolConfiguration)
+      results <- analyserImpl.analyse(tool, fileTarget.directory, fileTarget.files, FileCfg)
+    } yield results
+
+    result match {
       case Success(res) =>
         logger.info(s"Completed analysis for $tool")
         res.foreach(formatterImpl.add)
@@ -124,19 +132,16 @@ final case class Analyse(@Recurse
     formatterImpl.end()
   }
 
-  private def withToolConfiguration(baseDirectory: File,
-                                    filesToAnalyse: Set[File],
-                                    block: (String, File, Set[File], Configuration) => Try[Set[Result]]) = {
-    val toolConfig = getToolConfiguration match {
+  private def toolConfiguration: Configuration = {
+    getToolConfiguration match {
       case Left(e) =>
         logger.warn(e)
         FileCfg
       case Right(conf) => conf
     }
-    block(tool, baseDirectory, filesToAnalyse, toolConfig)
   }
 
-  private def getToolConfiguration: Either[String, Configuration] =
+  private def getToolConfiguration: Either[String, Configuration] = {
     for {
       apiURL <- analyseRules.validateApiBaseUrl(codacyApiBaseUrl)
       projToken <- analyseRules.validateProjectToken(projectToken)
@@ -147,10 +152,12 @@ final case class Analyse(@Recurse
           CodacyCfg(tc.patterns.map(ConfigurationHelper.apiPatternToInternalPattern))
       }.getOrElse(FileCfg)
     }
+  }
 
   private def getRemoteProjectConfiguration(apiURL: String, projToken: String): Either[String, ProjectConfiguration] = {
     //TODO: this should be in a different place...
     val codacyClient = new CodacyClient(Some(apiURL), Some(projToken))
     codacyClient.getProjectConfiguration
   }
+
 }

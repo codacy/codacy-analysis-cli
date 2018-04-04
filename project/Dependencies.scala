@@ -8,6 +8,9 @@ object Dependencies {
     "io.circe" %% "circe-generic" % circeVersion,
     "io.circe" %% "circe-parser" % circeVersion)
 
+  val jacksonVersion = "2.8.4"
+  lazy val jackson = List("com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % jacksonVersion)
+
   lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.4.0"
 
   lazy val jodaTime = "joda-time" % "joda-time" % "2.9.9"
@@ -18,8 +21,8 @@ object Dependencies {
 
   lazy val caseApp = "com.github.alexarchambault" %% "case-app" % "1.2.0"
 
-  lazy val codacyPluginsApi = "com.codacy" %% "codacy-plugins-api" % "1.0.12"
-  lazy val codacyPlugins = "codacy" %% "codacy-plugins" % "0.1.0-jenkins.1" classifier "assembly"
+  lazy val codacyPluginsApi = "com.codacy" %% "codacy-plugins-api" % "add-languages-SNAPSHOT" //"1.0.12"
+  lazy val codacyPlugins = "codacy" %% "codacy-plugins" % "add-languages-SNAPSHOT" classifier "assembly" //"0.1.0-jenkins.1" classifier "assembly"
 
   lazy val fansi = "com.lihaoyi" %% "fansi" % "0.2.5"
 

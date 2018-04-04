@@ -31,6 +31,7 @@ lazy val codacyAnalysisCli = project
       Dependencies.scalajHttp,
       Dependencies.cats) ++
       Dependencies.circe ++
+      Dependencies.jackson ++
       Dependencies.log4s,
     // Test Dependencies
     libraryDependencies ++= Seq(Dependencies.specs2).map(_ % Test))
