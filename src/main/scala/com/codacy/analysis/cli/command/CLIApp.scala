@@ -118,10 +118,12 @@ final case class Analyse(@Recurse
       directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
         if (dir.isDirectory) dir else dir.parent)
 
+    val localConfigurationFile = CodacyConfigurationFile.load(baseDirectory)
+
     val result = for {
+      fileTargets <- fileCollector.list(baseDirectory, localConfigurationFile, null)
       tool <- Tool.from(tool)
-      localConfigurationFile = CodacyConfigurationFile.load(baseDirectory)
-      fileTarget <- fileCollector.list(tool, baseDirectory, localConfigurationFile, toolConfiguration)
+      fileTarget <- fileCollector.filter(tool, fileTargets, localConfigurationFile, toolConfiguration)
       results <- analyserImpl.analyse(tool, fileTarget.directory, fileTarget.files, FileCfg)
     } yield results
 

@@ -57,7 +57,8 @@ object Tool {
   def from(value: String): Try[Tool] = findTool(value).map(new Tool(_))
 
   private def findTool(value: String): Try[IDockerPlugin] = {
-    PluginHelper.dockerEnterprisePlugins
+    PluginHelper.dockerPlugins
+      .++(PluginHelper.dockerEnterprisePlugins)
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
       .fold[Try[IDockerPlugin]](Failure(CodacyPluginsAnalyser.errors.missingTool(value)))(Success(_))
   }

@@ -14,10 +14,14 @@ trait FileCollectorCompanion[T[_]] {
 
 trait FileCollector[T[_]] {
 
-  def list(tool: Tool,
-           directory: File,
+  def list(directory: File,
            localConfiguration: Either[String, CodacyConfigurationFile],
            remoteConfiguration: AnyRef): T[FilesTarget]
+
+  def filter(tool: Tool,
+             target: FilesTarget,
+             localConfiguration: Either[String, CodacyConfigurationFile],
+             remoteConfiguration: AnyRef): T[FilesTarget]
 
 }
 
