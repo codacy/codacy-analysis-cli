@@ -1,11 +1,18 @@
 package com.codacy.analysis.cli
 
+import java.nio.file.{Path, Paths}
+
 import better.files.File
 import caseapp.RemainingArgs
+import codacy.docker.api
 import com.codacy.analysis.cli.command.ArgumentParsers._
 import com.codacy.analysis.cli.command.{Command, CommandAppWithBaseCommand, DefaultCommand}
+import com.codacy.analysis.cli.model.Result
+import io.circe.generic.auto._
+import io.circe.{Decoder, parser}
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
+
 import scala.sys.process._
 
 class CLISpec extends Specification with NoLanguageFeatures {
@@ -25,6 +32,10 @@ class CLISpec extends Specification with NoLanguageFeatures {
       }
     }
   }
+
+  implicit val categoryDencoder: Decoder[api.Pattern.Category.Value] = Decoder.enumDecoder(api.Pattern.Category)
+  implicit val levelDencoder: Decoder[api.Result.Level.Value] = Decoder.enumDecoder(api.Result.Level)
+  implicit val fileDencoder: Decoder[Path] = Decoder[String].map(Paths.get(_))
 
   "CLIApp" should {
     "parse correctly" in {
@@ -97,8 +108,16 @@ class CLISpec extends Specification with NoLanguageFeatures {
             "--output",
             file.pathAsString))
 
-        file.contentAsString must beEqualTo(
-          File.resource("com/codacy/analysis/cli/cli-output-brakeman-1.json").contentAsString)
+        val result = for {
+          responseJson <- parser.parse(file.contentAsString)
+          response <- responseJson.as[Set[Result]]
+          expectedJson <- parser.parse(
+            File.resource("com/codacy/analysis/cli/cli-output-brakeman-1.json").contentAsString)
+          expected <- expectedJson.as[Set[Result]]
+        } yield (response, expected)
+
+        result must beRight
+        result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
       }).get()
     }
 
