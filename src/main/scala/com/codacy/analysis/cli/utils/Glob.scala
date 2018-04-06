@@ -4,7 +4,7 @@ import java.nio.file.Paths
 
 import better.files.File
 
-case class Glob(value: String) extends AnyVal {
+final case class Glob(value: String) extends AnyVal {
   override def toString: String = value
 
   def matches(file: String): Boolean = {

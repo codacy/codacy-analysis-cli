@@ -2,6 +2,7 @@ package com.codacy.analysis.cli.command.analyse
 
 import better.files.File
 import com.codacy.analysis.cli.model.{Configuration, Result}
+import com.codacy.analysis.cli.tools.Tool
 import org.log4s.Logger
 
 import scala.util.Try
@@ -13,7 +14,7 @@ trait AnalyserCompanion[T[_]] {
 
 trait Analyser[T[_]] {
 
-  def analyse(tool: String, directory: File, files: Set[File], config: Configuration): T[Set[Result]]
+  def analyse(tool: Tool, directory: File, files: Set[File], config: Configuration): T[Set[Result]]
 
 }
 

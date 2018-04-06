@@ -7,11 +7,13 @@ import com.codacy.analysis.cli.clients.api.ProjectConfiguration
 import com.codacy.analysis.cli.clients.{CodacyClient, CodacyPlugins}
 import com.codacy.analysis.cli.command.ArgumentParsers._
 import com.codacy.analysis.cli.command.analyse.Analyser
+import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
 import com.codacy.analysis.cli.converters.ConfigurationHelper
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.cli.model.{CodacyCfg, Configuration, FileCfg}
 import com.codacy.analysis.cli.rules.AnalyseRules
+import com.codacy.analysis.cli.tools.Tool
 import com.codacy.analysis.cli.utils
 import org.log4s.{Logger, getLogger}
 
@@ -91,7 +93,7 @@ final case class Analyse(@Recurse
                          @ExtraName("t") @ValueDescription("The tool to analyse the code.")
                          tool: String,
                          @ExtraName("d") @ValueDescription("The directory to analyse.")
-                         directory: File = Properties.codacyCode.getOrElse(File.currentWorkingDirectory),
+                         directory: Option[File],
                          @ExtraName("f") @ValueDescription(
                            s"The output format. (${Formatter.allFormatters.map(_.name).mkString(", ")})")
                          format: String = Formatter.defaultFormatter.name,
@@ -112,12 +114,14 @@ final case class Analyse(@Recurse
   def run(): Unit = {
     formatterImpl.begin()
 
-    // TODO: Move this to the file processor
-    val baseDirectory = if (directory.isDirectory) directory else directory.parent
-    val filesToAnalyse = if (directory.isDirectory) directory.listRecursively.to[Set] else Set(directory)
+    val baseDirectory =
+      directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
+        if (dir.isDirectory) dir else dir.parent)
 
     val result = for {
-      fileTarget <- fileCollector.list(tool, directory, null, toolConfiguration)
+      tool <- Tool.from(tool)
+      localConfigurationFile = CodacyConfigurationFile.load(baseDirectory)
+      fileTarget <- fileCollector.list(tool, baseDirectory, localConfigurationFile, toolConfiguration)
       results <- analyserImpl.analyse(tool, fileTarget.directory, fileTarget.files, FileCfg)
     } yield results
 

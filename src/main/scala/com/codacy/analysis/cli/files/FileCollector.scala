@@ -2,6 +2,7 @@ package com.codacy.analysis.cli.files
 
 import better.files.File
 import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
+import com.codacy.analysis.cli.tools.Tool
 import org.log4s.Logger
 
 import scala.util.Try
@@ -13,9 +14,9 @@ trait FileCollectorCompanion[T[_]] {
 
 trait FileCollector[T[_]] {
 
-  def list(tool: String,
+  def list(tool: Tool,
            directory: File,
-           localConfiguration: CodacyConfigurationFile,
+           localConfiguration: Either[String, CodacyConfigurationFile],
            remoteConfiguration: AnyRef): T[FilesTarget]
 
 }

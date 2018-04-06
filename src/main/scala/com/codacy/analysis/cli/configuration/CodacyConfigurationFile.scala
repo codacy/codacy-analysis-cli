@@ -1,43 +1,55 @@
 package com.codacy.analysis.cli.configuration
 
+import better.files.File
 import com.codacy.analysis.cli.utils.Glob
+import com.codacy.api.dtos.{Language, Languages}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.{YAMLFactory, YAMLGenerator}
 import play.api.libs.json.Reads._
 import play.api.libs.json._
-import com.codacy.api.dtos.{Language, Languages}
 
 import scala.util.{Failure, Success, Try}
 
-case class GradeConfiguration(exclude_paths: Option[Set[Glob]])
+final case class GradeConfiguration(exclude_paths: Option[Set[Glob]])
 
-case class LanguageConfiguration(extensions: Option[Set[String]])
+final case class LanguageConfiguration(extensions: Option[Set[String]])
 
-case class EngineConfiguration(enabled: Boolean,
-                               exclude_paths: Option[Set[Glob]],
-                               baseSubDir: Option[String],
-                               extraValues: Option[Map[String, JsValue]])
+final case class EngineConfiguration(enabled: Boolean,
+                                     exclude_paths: Option[Set[Glob]],
+                                     baseSubDir: Option[String],
+                                     extraValues: Option[Map[String, JsValue]])
 
-case class CodacyConfigurationFile(engines: Option[Map[String, EngineConfiguration]],
-                                   grade: Option[GradeConfiguration],
-                                   exclude_paths: Option[Set[Glob]],
-                                   languages: Option[Map[Language, LanguageConfiguration]])
+final case class CodacyConfigurationFile(engines: Option[Map[String, EngineConfiguration]],
+                                         grade: Option[GradeConfiguration],
+                                         exclude_paths: Option[Set[Glob]],
+                                         languages: Option[Map[Language, LanguageConfiguration]])
 
 object CodacyConfigurationFile {
 
   val filenames = Set(".codacy.yaml", ".codacy.yml")
 
+  def load(root: File): Either[String, CodacyConfigurationFile] = {
+    filenames
+      .map(root / _)
+      .find(f => f.exists && f.isRegularFile)
+      .fold[Either[String, File]](
+        Left(s"Could not find Codacy configuration file. Make sure you have a file named like one of ${filenames
+          .mkString(", ")}."))(Right(_))
+      .flatMap(f => parse(f.contentAsString))
+  }
+
   def parse(yamlString: String): Either[String, CodacyConfigurationFile] = {
     Try {
-      val yamlMapper = new ObjectMapper(new YAMLFactory().configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false))
+      val yamlMapper =
+        new ObjectMapper(new YAMLFactory().configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false))
       val jsonString = yamlMapper.readTree(yamlString).toString
       val json = Json.parse(jsonString)
       json.validate[CodacyConfigurationFile] match {
-        case JsError(error) => Left(error.mkString)
+        case JsError(error)      => Left(error.mkString)
         case JsSuccess(value, _) => Right(value)
       }
     } match {
-      case Failure(error) => Left(error.getMessage)
+      case Failure(error)  => Left(error.getMessage)
       case Success(config) => config
     }
   }
