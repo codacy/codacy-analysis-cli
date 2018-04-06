@@ -58,7 +58,7 @@ object CodacyPluginsAnalyser extends AnalyserCompanion[Try] {
 
   val name: String = "codacy-plugins"
 
-  private val allToolShortNames = PluginHelper.dockerPlugins.map(_.shortName)
+  private val allToolShortNames = PluginHelper.dockerEnterprisePlugins.map(_.shortName)
 
   override def apply(): Analyser[Try] = new CodacyPluginsAnalyser()
 

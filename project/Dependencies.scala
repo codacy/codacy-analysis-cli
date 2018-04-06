@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
 
-  val circeVersion = "0.6.0"
+  val circeVersion = "0.9.3"
   lazy val circe = List(
     "io.circe" %% "circe-core" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
@@ -23,4 +23,7 @@ object Dependencies {
 
   lazy val fansi = "com.lihaoyi" %% "fansi" % "0.2.5"
 
+  lazy val scalajHttp =  "org.scalaj" %% "scalaj-http" % "2.3.0"
+
+  lazy val cats = "org.typelevel" %% "cats-core" % "1.1.0"
 }
