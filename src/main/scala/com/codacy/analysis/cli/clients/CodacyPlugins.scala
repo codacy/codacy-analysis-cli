@@ -4,7 +4,7 @@ import utils.PluginHelper
 
 object CodacyPlugins {
 
-  def getPluginUuidByShortName(shortName: String) = PluginHelper.dockerEnterprisePlugins.collectFirst {
+  def getPluginUuidByShortName(shortName: String): Option[String] = PluginHelper.dockerEnterprisePlugins.collectFirst {
     case plugin if plugin.shortName == shortName => plugin.uuid
   }
 

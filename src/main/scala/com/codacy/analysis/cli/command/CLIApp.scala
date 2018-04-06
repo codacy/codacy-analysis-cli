@@ -79,6 +79,12 @@ final case class Analyse(@Recurse
                          options: CommonOptions,
                          @ExtraName("p") @ValueDescription("The project token.")
                          projectToken: Option[String],
+                         @ValueDescription("The api token.")
+                         apiToken: Option[String],
+                         @ExtraName("u") @ValueDescription("The username.")
+                         username: Option[String],
+                         @ExtraName("p") @ValueDescription("The project name.")
+                         project: Option[String],
                          @ExtraName("a") @ValueDescription("The codacy api base url.")
                          codacyApiBaseUrl: Option[String],
                          @ExtraName("t") @ValueDescription("The tool to analyse the code.")
@@ -99,43 +105,53 @@ final case class Analyse(@Recurse
   private implicit val logger: Logger = utils.Logger.withLevel(getLogger, options.verbose.isDefined)
   private val formatterImpl: Formatter = Formatter(format, output)
   private val analyserImpl: Analyser[Try] = Analyser(analyser)
+  private lazy val analyseRules = new AnalyseRules(sys.env)
 
   def run(): Unit = {
     formatterImpl.begin()
+    // TODO: Move this to the file processor
+    val baseDirectory = if (directory.isDirectory) directory else directory.parent
+    val filesToAnalyse = if (directory.isDirectory) directory.listRecursively.to[Set] else Set(directory)
 
-    withToolConfiguration(analyserImpl.analyse).fold(e => logger.error(e), {
+    withToolConfiguration(baseDirectory, filesToAnalyse, analyserImpl.analyse) match {
       case Success(res) =>
         logger.info(s"Completed analysis for $tool")
         res.foreach(formatterImpl.add)
       case Failure(e) =>
         logger.error(e)(s"Failed analysis for $tool")
-    })
+    }
 
     formatterImpl.end()
   }
+
+
+  private def withToolConfiguration(baseDirectory: File,
+                                    filesToAnalyse: Set[File],
+                                    block: (String, File, Set[File], Configuration) => Try[Set[Result]]) = {
+    getToolConfiguration match {
+      case Left(e) =>
+        logger.warn(e)
+        block(tool, baseDirectory, filesToAnalyse, FileCfg)
+      case Right(conf) =>
+        block(tool, baseDirectory, filesToAnalyse, conf)
+    }
+  }
+
+  private def getToolConfiguration: Either[String, Configuration] =
+    for {
+      apiURL <- analyseRules.validateApiBaseUrl(codacyApiBaseUrl)
+      projToken <- analyseRules.validateProjectToken(projectToken)
+      projectConfig <- getProjectConfiguration(apiURL, projToken)
+    } yield {
+      projectConfig.toolConfiguration.collectFirst {
+        case tc if CodacyPlugins.getPluginUuidByShortName(tool).contains(tc.uuid) =>
+          CodacyCfg(tc.patterns.map(ConfigurationHelper.apiPatternToInternalPattern))
+      }.getOrElse(FileCfg)
+    }
 
   private def getProjectConfiguration(apiURL: String, projToken: String): Either[String, ProjectConfiguration] = {
     //TODO: this should be in a different place... dependency injection, or something
     val codacyClient = new CodacyClient(Some(apiURL), Some(projToken))
     codacyClient.getProjectConfiguration
   }
-
-  private def withToolConfiguration(block: (String, File, Set[File], Configuration) => Try[Set[Result]]) = {
-    // TODO: Move this to the file processor
-    val baseDirectory = if (directory.isDirectory) directory else directory.parent
-    val filesToAnalyse = if (directory.isDirectory) directory.listRecursively.to[Set] else Set(directory)
-
-    for {
-      apiURL <- AnalyseRules.validateApiBaseUrl(codacyApiBaseUrl)
-      projToken <- AnalyseRules.validateProjectToken(projectToken)
-      projectConfig <- getProjectConfiguration(apiURL, projToken)
-    } yield {
-      val toolConfig = projectConfig.toolConfiguration.collectFirst {
-        case tc if CodacyPlugins.getPluginUuidByShortName(tool).contains(tc.uuid) =>
-          CodacyCfg(tc.patterns.map(ConfigurationHelper.apiPatternToInternalPattern))
-      }.getOrElse(FileCfg)
-      block(tool, baseDirectory, filesToAnalyse, toolConfig)
-    }
-  }
-
 }

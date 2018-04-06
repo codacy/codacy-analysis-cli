@@ -4,7 +4,7 @@ import java.net.URL
 import cats.implicits._
 import scala.util.Try
 
-object AnalyseRules {
+class AnalyseRules(environmentVariables: Map[String, String]) {
 
   private val publicApiBaseUrl = "https://api.codacy.com"
 
@@ -23,34 +23,26 @@ object AnalyseRules {
 
   def validateApiBaseUrl(codacyApiBaseURL: Option[String]): Either[String, String] = {
     val apiURL = codacyApiBaseURL.getOrElse(getApiBaseUrl)
-    for {
-      validatedApiURL <- if (!validUrl(apiURL)) {
+
+    Try(new URL(apiURL)).toEither match {
+      case Left(_) =>
         val error = s"Invalid codacy api url: $apiURL"
 
         val help = if (!apiURL.startsWith("http")) {
           "Maybe you forgot the http:// or https:// ?"
         }
         s"$error\n$help".asLeft
-      } else {
-        apiURL.asRight
-      }
-    } yield {
-      validatedApiURL
+      case Right(_) => apiURL.asRight
     }
   }
 
   private def getProjectToken: Either[String, String] = {
     Either.fromOption(
-      sys.env.get("CODACY_PROJECT_TOKEN"),
-      "Project token not provided and not available in environment variable \"CODACY_PROJECT_TOKEN\"")
+      environmentVariables.get("CODACY_PROJECT_TOKEN"),
+      """Project token not provided and not available in environment variable "CODACY_PROJECT_TOKEN"""")
   }
 
   private def getApiBaseUrl: String = {
-    sys.env.getOrElse("CODACY_API_BASE_URL", publicApiBaseUrl)
+    environmentVariables.getOrElse("CODACY_API_BASE_URL", publicApiBaseUrl)
   }
-
-  private def validUrl(baseUrl: String) = {
-    Try(new URL(baseUrl)).toOption.isDefined
-  }
-
 }
