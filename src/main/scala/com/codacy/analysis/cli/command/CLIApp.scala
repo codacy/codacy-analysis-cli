@@ -124,24 +124,23 @@ final case class Analyse(@Recurse
     formatterImpl.end()
   }
 
-
   private def withToolConfiguration(baseDirectory: File,
                                     filesToAnalyse: Set[File],
                                     block: (String, File, Set[File], Configuration) => Try[Set[Result]]) = {
-    getToolConfiguration match {
+    val toolConfig = getToolConfiguration match {
       case Left(e) =>
         logger.warn(e)
-        block(tool, baseDirectory, filesToAnalyse, FileCfg)
-      case Right(conf) =>
-        block(tool, baseDirectory, filesToAnalyse, conf)
+        FileCfg
+      case Right(conf) => conf
     }
+    block(tool, baseDirectory, filesToAnalyse, toolConfig)
   }
 
   private def getToolConfiguration: Either[String, Configuration] =
     for {
       apiURL <- analyseRules.validateApiBaseUrl(codacyApiBaseUrl)
       projToken <- analyseRules.validateProjectToken(projectToken)
-      projectConfig <- getProjectConfiguration(apiURL, projToken)
+      projectConfig <- getRemoteProjectConfiguration(apiURL, projToken)
     } yield {
       projectConfig.toolConfiguration.collectFirst {
         case tc if CodacyPlugins.getPluginUuidByShortName(tool).contains(tc.uuid) =>
@@ -149,8 +148,8 @@ final case class Analyse(@Recurse
       }.getOrElse(FileCfg)
     }
 
-  private def getProjectConfiguration(apiURL: String, projToken: String): Either[String, ProjectConfiguration] = {
-    //TODO: this should be in a different place... dependency injection, or something
+  private def getRemoteProjectConfiguration(apiURL: String, projToken: String): Either[String, ProjectConfiguration] = {
+    //TODO: this should be in a different place...
     val codacyClient = new CodacyClient(Some(apiURL), Some(projToken))
     codacyClient.getProjectConfiguration
   }

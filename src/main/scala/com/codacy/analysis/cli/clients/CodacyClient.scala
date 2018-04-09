@@ -21,17 +21,17 @@ class CodacyClient(apiUrl: Option[String] = None,
       projectTokenOpt.map(projectTokenOpt => "project_token" -> projectTokenOpt)
 
     val response: HttpResponse[String] =
-      Http(s"$remoteUrl/$endpoint").headers(headers).timeout(connectionTimeoutMs, readTimeoutMs).asString
+      Http(s"$remoteUrl$endpoint").headers(headers).timeout(connectionTimeoutMs, readTimeoutMs).asString
 
     parse(response.body)
   }
 
   def getProjectConfiguration: Either[String, ProjectConfiguration] = {
-    getProjectConfigurationFrom("/v2/project/analysis/configuration")
+    getProjectConfigurationFrom("/project/analysis/configuration")
   }
 
   def getProjectConfiguration(projectName: String, username: String): Either[String, ProjectConfiguration] = {
-    getProjectConfigurationFrom(s"/v2/project/$username/$projectName/analysis/configuration")
+    getProjectConfigurationFrom(s"/project/$username/$projectName/analysis/configuration")
   }
 
   private def getProjectConfigurationFrom(endpoint: String) = {
