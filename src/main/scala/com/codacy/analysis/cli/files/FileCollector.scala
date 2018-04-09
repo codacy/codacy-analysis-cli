@@ -2,6 +2,7 @@ package com.codacy.analysis.cli.files
 
 import better.files.File
 import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
+import com.codacy.analysis.cli.model.RemoteConfiguration
 import com.codacy.analysis.cli.tools.Tool
 import org.log4s.Logger
 
@@ -16,12 +17,12 @@ trait FileCollector[T[_]] {
 
   def list(directory: File,
            localConfiguration: Either[String, CodacyConfigurationFile],
-           remoteConfiguration: AnyRef): T[FilesTarget]
+           remoteConfiguration: Either[String, RemoteConfiguration]): T[FilesTarget]
 
   def filter(tool: Tool,
              target: FilesTarget,
              localConfiguration: Either[String, CodacyConfigurationFile],
-             remoteConfiguration: AnyRef): T[FilesTarget]
+             remoteConfiguration: Either[String, RemoteConfiguration]): T[FilesTarget]
 
 }
 
