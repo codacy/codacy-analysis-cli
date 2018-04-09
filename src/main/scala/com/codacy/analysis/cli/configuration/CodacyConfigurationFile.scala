@@ -1,7 +1,7 @@
 package com.codacy.analysis.cli.configuration
 
 import better.files.File
-import com.codacy.analysis.cli.utils.Glob
+import com.codacy.analysis.cli.files.Glob
 import com.codacy.api.dtos.{Language, Languages}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.{YAMLFactory, YAMLGenerator}

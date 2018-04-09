@@ -3,28 +3,19 @@ package com.codacy.analysis.cli.command
 import better.files.File
 import caseapp._
 import caseapp.core.ArgParser
-import com.codacy.analysis.cli.clients.api.ProjectConfiguration
-import com.codacy.analysis.cli.clients.{CodacyClient, CodacyPlugins}
+import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.command.ArgumentParsers._
-import com.codacy.analysis.cli.command.analyse.Analyser
-import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
-import com.codacy.analysis.cli.converters.ConfigurationHelper
-import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.Formatter
-import com.codacy.analysis.cli.model.{CodacyCfg, Configuration, FileCfg}
-import com.codacy.analysis.cli.rules.AnalyseRules
-import com.codacy.analysis.cli.tools.Tool
-import com.codacy.analysis.cli.utils
-import org.log4s.{Logger, getLogger}
 
-import scala.util.{Failure, Success, Try}
 abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command] {
+  def run(command: Command): Unit
+
   override final def run(command: Command, remainingArgs: RemainingArgs): Unit = {
-    command.run()
+    run(command)
   }
 
   override def defaultCommand(command: DefaultCommand, remainingArgs: Seq[String]): Unit = {
-    if (command.version.isDefined) {
+    if (command.version.## > 0) {
       command.run()
     } else {
       helpAsked()
@@ -36,13 +27,6 @@ object ArgumentParsers {
   implicit val fileParser: ArgParser[File] = {
     ArgParser.instance[File]("file") { path: String =>
       Right(File(path))
-    }
-  }
-
-  implicit val boolean: ArgParser[Option[Unit]] = {
-    ArgParser.flag("flag") {
-      case Some(_) => Right(Option(()))
-      case None    => Right(Option.empty)
     }
   }
 }
@@ -60,11 +44,11 @@ object Properties {
 @ProgName("codacy-analysis-cli")
 final case class DefaultCommand(
   @ExtraName("v") @ValueDescription("Prints the version of the program")
-  version: Option[Unit])
+  version: Int @@ Counter = Tag.of(0))
     extends Runnable {
 
   def run(): Unit = {
-    if (version.isDefined) {
+    if (version.## > 0) {
       Console.println(s"codacy-analysis-cli is on version ${Version.version}")
     }
   }
@@ -72,24 +56,31 @@ final case class DefaultCommand(
 
 final case class CommonOptions(
   @ValueDescription("Run the tool with verbose output")
-  verbose: Option[Unit] = Option.empty)
+  verbose: Int @@ Counter = Tag.of(0))
 
-sealed trait Command extends Runnable {
+sealed trait Command {
   def options: CommonOptions
 }
 
+final case class APIOptions(@ValueDescription("The project token.")
+                            projectToken: Option[String],
+                            @ValueDescription("The api token.")
+                            apiToken: Option[String],
+                            @ValueDescription("The username.")
+                            username: Option[String],
+                            @ValueDescription("The project name.")
+                            project: Option[String],
+                            @ValueDescription("The codacy api base url.")
+                            codacyApiBaseUrl: Option[String])
+
+final case class ExtraOptions(
+  @Hidden @ValueDescription(s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")
+  analyser: String = Analyser.defaultAnalyser.name)
+
 final case class Analyse(@Recurse
                          options: CommonOptions,
-                         @ExtraName("p") @ValueDescription("The project token.")
-                         projectToken: Option[String],
-                         @ValueDescription("The api token.")
-                         apiToken: Option[String],
-                         @ExtraName("u") @ValueDescription("The username.")
-                         username: Option[String],
-                         @ExtraName("p") @ValueDescription("The project name.")
-                         project: Option[String],
-                         @ExtraName("a") @ValueDescription("The codacy api base url.")
-                         codacyApiBaseUrl: Option[String],
+                         @Recurse
+                         api: APIOptions,
                          @ExtraName("t") @ValueDescription("The tool to analyse the code.")
                          tool: String,
                          @ExtraName("d") @ValueDescription("The directory to analyse.")
@@ -99,71 +90,6 @@ final case class Analyse(@Recurse
                          format: String = Formatter.defaultFormatter.name,
                          @ExtraName("o") @ValueDescription("The output destination file.")
                          output: Option[File] = Option.empty,
-                         @Hidden @ExtraName("a") @ValueDescription(
-                           s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")
-                         analyser: String = Analyser.defaultAnalyser.name)
-    extends Command {
-
-  // TODO: check if verbose is working
-  private implicit val logger: Logger = utils.Logger.withLevel(getLogger, options.verbose.isDefined)
-  private val formatterImpl: Formatter = Formatter(format, output)
-  private val analyserImpl: Analyser[Try] = Analyser(analyser)
-  private val fileCollector: FileCollector[Try] = FileCollector.defaultCollector.apply()
-  private lazy val analyseRules = new AnalyseRules(sys.env)
-
-  def run(): Unit = {
-    formatterImpl.begin()
-
-    val baseDirectory =
-      directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
-        if (dir.isDirectory) dir else dir.parent)
-
-    val localConfigurationFile = CodacyConfigurationFile.load(baseDirectory)
-
-    val result = for {
-      fileTargets <- fileCollector.list(baseDirectory, localConfigurationFile, null)
-      tool <- Tool.from(tool)
-      fileTarget <- fileCollector.filter(tool, fileTargets, localConfigurationFile, toolConfiguration)
-      results <- analyserImpl.analyse(tool, fileTarget.directory, fileTarget.files, FileCfg)
-    } yield results
-
-    result match {
-      case Success(res) =>
-        logger.info(s"Completed analysis for $tool")
-        res.foreach(formatterImpl.add)
-      case Failure(e) =>
-        logger.error(e)(s"Failed analysis for $tool")
-    }
-
-    formatterImpl.end()
-  }
-
-  private def toolConfiguration: Configuration = {
-    getToolConfiguration match {
-      case Left(e) =>
-        logger.warn(e)
-        FileCfg
-      case Right(conf) => conf
-    }
-  }
-
-  private def getToolConfiguration: Either[String, Configuration] = {
-    for {
-      apiURL <- analyseRules.validateApiBaseUrl(codacyApiBaseUrl)
-      projToken <- analyseRules.validateProjectToken(projectToken)
-      projectConfig <- getRemoteProjectConfiguration(apiURL, projToken)
-    } yield {
-      projectConfig.toolConfiguration.collectFirst {
-        case tc if CodacyPlugins.getPluginUuidByShortName(tool).contains(tc.uuid) =>
-          CodacyCfg(tc.patterns.map(ConfigurationHelper.apiPatternToInternalPattern))
-      }.getOrElse(FileCfg)
-    }
-  }
-
-  private def getRemoteProjectConfiguration(apiURL: String, projToken: String): Either[String, ProjectConfiguration] = {
-    //TODO: this should be in a different place...
-    val codacyClient = new CodacyClient(Some(apiURL), Some(projToken))
-    codacyClient.getProjectConfiguration
-  }
-
-}
+                         @Recurse
+                         extras: ExtraOptions)
+    extends Command

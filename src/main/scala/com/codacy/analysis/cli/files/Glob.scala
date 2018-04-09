@@ -1,4 +1,4 @@
-package com.codacy.analysis.cli.utils
+package com.codacy.analysis.cli.files
 
 import java.nio.file.Paths
 

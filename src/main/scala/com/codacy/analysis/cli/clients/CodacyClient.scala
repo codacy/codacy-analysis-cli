@@ -1,24 +1,22 @@
 package com.codacy.analysis.cli.clients
 
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
-import scalaj.http.{Http, HttpResponse}
+import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.{Json, ParsingFailure}
-import io.circe.generic.auto._
-import org.log4s.Logger
+import org.log4s.{Logger, getLogger}
+import scalaj.http.{Http, HttpResponse}
 
-class CodacyClient(apiUrl: Option[String] = None,
-                   apiTokenOpt: Option[String] = None,
-                   projectTokenOpt: Option[String] = None)(implicit logger: Logger) {
+class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, String]) {
+
+  private val logger: Logger = getLogger
 
   private val remoteUrl = apiUrl.getOrElse("https://api.codacy.com") + "/2.0"
   private lazy val connectionTimeoutMs = 2000
   private lazy val readTimeoutMs = 5000
 
   def get(endpoint: String): Either[ParsingFailure, Json] = {
-    val headers: Map[String, String] = Map("Content-Type" -> "application/json") ++
-      apiTokenOpt.map(apiToken => "api_token" -> apiToken) ++
-      projectTokenOpt.map(projectTokenOpt => "project_token" -> projectTokenOpt)
+    val headers: Map[String, String] = Map("Content-Type" -> "application/json") ++ extraHeaders
 
     val response: HttpResponse[String] =
       Http(s"$remoteUrl$endpoint").headers(headers).timeout(connectionTimeoutMs, readTimeoutMs).asString
@@ -51,4 +49,19 @@ class CodacyClient(apiUrl: Option[String] = None,
         Left(e.message)
       case Right(p) => Right(p)
     }
+}
+
+object CodacyClient {
+
+  def apply(credentials: Credentials): CodacyClient = {
+    credentials match {
+      case ProjectToken(token, baseUrl) =>
+        val headers: Map[String, String] = Map(("project_token", token))
+        new CodacyClient(baseUrl, headers)
+      case APIToken(token, baseUrl) =>
+        val headers: Map[String, String] = Map(("api_token", token))
+        new CodacyClient(baseUrl, headers)
+    }
+  }
+
 }

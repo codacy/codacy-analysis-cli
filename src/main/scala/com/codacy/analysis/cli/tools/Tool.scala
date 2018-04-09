@@ -2,12 +2,12 @@ package com.codacy.analysis.cli.tools
 
 import better.files.File
 import codacy.docker.api
-import com.codacy.analysis.cli.command.analyse.CodacyPluginsAnalyser
+import com.codacy.analysis.cli.analysis.CodacyPluginsAnalyser
 import com.codacy.analysis.cli.model.{Issue, Result, _}
 import com.codacy.analysis.cli.utils.FileHelper
 import com.codacy.api.dtos.Language
 import plugins.results.interface.scala.{Pattern, PluginConfiguration, PluginRequest}
-import plugins.results.traits.IDockerPlugin
+import plugins.results.traits.{IDockerPlugin, IDockerPluginConfig}
 import utils.PluginHelper
 
 import scala.concurrent.duration._
@@ -15,8 +15,16 @@ import scala.util.{Failure, Success, Try}
 
 class Tool(private val plugin: IDockerPlugin) {
   def name: String = plugin.shortName
+  def uuid: String = plugin.uuid
 
   def languages: Set[Language] = plugin.languages
+
+  def configFilenames: Set[String] = plugin match {
+    case plugin: IDockerPluginConfig =>
+      plugin.configFilename.to[Set]
+    case _ =>
+      Set.empty[String]
+  }
 
   def run(directory: File,
           files: Set[File],
@@ -54,11 +62,14 @@ class Tool(private val plugin: IDockerPlugin) {
 
 object Tool {
 
+  private val allTools = PluginHelper.dockerPlugins.++(PluginHelper.dockerEnterprisePlugins)
+
+  def allToolShortNames: Set[String] = allTools.map(_.shortName)(collection.breakOut)
+
   def from(value: String): Try[Tool] = findTool(value).map(new Tool(_))
 
   private def findTool(value: String): Try[IDockerPlugin] = {
-    PluginHelper.dockerPlugins
-      .++(PluginHelper.dockerEnterprisePlugins)
+    allTools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
       .fold[Try[IDockerPlugin]](Failure(CodacyPluginsAnalyser.errors.missingTool(value)))(Success(_))
   }

@@ -1,39 +1,46 @@
 package com.codacy.analysis.cli.files
 
 import better.files.File
+import cats.Foldable
 import cats.implicits._
+import com.codacy.analysis.cli.clients.api.{FilePath, ProjectConfiguration}
 import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
-import com.codacy.analysis.cli.model.{FilePath, RemoteConfiguration}
 import com.codacy.analysis.cli.tools.Tool
-import com.codacy.analysis.cli.utils.Glob
 import com.codacy.api.dtos.{Language, Languages}
 
 import scala.util.Try
 
-final case class FilesTarget(directory: File, files: Set[File])
+final case class FilesTarget(directory: File, files: Set[File], configFiles: Set[File])
 
 class FileSystemFileCollector extends FileCollector[Try] {
 
   // TODO: Check if File will work or if we might need Path to support relative paths
   // TODO: Use remote configuration
 
-  override def list(directory: File,
+  // HACK: Fixes Intellij IDEA highlight problems
+  private type EitherA[A] = Either[String, A]
+  private val foldable: Foldable[EitherA] = implicitly[Foldable[EitherA]]
+
+  override def list(tool: Tool,
+                    directory: File,
                     localConfiguration: Either[String, CodacyConfigurationFile],
-                    remoteConfiguration: Either[String, RemoteConfiguration]): Try[FilesTarget] = {
+                    remoteConfiguration: Either[String, ProjectConfiguration]): Try[FilesTarget] = {
     Try {
       val allFiles = directory.listRecursively().to[Set].filter(_.isRegularFile)
+
+      val configFiles = allFiles.filter(f => tool.configFilenames.exists(cf => f.pathAsString.endsWith(cf)))
 
       val filters = Set(excludeGlobal(localConfiguration) _, excludePrefixes(remoteConfiguration) _)
       val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
 
-      FilesTarget(directory, filteredFiles)
+      FilesTarget(directory, filteredFiles, configFiles)
     }
   }
 
   override def filter(tool: Tool,
                       target: FilesTarget,
                       localConfiguration: Either[String, CodacyConfigurationFile],
-                      remoteConfiguration: Either[String, RemoteConfiguration]): Try[FilesTarget] = {
+                      remoteConfiguration: Either[String, ProjectConfiguration]): Try[FilesTarget] = {
     Try {
       val filters = Set(
         excludeForTool(tool, localConfiguration) _,
@@ -43,19 +50,20 @@ class FileSystemFileCollector extends FileCollector[Try] {
     }
   }
 
-  private def excludePrefixes(remoteConfiguration: Either[String, RemoteConfiguration])(files: Set[File]): Set[File] = {
-    filterByPaths(files, remoteConfiguration.foldMap(_.ignoredPaths))
+  private def excludePrefixes(remoteConfiguration: Either[String, ProjectConfiguration])(
+    files: Set[File]): Set[File] = {
+    filterByPaths(files, foldable.foldMap(remoteConfiguration)(_.ignoredPaths))
   }
 
   private def excludeGlobal(localConfiguration: Either[String, CodacyConfigurationFile])(
     files: Set[File]): Set[File] = {
-    val excludeGlobs = localConfiguration.foldMap(_.exclude_paths.getOrElse(Set.empty[Glob]))
+    val excludeGlobs = foldable.foldMap(localConfiguration)(_.exclude_paths.getOrElse(Set.empty[Glob]))
     filterByGlobs(files, excludeGlobs)
   }
 
   private def excludeForTool(tool: Tool, localConfiguration: Either[String, CodacyConfigurationFile])(
     files: Set[File]): Set[File] = {
-    val excludeGlobs = localConfiguration.foldMap(localConfig =>
+    val excludeGlobs = foldable.foldMap(localConfiguration)(localConfig =>
       localConfig.engines.foldMap(_.get(tool.name).foldMap(_.exclude_paths.getOrElse(Set.empty[Glob]))))
     filterByGlobs(files, excludeGlobs)
   }
@@ -79,7 +87,7 @@ class FileSystemFileCollector extends FileCollector[Try] {
   private def filterByLanguage(
     tool: Tool,
     localConfiguration: Either[String, CodacyConfigurationFile],
-    remoteConfiguration: Either[String, RemoteConfiguration])(files: Set[File]): Set[File] = {
+    remoteConfiguration: Either[String, ProjectConfiguration])(files: Set[File]): Set[File] = {
     val localCustomExtensionsByLanguage =
       localConfiguration.fold(_ => Map.empty[Language, Set[String]], localConfig => {
         localConfig.languages.fold(Map.empty[Language, Set[String]])(_.map {
@@ -88,7 +96,8 @@ class FileSystemFileCollector extends FileCollector[Try] {
       })
 
     val remoteCustomExtensionsByLanguage: Map[Language, Set[String]] =
-      remoteConfiguration.foldMap(_.projectExtensions.map(le => (le.language, le.extensions))(collection.breakOut))
+      foldable.foldMap(remoteConfiguration)(
+        _.projectExtensions.map(le => (le.language, le.extensions))(collection.breakOut))
 
     Languages
       .filter(

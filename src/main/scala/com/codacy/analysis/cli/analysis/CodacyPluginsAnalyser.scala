@@ -1,9 +1,8 @@
-package com.codacy.analysis.cli.command.analyse
+package com.codacy.analysis.cli.analysis
 
 import better.files.File
 import com.codacy.analysis.cli.model._
 import com.codacy.analysis.cli.tools.Tool
-import utils.PluginHelper
 
 import scala.concurrent.duration._
 import scala.util.Try
@@ -20,7 +19,7 @@ object CodacyPluginsAnalyser extends AnalyserCompanion[Try] {
 
   val name: String = "codacy-plugins"
 
-  private val allToolShortNames = PluginHelper.dockerEnterprisePlugins.map(_.shortName)
+  private val allToolShortNames = Tool.allToolShortNames
 
   override def apply(): Analyser[Try] = new CodacyPluginsAnalyser()
 

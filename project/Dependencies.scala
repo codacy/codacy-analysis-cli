@@ -26,7 +26,7 @@ object Dependencies {
 
   lazy val fansi = "com.lihaoyi" %% "fansi" % "0.2.5"
 
-  lazy val scalajHttp =  "org.scalaj" %% "scalaj-http" % "2.3.0"
+  lazy val scalajHttp = "org.scalaj" %% "scalaj-http" % "2.3.0"
 
   lazy val cats = "org.typelevel" %% "cats-core" % "1.1.0"
 }

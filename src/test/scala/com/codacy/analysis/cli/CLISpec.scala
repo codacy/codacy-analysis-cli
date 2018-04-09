@@ -3,10 +3,8 @@ package com.codacy.analysis.cli
 import java.nio.file.{Path, Paths}
 
 import better.files.File
-import caseapp.RemainingArgs
 import codacy.docker.api
-import com.codacy.analysis.cli.command.ArgumentParsers._
-import com.codacy.analysis.cli.command.{Command, CommandAppWithBaseCommand, DefaultCommand}
+import com.codacy.analysis.cli.command.{Command, DefaultCommand}
 import com.codacy.analysis.cli.model.Result
 import io.circe.generic.auto._
 import io.circe.{Decoder, parser}
@@ -17,20 +15,8 @@ import scala.sys.process._
 
 class CLISpec extends Specification with NoLanguageFeatures {
 
-  private val cli = new CommandAppWithBaseCommand[DefaultCommand, Command] {
+  private val cli = new MainImpl() {
     override def exit(code: Int): Unit = ()
-
-    override final def run(command: Command, remainingArgs: RemainingArgs): Unit = {
-      command.run()
-    }
-
-    override def defaultCommand(command: DefaultCommand, remainingArgs: Seq[String]): Unit = {
-      if (command.version.isDefined) {
-        command.run()
-      } else {
-        helpAsked()
-      }
-    }
   }
 
   implicit val categoryDencoder: Decoder[api.Pattern.Category.Value] = Decoder.enumDecoder(api.Pattern.Category)
@@ -125,7 +111,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
   private def errorMsg(message: String)
     : (DefaultCommand, List[String], Option[Either[String, (String, Command, Seq[String], Seq[String])]]) = {
-    (DefaultCommand(None), List.empty[String], Some(Left(message)))
+    (DefaultCommand(), List.empty[String], Some(Left(message)))
   }
 
 }

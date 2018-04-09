@@ -4,7 +4,7 @@ import java.io.{FileOutputStream, PrintStream}
 
 import better.files.File
 import com.codacy.analysis.cli.model.Result
-import org.log4s.Logger
+import org.log4s.{Logger, getLogger}
 
 trait FormatterCompanion {
   def name: String
@@ -27,14 +27,17 @@ trait Formatter {
 
 object Formatter {
 
+  private val logger: Logger = getLogger
+
   private val defaultPrintStream = Console.out
 
   val defaultFormatter: FormatterCompanion = Text
 
   val allFormatters: Set[FormatterCompanion] = Set(defaultFormatter, Json)
 
-  def apply(name: String, file: Option[File] = Option.empty, printStream: Option[PrintStream] = Option.empty)(
-    implicit logger: Logger): Formatter = {
+  def apply(name: String,
+            file: Option[File] = Option.empty,
+            printStream: Option[PrintStream] = Option.empty): Formatter = {
 
     val builder = allFormatters.find(_.name.equalsIgnoreCase(name)).getOrElse {
       logger.warn(s"Could not find formatter for name $name. Using ${defaultFormatter.name} as fallback.")
