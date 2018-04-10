@@ -12,61 +12,18 @@ class Environment(variables: Map[String, String]) {
   private val logger: Logger = getLogger
 
   def projectToken(projectToken: Option[String]): Option[String] = {
-    projectToken
-      .ifEmpty(logger.info(s"Project token not passed through argument `--project-token`"))
-      .flatMap {
-        case t if t.trim.nonEmpty => Option(t.trim)
-        case _ =>
-          logger.warn(s"Project token passed through argument `--project-token` is empty")
-          Option.empty[String]
-      }
-      .orElse(variables.get("CODACY_PROJECT_TOKEN"))
-      .ifEmpty(logger.info(s"Project token not available in the environment variable `CODACY_PROJECT_TOKEN`"))
-      .flatMap {
-        case t if t.trim.nonEmpty => Option(t.trim)
-        case _ =>
-          logger.warn(s"Project token passed through argument `CODACY_PROJECT_TOKEN` is empty")
-          Option.empty[String]
-      }
+    validate("Project token", "argument", "--project-token")(projectToken).orElse(
+      validate("Project token", "environment variable", "CODACY_PROJECT_TOKEN")(variables.get("CODACY_PROJECT_TOKEN")))
   }
 
   def apiToken(apiToken: Option[String]): Option[String] = {
-    apiToken
-      .ifEmpty(logger.info(s"API token not passed through argument `--api-token`"))
-      .flatMap {
-        case t if t.trim.nonEmpty => Option(t.trim)
-        case _ =>
-          logger.warn(s"API token passed through argument `--api-token` is empty")
-          Option.empty[String]
-      }
-      .orElse(variables.get("CODACY_API_TOKEN"))
-      .ifEmpty(logger.info(s"API token not available in the environment variable `CODACY_API_TOKEN`"))
-      .flatMap {
-        case t if t.trim.nonEmpty => Option(t.trim)
-        case _ =>
-          logger.warn(s"API token passed through argument `CODACY_API_TOKEN` is empty")
-          Option.empty[String]
-      }
+    validate("API token", "argument", "--api-token")(apiToken)
+      .orElse(validate("API token", "environment variable", "CODACY_API_TOKEN")(variables.get("CODACY_API_TOKEN")))
   }
 
   def apiBaseUrl(codacyApiBaseURL: Option[String]): Option[String] = {
-    val apiURL =
-      codacyApiBaseURL
-        .ifEmpty(logger.info(s"API base URL not passed through argument `--codacy-api-base-url`"))
-        .flatMap {
-          case t if t.trim.nonEmpty => Option(t.trim)
-          case _ =>
-            logger.warn(s"API base URL passed through argument `--codacy-api-base-url` is empty")
-            Option.empty[String]
-        }
-        .orElse(variables.get("CODACY_API_BASE_URL"))
-        .ifEmpty(logger.info(s"API base URL not available in the environment variable `CODACY_API_BASE_URL`"))
-        .flatMap {
-          case t if t.trim.nonEmpty => Option(t.trim)
-          case _ =>
-            logger.warn(s"API base URL passed through argument `CODACY_API_BASE_URL` is empty")
-            Option.empty[String]
-        }
+    val apiURL = validate("API base URL", "argument", "--codacy-api-base-url")(codacyApiBaseURL).orElse(
+      validate("API base URL", "environment variable", "CODACY_API_BASE_URL")(variables.get("CODACY_API_BASE_URL")))
 
     apiURL.flatMap { url =>
       Try(new URL(url)) match {
@@ -84,6 +41,15 @@ class Environment(variables: Map[String, String]) {
           logger.info(s"Using API base URL $url")
           Option(url)
       }
+    }
+  }
+
+  private def validate(name: String, paramType: String, param: String)(value: Option[String]): Option[String] = {
+    value.ifEmpty(logger.info(s"$name not passed through $paramType `$param`")).flatMap {
+      case t if t.trim.nonEmpty => Option(t.trim)
+      case _ =>
+        logger.warn(s"$name passed through $paramType `$param` is empty")
+        Option.empty[String]
     }
   }
 
