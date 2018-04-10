@@ -15,7 +15,6 @@ final case class FilesTarget(directory: File, files: Set[File], configFiles: Set
 class FileSystemFileCollector extends FileCollector[Try] {
 
   // TODO: Check if File will work or if we might need Path to support relative paths
-  // TODO: Use remote configuration
 
   // HACK: Fixes Intellij IDEA highlight problems
   private type EitherA[A] = Either[String, A]

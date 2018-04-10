@@ -14,6 +14,7 @@ import com.codacy.analysis.cli.model.{CodacyCfg, Configuration, FileCfg}
 import com.codacy.analysis.cli.tools.Tool
 import com.codacy.analysis.cli.utils
 import org.log4s.{Logger, getLogger}
+import play.api.libs.json.JsValue
 
 import scala.util.{Failure, Success, Try}
 
@@ -43,7 +44,11 @@ class AnalyseExecutor(analise: Analyse,
       tool <- Tool.from(analise.tool)
       fileTargets <- fileCollector.list(tool, baseDirectory, localConfigurationFile, remoteConfiguration)
       fileTarget <- fileCollector.filter(tool, fileTargets, localConfigurationFile, remoteConfiguration)
-      toolConfiguration = getToolConfiguration(fileTarget.configFiles, remoteConfiguration)
+      toolConfiguration = getToolConfiguration(
+        tool,
+        fileTarget.configFiles,
+        localConfigurationFile,
+        remoteConfiguration)
       results <- analyser.analyse(tool, fileTarget.directory, fileTarget.files, toolConfiguration)
     } yield results
 
@@ -81,10 +86,12 @@ class AnalyseExecutor(analise: Analyse,
 
   }
 
-  private def getToolConfiguration(configFiles: Set[File],
+  private def getToolConfiguration(tool: Tool,
+                                   configFiles: Set[File],
+                                   localConfiguration: Either[String, CodacyConfigurationFile],
                                    remoteConfiguration: Either[String, ProjectConfiguration]): Configuration = {
+    val (baseSubDir, extraValues) = getExtraConfiguration(localConfiguration, tool)
     (for {
-      tool <- Tool.from(analise.tool).toEither
       projectConfig <- remoteConfiguration
       toolConfiguration <- projectConfig.toolConfiguration
         .find(_.uuid.equalsIgnoreCase(tool.uuid))
@@ -93,15 +100,32 @@ class AnalyseExecutor(analise: Analyse,
       val shouldUseConfigFile = toolConfiguration.notEdited && configFiles.nonEmpty
       if (shouldUseConfigFile) {
         logger.info(s"Preparing to run ${tool.name} with remote configuration")
-        CodacyCfg(toolConfiguration.patterns.map(ConfigurationHelper.apiPatternToInternalPattern))
+        CodacyCfg(
+          toolConfiguration.patterns.map(ConfigurationHelper.apiPatternToInternalPattern),
+          baseSubDir,
+          extraValues)
       } else {
         logger.info(s"Preparing to run ${tool.name} with configuration file")
-        FileCfg
+        FileCfg(baseSubDir, extraValues)
       }
-    }).right.getOrElse{
+    }).right.getOrElse {
       logger.info(s"Preparing to run ${analise.tool} with defaults")
-      FileCfg
+      FileCfg(baseSubDir, extraValues)
     }
   }
 
+  private def getExtraConfiguration(localConfiguration: Either[String, CodacyConfigurationFile],
+                                    tool: Tool): (Option[String], Option[Map[String, JsValue]]) = {
+    (for {
+      config <- localConfiguration.toOption
+      engines <- config.engines
+      engineConfig <- engines.get(tool.name)
+    } yield engineConfig).fold {
+      logger.info(s"Could not find local extra configuration for ${analise.tool}")
+      (Option.empty[String], Option.empty[Map[String, JsValue]])
+    } { ec =>
+      logger.info(s"Found local extra configuration for ${analise.tool}")
+      (ec.baseSubDir, ec.extraValues)
+    }
+  }
 }
