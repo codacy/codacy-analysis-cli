@@ -38,7 +38,7 @@ class AnalyseExecutor(analise: Analyse,
 
     val credentials = Credentials.getCredentials(environment, analise.api)
     val remoteConfiguration: Either[String, ProjectConfiguration] = getRemoteConfiguration(credentials)
-    val localConfigurationFile = CodacyConfigurationFile.load(baseDirectory)
+    val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
 
     val result = for {
       tool <- Tool.from(analise.tool)

@@ -28,14 +28,17 @@ object CodacyConfigurationFile {
 
   val filenames = Set(".codacy.yaml", ".codacy.yml")
 
-  def load(root: File): Either[String, CodacyConfigurationFile] = {
+  def search(root: File): Either[String, File] = {
     filenames
       .map(root / _)
       .find(f => f.exists && f.isRegularFile)
       .fold[Either[String, File]](
         Left(s"Could not find Codacy configuration file. Make sure you have a file named like one of ${filenames
           .mkString(", ")}."))(Right(_))
-      .flatMap(f => parse(f.contentAsString))
+  }
+
+  def load(file: File): Either[String, CodacyConfigurationFile] = {
+    parse(file.contentAsString)
   }
 
   def parse(yamlString: String): Either[String, CodacyConfigurationFile] = {
