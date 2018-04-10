@@ -1,5 +1,7 @@
 package com.codacy.analysis.cli.command.analyse
 
+import java.nio.file.Path
+
 import better.files.File
 import cats.implicits._
 import com.codacy.analysis.cli.analysis.Analyser
@@ -87,7 +89,7 @@ class AnalyseExecutor(analise: Analyse,
   }
 
   private def getToolConfiguration(tool: Tool,
-                                   configFiles: Set[File],
+                                   configFiles: Set[Path],
                                    localConfiguration: Either[String, CodacyConfigurationFile],
                                    remoteConfiguration: Either[String, ProjectConfiguration]): Configuration = {
     val (baseSubDir, extraValues) = getExtraConfiguration(localConfiguration, tool)

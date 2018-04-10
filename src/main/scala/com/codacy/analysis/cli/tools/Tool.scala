@@ -1,6 +1,6 @@
 package com.codacy.analysis.cli.tools
 
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 
 import better.files.File
 import codacy.docker.api
@@ -47,7 +47,7 @@ class Tool(private val plugin: IDockerPlugin) {
   }
 
   def run(directory: File,
-          files: Set[File],
+          files: Set[Path],
           config: Configuration,
           timeout: Duration = 10.minutes): Try[Set[Result]] = {
     val pluginConfiguration = config match {
@@ -64,7 +64,7 @@ class Tool(private val plugin: IDockerPlugin) {
 
     val sourceDirectory = getSourceDirectory(directory, config.baseSubDir)
     val request =
-      PluginRequest(sourceDirectory.sourceDirectory, files.to[List].map(_.pathAsString), pluginConfiguration)
+      PluginRequest(sourceDirectory.sourceDirectory, files.to[List].map(_.toString), pluginConfiguration)
 
     plugin.run(request, Option(timeout)).map { res =>
       (res.results.map(r =>

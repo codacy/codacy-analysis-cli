@@ -1,5 +1,7 @@
 package com.codacy.analysis.cli.files
 
+import java.nio.file.{Path, Paths}
+
 import better.files.File
 import cats.Foldable
 import cats.implicits._
@@ -10,7 +12,7 @@ import com.codacy.api.dtos.{Language, Languages}
 
 import scala.util.Try
 
-final case class FilesTarget(directory: File, files: Set[File], configFiles: Set[File])
+final case class FilesTarget(directory: File, files: Set[Path], configFiles: Set[Path])
 
 class FileSystemFileCollector extends FileCollector[Try] {
 
@@ -25,9 +27,14 @@ class FileSystemFileCollector extends FileCollector[Try] {
                     localConfiguration: Either[String, CodacyConfigurationFile],
                     remoteConfiguration: Either[String, ProjectConfiguration]): Try[FilesTarget] = {
     Try {
-      val allFiles = directory.listRecursively().to[Set].filter(_.isRegularFile)
+      val allFiles =
+        directory
+          .listRecursively()
+          .collect { case f if f.isRegularFile => directory.relativize(f) }
+          .filterNot(_.startsWith(".git"))
+          .to[Set]
 
-      val configFiles = allFiles.filter(f => tool.configFilenames.exists(cf => f.pathAsString.endsWith(cf)))
+      val configFiles = allFiles.filter(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
 
       val filters = Set(excludeGlobal(localConfiguration) _, excludePrefixes(remoteConfiguration) _)
       val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
@@ -50,34 +57,34 @@ class FileSystemFileCollector extends FileCollector[Try] {
   }
 
   private def excludePrefixes(remoteConfiguration: Either[String, ProjectConfiguration])(
-    files: Set[File]): Set[File] = {
+    files: Set[Path]): Set[Path] = {
     filterByPaths(files, foldable.foldMap(remoteConfiguration)(_.ignoredPaths))
   }
 
   private def excludeGlobal(localConfiguration: Either[String, CodacyConfigurationFile])(
-    files: Set[File]): Set[File] = {
+    files: Set[Path]): Set[Path] = {
     val excludeGlobs = foldable.foldMap(localConfiguration)(_.exclude_paths.getOrElse(Set.empty[Glob]))
     filterByGlobs(files, excludeGlobs)
   }
 
   private def excludeForTool(tool: Tool, localConfiguration: Either[String, CodacyConfigurationFile])(
-    files: Set[File]): Set[File] = {
+    files: Set[Path]): Set[Path] = {
     val excludeGlobs = foldable.foldMap(localConfiguration)(localConfig =>
       localConfig.engines.foldMap(_.get(tool.name).foldMap(_.exclude_paths.getOrElse(Set.empty[Glob]))))
     filterByGlobs(files, excludeGlobs)
   }
 
-  private def filterByGlobs(files: Set[File], excludeGlobs: Set[Glob]): Set[File] = {
+  private def filterByGlobs(files: Set[Path], excludeGlobs: Set[Glob]): Set[Path] = {
     if (excludeGlobs.nonEmpty) {
-      files.filterNot(file => excludeGlobs.exists(_.matches(file.pathAsString)))
+      files.filterNot(file => excludeGlobs.exists(_.matches(file.toString)))
     } else {
       files
     }
   }
 
-  private def filterByPaths(files: Set[File], ignoredPaths: Set[FilePath]): Set[File] = {
+  private def filterByPaths(files: Set[Path], ignoredPaths: Set[FilePath]): Set[Path] = {
     if (ignoredPaths.nonEmpty) {
-      files.filterNot(file => ignoredPaths.exists(ip => file.pathAsString.startsWith(ip.value)))
+      files.filterNot(file => ignoredPaths.exists(ip => file.startsWith(ip.value)))
     } else {
       files
     }
@@ -86,7 +93,7 @@ class FileSystemFileCollector extends FileCollector[Try] {
   private def filterByLanguage(
     tool: Tool,
     localConfiguration: Either[String, CodacyConfigurationFile],
-    remoteConfiguration: Either[String, ProjectConfiguration])(files: Set[File]): Set[File] = {
+    remoteConfiguration: Either[String, ProjectConfiguration])(files: Set[Path]): Set[Path] = {
     val localCustomExtensionsByLanguage =
       localConfiguration.fold(_ => Map.empty[Language, Set[String]], localConfig => {
         localConfig.languages.fold(Map.empty[Language, Set[String]])(_.map {
@@ -100,10 +107,10 @@ class FileSystemFileCollector extends FileCollector[Try] {
 
     Languages
       .filter(
-        files.map(_.pathAsString),
+        files.map(_.toString),
         tool.languages,
         localCustomExtensionsByLanguage ++ remoteCustomExtensionsByLanguage)
-      .map(File(_))
+      .map(Paths.get(_))
   }
 
 }

@@ -1,5 +1,7 @@
 package com.codacy.analysis.cli.analysis
 
+import java.nio.file.Path
+
 import better.files.File
 import com.codacy.analysis.cli.model.{Configuration, Result}
 import com.codacy.analysis.cli.tools.Tool
@@ -14,7 +16,7 @@ trait AnalyserCompanion[T[_]] {
 
 trait Analyser[T[_]] {
 
-  def analyse(tool: Tool, directory: File, files: Set[File], config: Configuration): T[Set[Result]]
+  def analyse(tool: Tool, directory: File, files: Set[Path], config: Configuration): T[Set[Result]]
 
 }
 
