@@ -38,16 +38,11 @@ lazy val codacyAnalysisCli = project
   .settings(Common.dockerSettings: _*)
   .settings(Common.genericSettings: _*)
 
-// javaOptions in Universal ++= Seq(
-//   "-XX:MaxRAMFraction=1",
-//   "-XX:+UnlockExperimentalVMOptions",
-//   "-XX:+UseCGroupMemoryLimitForHeap")
-
 // Scapegoat
 scalaVersion in ThisBuild := scalaVersionNumber
 scalaBinaryVersion in ThisBuild := scalaBinaryVersionNumber
 scapegoatDisabledInspections in ThisBuild := Seq()
 scapegoatVersion in ThisBuild := "1.3.4"
-compile.in(Compile) := (if (sys.env.get("NO_SCAPEGOAT").isEmpty)
+compile.in(Compile) := (if (sys.env.get("NO_SCAPEGOAT").nonEmpty)
                           compile.in(Compile).dependsOn(scapegoat)
                         else compile.in(Compile)).value

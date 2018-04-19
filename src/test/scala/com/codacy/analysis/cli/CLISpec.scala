@@ -5,7 +5,7 @@ import java.nio.file.{Path, Paths}
 import better.files.File
 import codacy.docker.api
 import com.codacy.analysis.cli.command.{Command, DefaultCommand}
-import com.codacy.analysis.cli.model.Result
+import com.codacy.analysis.cli.model.{FileError, Result}
 import io.circe.generic.auto._
 import io.circe.{Decoder, parser}
 import org.specs2.control.NoLanguageFeatures
@@ -47,8 +47,8 @@ class CLISpec extends Specification with NoLanguageFeatures {
         cli.main(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--output", file.pathAsString))
 
         file.contentAsString must beEqualTo("""|Starting analysis ...
-             |Analysis complete
-             |""".stripMargin)
+                 |Analysis complete
+                 |""".stripMargin)
       }).get()
     }
 
@@ -69,7 +69,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
             file.pathAsString))
 
         file.contentAsString must beEqualTo("""|[]
-             |""".stripMargin)
+                 |""".stripMargin)
       }).get()
     }
 
@@ -104,6 +104,47 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
         result must beRight
         result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+      }).get()
+    }
+
+    "output correct issues for custom python version" in {
+      (for {
+        directory <- File.temporaryDirectory()
+        file <- File.temporaryFile()
+      } yield {
+
+        Process(Seq(
+          "git",
+          "clone",
+          "git://github.com/qamine-test/nci-adult-match-treatment-arm-api",
+          directory.pathAsString)).!
+        Process(Seq("git", "reset", "--hard", "38e5ab22774c6061ce693efab4011d49b8feb5ca"), directory.toJava).!
+
+        cli.main(
+          Array(
+            "analyse",
+            "--directory",
+            directory.pathAsString,
+            "--tool",
+            "pylint",
+            "--format",
+            "json",
+            "--output",
+            file.pathAsString))
+
+        val result = for {
+          responseJson <- parser.parse(file.contentAsString)
+          response <- responseJson.as[Set[Result]]
+          expectedJson <- parser.parse(
+            File.resource("com/codacy/analysis/cli/cli-output-pylint-1.json").contentAsString)
+          expected <- expectedJson.as[Set[Result]]
+        } yield (response, expected)
+
+        result must beRight
+        result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+        result must beLike {
+          case Right((response, _)) => response.exists(_.isInstanceOf[FileError]) must beFalse
+        }
       }).get()
     }
 

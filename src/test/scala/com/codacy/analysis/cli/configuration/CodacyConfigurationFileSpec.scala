@@ -15,18 +15,15 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
         Option(
           Map(
             "rubocop" -> EngineConfiguration(
-              enabled = true,
               Some(Set(Glob("config/engines.yml"))),
               Some("test/baseDir"),
               None),
             "duplication" -> EngineConfiguration(
-              enabled = true,
               Some(Set(Glob("config/engines.yml"))),
               None,
               Some(Map(("config", Json.obj(("languages", Json.arr("ruby"))))))),
-            "metrics" -> EngineConfiguration(enabled = true, Some(Set(Glob("config/engines.yml"))), None, None),
-            "coverage" -> EngineConfiguration(enabled = true, Some(Set(Glob("config/engines.yml"))), None, None))),
-        Option(GradeConfiguration(Some(Set(Glob("config/engines.yml"))))),
+            "metrics" -> EngineConfiguration( Some(Set(Glob("config/engines.yml"))), None, None),
+            "coverage" -> EngineConfiguration( Some(Set(Glob("config/engines.yml"))), None, None))),
         Option(Set(Glob(".bundle/"), Glob("spec/**/*"), Glob("benchmarks/**/*"))),
         None)
 
@@ -50,18 +47,15 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
         Option(
           Map(
             "rubocop" -> EngineConfiguration(
-              enabled = true,
               Some(Set(Glob("config/engines.yml"))),
               Some("test/baseDir"),
               None),
             "duplication" -> EngineConfiguration(
-              enabled = true,
               Some(Set(Glob("config/engines.yml"))),
               None,
               Some(Map(("config", Json.obj(("languages", Json.arr("ruby"))))))),
-            "metrics" -> EngineConfiguration(enabled = true, Some(Set(Glob("config/engines.yml"))), None, None),
-            "coverage" -> EngineConfiguration(enabled = true, Some(Set(Glob("config/engines.yml"))), None, None))),
-        Option(GradeConfiguration(Some(Set(Glob("config/engines.yml"))))),
+            "metrics" -> EngineConfiguration( Some(Set(Glob("config/engines.yml"))), None, None),
+            "coverage" -> EngineConfiguration(Some(Set(Glob("config/engines.yml"))), None, None))),
         Option(Set(Glob(".bundle/"), Glob("spec/**/*"), Glob("benchmarks/**/*"))),
         Some(Map((Languages.CSS, LanguageConfiguration(Some(Set("-css.resource")))))))
 
