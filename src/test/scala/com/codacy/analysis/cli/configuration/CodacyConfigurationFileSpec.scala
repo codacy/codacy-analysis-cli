@@ -14,16 +14,13 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
       val expected = CodacyConfigurationFile(
         Option(
           Map(
-            "rubocop" -> EngineConfiguration(
-              Some(Set(Glob("config/engines.yml"))),
-              Some("test/baseDir"),
-              None),
+            "rubocop" -> EngineConfiguration(Some(Set(Glob("config/engines.yml"))), Some("test/baseDir"), None),
             "duplication" -> EngineConfiguration(
               Some(Set(Glob("config/engines.yml"))),
               None,
               Some(Map(("config", Json.obj(("languages", Json.arr("ruby"))))))),
-            "metrics" -> EngineConfiguration( Some(Set(Glob("config/engines.yml"))), None, None),
-            "coverage" -> EngineConfiguration( Some(Set(Glob("config/engines.yml"))), None, None))),
+            "metrics" -> EngineConfiguration(Some(Set(Glob("config/engines.yml"))), None, None),
+            "coverage" -> EngineConfiguration(Some(Set(Glob("config/engines.yml"))), None, None))),
         Option(Set(Glob(".bundle/"), Glob("spec/**/*"), Glob("benchmarks/**/*"))),
         None)
 
@@ -46,15 +43,12 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
       val expected = CodacyConfigurationFile(
         Option(
           Map(
-            "rubocop" -> EngineConfiguration(
-              Some(Set(Glob("config/engines.yml"))),
-              Some("test/baseDir"),
-              None),
+            "rubocop" -> EngineConfiguration(Some(Set(Glob("config/engines.yml"))), Some("test/baseDir"), None),
             "duplication" -> EngineConfiguration(
               Some(Set(Glob("config/engines.yml"))),
               None,
               Some(Map(("config", Json.obj(("languages", Json.arr("ruby"))))))),
-            "metrics" -> EngineConfiguration( Some(Set(Glob("config/engines.yml"))), None, None),
+            "metrics" -> EngineConfiguration(Some(Set(Glob("config/engines.yml"))), None, None),
             "coverage" -> EngineConfiguration(Some(Set(Glob("config/engines.yml"))), None, None))),
         Option(Set(Glob(".bundle/"), Glob("spec/**/*"), Glob("benchmarks/**/*"))),
         Some(Map((Languages.CSS, LanguageConfiguration(Some(Set("-css.resource")))))))

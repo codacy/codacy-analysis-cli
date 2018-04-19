@@ -19,15 +19,18 @@ import scala.util.{Failure, Success, Try}
 
 sealed trait SourceDirectory {
   val sourceDirectory: String
-  def prepareFile(filename: String): String
+  def appendPrefix(filename: String): String
+  def removePrefix(filename: String): String
 }
 
 final case class Directory(sourceDirectory: String) extends SourceDirectory {
-  def prepareFile(filename: String): String = filename
+  def appendPrefix(filename: String): String = filename
+  def removePrefix(filename: String): String = filename
 }
 
 final case class SubDirectory(sourceDirectory: String, protected val subDirectory: String) extends SourceDirectory {
-  def prepareFile(filename: String): String = subDirectory + java.io.File.separator + filename
+  def appendPrefix(filename: String): String = subDirectory + java.io.File.separator + filename
+  def removePrefix(filename: String): String = filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
 class Tool(private val plugin: IDockerPlugin) {
@@ -64,13 +67,16 @@ class Tool(private val plugin: IDockerPlugin) {
 
     val sourceDirectory = getSourceDirectory(directory, config.baseSubDir)
     val request =
-      PluginRequest(sourceDirectory.sourceDirectory, files.to[List].map(_.toString), pluginConfiguration)
+      PluginRequest(
+        sourceDirectory.sourceDirectory,
+        files.to[List].map(f => sourceDirectory.removePrefix(f.toString)),
+        pluginConfiguration)
 
     plugin.run(request, Option(timeout)).map { res =>
       (res.results.map(r =>
         Issue(
           api.Pattern.Id(r.patternIdentifier),
-          FileHelper.relativePath(sourceDirectory.prepareFile(r.filename)),
+          FileHelper.relativePath(sourceDirectory.appendPrefix(r.filename)),
           Issue.Message(r.message),
           r.level,
           r.category,

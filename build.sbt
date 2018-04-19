@@ -43,6 +43,3 @@ scalaVersion in ThisBuild := scalaVersionNumber
 scalaBinaryVersion in ThisBuild := scalaBinaryVersionNumber
 scapegoatDisabledInspections in ThisBuild := Seq()
 scapegoatVersion in ThisBuild := "1.3.4"
-compile.in(Compile) := (if (sys.env.get("NO_SCAPEGOAT").nonEmpty)
-                          compile.in(Compile).dependsOn(scapegoat)
-                        else compile.in(Compile)).value

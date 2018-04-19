@@ -1,9 +1,10 @@
 package com.codacy.analysis.cli.clients
 
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
+import com.codacy.api.dtos.{Language, Languages}
 import io.circe.generic.auto._
 import io.circe.parser._
-import io.circe.{Json, ParsingFailure}
+import io.circe.{Decoder, Json, ParsingFailure}
 import org.log4s.{Logger, getLogger}
 import scalaj.http.{Http, HttpResponse}
 
@@ -14,6 +15,9 @@ class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, Stri
   private val remoteUrl = apiUrl.getOrElse("https://api.codacy.com") + "/2.0"
   private lazy val connectionTimeoutMs = 2000
   private lazy val readTimeoutMs = 5000
+  private implicit val fileEncoder: Decoder[Language] =
+    Decoder[String].emap(lang =>
+      Languages.fromName(lang).fold[Either[String, Language]](Left(s"Failed to parse language $lang"))(Right(_)))
 
   def get(endpoint: String): Either[ParsingFailure, Json] = {
     val headers: Map[String, String] = Map("Content-Type" -> "application/json") ++ extraHeaders

@@ -148,6 +148,40 @@ class CLISpec extends Specification with NoLanguageFeatures {
       }).get()
     }
 
+    "output correct issues for custom brakeman basedir" in {
+      (for {
+        directory <- File.temporaryDirectory()
+        file <- File.temporaryFile()
+      } yield {
+
+        Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
+        Process(Seq("git", "reset", "--hard", "266c56a61d236ed6ee5efa58c0e621125498dd5f"), directory.toJava).!
+
+        cli.main(
+          Array(
+            "analyse",
+            "--directory",
+            directory.pathAsString,
+            "--tool",
+            "brakeman",
+            "--format",
+            "json",
+            "--output",
+            file.pathAsString))
+
+        val result = for {
+          responseJson <- parser.parse(file.contentAsString)
+          response <- responseJson.as[Set[Result]]
+          expectedJson <- parser.parse(
+            File.resource("com/codacy/analysis/cli/cli-output-brakeman-rails4.json").contentAsString)
+          expected <- expectedJson.as[Set[Result]]
+        } yield (response, expected)
+
+        result must beRight
+        result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+      }).get()
+    }
+
   }
 
   private def errorMsg(message: String)
