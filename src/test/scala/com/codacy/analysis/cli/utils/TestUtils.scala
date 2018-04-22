@@ -4,11 +4,10 @@ import java.nio.file.{Path, Paths}
 
 import better.files.{File, ManagedResource}
 import codacy.docker.api
-import io.circe.Decoder
+import io.circe.{Decoder, Error}
 import org.specs2.matcher.MatchResult
 
 import scala.sys.process.Process
-import io.circe.Error
 
 object TestUtils {
   implicit val categoryDecoder: Decoder[api.Pattern.Category.Value] = Decoder.enumDecoder(api.Pattern.Category)
