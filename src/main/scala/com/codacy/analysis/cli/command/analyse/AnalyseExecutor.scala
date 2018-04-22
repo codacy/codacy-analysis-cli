@@ -3,31 +3,26 @@ package com.codacy.analysis.cli.command.analyse
 import java.nio.file.Path
 
 import better.files.File
-import cats.implicits._
 import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
-import com.codacy.analysis.cli.clients.{APIToken, CodacyClient, Credentials, ProjectToken}
 import com.codacy.analysis.cli.command.{Analyse, Properties}
-import com.codacy.analysis.cli.configuration.{CodacyConfigurationFile, Environment}
+import com.codacy.analysis.cli.configuration.{CodacyConfigurationFile, RemoteConfigurationFetcher}
 import com.codacy.analysis.cli.converters.ConfigurationHelper
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.cli.model.{CodacyCfg, Configuration, FileCfg}
 import com.codacy.analysis.cli.tools.Tool
-import com.codacy.analysis.cli.utils
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
 import scala.util.{Failure, Success, Try}
 
-class AnalyseExecutor(analise: Analyse,
+class AnalyseExecutor(analyse: Analyse,
                       formatter: Formatter,
                       analyser: Analyser[Try],
                       fileCollector: FileCollector[Try],
-                      environment: Environment)
+                      remoteConfigurationFetcher: RemoteConfigurationFetcher)
     extends Runnable {
-
-  utils.Logger.setLevel(analise.options.verbose.## > 0)
 
   private val logger: Logger = getLogger
 
@@ -35,15 +30,14 @@ class AnalyseExecutor(analise: Analyse,
     formatter.begin()
 
     val baseDirectory =
-      analise.directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
+      analyse.directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
         if (dir.isDirectory) dir else dir.parent)
 
-    val credentials = Credentials.getCredentials(environment, analise.api)
-    val remoteConfiguration: Either[String, ProjectConfiguration] = getRemoteConfiguration(credentials)
+    val remoteConfiguration: Either[String, ProjectConfiguration] = remoteConfigurationFetcher.getRemoteConfiguration
     val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
 
     val result = for {
-      tool <- Tool.from(analise.tool)
+      tool <- Tool.from(analyse.tool)
       fileTargets <- fileCollector.list(tool, baseDirectory, localConfigurationFile, remoteConfiguration)
       fileTarget <- fileCollector.filter(tool, fileTargets, localConfigurationFile, remoteConfiguration)
       toolConfiguration = getToolConfiguration(
@@ -56,36 +50,13 @@ class AnalyseExecutor(analise: Analyse,
 
     result match {
       case Success(res) =>
-        logger.info(s"Completed analysis for ${analise.tool}")
+        logger.info(s"Completed analysis for ${analyse.tool}")
         res.foreach(formatter.add)
       case Failure(e) =>
-        logger.error(e)(s"Failed analysis for ${analise.tool}")
+        logger.error(e)(s"Failed analysis for ${analyse.tool}")
     }
 
     formatter.end()
-  }
-
-  private def getRemoteConfiguration(credentials: Option[Credentials]): Either[String, ProjectConfiguration] = {
-
-    val apiClient = credentials.fold[Either[String, CodacyClient]]("Credentials not found".asLeft)(creds =>
-      CodacyClient.apply(creds).asRight)
-
-    credentials.toRight("Credentials not found").flatMap {
-      case _: APIToken =>
-        for {
-          client <- apiClient
-          userName <- analise.api.username.toRight("Username not found")
-          projectName <- analise.api.project.toRight("Project name not found")
-          config <- client.getProjectConfiguration(userName, projectName)
-        } yield config
-
-      case _: ProjectToken =>
-        for {
-          client <- apiClient
-          config <- client.getProjectConfiguration
-        } yield config
-    }
-
   }
 
   private def getToolConfiguration(tool: Tool,
@@ -111,7 +82,7 @@ class AnalyseExecutor(analise: Analyse,
         FileCfg(baseSubDir, extraValues)
       }
     }).right.getOrElse {
-      logger.info(s"Preparing to run ${analise.tool} with defaults")
+      logger.info(s"Preparing to run ${analyse.tool} with defaults")
       FileCfg(baseSubDir, extraValues)
     }
   }
@@ -123,10 +94,10 @@ class AnalyseExecutor(analise: Analyse,
       engines <- config.engines
       engineConfig <- engines.get(tool.name)
     } yield engineConfig).fold {
-      logger.info(s"Could not find local extra configuration for ${analise.tool}")
+      logger.info(s"Could not find local extra configuration for ${analyse.tool}")
       (Option.empty[String], Option.empty[Map[String, JsValue]])
     } { ec =>
-      logger.info(s"Found local extra configuration for ${analise.tool}")
+      logger.info(s"Found local extra configuration for ${analyse.tool}")
       (ec.baseSubDir, ec.extraValues)
     }
   }
