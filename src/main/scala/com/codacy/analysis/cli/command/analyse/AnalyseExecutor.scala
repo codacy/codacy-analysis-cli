@@ -21,7 +21,7 @@ class AnalyseExecutor(analyse: Analyse,
                       formatter: Formatter,
                       analyser: Analyser[Try],
                       fileCollector: FileCollector[Try],
-                      remoteConfigurationFetcher: RemoteConfigurationFetcher)
+                      remoteConfigurationFetcher: Either[String, RemoteConfigurationFetcher])
     extends Runnable {
 
   private val logger: Logger = getLogger
@@ -33,18 +33,19 @@ class AnalyseExecutor(analyse: Analyse,
       analyse.directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
         if (dir.isDirectory) dir else dir.parent)
 
-    val remoteConfiguration: Either[String, ProjectConfiguration] = remoteConfigurationFetcher.getRemoteConfiguration
+    val remoteProjectConfiguration: Either[String, ProjectConfiguration] =
+      remoteConfigurationFetcher.flatMap(_.getRemoteConfiguration)
     val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
 
     val result = for {
       tool <- Tool.from(analyse.tool)
-      fileTargets <- fileCollector.list(tool, baseDirectory, localConfigurationFile, remoteConfiguration)
-      fileTarget <- fileCollector.filter(tool, fileTargets, localConfigurationFile, remoteConfiguration)
+      fileTargets <- fileCollector.list(tool, baseDirectory, localConfigurationFile, remoteProjectConfiguration)
+      fileTarget <- fileCollector.filter(tool, fileTargets, localConfigurationFile, remoteProjectConfiguration)
       toolConfiguration = getToolConfiguration(
         tool,
         fileTarget.configFiles,
         localConfigurationFile,
-        remoteConfiguration)
+        remoteProjectConfiguration)
       results <- analyser.analyse(tool, fileTarget.directory, fileTarget.files, toolConfiguration)
     } yield results
 

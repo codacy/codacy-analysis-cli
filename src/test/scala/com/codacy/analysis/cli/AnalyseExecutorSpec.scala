@@ -1,58 +1,45 @@
 package com.codacy.analysis.cli
 
-import java.nio.file.{Path, Paths}
-
-import better.files.File
-import codacy.docker.api
 import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.clients.api._
-import com.codacy.analysis.cli.clients.{CodacyClient, ProjectToken}
+import com.codacy.analysis.cli.clients.{APIToken, CodacyClient, ProjectToken}
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.configuration.RemoteConfigurationFetcher
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.cli.model.{Issue, Result}
-import com.codacy.api.dtos.Languages.Python
+import com.codacy.analysis.cli.utils.TestUtils._
+import com.codacy.api.dtos.Languages.{Javascript, Python}
 import io.circe.generic.auto._
-import io.circe.{Decoder, parser}
+import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 
-import scala.sys.process.Process
 import scala.util.Try
 
 class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
-  implicit val categoryDencoder: Decoder[api.Pattern.Category.Value] = Decoder.enumDecoder(api.Pattern.Category)
-  implicit val levelDencoder: Decoder[api.Result.Level.Value] = Decoder.enumDecoder(api.Result.Level)
-  implicit val fileDencoder: Decoder[Path] = Decoder[String].map(Paths.get(_))
 
   "AnalyseExecutor" should {
 
     val pyLintPatternsInternalIds = Set("PyLint_C0111", "PyLint_E1101")
     val pathToIgnore = "lib/improver/tests/"
-    s"""analyse a python project with pylint using a remote project configuration
-      | that ignores the files that start with the path $pathToIgnore
-      | and considers just patterns ${pyLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
-      (for {
-        directory <- File.temporaryDirectory()
-        file <- File.temporaryFile()
-      } yield {
 
-        Process(Seq("git", "clone", "git://github.com/qamine-test/improver.git", directory.pathAsString)).!
-        Process(Seq("git", "reset", "--hard", "f4c45e59cc9ec2c01b2545b6b49334694a29e0da"), directory.toJava).!
-
+    s"""analyse a python project with pylint, using a remote project configuration retrieved with a project token
+       | that ignores the files that start with the path $pathToIgnore
+       | and considers just patterns ${pyLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
+      withClonedRepo[Set[Result]](
+        "git://github.com/qamine-test/improver.git",
+        "f4c45e59cc9ec2c01b2545b6b49334694a29e0da") { (file, directory) =>
+        val projTokenStr = "RandomProjectToken"
         val analyse = Analyse(
           options = CommonOptions(),
-          api = APIOptions(None, None, None, None, Some("codacy.com")),
+          api = APIOptions(projectToken = Option(projTokenStr), codacyApiBaseUrl = Some("codacy.com")),
           tool = "pylint",
           directory = Some(directory),
           format = Json.name,
           output = Some(file),
           extras = ExtraOptions())
-        val formatter: Formatter = Formatter(analyse.format, analyse.output)
-        val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
-        val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
@@ -73,8 +60,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
         }
 
         val remoteConfigurationFetcher =
-          new RemoteConfigurationFetcher(ProjectToken("RandomProjectToken"), codacyClient, analyse)
-        new AnalyseExecutor(analyse, formatter, analyser, fileCollector, remoteConfigurationFetcher).run()
+          new RemoteConfigurationFetcher(ProjectToken(projTokenStr), codacyClient, analyse)
+        runAnalyseExecuter(analyse, remoteConfigurationFetcher)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -96,7 +83,77 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
               case _        => false
             } must beFalse
         }
-      }).get()
+      }.get()
+    }
+
+    val esLintPatternsInternalIds = Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
+
+    s"""analyse a javascript project with eslint, using a remote project configuration retrieved with an api token
+       | that considers just patterns ${esLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
+      withClonedRepo[Set[Result]](
+        "git://github.com/qamine-test/Monogatari.git",
+        "9232dbdcae98b19412c8dd98c49da8c391612bfa") { (file, directory) =>
+        val apiTokenStr = "RandomApiToken"
+        val analyse = Analyse(
+          options = CommonOptions(),
+          api = APIOptions(
+            apiToken = Option(apiTokenStr),
+            username = Option("some_user"),
+            project = Option("some_project"),
+            codacyApiBaseUrl = Some("codacy.com")),
+          tool = "eslint",
+          directory = Some(directory),
+          format = Json.name,
+          output = Some(file),
+          extras = ExtraOptions())
+        val toolPatterns = esLintPatternsInternalIds.map { patternId =>
+          ToolPattern(patternId, Set.empty)
+        }
+
+        val codacyClient = new CodacyClient(None, Map.empty) {
+          override def getProjectConfiguration(projectName: String,
+                                               username: String): Either[String, ProjectConfiguration] = {
+            Right(
+              ProjectConfiguration(
+                Set.empty,
+                Set(LanguageExtensions(Javascript, Set(".js"))),
+                Set(
+                  ToolConfiguration(
+                    "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
+                    isEnabled = true,
+                    notEdited = true,
+                    toolPatterns))))
+          }
+        }
+
+        val remoteConfigurationFetcher =
+          new RemoteConfigurationFetcher(APIToken(apiTokenStr), codacyClient, analyse)
+        runAnalyseExecuter(analyse, remoteConfigurationFetcher)
+
+        val result = for {
+          responseJson <- parser.parse(file.contentAsString)
+          response <- responseJson.as[Set[Result]]
+        } yield response
+
+        result must beRight
+        result must beLike {
+          case Right(response: Set[Result]) =>
+            response.size must beGreaterThan(0)
+
+            response.exists {
+              case i: Issue => !esLintPatternsInternalIds.contains(i.patternId.value)
+              case _        => false
+            } must beFalse
+        }
+      }.get()
     }
   }
+
+  private def runAnalyseExecuter(analyse: Analyse, remoteConfigFetcher: RemoteConfigurationFetcher): Unit = {
+    val formatter: Formatter = Formatter(analyse.format, analyse.output)
+    val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
+    val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
+    new AnalyseExecutor(analyse, formatter, analyser, fileCollector, Right(remoteConfigFetcher)).run()
+  }
+
 }
