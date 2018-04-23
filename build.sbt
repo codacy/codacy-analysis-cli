@@ -25,7 +25,6 @@ lazy val codacyAnalysisCli = project
       Dependencies.caseApp,
       Dependencies.betterFiles,
       Dependencies.jodaTime,
-      Dependencies.codacyPluginsApi,
       Dependencies.codacyPlugins,
       Dependencies.fansi,
       Dependencies.scalajHttp,
@@ -43,3 +42,18 @@ scalaVersion in ThisBuild := scalaVersionNumber
 scalaBinaryVersion in ThisBuild := scalaBinaryVersionNumber
 scapegoatDisabledInspections in ThisBuild := Seq()
 scapegoatVersion in ThisBuild := "1.3.4"
+compile.in(Compile) := Def.taskDyn {
+  val c = compile.in(Compile).value
+  Def.task {
+    if (sys.env.get("CI").exists(_.nonEmpty)) Def.taskDyn(Def.task(scapegoat.in(Compile).value))
+    c
+  }
+}.value
+
+compile.in(Test) := Def.taskDyn {
+  val c = compile.in(Test).value
+  Def.task {
+    if (sys.env.get("CI").exists(_.nonEmpty)) Def.taskDyn(Def.task(scapegoat.in(Compile).value))
+    c
+  }
+}.value
