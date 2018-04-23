@@ -16,17 +16,18 @@ object Credentials {
 
   private val logger: Logger = getLogger
 
-  def getCredentials(environment: Environment, options: APIOptions): Option[Credentials] = {
+  def get(environment: Environment, options: APIOptions): Option[Credentials] = {
     val apiURL = environment.apiBaseUrl(options.codacyApiBaseUrl)
 
     environment
       .projectToken(options.projectToken)
       .ifEmpty(logger.info("Could not retrieve Project token"))
-      .map(ProjectToken(_, apiURL))
-      .orElse {
-        for {
-          apiToken <- environment.apiToken(options.apiToken).ifEmpty(logger.info("Could not retrieve API token"))
-        } yield APIToken(apiToken, apiURL)
+      .map[Credentials](ProjectToken(_, apiURL))
+      .orElse[Credentials] {
+        environment
+          .apiToken(options.apiToken)
+          .ifEmpty(logger.info("Could not retrieve API token"))
+          .map[Credentials](apiToken => APIToken(apiToken, apiURL))
       }
       .ifEmpty(logger.warn("Could not retrieve credentials"))
   }

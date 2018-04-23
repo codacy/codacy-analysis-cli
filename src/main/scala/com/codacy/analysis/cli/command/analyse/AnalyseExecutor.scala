@@ -38,7 +38,7 @@ class AnalyseExecutor(analise: Analyse,
       analise.directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
         if (dir.isDirectory) dir else dir.parent)
 
-    val credentials = Credentials.getCredentials(environment, analise.api)
+    val credentials = Credentials.get(environment, analise.api)
     val remoteConfiguration: Either[String, ProjectConfiguration] = getRemoteConfiguration(credentials)
     val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
 
@@ -97,7 +97,7 @@ class AnalyseExecutor(analise: Analyse,
       projectConfig <- remoteConfiguration
       toolConfiguration <- projectConfig.toolConfiguration
         .find(_.uuid.equalsIgnoreCase(tool.uuid))
-        .toRight("Could not find tool")
+        .toRight[String]("Could not find tool")
     } yield {
       val shouldUseConfigFile = toolConfiguration.notEdited && configFiles.nonEmpty
       if (shouldUseConfigFile) {
@@ -110,7 +110,7 @@ class AnalyseExecutor(analise: Analyse,
         logger.info(s"Preparing to run ${tool.name} with configuration file")
         FileCfg(baseSubDir, extraValues)
       }
-    }).right.getOrElse {
+    }).right.getOrElse[Configuration] {
       logger.info(s"Preparing to run ${analise.tool} with defaults")
       FileCfg(baseSubDir, extraValues)
     }
