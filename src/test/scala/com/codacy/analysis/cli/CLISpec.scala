@@ -48,13 +48,14 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
     "output json to file" in {
       (for {
+        directory <- File.temporaryDirectory()
         file <- File.temporaryFile()
       } yield {
         cli.main(
           Array(
             "analyse",
             "--directory",
-            "/tmp",
+            directory.pathAsString,
             "--tool",
             "pylint",
             "--format",
