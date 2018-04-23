@@ -7,6 +7,9 @@ import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
 import com.codacy.analysis.cli.configuration.{Environment, RemoteConfigurationFetcher}
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.Formatter
+import cats._
+import com.codacy.analysis.cli.clients.api.ProjectConfiguration
+import implicits._
 
 import scala.util.Try
 
@@ -22,15 +25,16 @@ class MainImpl extends CLIApp {
         val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
         val environment = new Environment(sys.env)
 
-        Credentials
+        val remoteProjectConfiguration: Either[String, ProjectConfiguration] = Credentials
           .getCredentials(environment, analyse.api)
           .fold {
-            new AnalyseExecutor(analyse, formatter, analyser, fileCollector, Left("No credentials found.")).run()
+            "No credentials found.".asLeft[ProjectConfiguration]
           } { credentials =>
             val remoteConfigFetcher =
-              new RemoteConfigurationFetcher(credentials, CodacyClient.apply(credentials), analyse)
-            new AnalyseExecutor(analyse, formatter, analyser, fileCollector, Right(remoteConfigFetcher)).run()
+              new RemoteConfigurationFetcher(CodacyClient.apply(credentials))
+            remoteConfigFetcher.getRemoteConfiguration(credentials, analyse)
           }
+        new AnalyseExecutor(analyse, formatter, analyser, fileCollector, remoteProjectConfiguration).run()
     }
   }
 

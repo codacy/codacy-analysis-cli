@@ -91,7 +91,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
         result must beRight
         result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
-      }.get()
+      }
     }
 
     "output correct issues for custom python version" in {
@@ -123,7 +123,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
         result must beLike {
           case Right((response, _)) => response.exists(_.isInstanceOf[FileError]) must beFalse
         }
-      }.get()
+      }
     }
 
     "output correct issues for custom brakeman basedir" in {
@@ -152,7 +152,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
         result must beRight
         result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
-      }.get()
+      }
     }
 
   }

@@ -4,9 +4,9 @@ import com.codacy.analysis.cli.clients.{APIToken, CodacyClient, Credentials, Pro
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
 import com.codacy.analysis.cli.command.Analyse
 
-class RemoteConfigurationFetcher(credentials: Credentials, codacyClient: CodacyClient, analyse: Analyse) {
+class RemoteConfigurationFetcher(codacyClient: CodacyClient) {
 
-  def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
+  def getRemoteConfiguration(credentials: Credentials, analyse: Analyse): Either[String, ProjectConfiguration] = {
     credentials match {
       case _: APIToken =>
         for {

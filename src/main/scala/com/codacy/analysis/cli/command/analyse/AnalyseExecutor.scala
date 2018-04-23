@@ -6,7 +6,7 @@ import better.files.File
 import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
 import com.codacy.analysis.cli.command.{Analyse, Properties}
-import com.codacy.analysis.cli.configuration.{CodacyConfigurationFile, RemoteConfigurationFetcher}
+import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
 import com.codacy.analysis.cli.converters.ConfigurationHelper
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.Formatter
@@ -21,7 +21,7 @@ class AnalyseExecutor(analyse: Analyse,
                       formatter: Formatter,
                       analyser: Analyser[Try],
                       fileCollector: FileCollector[Try],
-                      remoteConfigurationFetcher: Either[String, RemoteConfigurationFetcher])
+                      remoteProjectConfiguration: Either[String, ProjectConfiguration])
     extends Runnable {
 
   private val logger: Logger = getLogger
@@ -33,8 +33,6 @@ class AnalyseExecutor(analyse: Analyse,
       analyse.directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
         if (dir.isDirectory) dir else dir.parent)
 
-    val remoteProjectConfiguration: Either[String, ProjectConfiguration] =
-      remoteConfigurationFetcher.flatMap(_.getRemoteConfiguration)
     val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
 
     val result = for {

@@ -60,8 +60,10 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
         }
 
         val remoteConfigurationFetcher =
-          new RemoteConfigurationFetcher(ProjectToken(projTokenStr), codacyClient, analyse)
-        runAnalyseExecuter(analyse, remoteConfigurationFetcher)
+          new RemoteConfigurationFetcher(codacyClient)
+        runAnalyseExecuter(
+          analyse,
+          remoteConfigurationFetcher.getRemoteConfiguration(ProjectToken(projTokenStr), analyse))
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -83,7 +85,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
               case _        => false
             } must beFalse
         }
-      }.get()
+      }
     }
 
     val esLintPatternsInternalIds = Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
@@ -127,8 +129,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
         }
 
         val remoteConfigurationFetcher =
-          new RemoteConfigurationFetcher(APIToken(apiTokenStr), codacyClient, analyse)
-        runAnalyseExecuter(analyse, remoteConfigurationFetcher)
+          new RemoteConfigurationFetcher(codacyClient)
+        runAnalyseExecuter(analyse, remoteConfigurationFetcher.getRemoteConfiguration(APIToken(apiTokenStr), analyse))
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -145,15 +147,16 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
               case _        => false
             } must beFalse
         }
-      }.get()
+      }
     }
   }
 
-  private def runAnalyseExecuter(analyse: Analyse, remoteConfigFetcher: RemoteConfigurationFetcher): Unit = {
+  private def runAnalyseExecuter(analyse: Analyse,
+                                 remoteProjectConfiguration: Either[String, ProjectConfiguration]): Unit = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
-    new AnalyseExecutor(analyse, formatter, analyser, fileCollector, Right(remoteConfigFetcher)).run()
+    new AnalyseExecutor(analyse, formatter, analyser, fileCollector, remoteProjectConfiguration).run()
   }
 
 }
