@@ -10,7 +10,6 @@ import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.cli.model.{Issue, Result}
 import com.codacy.analysis.cli.utils.TestUtils._
-import com.codacy.api.dtos.Languages.{Javascript, Python}
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
@@ -49,7 +48,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
             Right(
               ProjectConfiguration(
                 Set(FilePath(pathToIgnore)),
-                Set(LanguageExtensions(Python, Set(".py"))),
+                Set.empty,
                 Set(
                   ToolConfiguration(
                     "34225275-f79e-4b85-8126-c7512c987c0d",
@@ -118,7 +117,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
             Right(
               ProjectConfiguration(
                 Set.empty,
-                Set(LanguageExtensions(Javascript, Set(".js"))),
+                Set.empty,
                 Set(
                   ToolConfiguration(
                     "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
