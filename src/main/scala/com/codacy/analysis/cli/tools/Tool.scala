@@ -15,6 +15,7 @@ import plugins.results.traits.{IDockerPlugin, IDockerPluginConfig}
 import utils.PluginHelper
 
 import scala.concurrent.duration._
+import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
 
 sealed trait SourceDirectory {
@@ -71,6 +72,9 @@ class Tool(private val plugin: IDockerPlugin) {
         sourceDirectory.sourceDirectory,
         files.to[List].map(f => sourceDirectory.removePrefix(f.toString)),
         pluginConfiguration)
+
+    // HACK: Give permissions to unprivileged docker user inside the docker to read this files since we cannot do chown without sudo
+    Process(Seq("chmod", "-R", "0777", sourceDirectory.sourceDirectory)).!
 
     plugin.run(request, Option(timeout)).map { res =>
       (res.results.map(r =>
