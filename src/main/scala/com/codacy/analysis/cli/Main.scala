@@ -26,7 +26,7 @@ class MainImpl extends CLIApp {
         val environment = new Environment(sys.env)
 
         val remoteProjectConfiguration: Either[String, ProjectConfiguration] = Credentials
-          .getCredentials(environment, analyse.api)
+          .get(environment, analyse.api)
           .fold {
             "No credentials found.".asLeft[ProjectConfiguration]
           } { credentials =>
@@ -34,6 +34,7 @@ class MainImpl extends CLIApp {
               new RemoteConfigurationFetcher(CodacyClient.apply(credentials))
             remoteConfigFetcher.getRemoteConfiguration(credentials, analyse)
           }
+
         new AnalyseExecutor(analyse, formatter, analyser, fileCollector, remoteProjectConfiguration).run()
     }
   }

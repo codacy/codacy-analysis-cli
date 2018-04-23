@@ -67,7 +67,7 @@ class AnalyseExecutor(analyse: Analyse,
       projectConfig <- remoteConfiguration
       toolConfiguration <- projectConfig.toolConfiguration
         .find(_.uuid.equalsIgnoreCase(tool.uuid))
-        .toRight("Could not find tool")
+        .toRight[String]("Could not find tool")
     } yield {
       val shouldUseConfigFile = toolConfiguration.notEdited && configFiles.nonEmpty
       if (shouldUseConfigFile) {
@@ -80,7 +80,7 @@ class AnalyseExecutor(analyse: Analyse,
         logger.info(s"Preparing to run ${tool.name} with configuration file")
         FileCfg(baseSubDir, extraValues)
       }
-    }).right.getOrElse {
+    }).right.getOrElse[Configuration] {
       logger.info(s"Preparing to run ${analyse.tool} with defaults")
       FileCfg(baseSubDir, extraValues)
     }

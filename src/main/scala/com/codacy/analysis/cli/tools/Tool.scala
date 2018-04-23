@@ -121,9 +121,9 @@ object Tool {
 
   def allToolShortNames: Set[String] = allTools.map(_.shortName)(collection.breakOut)
 
-  def from(value: String): Try[Tool] = findTool(value).map(new Tool(_))
+  def from(value: String): Try[Tool] = find(value).map(new Tool(_))
 
-  private def findTool(value: String): Try[IDockerPlugin] = {
+  private def find(value: String): Try[IDockerPlugin] = {
     allTools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
       .fold[Try[IDockerPlugin]](Failure(CodacyPluginsAnalyser.errors.missingTool(value)))(Success(_))
