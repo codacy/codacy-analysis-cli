@@ -42,9 +42,11 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
     "output text to file" in {
       (for {
+        directory <- File.temporaryDirectory()
         file <- File.temporaryFile()
       } yield {
-        cli.main(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--output", file.pathAsString))
+        cli.main(
+          Array("analyse", "--directory", directory.pathAsString, "--tool", "pylint", "--output", file.pathAsString))
 
         file.contentAsString must beEqualTo("""|Starting analysis ...
                  |Analysis complete
