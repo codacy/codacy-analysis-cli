@@ -63,15 +63,15 @@ sealed trait Command {
 }
 
 final case class APIOptions(@ValueDescription("The project token.")
-                            projectToken: Option[String],
+                            projectToken: Option[String] = Option.empty,
                             @ValueDescription("The api token.")
-                            apiToken: Option[String],
+                            apiToken: Option[String] = Option.empty,
                             @ValueDescription("The username.")
-                            username: Option[String],
+                            username: Option[String] = Option.empty,
                             @ValueDescription("The project name.")
-                            project: Option[String],
+                            project: Option[String] = Option.empty,
                             @ValueDescription("The codacy api base url.")
-                            codacyApiBaseUrl: Option[String])
+                            codacyApiBaseUrl: Option[String] = Option.empty)
 
 final case class ExtraOptions(
   @Hidden @ValueDescription(s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")

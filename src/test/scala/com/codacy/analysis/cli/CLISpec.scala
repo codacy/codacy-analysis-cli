@@ -1,27 +1,19 @@
 package com.codacy.analysis.cli
 
-import java.nio.file.{Path, Paths}
-
 import better.files.File
-import codacy.docker.api
 import com.codacy.analysis.cli.command.{Command, DefaultCommand}
 import com.codacy.analysis.cli.model.{FileError, Result}
 import io.circe.generic.auto._
-import io.circe.{Decoder, parser}
+import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
-
-import scala.sys.process._
+import com.codacy.analysis.cli.utils.TestUtils._
 
 class CLISpec extends Specification with NoLanguageFeatures {
 
   private val cli = new MainImpl() {
     override def exit(code: Int): Unit = ()
   }
-
-  implicit val categoryDencoder: Decoder[api.Pattern.Category.Value] = Decoder.enumDecoder(api.Pattern.Category)
-  implicit val levelDencoder: Decoder[api.Result.Level.Value] = Decoder.enumDecoder(api.Result.Level)
-  implicit val fileDencoder: Decoder[Path] = Decoder[String].map(Paths.get(_))
 
   "CLIApp" should {
     "parse correctly" in {
@@ -77,14 +69,9 @@ class CLISpec extends Specification with NoLanguageFeatures {
     }
 
     "output correct issues for sample project without remote configuration" in {
-      (for {
-        directory <- File.temporaryDirectory()
-        file <- File.temporaryFile()
-      } yield {
-
-        Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
-        Process(Seq("git", "reset", "--hard", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38"), directory.toJava).!
-
+      withClonedRepo[(Set[Result], Set[Result])](
+        "git://github.com/qamine-test/codacy-brakeman",
+        "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38") { (file, directory) =>
         cli.main(
           Array(
             "analyse",
@@ -108,22 +95,13 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
         result must beRight
         result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
-      }).get()
+      }
     }
 
     "output correct issues for custom python version" in {
-      (for {
-        directory <- File.temporaryDirectory()
-        file <- File.temporaryFile()
-      } yield {
-
-        Process(Seq(
-          "git",
-          "clone",
-          "git://github.com/qamine-test/nci-adult-match-treatment-arm-api",
-          directory.pathAsString)).!
-        Process(Seq("git", "reset", "--hard", "38e5ab22774c6061ce693efab4011d49b8feb5ca"), directory.toJava).!
-
+      withClonedRepo[(Set[Result], Set[Result])](
+        "git://github.com/qamine-test/nci-adult-match-treatment-arm-api",
+        "38e5ab22774c6061ce693efab4011d49b8feb5ca") { (file, directory) =>
         cli.main(
           Array(
             "analyse",
@@ -150,18 +128,13 @@ class CLISpec extends Specification with NoLanguageFeatures {
         result must beLike {
           case Right((response, _)) => response.exists(_.isInstanceOf[FileError]) must beFalse
         }
-      }).get()
+      }
     }
 
     "output correct issues for custom brakeman basedir" in {
-      (for {
-        directory <- File.temporaryDirectory()
-        file <- File.temporaryFile()
-      } yield {
-
-        Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
-        Process(Seq("git", "reset", "--hard", "266c56a61d236ed6ee5efa58c0e621125498dd5f"), directory.toJava).!
-
+      withClonedRepo[(Set[Result], Set[Result])](
+        "git://github.com/qamine-test/codacy-brakeman",
+        "266c56a61d236ed6ee5efa58c0e621125498dd5f") { (file, directory) =>
         cli.main(
           Array(
             "analyse",
@@ -185,7 +158,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
         result must beRight
         result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
-      }).get()
+      }
     }
 
   }

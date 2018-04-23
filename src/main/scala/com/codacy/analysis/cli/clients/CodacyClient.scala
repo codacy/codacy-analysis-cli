@@ -19,7 +19,7 @@ class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, Stri
     Decoder[String].emap(lang =>
       Languages.fromName(lang).fold[Either[String, Language]](Left(s"Failed to parse language $lang"))(Right(_)))
 
-  def get(endpoint: String): Either[ParsingFailure, Json] = {
+  private def get(endpoint: String): Either[ParsingFailure, Json] = {
     val headers: Map[String, String] = Map("Content-Type" -> "application/json") ++ extraHeaders
 
     val response: HttpResponse[String] =
