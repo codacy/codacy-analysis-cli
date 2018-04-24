@@ -1,29 +1,18 @@
 package com.codacy.analysis.cli
 
 import better.files.File
-import caseapp.RemainingArgs
-import com.codacy.analysis.cli.command.ArgumentParsers._
-import com.codacy.analysis.cli.command.{Command, CommandAppWithBaseCommand, DefaultCommand}
+import com.codacy.analysis.cli.command.{Command, DefaultCommand}
+import com.codacy.analysis.cli.model.{FileError, Result}
+import io.circe.generic.auto._
+import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
-import scala.sys.process._
+import com.codacy.analysis.cli.utils.TestUtils._
 
 class CLISpec extends Specification with NoLanguageFeatures {
 
-  private val cli = new CommandAppWithBaseCommand[DefaultCommand, Command] {
+  private val cli = new MainImpl() {
     override def exit(code: Int): Unit = ()
-
-    override final def run(command: Command, remainingArgs: RemainingArgs): Unit = {
-      command.run()
-    }
-
-    override def defaultCommand(command: DefaultCommand, remainingArgs: Seq[String]): Unit = {
-      if (command.version.isDefined) {
-        command.run()
-      } else {
-        helpAsked()
-      }
-    }
   }
 
   "CLIApp" should {
@@ -45,25 +34,28 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
     "output text to file" in {
       (for {
+        directory <- File.temporaryDirectory()
         file <- File.temporaryFile()
       } yield {
-        cli.main(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--output", file.pathAsString))
+        cli.main(
+          Array("analyse", "--directory", directory.pathAsString, "--tool", "pylint", "--output", file.pathAsString))
 
         file.contentAsString must beEqualTo("""|Starting analysis ...
-             |Analysis complete
-             |""".stripMargin)
+                 |Analysis complete
+                 |""".stripMargin)
       }).get()
     }
 
     "output json to file" in {
       (for {
+        directory <- File.temporaryDirectory()
         file <- File.temporaryFile()
       } yield {
         cli.main(
           Array(
             "analyse",
             "--directory",
-            "/tmp",
+            directory.pathAsString,
             "--tool",
             "pylint",
             "--format",
@@ -72,19 +64,14 @@ class CLISpec extends Specification with NoLanguageFeatures {
             file.pathAsString))
 
         file.contentAsString must beEqualTo("""|[]
-             |""".stripMargin)
+                 |""".stripMargin)
       }).get()
     }
 
     "output correct issues for sample project without remote configuration" in {
-      (for {
-        directory <- File.temporaryDirectory()
-        file <- File.temporaryFile()
-      } yield {
-
-        Process(Seq("git", "clone", "git://github.com/codacy/codacy-brakeman", directory.pathAsString)).!
-        Process(Seq("git", "reset", "--hard", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38"), directory.toJava).!
-
+      withClonedRepo[(Set[Result], Set[Result])](
+        "git://github.com/qamine-test/codacy-brakeman",
+        "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38") { (file, directory) =>
         cli.main(
           Array(
             "analyse",
@@ -95,18 +82,90 @@ class CLISpec extends Specification with NoLanguageFeatures {
             "--format",
             "json",
             "--output",
-            file.pathAsString))
+            file.pathAsString,
+            "--verbose"))
 
-        file.contentAsString must beEqualTo(
-          File.resource("com/codacy/analysis/cli/cli-output-brakeman-1.json").contentAsString)
-      }).get()
+        val result = for {
+          responseJson <- parser.parse(file.contentAsString)
+          response <- responseJson.as[Set[Result]]
+          expectedJson <- parser.parse(
+            File.resource("com/codacy/analysis/cli/cli-output-brakeman-1.json").contentAsString)
+          expected <- expectedJson.as[Set[Result]]
+        } yield (response, expected)
+
+        result must beRight
+        result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+      }
+    }
+
+    "output correct issues for custom python version" in {
+      withClonedRepo[(Set[Result], Set[Result])](
+        "git://github.com/qamine-test/nci-adult-match-treatment-arm-api",
+        "38e5ab22774c6061ce693efab4011d49b8feb5ca") { (file, directory) =>
+        cli.main(
+          Array(
+            "analyse",
+            "--directory",
+            directory.pathAsString,
+            "--tool",
+            "pylint",
+            "--format",
+            "json",
+            "--output",
+            file.pathAsString,
+            "--verbose"))
+
+        val result = for {
+          responseJson <- parser.parse(file.contentAsString)
+          response <- responseJson.as[Set[Result]]
+          expectedJson <- parser.parse(
+            File.resource("com/codacy/analysis/cli/cli-output-pylint-1.json").contentAsString)
+          expected <- expectedJson.as[Set[Result]]
+        } yield (response, expected)
+
+        result must beRight
+        result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+        result must beLike {
+          case Right((response, _)) => response.exists(_.isInstanceOf[FileError]) must beFalse
+        }
+      }
+    }
+
+    "output correct issues for custom brakeman basedir" in {
+      withClonedRepo[(Set[Result], Set[Result])](
+        "git://github.com/qamine-test/codacy-brakeman",
+        "266c56a61d236ed6ee5efa58c0e621125498dd5f") { (file, directory) =>
+        cli.main(
+          Array(
+            "analyse",
+            "--directory",
+            directory.pathAsString,
+            "--tool",
+            "brakeman",
+            "--format",
+            "json",
+            "--output",
+            file.pathAsString,
+            "--verbose"))
+
+        val result = for {
+          responseJson <- parser.parse(file.contentAsString)
+          response <- responseJson.as[Set[Result]]
+          expectedJson <- parser.parse(
+            File.resource("com/codacy/analysis/cli/cli-output-brakeman-rails4.json").contentAsString)
+          expected <- expectedJson.as[Set[Result]]
+        } yield (response, expected)
+
+        result must beRight
+        result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+      }
     }
 
   }
 
   private def errorMsg(message: String)
     : (DefaultCommand, List[String], Option[Either[String, (String, Command, Seq[String], Seq[String])]]) = {
-    (DefaultCommand(None), List.empty[String], Some(Left(message)))
+    (DefaultCommand(), List.empty[String], Some(Left(message)))
   }
 
 }

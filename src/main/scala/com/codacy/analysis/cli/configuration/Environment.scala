@@ -1,0 +1,56 @@
+package com.codacy.analysis.cli.configuration
+
+import java.net.URL
+
+import com.codacy.analysis.cli.utils.Implicits._
+import org.log4s.{Logger, getLogger}
+
+import scala.util.{Failure, Try}
+
+class Environment(variables: Map[String, String]) {
+
+  private val logger: Logger = getLogger
+
+  def projectToken(projectToken: Option[String]): Option[String] = {
+    validate("Project token", "argument", "--project-token")(projectToken).orElse(
+      validate("Project token", "environment variable", "CODACY_PROJECT_TOKEN")(variables.get("CODACY_PROJECT_TOKEN")))
+  }
+
+  def apiToken(apiToken: Option[String]): Option[String] = {
+    validate("API token", "argument", "--api-token")(apiToken)
+      .orElse(validate("API token", "environment variable", "CODACY_API_TOKEN")(variables.get("CODACY_API_TOKEN")))
+  }
+
+  def apiBaseUrl(codacyApiBaseURL: Option[String]): Option[String] = {
+    val apiURL = validate("API base URL", "argument", "--codacy-api-base-url")(codacyApiBaseURL).orElse(
+      validate("API base URL", "environment variable", "CODACY_API_BASE_URL")(variables.get("CODACY_API_BASE_URL")))
+
+    apiURL.flatMap { url =>
+      Try(new URL(url)) match {
+        case Failure(_) =>
+          val error = s"Invalid API base URL: $url"
+
+          val help = if (!url.startsWith("http")) {
+            " * Maybe you forgot the http:// or https:// ?"
+          }
+
+          logger.warn(s"$error\n$help")
+          Option.empty[String]
+
+        case _ =>
+          logger.info(s"Using API base URL $url")
+          Option(url)
+      }
+    }
+  }
+
+  private def validate(name: String, paramType: String, param: String)(value: Option[String]): Option[String] = {
+    value.ifEmpty(logger.info(s"$name not passed through $paramType `$param`")).flatMap {
+      case t if t.trim.nonEmpty => Option(t.trim)
+      case _ =>
+        logger.warn(s"$name passed through $paramType `$param` is empty")
+        Option.empty[String]
+    }
+  }
+
+}

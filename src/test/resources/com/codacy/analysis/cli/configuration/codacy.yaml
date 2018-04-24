@@ -1,0 +1,29 @@
+---
+engines:
+  rubocop:
+    enabled: true
+    exclude_paths:
+      - config/engines.yml
+    base_sub_dir: test/baseDir
+  duplication:
+    enabled: true
+    exclude_paths:
+      - config/engines.yml
+    config:
+      languages:
+      - "ruby"
+  metrics:
+    enabled: true
+    exclude_paths:
+      - config/engines.yml
+  coverage:
+    enabled: true
+    exclude_paths:
+      - config/engines.yml
+grade:
+  exclude_paths:
+      - config/engines.yml
+exclude_paths:
+  - .bundle/
+  - spec/**/*
+  - benchmarks/**/*

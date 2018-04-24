@@ -3,22 +3,19 @@ package com.codacy.analysis.cli.command
 import better.files.File
 import caseapp._
 import caseapp.core.ArgParser
+import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.command.ArgumentParsers._
-import com.codacy.analysis.cli.command.analyse.Analyser
 import com.codacy.analysis.cli.formatter.Formatter
-import com.codacy.analysis.cli.model.FileCfg
-import com.codacy.analysis.cli.utils
-import org.log4s.{Logger, getLogger}
-
-import scala.util.{Failure, Success, Try}
 
 abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command] {
+  def run(command: Command): Unit
+
   override final def run(command: Command, remainingArgs: RemainingArgs): Unit = {
-    command.run()
+    run(command)
   }
 
   override def defaultCommand(command: DefaultCommand, remainingArgs: Seq[String]): Unit = {
-    if (command.version.isDefined) {
+    if (command.version.## > 0) {
       command.run()
     } else {
       helpAsked()
@@ -30,13 +27,6 @@ object ArgumentParsers {
   implicit val fileParser: ArgParser[File] = {
     ArgParser.instance[File]("file") { path: String =>
       Right(File(path))
-    }
-  }
-
-  implicit val boolean: ArgParser[Option[Unit]] = {
-    ArgParser.flag("flag") {
-      case Some(_) => Right(Option(()))
-      case None    => Right(Option.empty)
     }
   }
 }
@@ -54,11 +44,11 @@ object Properties {
 @ProgName("codacy-analysis-cli")
 final case class DefaultCommand(
   @ExtraName("v") @ValueDescription("Prints the version of the program")
-  version: Option[Unit])
+  version: Int @@ Counter = Tag.of(0))
     extends Runnable {
 
   def run(): Unit = {
-    if (version.isDefined) {
+    if (version.## > 0) {
       Console.println(s"codacy-analysis-cli is on version ${Version.version}")
     }
   }
@@ -66,48 +56,40 @@ final case class DefaultCommand(
 
 final case class CommonOptions(
   @ValueDescription("Run the tool with verbose output")
-  verbose: Option[Unit] = Option.empty)
+  verbose: Int @@ Counter = Tag.of(0))
 
-sealed trait Command extends Runnable {
+sealed trait Command {
   def options: CommonOptions
 }
 
+final case class APIOptions(@ValueDescription("The project token.")
+                            projectToken: Option[String] = Option.empty,
+                            @ValueDescription("The api token.")
+                            apiToken: Option[String] = Option.empty,
+                            @ValueDescription("The username.")
+                            username: Option[String] = Option.empty,
+                            @ValueDescription("The project name.")
+                            project: Option[String] = Option.empty,
+                            @ValueDescription("The codacy api base url.")
+                            codacyApiBaseUrl: Option[String] = Option.empty)
+
+final case class ExtraOptions(
+  @Hidden @ValueDescription(s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")
+  analyser: String = Analyser.defaultAnalyser.name)
+
 final case class Analyse(@Recurse
                          options: CommonOptions,
+                         @Recurse
+                         api: APIOptions,
                          @ExtraName("t") @ValueDescription("The tool to analyse the code.")
                          tool: String,
                          @ExtraName("d") @ValueDescription("The directory to analyse.")
-                         directory: File = Properties.codacyCode.getOrElse(File.currentWorkingDirectory),
+                         directory: Option[File],
                          @ExtraName("f") @ValueDescription(
                            s"The output format. (${Formatter.allFormatters.map(_.name).mkString(", ")})")
                          format: String = Formatter.defaultFormatter.name,
                          @ExtraName("o") @ValueDescription("The output destination file.")
                          output: Option[File] = Option.empty,
-                         @Hidden @ExtraName("a") @ValueDescription(
-                           s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")
-                         analyser: String = Analyser.defaultAnalyser.name)
-    extends Command {
-
-  // TODO: check if verbose is working
-  private implicit val logger: Logger = utils.Logger.withLevel(getLogger, options.verbose.isDefined)
-  private val formatterImpl: Formatter = Formatter(format, output)
-  private val analyserImpl: Analyser[Try] = Analyser(analyser)
-
-  def run(): Unit = {
-    formatterImpl.begin()
-
-    // TODO: Move this to the file processor
-    val baseDirectory = if (directory.isDirectory) directory else directory.parent
-    val filesToAnalyse = if (directory.isDirectory) directory.listRecursively.to[Set] else Set(directory)
-
-    analyserImpl.analyse(tool, baseDirectory, filesToAnalyse, FileCfg) match {
-      case Success(res) =>
-        logger.info(s"Completed analysis for $tool")
-        res.foreach(formatterImpl.add)
-      case Failure(e) =>
-        logger.error(e)(s"Failed analysis for $tool")
-    }
-
-    formatterImpl.end()
-  }
-}
+                         @Recurse
+                         extras: ExtraOptions)
+    extends Command

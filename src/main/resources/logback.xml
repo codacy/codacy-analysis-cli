@@ -10,8 +10,7 @@
             <pattern>%d{MM/dd HH:mm:ss,SSS} %highlight(%-5level) %cyan(%logger{30}:%L) - %msg %n</pattern>
         </encoder>
     </appender>
-    <logger name="com.codacy" level="INFO"/>
-    <root level="INFO">
+    <root level="OFF">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

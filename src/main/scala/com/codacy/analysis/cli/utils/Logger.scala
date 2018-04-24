@@ -2,18 +2,19 @@ package com.codacy.analysis.cli.utils
 
 import ch.qos.logback.classic
 import ch.qos.logback.classic.Level
-import org.log4s
+import org.slf4j
+import org.slf4j.LoggerFactory
 
 object Logger {
 
-  def withLevel(logger: log4s.Logger, debug: Boolean = false): log4s.Logger = {
+  def setLevel(debug: Boolean = false): Unit = {
     val level = if (debug) Level.DEBUG else Level.OFF
-    logger.logger match {
+    val root = LoggerFactory.getLogger(slf4j.Logger.ROOT_LOGGER_NAME)
+    root match {
       case classicLogger: classic.Logger =>
         classicLogger.setLevel(level)
       case _ =>
     }
-    logger
   }
 
 }

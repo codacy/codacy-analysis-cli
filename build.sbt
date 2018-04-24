@@ -25,26 +25,35 @@ lazy val codacyAnalysisCli = project
       Dependencies.caseApp,
       Dependencies.betterFiles,
       Dependencies.jodaTime,
-      Dependencies.codacyPluginsApi,
       Dependencies.codacyPlugins,
-      Dependencies.fansi) ++
+      Dependencies.fansi,
+      Dependencies.scalajHttp,
+      Dependencies.cats) ++
       Dependencies.circe ++
+      Dependencies.jackson ++
       Dependencies.log4s,
     // Test Dependencies
     libraryDependencies ++= Seq(Dependencies.specs2).map(_ % Test))
   .settings(Common.dockerSettings: _*)
   .settings(Common.genericSettings: _*)
 
-// javaOptions in Universal ++= Seq(
-//   "-XX:MaxRAMFraction=1",
-//   "-XX:+UnlockExperimentalVMOptions",
-//   "-XX:+UseCGroupMemoryLimitForHeap")
-
 // Scapegoat
 scalaVersion in ThisBuild := scalaVersionNumber
 scalaBinaryVersion in ThisBuild := scalaBinaryVersionNumber
 scapegoatDisabledInspections in ThisBuild := Seq()
 scapegoatVersion in ThisBuild := "1.3.4"
-compile.in(Compile) := (if (sys.env.get("NO_SCAPEGOAT").isEmpty)
-                          compile.in(Compile).dependsOn(scapegoat)
-                        else compile.in(Compile)).value
+compile.in(Compile) := Def.taskDyn {
+  val c = compile.in(Compile).value
+  Def.task {
+    if (sys.env.get("CI").exists(_.nonEmpty)) Def.taskDyn(Def.task(scapegoat.in(Compile).value))
+    c
+  }
+}.value
+
+compile.in(Test) := Def.taskDyn {
+  val c = compile.in(Test).value
+  Def.task {
+    if (sys.env.get("CI").exists(_.nonEmpty)) Def.taskDyn(Def.task(scapegoat.in(Compile).value))
+    c
+  }
+}.value
