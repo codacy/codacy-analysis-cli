@@ -6,6 +6,7 @@ import caseapp.core.ArgParser
 import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.command.ArgumentParsers._
 import com.codacy.analysis.cli.formatter.Formatter
+import com.codacy.analysis.cli.tools.Tool
 
 abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command] {
   def run(command: Command): Unit
@@ -77,19 +78,19 @@ final case class ExtraOptions(
   @Hidden @ValueDescription(s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")
   analyser: String = Analyser.defaultAnalyser.name)
 
-final case class Analyse(@Recurse
-                         options: CommonOptions,
-                         @Recurse
-                         api: APIOptions,
-                         @ExtraName("t") @ValueDescription("The tool to analyse the code.")
-                         tool: String,
-                         @ExtraName("d") @ValueDescription("The directory to analyse.")
-                         directory: Option[File],
-                         @ExtraName("f") @ValueDescription(
-                           s"The output format. (${Formatter.allFormatters.map(_.name).mkString(", ")})")
-                         format: String = Formatter.defaultFormatter.name,
-                         @ExtraName("o") @ValueDescription("The output destination file.")
-                         output: Option[File] = Option.empty,
-                         @Recurse
-                         extras: ExtraOptions)
+final case class Analyse(
+  @Recurse
+  options: CommonOptions,
+  @Recurse
+  api: APIOptions,
+  @ExtraName("t") @ValueDescription(s"The tool to analyse the code. (${Tool.allToolShortNames.mkString(", ")})")
+  tool: String,
+  @ExtraName("d") @ValueDescription("The directory to analyse.")
+  directory: Option[File],
+  @ExtraName("f") @ValueDescription(s"The output format. (${Formatter.allFormatters.map(_.name).mkString(", ")})")
+  format: String = Formatter.defaultFormatter.name,
+  @ExtraName("o") @ValueDescription("The output destination file.")
+  output: Option[File] = Option.empty,
+  @Recurse
+  extras: ExtraOptions)
     extends Command
