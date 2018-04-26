@@ -41,6 +41,9 @@ class Tool(private val plugin: IDockerPlugin) {
   def name: String = plugin.shortName
   def uuid: String = plugin.uuid
 
+  def needsPatternsToRun: Boolean = plugin.needsPatternsToRun
+  def allowsUIConfiguration: Boolean = plugin.hasUIConfiguration
+
   def languages: Set[Language] = plugin.languages
 
   def configFilenames: Set[String] = plugin match {

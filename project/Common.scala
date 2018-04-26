@@ -26,7 +26,7 @@ object Common {
     dockerEntrypoint := Seq(s"$defaultDockerInstallationPath/bin/${name.value}"),
     dockerCmd := Seq(),
     dockerCommands := dockerCommands.value.flatMap {
-      case cmd @ (Cmd("WORKDIR", _)) =>
+      case cmd @ Cmd("WORKDIR", _) =>
         List(
           Cmd(
             "RUN",

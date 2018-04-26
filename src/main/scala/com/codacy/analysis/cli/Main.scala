@@ -9,6 +9,7 @@ import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.Formatter
 import cats._
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
+import com.codacy.analysis.cli.utils.Logger
 import implicits._
 
 import scala.util.Try
@@ -20,6 +21,7 @@ class MainImpl extends CLIApp {
   def run(command: Command): Unit = {
     command match {
       case analyse: Analyse =>
+        Logger.setLevel(analyse.options.verbose.## > 0)
         val formatter: Formatter = Formatter(analyse.format, analyse.output)
         val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
         val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()

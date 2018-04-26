@@ -53,7 +53,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
                   ToolConfiguration(
                     "34225275-f79e-4b85-8126-c7512c987c0d",
                     isEnabled = true,
-                    notEdited = true,
+                    notEdited = false,
                     toolPatterns))))
           }
         }
@@ -122,7 +122,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
                   ToolConfiguration(
                     "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
                     isEnabled = true,
-                    notEdited = true,
+                    notEdited = false,
                     toolPatterns))))
           }
         }
