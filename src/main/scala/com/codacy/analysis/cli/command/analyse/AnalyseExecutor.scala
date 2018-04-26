@@ -39,7 +39,7 @@ class AnalyseExecutor(analyse: Analyse,
       tool <- Tool.from(analyse.tool)
       fileTargets <- fileCollector.list(tool, baseDirectory, localConfigurationFile, remoteProjectConfiguration)
       fileTarget <- fileCollector.filter(tool, fileTargets, localConfigurationFile, remoteProjectConfiguration)
-      toolConfiguration = getToolConfiguration(
+      toolConfiguration <- getToolConfiguration(
         tool,
         fileTarget.configFiles,
         localConfigurationFile,
@@ -61,7 +61,7 @@ class AnalyseExecutor(analyse: Analyse,
   private def getToolConfiguration(tool: Tool,
                                    configFiles: Set[Path],
                                    localConfiguration: Either[String, CodacyConfigurationFile],
-                                   remoteConfiguration: Either[String, ProjectConfiguration]): Configuration = {
+                                   remoteConfiguration: Either[String, ProjectConfiguration]): Try[Configuration] = {
     val (baseSubDir, extraValues) = getExtraConfiguration(localConfiguration, tool)
     (for {
       projectConfig <- remoteConfiguration
@@ -70,19 +70,32 @@ class AnalyseExecutor(analyse: Analyse,
         .toRight[String]("Could not find tool")
     } yield {
       val shouldUseConfigFile = toolConfiguration.notEdited && configFiles.nonEmpty
-      if (shouldUseConfigFile) {
-        logger.info(s"Preparing to run ${tool.name} with remote configuration")
-        CodacyCfg(
-          toolConfiguration.patterns.map(ConfigurationHelper.apiPatternToInternalPattern),
-          baseSubDir,
-          extraValues)
-      } else {
+      val shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile && tool.allowsUIConfiguration && toolConfiguration.patterns.nonEmpty
+      // TODO: Review isEnabled condition when running multiple tools since we might want to force this for single tools
+      // val shouldRun = toolConfiguration.isEnabled && (!tool.needsPatternsToRun || shouldUseConfigFile || shouldUseRemoteConfiguredPatterns)
+      val shouldRun = !tool.needsPatternsToRun || shouldUseConfigFile || shouldUseRemoteConfiguredPatterns
+
+      if (!shouldRun) {
+        logger.error(s"""Could not find conditions to run tool ${tool.name} with:
+             |shouldUseConfigFile:$shouldUseConfigFile = notEdited:${toolConfiguration.notEdited} && foundToolConfigFile:${configFiles.nonEmpty}
+             |shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile:$shouldUseConfigFile && allowsUIConfiguration:${tool.allowsUIConfiguration} && hasPatterns:${toolConfiguration.patterns.nonEmpty}
+             |shouldRun:$shouldRun = !needsPatternsToRun:${tool.needsPatternsToRun} || shouldUseConfigFile:$shouldUseConfigFile || shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns
+           """.stripMargin)
+        Failure(new Exception(s"Could not find conditions to run tool ${tool.name}"))
+      } else if (shouldUseConfigFile) {
         logger.info(s"Preparing to run ${tool.name} with configuration file")
-        FileCfg(baseSubDir, extraValues)
+        Success(FileCfg(baseSubDir, extraValues))
+      } else {
+        logger.info(s"Preparing to run ${tool.name} with remote configuration")
+        Success(
+          CodacyCfg(
+            toolConfiguration.patterns.map(ConfigurationHelper.apiPatternToInternalPattern),
+            baseSubDir,
+            extraValues))
       }
-    }).right.getOrElse[Configuration] {
+    }).right.getOrElse[Try[Configuration]] {
       logger.info(s"Preparing to run ${analyse.tool} with defaults")
-      FileCfg(baseSubDir, extraValues)
+      Success(FileCfg(baseSubDir, extraValues))
     }
   }
 

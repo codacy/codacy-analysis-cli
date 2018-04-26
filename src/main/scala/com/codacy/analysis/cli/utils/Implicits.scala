@@ -5,7 +5,7 @@ object Implicits {
   implicit class OptionOps[T](option: Option[T]) {
 
     def ifEmpty(f: => Unit): Option[T] = {
-      f
+      if (option.isEmpty) f
       option
     }
   }
