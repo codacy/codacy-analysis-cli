@@ -2,7 +2,18 @@
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/e490e1a232a04bccb113ff55b8126947)](https://www.codacy.com?utm_source=git@bitbucket.org&amp;utm_medium=referral&amp;utm_content=qamine/codacy-analysis-cli&amp;utm_campaign=Badge_Grade)
 
-Small command line interface to execute code analysis locally.
+Small command line interface to execute Codacy code analysis locally.
+
+## Features
+
+- [ ] Invoke a tool
+  - [X] Local tool configuration file
+  - [X] Remote Codacy patterns, ignored files and language extensions
+  - [ ] Default settings
+- [ ] Invoke multiple tools
+- [ ] Invoke tools in parallel
+- [ ] Post results to Codacy
+- [ ] Exit with status from Codacy quality settings
 
 ## Prerequisites
 
@@ -91,23 +102,78 @@ cd codacy-analysis-cli-* && sudo make install
 ### Local
 
 ```sh
-sbt "runMain com.codacy.analysis.cli.Main"
+sbt "runMain com.codacy.analysis.cli.Main analyse --tool <TOOL-SHORT-NAME> --directory <SOURCE-CODE-PATH>"
 ```
 
 ### Docker
 
 ```sh
 docker run \
-  --interactive --tty --rm \
-  --env CODACY_CODE="$PWD" \
-  --volume "$PWD":/src \
+  --rm=true \
+  --env CODACY_CODE="$CODACY_CODE" \
   --volume /var/run/docker.sock:/var/run/docker.sock \
-  --volume /tmp/codacy/cli:/tmp/codacy/cli \
-  codacy/codacy-analysis-cli:<VERSION>
+  --volume "$CODACY_CODE":"$CODACY_CODE" \
+  --volume /tmp:/tmp \
+  codacy/codacy-analysis-cli \
+    --tool <TOOL-SHORT-NAME>
 ```
 
 ### Script
 
 ```sh
-codacy-analysis-cli
+codacy-analysis-cli analyse \
+  --tool <TOOL-SHORT-NAME> \
+  --directory <SOURCE-CODE-PATH>
 ```
+
+## Configuration
+
+### CLI Parameters
+
+* `--tool` - Choose the tool to analyse the code (e.g. brakeman)
+* `--directory` - Choose the directory to be analysed
+* `--codacy-api-base-url` or env.`CODACY_API_BASE_URL` - Change the Codacy installation API URL to retrieve the configuration (e.g. Enterprise installation)
+* `--output` - Send the output results to a file
+* `--format` - Change the output format (e.g. json)
+
+### Local configuration
+
+To perform certain advanced configurations, Codacy allows to create a configuration file.
+Check our [documentation](https://support.codacy.com/hc/en-us/articles/115002130625-Codacy-Configuration-File) for
+more details.
+
+### Remote configuration
+
+To run locally the same analysis that Codacy does in your code you can request remotely the configuration.
+
+#### Project Token
+
+You can find the project token in:
+* `Project -> Settings -> Integrations -> Add Integration -> Project API`
+
+```sh
+codacy-analysis-cli analyse \
+  --project-token <PROJECT-TOKEN> \
+  --tool <TOOL-SHORT-NAME> \
+  --directory <SOURCE-CODE-PATH>
+```
+
+> In alternative to setting `--project-token` you can define CODACY_PROJECT_TOKEN in the environment.
+
+#### API Token
+
+You can find the project token in:
+* `Account -> API Tokens`
+
+The username and project name can be retrieved from the URL in Codacy.
+
+```sh
+codacy-analysis-cli analyse \
+  --api-token <PROJECT-TOKEN> \
+  --username <USERNAME> \
+  --project <PROJECT-NAME> \
+  --tool <TOOL-SHORT-NAME> \
+  --directory <SOURCE-CODE-PATH>
+```
+
+> In alternative to setting `--api-token` you can define CODACY_API_TOKEN in the environment.
