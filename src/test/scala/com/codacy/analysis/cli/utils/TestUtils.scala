@@ -4,7 +4,7 @@ import java.nio.file.{Path, Paths}
 
 import better.files.File
 import codacy.docker.api
-import io.circe.{Decoder, Error}
+import io.circe.Decoder
 import org.specs2.matcher.MatchResult
 
 import scala.sys.process.Process
@@ -15,7 +15,7 @@ object TestUtils {
   implicit val fileDecoder: Decoder[Path] = Decoder[String].map(Paths.get(_))
 
   def withClonedRepo[T](gitUrl: String, commitUUid: String)(
-    block: (File, File) => MatchResult[Either[Error, T]]): MatchResult[Either[Error, T]] =
+    block: (File, File) => MatchResult[T]): MatchResult[T] =
     (for {
       directory <- File.temporaryDirectory()
       file <- File.temporaryFile()
