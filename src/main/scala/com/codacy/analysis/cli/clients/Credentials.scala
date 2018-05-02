@@ -10,7 +10,11 @@ sealed trait Credentials {
 }
 
 final case class ProjectToken(token: String, baseUrl: Option[String] = Option.empty[String]) extends Credentials
-final case class APIToken(token: String, baseUrl: Option[String] = Option.empty[String]) extends Credentials
+final case class APIToken(token: String,
+                          baseUrl: Option[String] = Option.empty[String],
+                          userName: String,
+                          projectName: String
+   ) extends Credentials
 
 object Credentials {
 
@@ -25,10 +29,27 @@ object Credentials {
       .map[Credentials](ProjectToken(_, apiURL))
       .orElse[Credentials] {
         environment
-          .apiToken(options.apiToken)
-          .ifEmpty(logger.info("Could not retrieve API token"))
-          .map[Credentials](apiToken => APIToken(apiToken, apiURL))
+          .apiToken(options.apiToken).flatMap {
+            getWithAdditionalParams(
+              _,
+              apiURL,
+              options.project,
+              options.username
+            )
+        }.ifEmpty(logger.info("Could not retrieve API token"))
       }
       .ifEmpty(logger.warn("Could not retrieve credentials"))
+  }
+
+  def getWithAdditionalParams(apiToken: String,
+                              apiUrlOpt: Option[String],
+                              projectOpt: Option[String],
+                              userNameOpt: Option[String]) : Option[Credentials] = {
+    (for {
+      project <- projectOpt
+      userName <- userNameOpt
+    } yield {
+      APIToken(apiToken, apiUrlOpt, userName, project)
+    }).ifEmpty(logger.warn("Could not username and/or project"))
   }
 }
