@@ -33,7 +33,7 @@ lazy val codacyAnalysisCli = project
       Dependencies.jackson ++
       Dependencies.log4s,
     // Test Dependencies
-    libraryDependencies ++= Seq(Dependencies.specs2).map(_ % Test))
+    libraryDependencies ++= Dependencies.specs2.map(_ % Test))
   .settings(Common.dockerSettings: _*)
   .settings(Common.genericSettings: _*)
 
