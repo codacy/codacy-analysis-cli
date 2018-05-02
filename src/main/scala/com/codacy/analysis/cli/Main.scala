@@ -4,13 +4,15 @@ import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.clients.{CodacyClient, Credentials}
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
-import com.codacy.analysis.cli.configuration.{Environment, RemoteConfigurationFetcher}
+import com.codacy.analysis.cli.configuration.Environment
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.Formatter
 import cats._
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
+import com.codacy.analysis.cli.upload.ResultsUploader
 import com.codacy.analysis.cli.utils.Logger
 import implicits._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.util.Try
 
@@ -26,18 +28,33 @@ class MainImpl extends CLIApp {
         val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
         val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
         val environment = new Environment(sys.env)
+        val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map { credentials =>
+          CodacyClient.apply(credentials)
+        }
 
-        val remoteProjectConfiguration: Either[String, ProjectConfiguration] = Credentials
-          .get(environment, analyse.api)
-          .fold {
-            "No credentials found.".asLeft[ProjectConfiguration]
-          } { credentials =>
-            val remoteConfigFetcher =
-              new RemoteConfigurationFetcher(CodacyClient.apply(credentials))
-            remoteConfigFetcher.getRemoteConfiguration(credentials, analyse)
+        val remoteProjectConfiguration: Either[String, ProjectConfiguration] = codacyClientOpt.fold {
+          "No credentials found.".asLeft[ProjectConfiguration]
+        } { codacyClient =>
+          codacyClient.getRemoteConfiguration
+        }
+
+        val resultsUploader: Either[String, ResultsUploader] = codacyClientOpt.fold {
+          "No credentials found.".asLeft[ResultsUploader]
+        } { codacyClient =>
+          analyse.commit.fold {
+            "No commit option found.".asLeft[ResultsUploader]
+          } { commit =>
+            if (analyse.upload) {
+              new ResultsUploader(commit, codacyClient, None).asRight[String]
+            } else {
+              "Upload option disabled.".asLeft[ResultsUploader]
+            }
           }
 
-        new AnalyseExecutor(analyse, formatter, analyser, fileCollector, remoteProjectConfiguration).run()
+        }
+
+        new AnalyseExecutor(analyse, formatter, analyser, resultsUploader, fileCollector, remoteProjectConfiguration)
+          .run()
     }
   }
 
