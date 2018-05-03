@@ -20,6 +20,7 @@ import org.mockito.invocation.InvocationOnMock
 import cats.implicits._
 import io.circe.generic.auto._
 import io.circe.parser
+import better.files.File
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -29,23 +30,25 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures {
 
   "ResultsUploader" should {
 
-    testBatchSize(100)
-    testBatchSize(5000)
+    testBatchSize(-10, "sending batches of -10 results in each payload - should use default")
+    testBatchSize(0, "sending batches of 0 results in each payload - should use default")
+    testBatchSize(100, "sending batches of 100 results in each payload - should use 100")
+    testBatchSize(
+      5000,
+      "sending batches of 5000 (> results.length) results in each payload - should use results.length")
 
   }
 
-  private def testBatchSize(batchSize: Int) = {
+  private def testBatchSize(batchSize: Int, message: String) = {
     val esLintPatternsInternalIds = Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
 
-    s"""analyse a javascript project with eslint, sending batches of $batchSize results in each payload""".stripMargin in {
+    s"analyse a javascript project with eslint, $message".stripMargin in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
         val apiTokenStr = "RandomApiToken"
         val username = "some_user"
         val project = "some_project"
         val tool = "eslint"
-
-
         val analyse = Analyse(
           options = CommonOptions(),
           api = APIOptions(
@@ -62,58 +65,66 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures {
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
-
         val codacyClient = mock(classOf[CodacyClient])
+        val uploader: ResultsUploader = new ResultsUploader(commitUuid, codacyClient, Some(batchSize))
+        val actualBatchSize = if (batchSize > 0) batchSize else uploader.defaultBatchSize
 
-        when(codacyClient.getRemoteConfiguration).thenReturn(
-          Right(
-            ProjectConfiguration(
-              Set.empty,
-              Set.empty,
-              Set(
-                ToolConfiguration(
-                  "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
-                  isEnabled = true,
-                  notEdited = false,
-                  toolPatterns)))))
+        when(codacyClient.getRemoteConfiguration).thenReturn(getMockedRemoteConfiguration(toolPatterns))
 
-        when(
-          codacyClient.sendRemoteResults(
-            ArgumentMatchers.eq(tool),
-            ArgumentMatchers.eq(commitUuid),
-            ArgumentMatchers.any[Seq[Result]])).thenAnswer(new Answer[Future[Either[String, Unit]]] {
-          def answer(invocation: InvocationOnMock): Future[Either[String, Unit]] = {
-            val a = invocation.getArguments()(2).asInstanceOf[Seq[Result]]
-            a.length must beLessThanOrEqualTo(batchSize)
-            Future(().asRight[String])
-          }
-        })
+        verifyBatchSize(codacyClient, tool, commitUuid, actualBatchSize)
 
         when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
 
-        val uploader: ResultsUploader = new ResultsUploader(commitUuid, codacyClient, Some(batchSize))
         runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration, uploader.asRight[String])
 
-        val result = for {
-          responseJson <- parser.parse(file.contentAsString)
-          response <- responseJson.as[Set[Result]]
-        } yield response
-
-        result.map { response =>
-          val numBatchesDouble: Double = response.size.toDouble / batchSize.toDouble
-          val numBatches = Math.ceil(numBatchesDouble).toInt
-          verify(codacyClient, times(numBatches)).sendRemoteResults(
-            ArgumentMatchers.eq(tool),
-            ArgumentMatchers.eq(commitUuid),
-            ArgumentMatchers.any[Seq[Result]])
-
-          verify(codacyClient, times(1)).sendEndOfResults(commitUuid)
-        }
+        verifyNumberOfCalls(codacyClient, tool, commitUuid, actualBatchSize, file)
 
         true must beTrue
-
       }
     }
+  }
+
+  private def getMockedRemoteConfiguration(toolPatterns: Set[ToolPattern]): Either[String, ProjectConfiguration] = {
+    ProjectConfiguration(
+      Set.empty,
+      Set.empty,
+      Set(ToolConfiguration("cf05f3aa-fd23-4586-8cce-5368917ec3e5", isEnabled = true, notEdited = false, toolPatterns)))
+      .asRight[String]
+  }
+
+  private def verifyBatchSize(codacyClient: CodacyClient, tool: String, commitUuid: String, batchSize: Int) = {
+    when(codacyClient
+      .sendRemoteResults(ArgumentMatchers.eq(tool), ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Seq[Result]]))
+      .thenAnswer(new Answer[Future[Either[String, Unit]]] {
+        def answer(invocation: InvocationOnMock): Future[Either[String, Unit]] = {
+          val a = invocation.getArguments()(2).asInstanceOf[Seq[Result]]
+          a.length must beLessThanOrEqualTo(batchSize)
+          Future(().asRight[String])
+        }
+      })
+  }
+
+  private def verifyNumberOfCalls(codacyClient: CodacyClient,
+                                  tool: String,
+                                  commitUuid: String,
+                                  batchSize: Int,
+                                  file: File): Unit = {
+    val result = for {
+      responseJson <- parser.parse(file.contentAsString)
+      response <- responseJson.as[Set[Result]]
+    } yield response
+
+    result.map { response =>
+      val numBatchesDouble: Double = response.size.toDouble / batchSize.toDouble
+      val numBatches = Math.ceil(numBatchesDouble).toInt
+      verify(codacyClient, times(numBatches)).sendRemoteResults(
+        ArgumentMatchers.eq(tool),
+        ArgumentMatchers.eq(commitUuid),
+        ArgumentMatchers.any[Seq[Result]])
+
+      verify(codacyClient, times(1)).sendEndOfResults(commitUuid)
+    }
+    ()
   }
 
   private def runAnalyseExecutor(analyse: Analyse,
