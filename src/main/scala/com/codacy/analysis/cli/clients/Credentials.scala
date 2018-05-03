@@ -13,8 +13,8 @@ final case class ProjectToken(token: String, baseUrl: Option[String] = Option.em
 final case class APIToken(token: String,
                           baseUrl: Option[String] = Option.empty[String],
                           userName: String,
-                          projectName: String
-   ) extends Credentials
+                          projectName: String)
+    extends Credentials
 
 object Credentials {
 
@@ -29,14 +29,11 @@ object Credentials {
       .map[Credentials](ProjectToken(_, apiURL))
       .orElse[Credentials] {
         environment
-          .apiToken(options.apiToken).flatMap {
-            getWithAdditionalParams(
-              _,
-              apiURL,
-              options.project,
-              options.username
-            )
-        }.ifEmpty(logger.info("Could not retrieve API token"))
+          .apiToken(options.apiToken)
+          .flatMap {
+            getWithAdditionalParams(_, apiURL, options.project, options.username)
+          }
+          .ifEmpty(logger.info("Could not retrieve API token"))
       }
       .ifEmpty(logger.warn("Could not retrieve credentials"))
   }
@@ -44,7 +41,7 @@ object Credentials {
   def getWithAdditionalParams(apiToken: String,
                               apiUrlOpt: Option[String],
                               projectOpt: Option[String],
-                              userNameOpt: Option[String]) : Option[Credentials] = {
+                              userNameOpt: Option[String]): Option[Credentials] = {
     (for {
       project <- projectOpt
       userName <- userNameOpt

@@ -14,8 +14,7 @@ object TestUtils {
   implicit val levelDecoder: Decoder[api.Result.Level.Value] = Decoder.enumDecoder(api.Result.Level)
   implicit val fileDecoder: Decoder[Path] = Decoder[String].map(Paths.get(_))
 
-  def withClonedRepo[T](gitUrl: String, commitUUid: String)(
-    block: (File, File) => MatchResult[T]): MatchResult[T] =
+  def withClonedRepo[T](gitUrl: String, commitUUid: String)(block: (File, File) => MatchResult[T]): MatchResult[T] =
     (for {
       directory <- File.temporaryDirectory()
       file <- File.temporaryFile()

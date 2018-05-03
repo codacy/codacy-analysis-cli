@@ -11,11 +11,10 @@ import io.circe.{Decoder, Encoder, Json, ParsingFailure}
 import org.log4s.{Logger, getLogger}
 import scalaj.http.{Http, HttpResponse, HttpRequest}
 
-import scala.concurrent.Future
 import com.codacy.analysis.cli.model.{Result, ToolResults}
 import codacy.docker
 import cats.implicits._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 
 class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, String], credentials: Credentials)(
   implicit context: ExecutionContext) {
@@ -48,10 +47,7 @@ class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, Stri
     val headers: Map[String, String] = Map("Content-Type" -> "application/json") ++ extraHeaders
 
     val request: HttpRequest =
-      Http(s"$remoteUrl$endpoint")
-        .method("POST")
-        .headers(headers)
-        .timeout(connectionTimeoutMs, readTimeoutMs)
+      Http(s"$remoteUrl$endpoint").method("POST").headers(headers).timeout(connectionTimeoutMs, readTimeoutMs)
 
     dataOpt.map { data =>
       request.postData(data.toString)

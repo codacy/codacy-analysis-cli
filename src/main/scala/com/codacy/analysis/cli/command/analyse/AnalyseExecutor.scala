@@ -20,15 +20,14 @@ import scala.util.{Failure, Success, Try}
 
 import scala.concurrent.ExecutionContext
 
-class AnalyseExecutor(analyse: Analyse,
-                      formatter: Formatter,
-                      analyser: Analyser[Try],
-                      uploader: Either[String,ResultsUploader],
-                      fileCollector: FileCollector[Try],
-                      remoteProjectConfiguration: Either[String, ProjectConfiguration])(
-                       implicit context: ExecutionContext)
-extends Runnable {
-
+class AnalyseExecutor(
+  analyse: Analyse,
+  formatter: Formatter,
+  analyser: Analyser[Try],
+  uploader: Either[String, ResultsUploader],
+  fileCollector: FileCollector[Try],
+  remoteProjectConfiguration: Either[String, ProjectConfiguration])(implicit context: ExecutionContext)
+    extends Runnable {
 
   private val logger: Logger = getLogger
 

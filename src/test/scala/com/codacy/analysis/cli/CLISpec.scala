@@ -69,32 +69,31 @@ class CLISpec extends Specification with NoLanguageFeatures {
     }
 
     "output correct issues for sample project without remote configuration" in {
-      withClonedRepo(
-        "git://github.com/qamine-test/codacy-brakeman",
-        "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38") { (file, directory) =>
-        cli.main(
-          Array(
-            "analyse",
-            "--directory",
-            directory./("src/main/resources/docs/directory-tests/rails4").pathAsString,
-            "--tool",
-            "brakeman",
-            "--format",
-            "json",
-            "--output",
-            file.pathAsString,
-            "--verbose"))
+      withClonedRepo("git://github.com/qamine-test/codacy-brakeman", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38") {
+        (file, directory) =>
+          cli.main(
+            Array(
+              "analyse",
+              "--directory",
+              directory./("src/main/resources/docs/directory-tests/rails4").pathAsString,
+              "--tool",
+              "brakeman",
+              "--format",
+              "json",
+              "--output",
+              file.pathAsString,
+              "--verbose"))
 
-        val result = for {
-          responseJson <- parser.parse(file.contentAsString)
-          response <- responseJson.as[Set[Result]]
-          expectedJson <- parser.parse(
-            File.resource("com/codacy/analysis/cli/cli-output-brakeman-1.json").contentAsString)
-          expected <- expectedJson.as[Set[Result]]
-        } yield (response, expected)
+          val result = for {
+            responseJson <- parser.parse(file.contentAsString)
+            response <- responseJson.as[Set[Result]]
+            expectedJson <- parser.parse(
+              File.resource("com/codacy/analysis/cli/cli-output-brakeman-1.json").contentAsString)
+            expected <- expectedJson.as[Set[Result]]
+          } yield (response, expected)
 
-        result must beRight
-        result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+          result must beRight
+          result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
       }
     }
 
@@ -132,32 +131,31 @@ class CLISpec extends Specification with NoLanguageFeatures {
     }
 
     "output correct issues for custom brakeman basedir" in {
-      withClonedRepo(
-        "git://github.com/qamine-test/codacy-brakeman",
-        "266c56a61d236ed6ee5efa58c0e621125498dd5f") { (file, directory) =>
-        cli.main(
-          Array(
-            "analyse",
-            "--directory",
-            directory.pathAsString,
-            "--tool",
-            "brakeman",
-            "--format",
-            "json",
-            "--output",
-            file.pathAsString,
-            "--verbose"))
+      withClonedRepo("git://github.com/qamine-test/codacy-brakeman", "266c56a61d236ed6ee5efa58c0e621125498dd5f") {
+        (file, directory) =>
+          cli.main(
+            Array(
+              "analyse",
+              "--directory",
+              directory.pathAsString,
+              "--tool",
+              "brakeman",
+              "--format",
+              "json",
+              "--output",
+              file.pathAsString,
+              "--verbose"))
 
-        val result = for {
-          responseJson <- parser.parse(file.contentAsString)
-          response <- responseJson.as[Set[Result]]
-          expectedJson <- parser.parse(
-            File.resource("com/codacy/analysis/cli/cli-output-brakeman-rails4.json").contentAsString)
-          expected <- expectedJson.as[Set[Result]]
-        } yield (response, expected)
+          val result = for {
+            responseJson <- parser.parse(file.contentAsString)
+            response <- responseJson.as[Set[Result]]
+            expectedJson <- parser.parse(
+              File.resource("com/codacy/analysis/cli/cli-output-brakeman-rails4.json").contentAsString)
+            expected <- expectedJson.as[Set[Result]]
+          } yield (response, expected)
 
-        result must beRight
-        result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+          result must beRight
+          result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
       }
     }
 
