@@ -16,7 +16,7 @@ import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 import com.codacy.analysis.cli.upload.ResultsUploader
 import scala.util.{Failure, Success, Try}
-
+import cats.implicits._
 
 class AnalyseExecutor(analyse: Analyse,
                       formatter: Formatter,
@@ -52,7 +52,16 @@ class AnalyseExecutor(analyse: Analyse,
 
     uploader.map { upload =>
       result.map { results =>
-        upload.sendResults(analyse.tool, results.toSeq)
+        upload.sendResults(analyse.tool, results.toSeq).map {
+          case Left(message) =>
+            message.asLeft[Unit]
+          case Right(results) =>
+            logger.info("Completed upload of results to API")
+            results.asRight[String]
+        }.recover {
+          case e =>
+            logger.error(e)(s"Upload of results failed for ${analyse.tool}")
+        }
       }
     }
 

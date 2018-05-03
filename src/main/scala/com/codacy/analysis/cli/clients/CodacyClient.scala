@@ -9,7 +9,7 @@ import io.circe.parser._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, Json, ParsingFailure}
 import org.log4s.{Logger, getLogger}
-import scalaj.http.{Http, HttpResponse}
+import scalaj.http.{Http, HttpResponse, HttpRequest}
 
 import scala.concurrent.Future
 import com.codacy.analysis.cli.model.{Result, ToolResults}
@@ -44,17 +44,20 @@ class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, Stri
     parse(response.body)
   }
 
-  private def post(endpoint: String, data: Json): Either[ParsingFailure, Json] = {
+  private def post(endpoint: String, dataOpt: Option[Json] = None): Either[ParsingFailure, Json] = {
     val headers: Map[String, String] = Map("Content-Type" -> "application/json") ++ extraHeaders
 
-    val response: HttpResponse[String] =
+    val request: HttpRequest =
       Http(s"$remoteUrl$endpoint")
+        .method("POST")
         .headers(headers)
         .timeout(connectionTimeoutMs, readTimeoutMs)
-        .postData(data.toString)
-        .asString
 
-    parse(response.body)
+    dataOpt.map { data =>
+      request.postData(data.toString)
+    }
+
+    parse(request.asString.body)
   }
 
   def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
@@ -90,7 +93,7 @@ class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, Stri
 
   private def sendRemoteResultsTo(endpoint: String, tool: String, results: Seq[Result]): Future[Either[String, Unit]] =
     Future {
-      post(endpoint, ToolResults(tool, results).asJson) match {
+      post(endpoint, Some(ToolResults(tool, results).asJson)) match {
         case Left(e) =>
           logger.error(e)(s"Error posting data to endpoint $endpoint")
           Left(e.message)
@@ -99,7 +102,7 @@ class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, Stri
     }
 
   private def sendEndOfResultsTo(endpoint: String): Future[Either[String, Unit]] = Future {
-    get(endpoint) match {
+    post(endpoint) match {
       case Left(e) =>
         logger.error(e)(s"Error sending end of upload results to endpoint $endpoint")
         Left(e.message)
