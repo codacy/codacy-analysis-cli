@@ -2,21 +2,26 @@ package com.codacy.analysis.cli.upload
 
 import com.codacy.analysis.cli.clients.CodacyClient
 import com.codacy.analysis.cli.model.Result
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext
+import org.log4s.{Logger, getLogger}
+import scala.concurrent.{Future, ExecutionContext}
 
 class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeOpt: Option[Int])(
   implicit context: ExecutionContext) {
 
+  private val logger: Logger = getLogger
+
+  def defaultBatchSize = 500
+
   def sendResults(tool: String, results: Seq[Result]): Future[Either[String, Unit]] = {
-    val batchSize: Int = batchSizeOpt.map{
+    val batchSize: Int = batchSizeOpt.map {
       case size if size > 0 => size
-      case _ => results.length
-    }.getOrElse(results.length)
+      case size =>
+        logger.warn(s"Illegal value for upload batch size ($size)")
+        defaultBatchSize
+    }.getOrElse(defaultBatchSize)
     uploadResultsBatch(tool, batchSize, results).flatMap {
       case Right(_) => endUpload()
-      case x => Future(x)
+      case x        => Future(x)
     }
   }
 
