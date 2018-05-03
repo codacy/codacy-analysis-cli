@@ -15,16 +15,19 @@ import com.codacy.analysis.cli.tools.Tool
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 import com.codacy.analysis.cli.upload.ResultsUploader
+
 import scala.util.{Failure, Success, Try}
-import cats.implicits._
+
+import scala.concurrent.ExecutionContext
 
 class AnalyseExecutor(analyse: Analyse,
                       formatter: Formatter,
                       analyser: Analyser[Try],
                       uploader: Either[String,ResultsUploader],
                       fileCollector: FileCollector[Try],
-                      remoteProjectConfiguration: Either[String, ProjectConfiguration])
-    extends Runnable {
+                      remoteProjectConfiguration: Either[String, ProjectConfiguration])(
+                       implicit context: ExecutionContext)
+extends Runnable {
 
 
   private val logger: Logger = getLogger
@@ -51,16 +54,13 @@ class AnalyseExecutor(analyse: Analyse,
     } yield results
 
     uploader.map { upload =>
-      result.map { results =>
-        upload.sendResults(analyse.tool, results.toSeq).map {
-          case Left(message) =>
-            message.asLeft[Unit]
-          case Right(results) =>
+      result.map { results: Set[Result] =>
+        upload.sendResults(analyse.tool, results.toSeq).foreach {
+          case Left(_) =>
+            val message = s"Upload of results failed for ${analyse.tool}"
+            logger.error(message)
+          case Right(_) =>
             logger.info("Completed upload of results to API")
-            results.asRight[String]
-        }.recover {
-          case e =>
-            logger.error(e)(s"Upload of results failed for ${analyse.tool}")
         }
       }
     }

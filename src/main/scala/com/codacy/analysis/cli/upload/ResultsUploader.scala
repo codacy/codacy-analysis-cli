@@ -10,7 +10,10 @@ class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeO
   implicit context: ExecutionContext) {
 
   def sendResults(tool: String, results: Seq[Result]): Future[Either[String, Unit]] = {
-    val batchSize: Int = batchSizeOpt.getOrElse(results.length)
+    val batchSize: Int = batchSizeOpt.map{
+      case size if size > 0 => size
+      case _ => results.length
+    }.getOrElse(results.length)
     uploadResultsBatch(tool, batchSize, results).flatMap {
       case Right(_) => endUpload()
       case x => Future(x)
