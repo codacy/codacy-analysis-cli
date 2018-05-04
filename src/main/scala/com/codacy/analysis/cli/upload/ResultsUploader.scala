@@ -12,7 +12,7 @@ class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeO
 
   def defaultBatchSize = 500
 
-  def sendResults(tool: String, results: Seq[Result]): Future[Either[String, Unit]] = {
+  def sendResults(tool: String, results: Set[Result]): Future[Either[String, Unit]] = {
     val batchSize: Int = batchSizeOpt.map {
       case size if size > 0 => size
       case size =>
@@ -21,7 +21,7 @@ class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeO
     }.getOrElse(defaultBatchSize)
     uploadResultsBatch(tool, batchSize, results).flatMap {
       case Right(_) => endUpload()
-      case x        => Future(x)
+      case x        => Future.successful(x)
     }
   }
 
@@ -29,8 +29,8 @@ class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeO
     codacyClient.sendEndOfResults(commitUuid)
   }
 
-  private def uploadResultsBatch(tool: String, batchSize: Int, results: Seq[Result]): Future[Either[String, Unit]] = {
-    if (results.length <= batchSize) {
+  private def uploadResultsBatch(tool: String, batchSize: Int, results: Set[Result]): Future[Either[String, Unit]] = {
+    if (results.size <= batchSize) {
       codacyClient.sendRemoteResults(tool, commitUuid, results)
     } else {
       val batch: Future[Either[String, Unit]] =

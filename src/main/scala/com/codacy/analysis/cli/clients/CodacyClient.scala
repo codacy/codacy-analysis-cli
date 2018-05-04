@@ -63,7 +63,7 @@ class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, Stri
     }
   }
 
-  def sendRemoteResults(tool: String, commitUuid: String, results: Seq[Result]): Future[Either[String, Unit]] = {
+  def sendRemoteResults(tool: String, commitUuid: String, results: Set[Result]): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
         sendRemoteResultsTo(s"/${token.userName}/${token.projectName}/commit/$commitUuid/remoteResults", tool, results)
@@ -87,13 +87,15 @@ class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, Stri
     getProjectConfigurationFrom(s"/project/$username/$projectName/analysis/configuration")
   }
 
-  private def sendRemoteResultsTo(endpoint: String, tool: String, results: Seq[Result]): Future[Either[String, Unit]] =
+  private def sendRemoteResultsTo(endpoint: String, tool: String, results: Set[Result]): Future[Either[String, Unit]] =
     Future {
       post(endpoint, Some(ToolResults(tool, results).asJson)) match {
         case Left(e) =>
           logger.error(e)(s"Error posting data to endpoint $endpoint")
           Left(e.message)
-        case Right(json) => parseRemoteResultsResponse(json)
+        case Right(json) =>
+          logger.info(s"""Success posting batch of results to endpoint "$endpoint" """)
+          parseRemoteResultsResponse(json)
       }
     }
 
@@ -102,7 +104,9 @@ class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, Stri
       case Left(e) =>
         logger.error(e)(s"Error sending end of upload results to endpoint $endpoint")
         Left(e.message)
-      case _ => Right(())
+      case _ =>
+        logger.info(s"""Success posting end of results to endpoint "$endpoint" """)
+        Right(())
     }
   }
 
@@ -112,6 +116,7 @@ class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, Stri
         logger.error(e)(s"""Error getting config file from endpoint "$endpoint" """)
         Left(e.message)
       case Right(json) =>
+        logger.info(s"""Success getting config file from endpoint "$endpoint" """)
         parseProjectConfigResponse(json)
     }
   }
@@ -121,7 +126,9 @@ class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, Stri
       case Left(e) =>
         logger.error(e)("Error parsing config file")
         Left(e.message)
-      case Right(p) => Right(p)
+      case Right(p) =>
+        logger.info("Success parsing remote configuration")
+        Right(p)
     }
 
   private def parseRemoteResultsResponse(json: Json): Either[String, Unit] = {
@@ -129,7 +136,9 @@ class CodacyClient(apiUrl: Option[String] = None, extraHeaders: Map[String, Stri
       case Left(e) =>
         logger.error(e)("Error parsing remote results upload response")
         Left(e.message)
-      case Right(_) => ().asRight[String]
+      case Right(_) =>
+        logger.info("Success parsing remote results response ")
+        ().asRight[String]
     }
   }
 }

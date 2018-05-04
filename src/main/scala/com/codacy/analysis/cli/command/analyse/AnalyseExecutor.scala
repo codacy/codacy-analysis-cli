@@ -17,8 +17,9 @@ import play.api.libs.json.JsValue
 import com.codacy.analysis.cli.upload.ResultsUploader
 
 import scala.util.{Failure, Success, Try}
+import scala.concurrent.{ExecutionContext, Future}
 
-import scala.concurrent.ExecutionContext
+import cats.implicits._
 
 class AnalyseExecutor(
   analyse: Analyse,
@@ -26,12 +27,11 @@ class AnalyseExecutor(
   analyser: Analyser[Try],
   uploader: Either[String, ResultsUploader],
   fileCollector: FileCollector[Try],
-  remoteProjectConfiguration: Either[String, ProjectConfiguration])(implicit context: ExecutionContext)
-    extends Runnable {
+  remoteProjectConfiguration: Either[String, ProjectConfiguration])(implicit context: ExecutionContext) {
 
   private val logger: Logger = getLogger
 
-  def run(): Unit = {
+  def run(): Future[Either[String, Unit]] = {
     formatter.begin()
 
     val baseDirectory =
@@ -52,18 +52,6 @@ class AnalyseExecutor(
       results <- analyser.analyse(tool, fileTarget.directory, fileTarget.files, toolConfiguration)
     } yield results
 
-    uploader.map { upload =>
-      result.map { results: Set[Result] =>
-        upload.sendResults(analyse.tool, results.toSeq).foreach {
-          case Left(_) =>
-            val message = s"Upload of results failed for ${analyse.tool}"
-            logger.error(message)
-          case Right(_) =>
-            logger.info("Completed upload of results to API")
-        }
-      }
-    }
-
     result match {
       case Success(res) =>
         logger.info(s"Completed analysis for ${analyse.tool}")
@@ -73,6 +61,18 @@ class AnalyseExecutor(
     }
 
     formatter.end()
+
+    uploader.fold[Future[Either[String, Unit]]]({ message =>
+      logger.warn(message)
+      Future.successful(().asRight[String])
+    }, { upload =>
+      for {
+        results <- Future.fromTry(result)
+        upl <- upload.sendResults(analyse.tool, results)
+      } yield upl
+
+    })
+
   }
 
   private def getToolConfiguration(tool: Tool,

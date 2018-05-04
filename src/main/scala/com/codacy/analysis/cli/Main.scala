@@ -12,16 +12,20 @@ import com.codacy.analysis.cli.clients.api.ProjectConfiguration
 import com.codacy.analysis.cli.upload.ResultsUploader
 import com.codacy.analysis.cli.utils.Logger
 import implicits._
+import org.log4s.getLogger
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
-
+import scala.concurrent.duration.Duration
 import scala.util.Try
 
 object Main extends MainImpl
 
 class MainImpl extends CLIApp {
 
+  val logger: org.log4s.Logger = getLogger
+
   def run(command: Command): Unit = {
-    command match {
+    val res = command match {
       case analyse: Analyse =>
         Logger.setLevel(analyse.options.verbose.## > 0)
         val formatter: Formatter = Formatter(analyse.format, analyse.output)
@@ -56,6 +60,14 @@ class MainImpl extends CLIApp {
         new AnalyseExecutor(analyse, formatter, analyser, resultsUploader, fileCollector, remoteProjectConfiguration)
           .run()
     }
+
+    Await.result(res, Duration.Inf) match {
+      case Left(_) =>
+        logger.error("Upload of results failed")
+      case Right(_) =>
+        logger.info("Completed upload of results to API")
+    }
+    ()
   }
 
 }
