@@ -70,9 +70,7 @@ class AnalyseExecutor(
         results <- Future.fromTry(result)
         upl <- upload.sendResults(analyse.tool, results)
       } yield upl
-
     })
-
   }
 
   private def getToolConfiguration(tool: Tool,
