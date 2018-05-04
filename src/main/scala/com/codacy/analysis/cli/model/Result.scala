@@ -36,4 +36,4 @@ final case class FileError(filename: Path, message: String) extends Result
 
 sealed trait ResultsSet
 
-final case class ToolResults(tool: String, results: Seq[Result]) extends ResultsSet
+final case class ToolResults(tool: String, results: Set[Result]) extends ResultsSet
