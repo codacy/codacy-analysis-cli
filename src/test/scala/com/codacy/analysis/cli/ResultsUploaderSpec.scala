@@ -1,8 +1,11 @@
 package com.codacy.analysis.cli
 
+import better.files.File
+import caseapp.Tag
+import cats.implicits._
 import com.codacy.analysis.cli.analysis.Analyser
-import com.codacy.analysis.cli.clients.api._
 import com.codacy.analysis.cli.clients.CodacyClient
+import com.codacy.analysis.cli.clients.api._
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.files.FileCollector
@@ -10,23 +13,21 @@ import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.cli.model.Result
 import com.codacy.analysis.cli.upload.ResultsUploader
 import com.codacy.analysis.cli.utils.TestUtils._
-import org.specs2.control.NoLanguageFeatures
-import org.specs2.mutable.Specification
-
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito._
-import org.mockito.stubbing.Answer
-import org.mockito.invocation.InvocationOnMock
-import cats.implicits._
+import io.circe
 import io.circe.generic.auto._
 import io.circe.parser
-import better.files.File
+import org.mockito.ArgumentMatchers
+import org.mockito.Mockito._
+import org.mockito.invocation.InvocationOnMock
+import org.specs2.control.NoLanguageFeatures
+import org.specs2.matcher.{FutureMatchers, MatchResult}
+import org.specs2.mock.Mockito
+import org.specs2.mutable.Specification
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
 
-class ResultsUploaderSpec extends Specification with NoLanguageFeatures {
+class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
   "ResultsUploader" should {
 
@@ -50,7 +51,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures {
         val project = "some_project"
         val tool = "eslint"
         val analyse = Analyse(
-          options = CommonOptions(),
+          options = CommonOptions(Tag.of(1)),
           api = APIOptions(
             apiToken = Option(apiTokenStr),
             username = Option(username),
@@ -65,7 +66,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures {
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
-        val codacyClient = mock(classOf[CodacyClient])
+        val codacyClient = mock[CodacyClient]
         val uploader: ResultsUploader = new ResultsUploader(commitUuid, codacyClient, Some(batchSize))
         val actualBatchSize = if (batchSize > 0) batchSize else uploader.defaultBatchSize
 
@@ -75,11 +76,9 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures {
 
         when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
 
-        runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration, uploader.asRight[String])
+        runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration, uploader.asRight[String]) must beRight.await
 
         verifyNumberOfCalls(codacyClient, tool, commitUuid, actualBatchSize, file)
-
-        true must beTrue
       }
     }
   }
@@ -94,21 +93,20 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures {
 
   private def verifyBatchSize(codacyClient: CodacyClient, tool: String, commitUuid: String, batchSize: Int) = {
     when(codacyClient
-      .sendRemoteResults(ArgumentMatchers.eq(tool), ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Seq[Result]]))
-      .thenAnswer(new Answer[Future[Either[String, Unit]]] {
-        def answer(invocation: InvocationOnMock): Future[Either[String, Unit]] = {
-          val a = invocation.getArguments()(2).asInstanceOf[Seq[Result]]
-          a.length must beLessThanOrEqualTo(batchSize)
-          Future(().asRight[String])
-        }
+      .sendRemoteResults(ArgumentMatchers.eq(tool), ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Set[Result]]))
+      .thenAnswer((invocation: InvocationOnMock) => {
+        val a = invocation.getArguments()(2).asInstanceOf[Set[Result]]
+        a.size must beLessThanOrEqualTo(batchSize)
+        Future.successful(().asRight[String])
       })
   }
 
-  private def verifyNumberOfCalls(codacyClient: CodacyClient,
-                                  tool: String,
-                                  commitUuid: String,
-                                  batchSize: Int,
-                                  file: File): Unit = {
+  private def verifyNumberOfCalls(
+    codacyClient: CodacyClient,
+    tool: String,
+    commitUuid: String,
+    batchSize: Int,
+    file: File): MatchResult[Either[circe.Error, MatchResult[Future[Either[String, Unit]]]]] = {
     val result = for {
       responseJson <- parser.parse(file.contentAsString)
       response <- responseJson.as[Set[Result]]
@@ -117,19 +115,22 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures {
     result.map { response =>
       val numBatchesDouble: Double = response.size.toDouble / batchSize.toDouble
       val numBatches = Math.ceil(numBatchesDouble).toInt
-      verify(codacyClient, times(numBatches)).sendRemoteResults(
-        ArgumentMatchers.eq(tool),
-        ArgumentMatchers.eq(commitUuid),
-        ArgumentMatchers.any[Seq[Result]])
 
-      verify(codacyClient, times(1)).sendEndOfResults(commitUuid)
-    }
-    ()
+      there was numBatches
+        .times(codacyClient)
+        .sendRemoteResults(
+          ArgumentMatchers.eq(tool),
+          ArgumentMatchers.eq(commitUuid),
+          ArgumentMatchers.any[Set[Result]])
+
+      there was one(codacyClient).sendEndOfResults(commitUuid)
+    } must beRight
   }
 
-  private def runAnalyseExecutor(analyse: Analyse,
-                                 remoteProjectConfiguration: Either[String, ProjectConfiguration],
-                                 resultsUploaderEither: Either[String, ResultsUploader]): Unit = {
+  private def runAnalyseExecutor(
+    analyse: Analyse,
+    remoteProjectConfiguration: Either[String, ProjectConfiguration],
+    resultsUploaderEither: Either[String, ResultsUploader]): Future[Either[String, Unit]] = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()

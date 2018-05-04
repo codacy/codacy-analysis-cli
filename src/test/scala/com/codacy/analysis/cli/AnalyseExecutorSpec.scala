@@ -13,12 +13,13 @@ import com.codacy.analysis.cli.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
+import org.specs2.matcher.FutureMatchers
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.util.Try
 
-class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
+class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
   "AnalyseExecutor" should {
 
@@ -103,7 +104,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
           tool = "eslint",
           directory = Option(directory),
           format = Json.name,
-          output = Some(file),
+          output = Option(file),
           extras = ExtraOptions(),
           commit = Option(commitUuid))
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
@@ -148,13 +149,13 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
 
   private def runAnalyseExecutor(analyse: Analyse,
                                  remoteProjectConfiguration: Either[String, ProjectConfiguration],
-                                 resultsUploaderEither: Either[String, ResultsUploader]): Unit = {
+                                 resultsUploaderEither: Either[String, ResultsUploader]) = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
     new AnalyseExecutor(analyse, formatter, analyser, resultsUploaderEither, fileCollector, remoteProjectConfiguration)
-      .run()
+      .run() must beRight.await
   }
 
 }
