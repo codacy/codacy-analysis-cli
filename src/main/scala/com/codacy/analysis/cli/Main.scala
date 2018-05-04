@@ -22,7 +22,7 @@ object Main extends MainImpl
 
 class MainImpl extends CLIApp {
 
-  val logger: org.log4s.Logger = getLogger
+  private val logger: org.log4s.Logger = getLogger
 
   def run(command: Command): Unit = {
     val res = command match {
@@ -38,9 +38,7 @@ class MainImpl extends CLIApp {
 
         val remoteProjectConfiguration: Either[String, ProjectConfiguration] = codacyClientOpt.fold {
           "No credentials found.".asLeft[ProjectConfiguration]
-        } { codacyClient =>
-          codacyClient.getRemoteConfiguration
-        }
+        } { _.getRemoteConfiguration }
 
         val resultsUploader: Either[String, ResultsUploader] = codacyClientOpt.fold {
           "No credentials found.".asLeft[ResultsUploader]
@@ -48,7 +46,7 @@ class MainImpl extends CLIApp {
           analyse.commit.fold {
             "No commit option found.".asLeft[ResultsUploader]
           } { commit =>
-            if (analyse.upload) {
+            if (analyse.upload.## > 0) {
               new ResultsUploader(commit, codacyClient, None).asRight[String]
             } else {
               "Upload option disabled.".asLeft[ResultsUploader]
