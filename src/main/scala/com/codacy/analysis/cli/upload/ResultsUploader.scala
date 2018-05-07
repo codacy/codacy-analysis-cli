@@ -15,7 +15,7 @@ class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeO
   private val batchSize: Int = batchSizeOpt.map {
     case size if size > 0 => size
     case size =>
-      logger.warn(s"Illegal value for upload batch size ($size)")
+      logger.warn(s"Illegal value for upload batch size ($size), using default batch size")
       defaultBatchSize
   }.getOrElse(defaultBatchSize)
 
