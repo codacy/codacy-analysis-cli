@@ -68,7 +68,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(
           Left(e.message)
         case Right(json) =>
           logger.info(s"""Success posting batch of results to endpoint "$endpoint" """)
-          parseRemoteResultsResponse(json)
+          validateRemoteResultsResponse(json)
       }
     }
 
@@ -79,7 +79,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(
         Left(e.message)
       case Right(json) =>
         logger.info(s"""Success posting end of results to endpoint "$endpoint" """)
-        parseRemoteResultsResponse(json)
+        validateRemoteResultsResponse(json)
     }
   }
 
@@ -104,7 +104,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(
         Right(p)
     }
 
-  private def parseRemoteResultsResponse(json: Json): Either[String, Unit] = {
+  private def validateRemoteResultsResponse(json: Json): Either[String, Unit] = {
     json.as[RemoteResultResponse] match {
       case Left(e) =>
         logger.error(e)("Error parsing remote results upload response")
