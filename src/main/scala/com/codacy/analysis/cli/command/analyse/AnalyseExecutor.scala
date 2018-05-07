@@ -41,7 +41,7 @@ class AnalyseExecutor(
 
     val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
 
-    getTool match {
+    Tool.fromInput(toolInput, remoteProjectConfiguration) match {
       case Left(error) =>
         logger.error(error)
         formatter.end()
@@ -79,23 +79,6 @@ class AnalyseExecutor(
             upl <- upload.sendResults(tool.name, results)
           } yield upl
         })
-    }
-  }
-
-  private def getTool: Either[String, Tool] = {
-    toolInput match {
-      case Some(toolStr) =>
-        Tool.from(toolStr)
-      case None =>
-        remoteProjectConfiguration.right.flatMap {
-          projectConfiguration =>
-            val toolUuids = projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)
-
-            // TODO remove when multiple tools are implemented
-            val toolUuid = toolUuids.headOption
-
-            toolUuid.toRight("No active tool found on the remote configuration").flatMap(Tool.from)
-        }
     }
   }
 
