@@ -56,7 +56,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
             username = Option(username),
             project = Option(project),
             codacyApiBaseUrl = Option("codacy.com")),
-          tool = tool,
+          tool = Option(tool),
           directory = Option(directory),
           format = Json.name,
           output = Option(file),
@@ -136,7 +136,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    new AnalyseExecutor(analyse, formatter, analyser, resultsUploaderEither, fileCollector, remoteProjectConfiguration)
+    new AnalyseExecutor(analyse.tool, analyse.directory, formatter, analyser, resultsUploaderEither, fileCollector, remoteProjectConfiguration)
       .run()
   }
 

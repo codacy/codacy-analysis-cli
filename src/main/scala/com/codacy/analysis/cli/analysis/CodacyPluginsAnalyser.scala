@@ -27,8 +27,8 @@ object CodacyPluginsAnalyser extends AnalyserCompanion[Try] {
 
   object errors {
 
-    def missingTool(tool: String): Exception = {
-      new Exception(s"Could not find tool $tool in (${allToolShortNames.mkString(", ")})")
+    def missingTool(tool: String): String = {
+      s"Could not find tool $tool in (${allToolShortNames.mkString(", ")})"
     }
   }
 

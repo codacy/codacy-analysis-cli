@@ -16,7 +16,7 @@ import utils.PluginHelper
 
 import scala.concurrent.duration._
 import scala.sys.process.Process
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 sealed trait SourceDirectory {
   val sourceDirectory: String
@@ -128,12 +128,12 @@ object Tool {
 
   def allToolShortNames: Set[String] = allTools.map(_.shortName)(collection.breakOut)
 
-  def from(value: String): Try[Tool] = find(value).map(new Tool(_))
+  def from(value: String): Either[String, Tool] = find(value).map(new Tool(_))
 
-  private def find(value: String): Try[IDockerPlugin] = {
+  private def find(value: String): Either[String, IDockerPlugin] = {
     allTools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
-      .fold[Try[IDockerPlugin]](Failure(CodacyPluginsAnalyser.errors.missingTool(value)))(Success(_))
+        .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
   }
 
 }

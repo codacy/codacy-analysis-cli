@@ -36,7 +36,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
         val analyse = Analyse(
           options = CommonOptions(),
           api = APIOptions(projectToken = Option(projTokenStr), codacyApiBaseUrl = Some("codacy.com")),
-          tool = "pylint",
+          tool = Option("pylint"),
           directory = Option(directory),
           format = Json.name,
           output = Option(file),
@@ -102,7 +102,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
             username = Option(username),
             project = Option(project),
             codacyApiBaseUrl = Option("codacy.com")),
-          tool = "eslint",
+          tool = Option("eslint"),
           directory = Option(directory),
           format = Json.name,
           output = Option(file),
@@ -156,7 +156,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
     // scalafix:off
-    new AnalyseExecutor(analyse, formatter, analyser, resultsUploaderEither, fileCollector, remoteProjectConfiguration)
+    new AnalyseExecutor(analyse.tool, analyse.directory, formatter, analyser, resultsUploaderEither, fileCollector, remoteProjectConfiguration)
       .run() must beRight.await
     // scalafix:on
   }

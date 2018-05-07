@@ -53,7 +53,7 @@ class MainImpl extends CLIApp {
 
         }
 
-        new AnalyseExecutor(analyse, formatter, analyser, resultsUploader, fileCollector, remoteProjectConfiguration)
+        new AnalyseExecutor(analyse.tool, analyse.directory, formatter, analyser, resultsUploader, fileCollector, remoteProjectConfiguration)
           .run()
     }
 

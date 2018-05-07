@@ -5,7 +5,7 @@ import java.nio.file.Path
 import better.files.File
 import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
-import com.codacy.analysis.cli.command.{Analyse, Properties}
+import com.codacy.analysis.cli.command.Properties
 import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
 import com.codacy.analysis.cli.converters.ConfigurationHelper
 import com.codacy.analysis.cli.files.FileCollector
@@ -22,7 +22,8 @@ import scala.concurrent.{ExecutionContext, Future}
 import cats.implicits._
 
 class AnalyseExecutor(
-  analyse: Analyse,
+  toolInput: Option[String],
+  directory: Option[File],
   formatter: Formatter,
   analyser: Analyser[Try],
   uploader: Either[String, ResultsUploader],
@@ -35,42 +36,67 @@ class AnalyseExecutor(
     formatter.begin()
 
     val baseDirectory =
-      analyse.directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
+      directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
         if (dir.isDirectory) dir else dir.parent)
 
     val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
 
-    val result: Try[Set[Result]] = for {
-      tool <- Tool.from(analyse.tool)
-      fileTargets <- fileCollector.list(tool, baseDirectory, localConfigurationFile, remoteProjectConfiguration)
-      fileTarget <- fileCollector.filter(tool, fileTargets, localConfigurationFile, remoteProjectConfiguration)
-      toolConfiguration <- getToolConfiguration(
-        tool,
-        fileTarget.configFiles,
-        localConfigurationFile,
-        remoteProjectConfiguration)
-      results <- analyser.analyse(tool, fileTarget.directory, fileTarget.files, toolConfiguration)
-    } yield results
+    getTool match {
+      case Left(error) =>
+        logger.error(error)
+        formatter.end()
 
-    result match {
-      case Success(res) =>
-        logger.info(s"Completed analysis for ${analyse.tool}")
-        res.foreach(formatter.add)
-      case Failure(e) =>
-        logger.error(e)(s"Failed analysis for ${analyse.tool}")
+        Future.successful(Left("Invalid tool input"))
+
+      case Right(tool) =>
+        val result: Try[Set[Result]] = for {
+          fileTargets <- fileCollector.list(tool, baseDirectory, localConfigurationFile, remoteProjectConfiguration)
+          fileTarget <- fileCollector.filter(tool, fileTargets, localConfigurationFile, remoteProjectConfiguration)
+          toolConfiguration <- getToolConfiguration(
+            tool,
+            fileTarget.configFiles,
+            localConfigurationFile,
+            remoteProjectConfiguration)
+          results <- analyser.analyse(tool, fileTarget.directory, fileTarget.files, toolConfiguration)
+        } yield results
+
+        result match {
+          case Success(res) =>
+            logger.info(s"Completed analysis for ${tool.name}")
+            res.foreach(formatter.add)
+          case Failure(e) =>
+            logger.error(e)(s"Failed analysis for ${tool.name}")
+        }
+
+        formatter.end()
+
+        uploader.fold[Future[Either[String, Unit]]]({ message =>
+          logger.warn(message)
+          Future.successful(().asRight[String])
+        }, { upload =>
+          for {
+            results <- Future.fromTry(result)
+            upl <- upload.sendResults(tool.name, results)
+          } yield upl
+        })
     }
+  }
 
-    formatter.end()
+  private def getTool: Either[String, Tool] = {
+    toolInput match {
+      case Some(toolStr) =>
+        Tool.from(toolStr)
+      case None =>
+        remoteProjectConfiguration.right.flatMap {
+          projectConfiguration =>
+            val toolUuids = projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)
 
-    uploader.fold[Future[Either[String, Unit]]]({ message =>
-      logger.warn(message)
-      Future.successful(().asRight[String])
-    }, { upload =>
-      for {
-        results <- Future.fromTry(result)
-        upl <- upload.sendResults(analyse.tool, results)
-      } yield upl
-    })
+            // TODO remove when multiple tools are implemented
+            val toolUuid = toolUuids.headOption
+
+            toolUuid.toRight("No active tool found on the remote configuration").flatMap(Tool.from)
+        }
+    }
   }
 
   private def getToolConfiguration(tool: Tool,
@@ -109,7 +135,7 @@ class AnalyseExecutor(
             extraValues))
       }
     }).right.getOrElse[Try[Configuration]] {
-      logger.info(s"Preparing to run ${analyse.tool} with defaults")
+      logger.info(s"Preparing to run ${tool.name} with defaults")
       Success(FileCfg(baseSubDir, extraValues))
     }
   }
@@ -121,10 +147,10 @@ class AnalyseExecutor(
       engines <- config.engines
       engineConfig <- engines.get(tool.name)
     } yield engineConfig).fold {
-      logger.info(s"Could not find local extra configuration for ${analyse.tool}")
+      logger.info(s"Could not find local extra configuration for ${tool.name}")
       (Option.empty[String], Option.empty[Map[String, JsValue]])
     } { ec =>
-      logger.info(s"Found local extra configuration for ${analyse.tool}")
+      logger.info(s"Found local extra configuration for ${tool.name}")
       (ec.baseSubDir, ec.extraValues)
     }
   }
