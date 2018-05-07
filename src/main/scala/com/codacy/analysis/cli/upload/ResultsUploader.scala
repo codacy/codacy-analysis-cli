@@ -30,7 +30,6 @@ class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeO
     codacyClient.sendEndOfResults(commitUuid)
   }
 
-
   private def uploadResultsBatch(tool: String, batchSize: Int, results: Set[Result]): Future[Either[String, Unit]] = {
     if (results.size <= batchSize) {
       codacyClient.sendRemoteResults(tool, commitUuid, results)
