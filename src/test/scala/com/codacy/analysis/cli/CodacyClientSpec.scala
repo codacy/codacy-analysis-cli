@@ -24,7 +24,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
   val commitUuid = "some_commitUuid"
   val remoteUrl = "codacy.com/2.0"
   val tool = "eslint"
-  val environment = new Environment(sys.env)
+  val environment = new Environment(Map.empty)
   val apiCredentials: Credentials = APIToken(apiTokenStr, Some(remoteUrl), username, project)
   val projectCredentials: Credentials = ProjectToken(projectTokenStr, Some(remoteUrl))
 
