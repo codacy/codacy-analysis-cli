@@ -62,7 +62,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commit = Option(commitUuid))
+          commitUuid = Option(commitUuid))
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
