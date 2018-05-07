@@ -31,14 +31,14 @@ object Credentials {
         environment
           .apiToken(options.apiToken)
           .flatMap {
-            getWithAdditionalParams(_, apiURL, options.project, options.username)
+            getCredentialsWithAdditionalParams(_, apiURL, options.project, options.username)
           }
           .ifEmpty(logger.info("Could not retrieve API token"))
       }
       .ifEmpty(logger.warn("Could not retrieve credentials"))
   }
 
-  def getWithAdditionalParams(apiToken: String,
+  private def getCredentialsWithAdditionalParams(apiToken: String,
                               apiUrlOpt: Option[String],
                               projectOpt: Option[String],
                               userNameOpt: Option[String]): Option[Credentials] = {
