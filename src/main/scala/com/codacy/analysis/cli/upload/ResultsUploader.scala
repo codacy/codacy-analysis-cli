@@ -11,7 +11,7 @@ class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeO
   private val logger: Logger = getLogger
 
   //TODO: Make this a config
-  private val defaultBatchSize = 50000
+  val defaultBatchSize = 50000
   private val batchSize: Int = batchSizeOpt.map {
     case size if size > 0 => size
     case size =>
@@ -29,6 +29,7 @@ class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeO
   private def endUpload(): Future[Either[String, Unit]] = {
     codacyClient.sendEndOfResults(commitUuid)
   }
+
 
   private def uploadResultsBatch(tool: String, batchSize: Int, results: Set[Result]): Future[Either[String, Unit]] = {
     if (results.size <= batchSize) {

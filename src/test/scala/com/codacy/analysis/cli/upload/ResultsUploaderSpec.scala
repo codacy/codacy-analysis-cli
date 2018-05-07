@@ -1,4 +1,4 @@
-package com.codacy.analysis.cli
+package com.codacy.analysis.cli.upload
 
 import better.files.File
 import caseapp.Tag
@@ -11,7 +11,6 @@ import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.cli.model.Result
-import com.codacy.analysis.cli.upload.ResultsUploader
 import com.codacy.analysis.cli.utils.TestUtils._
 import io.circe
 import io.circe.generic.auto._
@@ -68,9 +67,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         }
         val codacyClient = mock[CodacyClient]
         val uploader: ResultsUploader = new ResultsUploader(commitUuid, codacyClient, Some(batchSize))
-        //TODO: Change to read of config when implemented
-        val defaultBatchSize = 50000
-        val actualBatchSize = if (batchSize > 0) batchSize else defaultBatchSize
+        val actualBatchSize = if (batchSize > 0) batchSize else uploader.defaultBatchSize
 
         when(codacyClient.getRemoteConfiguration).thenReturn(getMockedRemoteConfiguration(toolPatterns))
 
