@@ -68,7 +68,9 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         }
         val codacyClient = mock[CodacyClient]
         val uploader: ResultsUploader = new ResultsUploader(commitUuid, codacyClient, Some(batchSize))
-        val actualBatchSize = if (batchSize > 0) batchSize else uploader.defaultBatchSize
+        //TODO: Change to read of config when implemented
+        val defaultBatchSize = 50000
+        val actualBatchSize = if (batchSize > 0) batchSize else defaultBatchSize
 
         when(codacyClient.getRemoteConfiguration).thenReturn(getMockedRemoteConfiguration(toolPatterns))
 
