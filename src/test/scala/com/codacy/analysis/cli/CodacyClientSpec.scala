@@ -75,18 +75,24 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         "with API Token" in {
           "with successful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsTest(success = true, apiCredentials)
+            // scalafix:off
             codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beRight.await
+            // scalafix:on
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
           "with unsuccessful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsTest(success = false, apiCredentials)
+            // scalafix:off
             codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beLeft.await
+            // scalafix:on
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
         }
         "with Project Token with successful return" in {
           val (codacyClient, httpHelper) = setupRemoteResultsTest(success = true, projectCredentials)
+          // scalafix:off
           codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beRight.await
+          // scalafix:on
           there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
         }
       }
@@ -95,18 +101,24 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         "with API Token" in {
           "with successful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = true, apiCredentials)
+            // scalafix:off
             codacyClient.sendEndOfResults(commitUuid) must beRight.await
+            // scalafix:on
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
           "with unsuccessful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = false, apiCredentials)
+            // scalafix:off
             codacyClient.sendEndOfResults(commitUuid) must beLeft.await
+            // scalafix:on
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
         }
         "with Project Token with successful return" in {
           val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = true, projectCredentials)
+          // scalafix:off
           codacyClient.sendEndOfResults(commitUuid) must beRight.await
+          // scalafix:on
           there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
         }
       }
@@ -130,80 +142,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
           there was one(httpHelper).get(ArgumentMatchers.any[String])
         }
       }
-
     }
-
-//    "Correctly set up endpoint call for sending results with API Token with successful return" in {
-//
-//      val (codacyClient, httpHelper) = setupRemoteResultsTest(success= true, apiCredentials)
-//      codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beRight.await
-//      there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
-//
-//    }
-//
-//    "Correctly set up endpoint call for sending results with API Token with unsuccessful return" in {
-//
-//      val (codacyClient, httpHelper) = setupRemoteResultsTest(success= false, apiCredentials)
-//      codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beLeft.await
-//      there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
-//
-//    }
-//
-//    "Correctly set up endpoint call for sending results with Project Token with successful return" in {
-//
-//      val (codacyClient, httpHelper) = setupRemoteResultsTest(success= true, projectCredentials)
-//      codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beRight.await
-//      there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
-//
-//    }
-
-//    "Correctly set up endpoint call for sending end of results with API Token with successful return" in {
-//
-//      val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success= true, apiCredentials)
-//      codacyClient.sendEndOfResults(commitUuid) must beRight.await
-//      there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
-//
-//    }
-//
-//    "Correctly set up endpoint call for sending end of results with API Token with unsuccessful return" in {
-//
-//      val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success= false, apiCredentials)
-//      codacyClient.sendEndOfResults(commitUuid) must beLeft.await
-//      there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
-//
-//    }
-//
-//    "Correctly set up endpoint call for sending end of results with Project Token with successful return" in {
-//
-//      val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success= true, projectCredentials)
-//      codacyClient.sendEndOfResults(commitUuid) must beRight.await
-//      there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
-//
-//    }
-
-//    "Correctly set up endpoint call for getting remote configuration with API Token with successful return" in {
-//
-//      val (codacyClient, httpHelper) = setupGetRemoteConfigurationTest(success= true, apiCredentials)
-//      codacyClient.getRemoteConfiguration must beRight
-//      there was one(httpHelper).get(ArgumentMatchers.any[String])
-//
-//    }
-//
-//    "Correctly set up endpoint call for getting remote configuration with API Token with unsuccessful return" in {
-//
-//      val (codacyClient, httpHelper) = setupGetRemoteConfigurationTest(success= false, apiCredentials)
-//      codacyClient.getRemoteConfiguration must beLeft
-//      there was one(httpHelper).get(ArgumentMatchers.any[String])
-//
-//    }
-//
-//    "Correctly set up endpoint call for getting remote configuration with Project Token with successful return" in {
-//
-//      val (codacyClient, httpHelper) = setupGetRemoteConfigurationTest(success= true, projectCredentials)
-//      codacyClient.getRemoteConfiguration must beRight
-//      there was one(httpHelper).get(ArgumentMatchers.any[String])
-//
-//    }
   }
 
   private def setupRemoteResultsTest(success: Boolean, credentials: Credentials): (CodacyClient, HttpHelper) = {
