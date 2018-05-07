@@ -2,13 +2,14 @@ package com.codacy.analysis.cli
 
 import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.clients.api._
-import com.codacy.analysis.cli.clients.{APIToken, CodacyClient, ProjectToken}
+import com.codacy.analysis.cli.clients.{APIToken, CodacyClient, Credentials, ProjectToken}
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.cli.model.{Issue, Result}
 import com.codacy.analysis.cli.upload.ResultsUploader
+import com.codacy.analysis.cli.utils.HttpHelper
 import com.codacy.analysis.cli.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
@@ -44,8 +45,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
-
-        val codacyClient = new CodacyClient(None, Map.empty, ProjectToken(projTokenStr)) {
+        val credentials: Credentials = ProjectToken(projTokenStr)
+        val codacyClient = new CodacyClient(credentials, new HttpHelper(None, Map.empty)) {
           override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
             Right(
               ProjectConfiguration(
@@ -110,8 +111,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
-
-        val codacyClient = new CodacyClient(None, Map.empty, APIToken(apiTokenStr, None, username, project)) {
+        val credentials: Credentials = APIToken(apiTokenStr, None, username, project)
+        val codacyClient = new CodacyClient(credentials, new HttpHelper(None, Map.empty)) {
           override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
             Right(
               ProjectConfiguration(
