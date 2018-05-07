@@ -78,7 +78,9 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
         when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
 
+        // scalafix:off
         runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration, uploader.asRight[String]) must beRight.await
+        // scalafix:on
 
         verifyNumberOfCalls(codacyClient, tool, commitUuid, actualBatchSize, file)
       }
