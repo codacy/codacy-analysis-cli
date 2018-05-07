@@ -62,9 +62,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
   private def sendRemoteResultsTo(endpoint: String, tool: String, results: Set[Result]): Future[Either[String, Unit]] =
     Future {
       http.post(endpoint, Some(ToolResults(tool, results).asJson)) match {
-        case Left(e) =>
-          logger.error(e)(s"Error posting data to endpoint $endpoint")
-          Left(e.message)
+        case Left(error) =>
+          logger.error(error)(s"Error posting data to endpoint $endpoint")
+          Left(error.message)
         case Right(json) =>
           logger.info(s"""Success posting batch of results to endpoint "$endpoint" """)
           validateRemoteResultsResponse(json)
@@ -73,9 +73,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   private def sendEndOfResultsTo(endpoint: String): Future[Either[String, Unit]] = Future {
     http.post(endpoint, None) match {
-      case Left(e) =>
-        logger.error(e)(s"Error sending end of upload results to endpoint $endpoint")
-        Left(e.message)
+      case Left(error) =>
+        logger.error(error)(s"Error sending end of upload results to endpoint $endpoint")
+        Left(error.message)
       case Right(json) =>
         logger.info(s"""Success posting end of results to endpoint "$endpoint" """)
         validateRemoteResultsResponse(json)
@@ -84,9 +84,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   private def getProjectConfigurationFrom(endpoint: String) = {
     http.get(endpoint) match {
-      case Left(e) =>
-        logger.error(e)(s"""Error getting config file from endpoint "$endpoint" """)
-        Left(e.message)
+      case Left(error) =>
+        logger.error(error)(s"""Error getting config file from endpoint "$endpoint" """)
+        Left(error.message)
       case Right(json) =>
         logger.info(s"""Success getting config file from endpoint "$endpoint" """)
         parseProjectConfigResponse(json)
@@ -95,9 +95,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   private def parseProjectConfigResponse(json: Json): Either[String, ProjectConfiguration] =
     json.as[ProjectConfiguration] match {
-      case Left(e) =>
-        logger.error(e)("Error parsing config file")
-        Left(e.message)
+      case Left(error) =>
+        logger.error(error)("Error parsing config file")
+        Left(error.message)
       case Right(p) =>
         logger.info("Success parsing remote configuration")
         Right(p)
@@ -105,9 +105,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   private def validateRemoteResultsResponse(json: Json): Either[String, Unit] = {
     json.as[RemoteResultResponse] match {
-      case Left(e) =>
-        logger.error(e)("Error parsing remote results upload response")
-        Left(e.message)
+      case Left(error) =>
+        logger.error(error)("Error parsing remote results upload response")
+        Left(error.message)
       case Right(_) =>
         logger.info("Success parsing remote results response ")
         ().asRight[String]
