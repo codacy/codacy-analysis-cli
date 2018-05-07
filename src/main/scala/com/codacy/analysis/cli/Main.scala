@@ -32,9 +32,7 @@ class MainImpl extends CLIApp {
         val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
         val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
         val environment = new Environment(sys.env)
-        val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map { credentials =>
-          CodacyClient.apply(credentials)
-        }
+        val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
 
         val remoteProjectConfiguration: Either[String, ProjectConfiguration] = codacyClientOpt.fold {
           "No credentials found.".asLeft[ProjectConfiguration]
