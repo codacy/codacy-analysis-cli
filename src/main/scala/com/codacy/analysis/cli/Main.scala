@@ -41,7 +41,7 @@ class MainImpl extends CLIApp {
         val resultsUploader: Either[String, ResultsUploader] = codacyClientOpt.fold {
           "No credentials found.".asLeft[ResultsUploader]
         } { codacyClient =>
-          analyse.commit.fold {
+          analyse.commitUuid.fold {
             "No commit option found.".asLeft[ResultsUploader]
           } { commit =>
             if (analyse.upload.## > 0) {
