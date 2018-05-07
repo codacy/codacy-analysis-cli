@@ -15,8 +15,7 @@ import com.codacy.analysis.cli.utils.HttpHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CodacyClient(credentials: Credentials, http: HttpHelper)(
-  implicit context: ExecutionContext) {
+class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context: ExecutionContext) {
 
   private val logger: Logger = getLogger
 

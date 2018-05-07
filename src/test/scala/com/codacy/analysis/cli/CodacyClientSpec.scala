@@ -94,18 +94,18 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
       "for sending end of results" in {
         "with API Token" in {
           "with successful return" in {
-            val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success= true, apiCredentials)
+            val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = true, apiCredentials)
             codacyClient.sendEndOfResults(commitUuid) must beRight.await
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
           "with unsuccessful return" in {
-            val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success= false, apiCredentials)
+            val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = false, apiCredentials)
             codacyClient.sendEndOfResults(commitUuid) must beLeft.await
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
         }
         "with Project Token with successful return" in {
-          val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success= true, projectCredentials)
+          val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = true, projectCredentials)
           codacyClient.sendEndOfResults(commitUuid) must beRight.await
           there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
         }
@@ -114,18 +114,18 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
       "for getting remote configuration" in {
         "with API Token" in {
           "with successful return" in {
-            val (codacyClient, httpHelper) = setupGetRemoteConfigurationTest(success= true, apiCredentials)
+            val (codacyClient, httpHelper) = setupGetRemoteConfigurationTest(success = true, apiCredentials)
             codacyClient.getRemoteConfiguration must beRight
             there was one(httpHelper).get(ArgumentMatchers.any[String])
           }
           "with unsuccessful return" in {
-            val (codacyClient, httpHelper) = setupGetRemoteConfigurationTest(success= false, apiCredentials)
+            val (codacyClient, httpHelper) = setupGetRemoteConfigurationTest(success = false, apiCredentials)
             codacyClient.getRemoteConfiguration must beLeft
             there was one(httpHelper).get(ArgumentMatchers.any[String])
           }
         }
         "with Project Token with successful return" in {
-          val (codacyClient, httpHelper) = setupGetRemoteConfigurationTest(success= true, projectCredentials)
+          val (codacyClient, httpHelper) = setupGetRemoteConfigurationTest(success = true, projectCredentials)
           codacyClient.getRemoteConfiguration must beRight
           there was one(httpHelper).get(ArgumentMatchers.any[String])
         }
@@ -206,13 +206,12 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
 //    }
   }
 
-  private def setupRemoteResultsTest(success: Boolean,
-                            credentials: Credentials): (CodacyClient, HttpHelper) = {
+  private def setupRemoteResultsTest(success: Boolean, credentials: Credentials): (CodacyClient, HttpHelper) = {
 
     val mockedHttpHelper = mock[HttpHelper]
 
     val response: Either[ParsingFailure, Json] =
-      if(success) parse("""{ "success": "Results received successfully."}""")
+      if (success) parse("""{ "success": "Results received successfully."}""")
       else parse("""{ "error": "failed."}""")
 
     when(mockedHttpHelper.post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]]))
@@ -220,8 +219,8 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         invocation.getArguments.toList match {
           case (endpoint: String) :: Nil =>
             val actualEndpoint = credentials match {
-              case _ : ProjectToken => s"/commit/$commitUuid/remoteResults"
-              case _ : APIToken => s"/$username/$project/commit/$commitUuid/remoteResults"
+              case _: ProjectToken => s"/commit/$commitUuid/remoteResults"
+              case _: APIToken     => s"/$username/$project/commit/$commitUuid/remoteResults"
             }
             endpoint must beEqualTo(actualEndpoint)
           case _ =>
@@ -232,13 +231,12 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
     (new CodacyClient(credentials, mockedHttpHelper), mockedHttpHelper)
   }
 
-  private def setupRemoteResultsEndTest(success: Boolean,
-                                     credentials: Credentials): (CodacyClient, HttpHelper) = {
+  private def setupRemoteResultsEndTest(success: Boolean, credentials: Credentials): (CodacyClient, HttpHelper) = {
 
     val mockedHttpHelper = mock[HttpHelper]
 
     val response: Either[ParsingFailure, Json] =
-      if(success) parse("""{ "success": "Results received successfully."}""")
+      if (success) parse("""{ "success": "Results received successfully."}""")
       else parse("""{ "error": "failed."}""")
 
     when(mockedHttpHelper.post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]]))
@@ -246,8 +244,8 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         invocation.getArguments.toList match {
           case (endpoint: String) :: Nil =>
             val actualEndpoint = credentials match {
-              case _ : ProjectToken => s"/commit/$commitUuid/endRemoteResults"
-              case _ : APIToken => s"/$username/$project/commit/$commitUuid/endRemoteResults"
+              case _: ProjectToken => s"/commit/$commitUuid/endRemoteResults"
+              case _: APIToken     => s"/$username/$project/commit/$commitUuid/endRemoteResults"
             }
             endpoint must beEqualTo(actualEndpoint)
           case _ =>
@@ -259,11 +257,11 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
   }
 
   private def setupGetRemoteConfigurationTest(success: Boolean,
-                                        credentials: Credentials): (CodacyClient, HttpHelper) = {
+                                              credentials: Credentials): (CodacyClient, HttpHelper) = {
 
     val mockedHttpHelper = mock[HttpHelper]
     val response: Either[ParsingFailure, Json] =
-      if(success)
+      if (success)
         parse("""{ "ignoredPaths": [], "projectExtensions": [], "toolConfiguration": [] }""")
       else parse("""{ "error": "failed."}""")
 
@@ -271,8 +269,8 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
       invocation.getArguments.toList match {
         case (endpoint: String) :: Nil =>
           val actualEndpoint = credentials match {
-            case _ : ProjectToken => "/project/analysis/configuration"
-            case _ : APIToken => s"/project/$project/$username/analysis/configuration"
+            case _: ProjectToken => "/project/analysis/configuration"
+            case _: APIToken     => s"/project/$project/$username/analysis/configuration"
           }
           endpoint must beEqualTo(actualEndpoint)
         case _ =>

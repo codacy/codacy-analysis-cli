@@ -39,9 +39,9 @@ object Credentials {
   }
 
   private def getCredentialsWithAdditionalParams(apiToken: String,
-                              apiUrlOpt: Option[String],
-                              projectOpt: Option[String],
-                              userNameOpt: Option[String]): Option[Credentials] = {
+                                                 apiUrlOpt: Option[String],
+                                                 projectOpt: Option[String],
+                                                 userNameOpt: Option[String]): Option[Credentials] = {
     (for {
       project <- projectOpt
       userName <- userNameOpt
