@@ -23,12 +23,12 @@ class HttpHelper(apiUrl: Option[String], extraHeaders: Map[String, String]) {
   def post(endpoint: String, dataOpt: Option[Json] = None): Either[ParsingFailure, Json] = {
     val headers: Map[String, String] = Map("Content-Type" -> "application/json") ++ extraHeaders
 
-    val request: HttpRequest =
-      Http(s"$remoteUrl$endpoint").method("POST").headers(headers).timeout(connectionTimeoutMs, readTimeoutMs)
-
-    dataOpt.map { data =>
-      request.postData(data.toString)
-    }
+    val request: HttpRequest = dataOpt.map { data =>
+      Http(s"$remoteUrl$endpoint").postData(data.toString)
+    }.getOrElse(Http(s"$remoteUrl$endpoint"))
+      .method("POST")
+      .headers(headers)
+      .timeout(connectionTimeoutMs, readTimeoutMs)
 
     parse(request.asString.body)
   }
