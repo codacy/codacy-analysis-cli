@@ -53,8 +53,14 @@ class MainImpl extends CLIApp {
 
         }
 
-        new AnalyseExecutor(analyse.tool, analyse.directory, formatter, analyser, resultsUploader, fileCollector, remoteProjectConfiguration)
-          .run()
+        new AnalyseExecutor(
+          analyse.tool,
+          analyse.directory,
+          formatter,
+          analyser,
+          resultsUploader,
+          fileCollector,
+          remoteProjectConfiguration).run()
     }
 
     Await.result(res, Duration.Inf) match {

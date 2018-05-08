@@ -156,8 +156,14 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
     // scalafix:off
-    new AnalyseExecutor(analyse.tool, analyse.directory, formatter, analyser, resultsUploaderEither, fileCollector, remoteProjectConfiguration)
-      .run() must beRight.await
+    new AnalyseExecutor(
+      analyse.tool,
+      analyse.directory,
+      formatter,
+      analyser,
+      resultsUploaderEither,
+      fileCollector,
+      remoteProjectConfiguration).run() must beRight.await
     // scalafix:on
   }
 

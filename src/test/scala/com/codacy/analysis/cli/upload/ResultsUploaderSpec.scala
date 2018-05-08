@@ -136,8 +136,14 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    new AnalyseExecutor(analyse.tool, analyse.directory, formatter, analyser, resultsUploaderEither, fileCollector, remoteProjectConfiguration)
-      .run()
+    new AnalyseExecutor(
+      analyse.tool,
+      analyse.directory,
+      formatter,
+      analyser,
+      resultsUploaderEither,
+      fileCollector,
+      remoteProjectConfiguration).run()
   }
 
 }
