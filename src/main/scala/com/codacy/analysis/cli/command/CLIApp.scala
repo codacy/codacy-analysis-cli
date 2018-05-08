@@ -84,7 +84,7 @@ final case class Analyse(
   @Recurse
   api: APIOptions,
   @ExtraName("t") @ValueDescription(s"The tool to analyse the code. (${Tool.allToolShortNames.mkString(", ")})")
-  tool: String,
+  tool: Option[String],
   @ExtraName("d") @ValueDescription("The directory to analyse.")
   directory: Option[File],
   @ExtraName("f") @ValueDescription(s"The output format. (${Formatter.allFormatters.map(_.name).mkString(", ")})")

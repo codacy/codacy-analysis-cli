@@ -10,7 +10,7 @@ import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 
 import scala.sys.process.Process
-import scala.util.Success
+import scala.util.{Failure, Success, Try}
 
 class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures {
 
@@ -346,7 +346,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         Process(Seq("git", "reset", "--hard", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38"), directory.toJava).!
 
         val result = for {
-          tool <- Tool.from("brakeman")
+          tool <- Tool.from("brakeman").fold[Try[Tool]](msg => Failure(new Exception(msg)), Success.apply)
           filesTargetGlobal <- fsFc.list(
             tool,
             directory,
@@ -395,7 +395,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
         val result = for {
-          tool <- Tool.from("scalastyle")
+          tool <- Tool.from("scalastyle").fold[Try[Tool]](msg => Failure(new Exception(msg)), Success.apply)
           filesTargetGlobal <- fsFc.list(tool, directory, "Local configuration not found".asLeft, remoteConfiguration)
           filesTargetTool <- fsFc.filter(
             tool,
@@ -435,7 +435,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
         val result = for {
-          tool <- Tool.from("scalastyle")
+          tool <- Tool.from("scalastyle").fold[Try[Tool]](msg => Failure(new Exception(msg)), Success.apply)
           filesTargetGlobal <- fsFc.list(tool, directory, localConfiguration, "Remote configuration not found".asLeft)
           filesTargetTool <- fsFc.filter(
             tool,

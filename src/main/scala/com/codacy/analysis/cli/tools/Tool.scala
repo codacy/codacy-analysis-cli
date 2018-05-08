@@ -5,6 +5,7 @@ import java.nio.file.{Path, Paths}
 import better.files.File
 import codacy.docker.api
 import com.codacy.analysis.cli.analysis.CodacyPluginsAnalyser
+import com.codacy.analysis.cli.clients.api.ProjectConfiguration
 import com.codacy.analysis.cli.model.{Configuration, Issue, Result, _}
 import com.codacy.analysis.cli.utils.FileHelper
 import com.codacy.api.dtos.Language
@@ -16,7 +17,7 @@ import utils.PluginHelper
 
 import scala.concurrent.duration._
 import scala.sys.process.Process
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 sealed trait SourceDirectory {
   val sourceDirectory: String
@@ -128,12 +129,46 @@ object Tool {
 
   def allToolShortNames: Set[String] = allTools.map(_.shortName)(collection.breakOut)
 
-  def from(value: String): Try[Tool] = find(value).map(new Tool(_))
+  def fromInput(toolInput: Option[String],
+                remoteProjectConfiguration: Either[String, ProjectConfiguration]): Either[String, Set[Tool]] = {
+    toolInput match {
+      case Some(toolStr) =>
+        Tool.from(toolStr).map(Set(_))
+      case None =>
+        remoteProjectConfiguration.right.flatMap { projectConfiguration =>
+          val toolUuids = projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)
 
-  private def find(value: String): Try[IDockerPlugin] = {
+          if (toolUuids.isEmpty) {
+            Left("No active tool found on the remote configuration")
+          } else {
+            toolUuids
+              .map(Tool.from)
+              .sequenceWithFixedLeft("A tool from remote configuration could not be found locally")
+          }
+        }
+    }
+  }
+
+  def from(value: String): Either[String, Tool] = find(value).map(new Tool(_))
+
+  private def find(value: String): Either[String, IDockerPlugin] = {
     allTools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
-      .fold[Try[IDockerPlugin]](Failure(CodacyPluginsAnalyser.errors.missingTool(value)))(Success(_))
+      .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
+  }
+
+  implicit class eitherSetOps[A, B](eitherSeq: Set[Either[A, B]]) {
+
+    def sequenceWithFixedLeft(left: A): Either[A, Set[B]] = {
+      eitherSeq
+        .foldLeft[Either[A, Set[B]]](Right(Set.empty)) { (acc, either) =>
+          acc.flatMap { bSeq =>
+            either.map(b => bSeq ++ Set(b))
+          }
+        }
+        .left
+        .map(_ => left)
+    }
   }
 
 }
