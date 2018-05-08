@@ -17,7 +17,8 @@ object Dependencies {
 
   lazy val log4s = Seq("ch.qos.logback" % "logback-classic" % "1.2.3", "org.log4s" %% "log4s" % "1.5.0")
 
-  lazy val specs2 = "org.specs2" %% "specs2-core" % "4.0.2"
+  val specs2Version = "4.0.2"
+  lazy val specs2 = Seq("org.specs2" %% "specs2-core" % specs2Version, "org.specs2" %% "specs2-mock" % specs2Version)
 
   lazy val caseApp = "com.github.alexarchambault" %% "case-app" % "1.2.0"
 

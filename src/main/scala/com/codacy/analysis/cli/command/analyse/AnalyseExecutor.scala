@@ -10,23 +10,28 @@ import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
 import com.codacy.analysis.cli.converters.ConfigurationHelper
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.Formatter
-import com.codacy.analysis.cli.model.{CodacyCfg, Configuration, FileCfg}
+import com.codacy.analysis.cli.model.{CodacyCfg, Configuration, FileCfg, Result}
 import com.codacy.analysis.cli.tools.Tool
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
+import com.codacy.analysis.cli.upload.ResultsUploader
 
 import scala.util.{Failure, Success, Try}
+import scala.concurrent.{ExecutionContext, Future}
 
-class AnalyseExecutor(analyse: Analyse,
-                      formatter: Formatter,
-                      analyser: Analyser[Try],
-                      fileCollector: FileCollector[Try],
-                      remoteProjectConfiguration: Either[String, ProjectConfiguration])
-    extends Runnable {
+import cats.implicits._
+
+class AnalyseExecutor(
+  analyse: Analyse,
+  formatter: Formatter,
+  analyser: Analyser[Try],
+  uploader: Either[String, ResultsUploader],
+  fileCollector: FileCollector[Try],
+  remoteProjectConfiguration: Either[String, ProjectConfiguration])(implicit context: ExecutionContext) {
 
   private val logger: Logger = getLogger
 
-  def run(): Unit = {
+  def run(): Future[Either[String, Unit]] = {
     formatter.begin()
 
     val baseDirectory =
@@ -35,7 +40,7 @@ class AnalyseExecutor(analyse: Analyse,
 
     val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
 
-    val result = for {
+    val result: Try[Set[Result]] = for {
       tool <- Tool.from(analyse.tool)
       fileTargets <- fileCollector.list(tool, baseDirectory, localConfigurationFile, remoteProjectConfiguration)
       fileTarget <- fileCollector.filter(tool, fileTargets, localConfigurationFile, remoteProjectConfiguration)
@@ -56,6 +61,16 @@ class AnalyseExecutor(analyse: Analyse,
     }
 
     formatter.end()
+
+    uploader.fold[Future[Either[String, Unit]]]({ message =>
+      logger.warn(message)
+      Future.successful(().asRight[String])
+    }, { upload =>
+      for {
+        results <- Future.fromTry(result)
+        upl <- upload.sendResults(analyse.tool, results)
+      } yield upl
+    })
   }
 
   private def getToolConfiguration(tool: Tool,

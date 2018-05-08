@@ -91,6 +91,10 @@ final case class Analyse(
   format: String = Formatter.defaultFormatter.name,
   @ExtraName("o") @ValueDescription("The output destination file.")
   output: Option[File] = Option.empty,
+  @ExtraName("c") @ValueDescription("The commit UUID of the commit that will be analysed")
+  commitUuid: Option[String] = Option.empty,
+  @ExtraName("u") @ValueDescription("If the results should be uploaded to the API")
+  upload: Int @@ Counter = Tag.of(0),
   @Recurse
   extras: ExtraOptions)
     extends Command

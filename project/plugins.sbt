@@ -7,7 +7,7 @@ addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.11")
 
 // Static Analysis
 addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.0.7")
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.5.9")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.5.10")
 
 // Formating
 addSbtPlugin("com.geirsson" % "sbt-scalafmt" % "1.4.0")

@@ -2,22 +2,25 @@ package com.codacy.analysis.cli
 
 import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.clients.api._
-import com.codacy.analysis.cli.clients.{APIToken, CodacyClient, ProjectToken}
+import com.codacy.analysis.cli.clients.{APIToken, CodacyClient, Credentials, ProjectToken}
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
-import com.codacy.analysis.cli.configuration.RemoteConfigurationFetcher
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.cli.model.{Issue, Result}
+import com.codacy.analysis.cli.upload.ResultsUploader
+import com.codacy.analysis.cli.utils.HttpHelper
 import com.codacy.analysis.cli.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
+import org.specs2.matcher.FutureMatchers
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
 import scala.util.Try
 
-class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
+class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
   "AnalyseExecutor" should {
 
@@ -27,24 +30,24 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
     s"""analyse a python project with pylint, using a remote project configuration retrieved with a project token
        | that ignores the files that start with the path $pathToIgnore
        | and considers just patterns ${pyLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
-      withClonedRepo[Set[Result]](
-        "git://github.com/qamine-test/improver.git",
-        "f4c45e59cc9ec2c01b2545b6b49334694a29e0da") { (file, directory) =>
+      val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
+      withClonedRepo("git://github.com/qamine-test/improver.git", commitUuid) { (file, directory) =>
         val projTokenStr = "RandomProjectToken"
         val analyse = Analyse(
           options = CommonOptions(),
           api = APIOptions(projectToken = Option(projTokenStr), codacyApiBaseUrl = Some("codacy.com")),
           tool = "pylint",
-          directory = Some(directory),
+          directory = Option(directory),
           format = Json.name,
-          output = Some(file),
-          extras = ExtraOptions())
+          output = Option(file),
+          extras = ExtraOptions(),
+          commitUuid = Option(commitUuid))
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
-
-        val codacyClient = new CodacyClient(None, Map.empty) {
-          override def getProjectConfiguration: Either[String, ProjectConfiguration] = {
+        val credentials: Credentials = ProjectToken(projTokenStr)
+        val codacyClient = new CodacyClient(credentials, new HttpHelper(None, Map.empty)) {
+          override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
             Right(
               ProjectConfiguration(
                 Set(FilePath(pathToIgnore)),
@@ -58,11 +61,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
           }
         }
 
-        val remoteConfigurationFetcher =
-          new RemoteConfigurationFetcher(codacyClient)
-        runAnalyseExecuter(
-          analyse,
-          remoteConfigurationFetcher.getRemoteConfiguration(ProjectToken(projTokenStr), analyse))
+        runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration, Left("No uploader available"))
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -91,29 +90,30 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
 
     s"""analyse a javascript project with eslint, using a remote project configuration retrieved with an api token
        | that considers just patterns ${esLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
-      withClonedRepo[Set[Result]](
-        "git://github.com/qamine-test/Monogatari.git",
-        "9232dbdcae98b19412c8dd98c49da8c391612bfa") { (file, directory) =>
+      val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
+      withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
         val apiTokenStr = "RandomApiToken"
+        val username = "some_user"
+        val project = "some_project"
         val analyse = Analyse(
           options = CommonOptions(),
           api = APIOptions(
             apiToken = Option(apiTokenStr),
-            username = Option("some_user"),
-            project = Option("some_project"),
-            codacyApiBaseUrl = Some("codacy.com")),
+            username = Option(username),
+            project = Option(project),
+            codacyApiBaseUrl = Option("codacy.com")),
           tool = "eslint",
-          directory = Some(directory),
+          directory = Option(directory),
           format = Json.name,
-          output = Some(file),
-          extras = ExtraOptions())
+          output = Option(file),
+          extras = ExtraOptions(),
+          commitUuid = Option(commitUuid))
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
-
-        val codacyClient = new CodacyClient(None, Map.empty) {
-          override def getProjectConfiguration(projectName: String,
-                                               username: String): Either[String, ProjectConfiguration] = {
+        val credentials: Credentials = APIToken(apiTokenStr, None, username, project)
+        val codacyClient = new CodacyClient(credentials, new HttpHelper(None, Map.empty)) {
+          override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
             Right(
               ProjectConfiguration(
                 Set.empty,
@@ -127,9 +127,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
           }
         }
 
-        val remoteConfigurationFetcher =
-          new RemoteConfigurationFetcher(codacyClient)
-        runAnalyseExecuter(analyse, remoteConfigurationFetcher.getRemoteConfiguration(APIToken(apiTokenStr), analyse))
+        runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration, Left("No uploader available"))
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -150,12 +148,17 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures {
     }
   }
 
-  private def runAnalyseExecuter(analyse: Analyse,
-                                 remoteProjectConfiguration: Either[String, ProjectConfiguration]): Unit = {
+  private def runAnalyseExecutor(analyse: Analyse,
+                                 remoteProjectConfiguration: Either[String, ProjectConfiguration],
+                                 resultsUploaderEither: Either[String, ResultsUploader]) = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
-    new AnalyseExecutor(analyse, formatter, analyser, fileCollector, remoteProjectConfiguration).run()
+
+    // scalafix:off
+    new AnalyseExecutor(analyse, formatter, analyser, resultsUploaderEither, fileCollector, remoteProjectConfiguration)
+      .run() must beRight.await
+    // scalafix:on
   }
 
 }
