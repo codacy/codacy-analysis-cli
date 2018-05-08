@@ -22,7 +22,7 @@ class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeO
   def sendResults(tool: String, results: Set[Result]): Future[Either[String, Unit]] = {
     uploadResultsBatch(tool, batchSize, results).flatMap {
       case Right(_) => endUpload()
-      case x        => Future.successful(x)
+      case error @ Left(_) => Future.successful(error)
     }
   }
 
