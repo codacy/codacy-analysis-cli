@@ -3,23 +3,22 @@ package com.codacy.analysis.cli.command.analyse
 import java.nio.file.Path
 
 import better.files.File
+import cats.implicits._
 import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
 import com.codacy.analysis.cli.command.Properties
 import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
 import com.codacy.analysis.cli.converters.ConfigurationHelper
-import com.codacy.analysis.cli.files.FileCollector
+import com.codacy.analysis.cli.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.cli.model.{CodacyCfg, Configuration, FileCfg, Result}
 import com.codacy.analysis.cli.tools.Tool
+import com.codacy.analysis.cli.upload.ResultsUploader
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
-import com.codacy.analysis.cli.upload.ResultsUploader
 
-import scala.util.{Failure, Success, Try}
 import scala.concurrent.{ExecutionContext, Future}
-
-import cats.implicits._
+import scala.util.{Failure, Success, Try}
 
 class AnalyseExecutor(
   toolInput: Option[String],
@@ -41,45 +40,80 @@ class AnalyseExecutor(
 
     val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
 
-    toolInput.toRight("No tool input").flatMap(Tool.from) match {
+    val analysisResult: Future[Either[String, Unit]] = Tool.fromInput(toolInput, remoteProjectConfiguration) match {
       case Left(error) =>
         logger.error(error)
-        formatter.end()
 
         Future.successful(Left("Invalid tool input"))
 
-      case Right(tool) =>
-        val result: Try[Set[Result]] = for {
-          fileTargets <- fileCollector.list(tool, baseDirectory, localConfigurationFile, remoteProjectConfiguration)
-          fileTarget <- fileCollector.filter(tool, fileTargets, localConfigurationFile, remoteProjectConfiguration)
-          toolConfiguration <- getToolConfiguration(
-            tool,
-            fileTarget.configFiles,
-            localConfigurationFile,
-            remoteProjectConfiguration)
-          results <- analyser.analyse(tool, fileTarget.directory, fileTarget.files, toolConfiguration)
-        } yield results
-
-        result match {
-          case Success(res) =>
-            logger.info(s"Completed analysis for ${tool.name}")
-            res.foreach(formatter.add)
-          case Failure(e) =>
-            logger.error(e)(s"Failed analysis for ${tool.name}")
+      case Right(tools) =>
+        fileCollector.list(tools, baseDirectory, localConfigurationFile, remoteProjectConfiguration) match {
+          case Failure(_) =>
+            Future.successful(Left("Could not access project files"))
+          case Success(toolFileTargetsMap) =>
+            analyseAndUpload(toolFileTargetsMap, localConfigurationFile)
         }
-
-        formatter.end()
-
-        uploader.fold[Future[Either[String, Unit]]]({ message =>
-          logger.warn(message)
-          Future.successful(().asRight[String])
-        }, { upload =>
-          for {
-            results <- Future.fromTry(result)
-            upl <- upload.sendResults(tool.name, results)
-          } yield upl
-        })
     }
+
+    formatter.end()
+
+    analysisResult
+  }
+
+  private def analyseAndUpload(
+    toolFileTargetsMap: Map[Tool, FilesTarget],
+    localConfigurationFile: Either[String, CodacyConfigurationFile]): Future[Either[String, Unit]] = {
+
+    val uploads: Seq[Future[Either[String, Unit]]] = toolFileTargetsMap.map {
+      case (tool, filesTarget) =>
+        analyseAndUpload(tool, filesTarget, localConfigurationFile)
+    }(collection.breakOut)
+
+    val joinedUploads: Future[Seq[Either[String, Unit]]] = Future.sequence(uploads)
+
+    joinedUploads.map(sequenceWithFixedLeft("")(_))
+  }
+
+  private def analyseAndUpload(
+    tool: Tool,
+    filesTarget: FilesTarget,
+    localConfigurationFile: Either[String, CodacyConfigurationFile]): Future[Either[String, Unit]] = {
+    val result: Try[Set[Result]] = for {
+      fileTarget <- fileCollector.filter(tool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
+      toolConfiguration <- getToolConfiguration(
+        tool,
+        fileTarget.configFiles,
+        localConfigurationFile,
+        remoteProjectConfiguration)
+      results <- analyser.analyse(tool, fileTarget.directory, fileTarget.files, toolConfiguration)
+    } yield results
+
+    result match {
+      case Success(res) =>
+        logger.info(s"Completed analysis for ${tool.name}")
+        res.foreach(formatter.add)
+      case Failure(e) =>
+        logger.error(e)(s"Failed analysis for ${tool.name}")
+    }
+
+    uploader.fold[Future[Either[String, Unit]]]({ message =>
+      logger.warn(message)
+      Future.successful(().asRight[String])
+    }, { upload =>
+      for {
+        results <- Future.fromTry(result)
+        upl <- upload.sendResults(tool.name, results)
+      } yield upl
+    })
+  }
+
+  private def sequenceWithFixedLeft[A](left: A)(eitherIterable: Seq[Either[A, Unit]]): Either[A, Unit] = {
+    eitherIterable
+      .foldLeft[Either[A, Unit]](Right(())) { (acc, either) =>
+        acc.flatMap(_ => either)
+      }
+      .left
+      .map(_ => left)
   }
 
   private def getToolConfiguration(tool: Tool,

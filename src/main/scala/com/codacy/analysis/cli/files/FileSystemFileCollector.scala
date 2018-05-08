@@ -22,10 +22,10 @@ class FileSystemFileCollector extends FileCollector[Try] {
   private type EitherA[A] = Either[String, A]
   private val foldable: Foldable[EitherA] = implicitly[Foldable[EitherA]]
 
-  override def list(tool: Tool,
+  override def list(tools: Set[Tool],
                     directory: File,
                     localConfiguration: Either[String, CodacyConfigurationFile],
-                    remoteConfiguration: Either[String, ProjectConfiguration]): Try[FilesTarget] = {
+                    remoteConfiguration: Either[String, ProjectConfiguration]): Try[Map[Tool, FilesTarget]] = {
     Try {
       val allFiles =
         directory
@@ -34,12 +34,14 @@ class FileSystemFileCollector extends FileCollector[Try] {
           .filterNot(_.startsWith(".git"))
           .to[Set]
 
-      val configFiles = allFiles.filter(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
+      tools.map { tool =>
+        val configFiles = allFiles.filter(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
 
-      val filters = Set(excludeGlobal(localConfiguration) _, excludePrefixes(remoteConfiguration) _)
-      val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
+        val filters = Set(excludeGlobal(localConfiguration) _, excludePrefixes(remoteConfiguration) _)
+        val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
 
-      FilesTarget(directory, filteredFiles, configFiles)
+        (tool, FilesTarget(directory, filteredFiles, configFiles))
+      }(collection.breakOut)
     }
   }
 
