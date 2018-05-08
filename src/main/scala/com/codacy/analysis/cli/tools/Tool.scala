@@ -130,18 +130,21 @@ object Tool {
   def allToolShortNames: Set[String] = allTools.map(_.shortName)(collection.breakOut)
 
   def fromInput(toolInput: Option[String],
-                remoteProjectConfiguration: Either[String, ProjectConfiguration]): Either[String, Tool] = {
+                remoteProjectConfiguration: Either[String, ProjectConfiguration]): Either[String, Set[Tool]] = {
     toolInput match {
       case Some(toolStr) =>
-        Tool.from(toolStr)
+        Tool.from(toolStr).map(Set(_))
       case None =>
         remoteProjectConfiguration.right.flatMap { projectConfiguration =>
           val toolUuids = projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)
 
-          // TODO remove when multiple tools are implemented
-          val toolUuid = toolUuids.headOption
-
-          toolUuid.toRight("No active tool found on the remote configuration").flatMap(Tool.from)
+          if (toolUuids.isEmpty) {
+            Left("No active tool found on the remote configuration")
+          } else {
+            toolUuids
+              .map(Tool.from)
+              .sequenceWithFixedLeft("A tool from remote configuration could not be found locally")
+          }
         }
     }
   }
@@ -152,6 +155,20 @@ object Tool {
     allTools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
       .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
+  }
+
+  implicit class eitherSetOps[A, B](eitherSeq: Set[Either[A, B]]) {
+
+    def sequenceWithFixedLeft(left: A): Either[A, Set[B]] = {
+      eitherSeq
+        .foldLeft[Either[A, Set[B]]](Right(Set.empty)) { (acc, either) =>
+          acc.flatMap { bSeq =>
+            either.map(b => bSeq ++ Set(b))
+          }
+        }
+        .left
+        .map(_ => left)
+    }
   }
 
 }

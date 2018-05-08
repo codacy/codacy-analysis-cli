@@ -41,7 +41,7 @@ class AnalyseExecutor(
 
     val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
 
-    Tool.fromInput(toolInput, remoteProjectConfiguration) match {
+    toolInput.toRight("No tool input").flatMap(Tool.from) match {
       case Left(error) =>
         logger.error(error)
         formatter.end()
