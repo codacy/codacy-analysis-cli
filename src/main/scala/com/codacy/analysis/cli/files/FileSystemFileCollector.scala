@@ -34,11 +34,11 @@ class FileSystemFileCollector extends FileCollector[Try] {
           .filterNot(_.startsWith(".git"))
           .to[Set]
 
+      val filters = Set(excludeGlobal(localConfiguration) _, excludePrefixes(remoteConfiguration) _)
+      val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
+
       tools.map { tool =>
         val configFiles = allFiles.filter(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
-
-        val filters = Set(excludeGlobal(localConfiguration) _, excludePrefixes(remoteConfiguration) _)
-        val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
 
         (tool, FilesTarget(directory, filteredFiles, configFiles))
       }(collection.breakOut)
