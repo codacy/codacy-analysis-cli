@@ -146,6 +146,78 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
         }
       }
     }
+
+    val cssLintPatternsInternalIds = Set("CSSLint_important")
+
+    "analyse a javascript and css project " in {
+      val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
+      withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
+        val apiTokenStr = "RandomApiToken"
+        val username = "some_user"
+        val project = "some_project"
+        val analyse = Analyse(
+          options = CommonOptions(),
+          api = APIOptions(
+            apiToken = Option(apiTokenStr),
+            username = Option(username),
+            project = Option(project),
+            codacyApiBaseUrl = Option("codacy.com")),
+          tool = None,
+          directory = Option(directory),
+          format = Json.name,
+          output = Option(file),
+          extras = ExtraOptions(),
+          commitUuid = Option(commitUuid))
+
+        val remoteConfiguration: Either[String, ProjectConfiguration] =
+          Right(
+            ProjectConfiguration(
+              Set.empty,
+              Set.empty,
+              Set(
+                ToolConfiguration(
+                  "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
+                  isEnabled = true,
+                  notEdited = false,
+                  esLintPatternsInternalIds.map { patternId =>
+                    ToolPattern(patternId, Set.empty)
+                  }),
+                ToolConfiguration(
+                  "997201eb-0907-4823-87c0-a8f7703531e7",
+                  isEnabled = true,
+                  notEdited = true,
+                  cssLintPatternsInternalIds.map { patternId =>
+                    ToolPattern(patternId, Set.empty)
+                  }))))
+
+        runAnalyseExecutor(analyse, remoteConfiguration, Left("No uploader available"))
+
+        val result = for {
+          responseJson <- parser.parse(file.contentAsString)
+          response <- responseJson.as[Set[Result]]
+        } yield response
+
+        result must beRight
+        result must beLike {
+          case Right(response: Set[Result]) =>
+            response.size must beGreaterThan(0)
+
+            response.forall {
+              case i: Issue =>
+                esLintPatternsInternalIds.contains(i.patternId.value) || cssLintPatternsInternalIds.contains(i.patternId.value)
+              case _        => true
+            } must beTrue
+
+            response.collectFirst {
+              case i: Issue if esLintPatternsInternalIds.contains(i.patternId.value) => i
+            } must beSome
+
+            response.collectFirst {
+              case i: Issue if cssLintPatternsInternalIds.contains(i.patternId.value) => i
+            } must beSome
+        }
+      }
+    }
   }
 
   private def runAnalyseExecutor(analyse: Analyse,
