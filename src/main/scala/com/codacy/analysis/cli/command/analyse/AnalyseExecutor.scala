@@ -61,12 +61,12 @@ class AnalyseExecutor(
   }
 
   private def analyseAndUpload(
-    toolFileTargetsMap: Map[Tool, FilesTarget],
+    filesTarget: FilesTarget,
     localConfigurationFile: Either[String, CodacyConfigurationFile]): Future[Either[String, Unit]] = {
 
-    val uploads: Seq[Future[Either[String, Unit]]] = toolFileTargetsMap.map {
-      case (tool, filesTarget) =>
-        analyseAndUpload(tool, filesTarget, localConfigurationFile)
+    val uploads: Seq[Future[Either[String, Unit]]] = filesTarget.configFiles.map {
+      case (tool, configFiles) =>
+        analyseAndUpload(tool, filesTarget, localConfigurationFile, configFiles)
     }(collection.breakOut)
 
     val joinedUploads: Future[Seq[Either[String, Unit]]] = Future.sequence(uploads)
@@ -77,12 +77,13 @@ class AnalyseExecutor(
   private def analyseAndUpload(
     tool: Tool,
     filesTarget: FilesTarget,
-    localConfigurationFile: Either[String, CodacyConfigurationFile]): Future[Either[String, Unit]] = {
+    localConfigurationFile: Either[String, CodacyConfigurationFile],
+    configFiles: Set[Path]): Future[Either[String, Unit]] = {
     val result: Try[Set[Result]] = for {
       fileTarget <- fileCollector.filter(tool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
       toolConfiguration <- getToolConfiguration(
         tool,
-        fileTarget.configFiles,
+        configFiles,
         localConfigurationFile,
         remoteProjectConfiguration)
       results <- analyser.analyse(tool, fileTarget.directory, fileTarget.files, toolConfiguration)

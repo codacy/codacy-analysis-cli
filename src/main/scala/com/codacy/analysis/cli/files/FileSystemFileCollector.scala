@@ -12,7 +12,7 @@ import com.codacy.api.dtos.{Language, Languages}
 
 import scala.util.Try
 
-final case class FilesTarget(directory: File, files: Set[Path], configFiles: Set[Path])
+final case class FilesTarget(directory: File, files: Set[Path], configFiles: Map[Tool, Set[Path]])
 
 class FileSystemFileCollector extends FileCollector[Try] {
 
@@ -25,7 +25,7 @@ class FileSystemFileCollector extends FileCollector[Try] {
   override def list(tools: Set[Tool],
                     directory: File,
                     localConfiguration: Either[String, CodacyConfigurationFile],
-                    remoteConfiguration: Either[String, ProjectConfiguration]): Try[Map[Tool, FilesTarget]] = {
+                    remoteConfiguration: Either[String, ProjectConfiguration]): Try[FilesTarget] = {
     Try {
       val allFiles =
         directory
@@ -37,11 +37,11 @@ class FileSystemFileCollector extends FileCollector[Try] {
       val filters = Set(excludeGlobal(localConfiguration) _, excludePrefixes(remoteConfiguration) _)
       val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
 
-      tools.map { tool =>
-        val configFiles = allFiles.filter(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
-
-        (tool, FilesTarget(directory, filteredFiles, configFiles))
+      val toolConfigFiles: Map[Tool, Set[Path]] = tools.map { tool =>
+        (tool, allFiles.filter(f => tool.configFilenames.exists(cf => f.endsWith(cf))))
       }(collection.breakOut)
+
+      FilesTarget(directory, filteredFiles, toolConfigFiles)
     }
   }
 

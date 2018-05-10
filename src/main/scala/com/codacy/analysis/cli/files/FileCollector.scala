@@ -18,7 +18,7 @@ trait FileCollector[T[_]] {
   def list(tool: Set[Tool],
            directory: File,
            localConfiguration: Either[String, CodacyConfigurationFile],
-           remoteConfiguration: Either[String, ProjectConfiguration]): T[Map[Tool, FilesTarget]]
+           remoteConfiguration: Either[String, ProjectConfiguration]): T[FilesTarget]
 
   def filter(tool: Tool,
              target: FilesTarget,
