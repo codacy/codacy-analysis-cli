@@ -74,18 +74,13 @@ class AnalyseExecutor(
     joinedUploads.map(sequenceWithFixedLeft("")(_))
   }
 
-  private def analyseAndUpload(
-    tool: Tool,
-    filesTarget: FilesTarget,
-    localConfigurationFile: Either[String, CodacyConfigurationFile],
-    configFiles: Set[Path]): Future[Either[String, Unit]] = {
+  private def analyseAndUpload(tool: Tool,
+                               filesTarget: FilesTarget,
+                               localConfigurationFile: Either[String, CodacyConfigurationFile],
+                               configFiles: Set[Path]): Future[Either[String, Unit]] = {
     val result: Try[Set[Result]] = for {
       fileTarget <- fileCollector.filter(tool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
-      toolConfiguration <- getToolConfiguration(
-        tool,
-        configFiles,
-        localConfigurationFile,
-        remoteProjectConfiguration)
+      toolConfiguration <- getToolConfiguration(tool, configFiles, localConfigurationFile, remoteProjectConfiguration)
       results <- analyser.analyse(tool, fileTarget.directory, fileTarget.files, toolConfiguration)
     } yield results
 
