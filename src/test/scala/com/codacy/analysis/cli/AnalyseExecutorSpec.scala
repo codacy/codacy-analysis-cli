@@ -202,20 +202,9 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           case Right(response: Set[Result]) =>
             response.size must beGreaterThan(0)
 
-            response.forall {
-              case i: Issue =>
-                esLintPatternsInternalIds.contains(i.patternId.value) || cssLintPatternsInternalIds.contains(
-                  i.patternId.value)
-              case _ => true
-            } must beTrue
-
-            response.collectFirst {
-              case i: Issue if esLintPatternsInternalIds.contains(i.patternId.value) => i
-            } must beSome
-
-            response.collectFirst {
-              case i: Issue if cssLintPatternsInternalIds.contains(i.patternId.value) => i
-            } must beSome
+            response.collect {
+              case i: Issue => i.patternId.value
+            } must containAllOf((esLintPatternsInternalIds ++ cssLintPatternsInternalIds).toSeq)
         }
       }
     }
