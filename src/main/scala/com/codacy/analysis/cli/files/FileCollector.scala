@@ -15,8 +15,7 @@ trait FileCollectorCompanion[T[_]] {
 
 trait FileCollector[T[_]] {
 
-  def list(tool: Set[Tool],
-           directory: File,
+  def list(directory: File,
            localConfiguration: Either[String, CodacyConfigurationFile],
            remoteConfiguration: Either[String, ProjectConfiguration]): T[FilesTarget]
 

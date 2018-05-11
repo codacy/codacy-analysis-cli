@@ -22,8 +22,7 @@ class FileSystemFileCollector extends FileCollector[Try] {
   private type EitherA[A] = Either[String, A]
   private val foldable: Foldable[EitherA] = implicitly[Foldable[EitherA]]
 
-  override def list(tools: Set[Tool],
-                    directory: File,
+  override def list(directory: File,
                     localConfiguration: Either[String, CodacyConfigurationFile],
                     remoteConfiguration: Either[String, ProjectConfiguration]): Try[FilesTarget] = {
     Try {

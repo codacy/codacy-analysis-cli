@@ -45,7 +45,7 @@ class AnalyseExecutor(
         Future.successful(Left("Invalid tool input"))
 
       case Right(tools) =>
-        fileCollector.list(tools, baseDirectory, localConfigurationFile, remoteProjectConfiguration) match {
+        fileCollector.list(baseDirectory, localConfigurationFile, remoteProjectConfiguration) match {
           case Failure(_) =>
             Future.successful(Left("Could not access project files"))
           case Success(toolFilesTarget) =>

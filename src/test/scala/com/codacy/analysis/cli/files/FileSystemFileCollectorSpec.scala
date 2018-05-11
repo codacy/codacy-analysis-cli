@@ -349,7 +349,6 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
 
         val result = for {
           filesTargetGlobal <- fsFc.list(
-            Set(tool),
             directory,
             "Local configuration not found".asLeft,
             "Remote configuration not found".asLeft)
@@ -370,7 +369,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
 
             filesTargetTool.directory must be(directory)
             filesTargetTool.files.to[List].map(_.toString) must containTheSameElementsAs(expectedToolFiles)
-            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beTrue
+            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
     }
@@ -397,11 +396,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         val tool = Tool.from("scalastyle").right.get
 
         val result = for {
-          filesTargetGlobal <- fsFc.list(
-            Set(tool),
-            directory,
-            "Local configuration not found".asLeft,
-            remoteConfiguration)
+          filesTargetGlobal <- fsFc.list(directory, "Local configuration not found".asLeft, remoteConfiguration)
           filesTargetTool <- fsFc.filter(
             tool,
             filesTargetGlobal,
@@ -441,11 +436,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         val tool = Tool.from("scalastyle").right.get
 
         val result = for {
-          filesTargetGlobal <- fsFc.list(
-            Set(tool),
-            directory,
-            localConfiguration,
-            "Remote configuration not found".asLeft)
+          filesTargetGlobal <- fsFc.list(directory, localConfiguration, "Remote configuration not found".asLeft)
           filesTargetTool <- fsFc.filter(
             tool,
             filesTargetGlobal,
