@@ -1,7 +1,5 @@
 package com.codacy.analysis.cli.command.analyse
 
-import java.nio.file.Path
-
 import better.files.File
 import cats.implicits._
 import com.codacy.analysis.cli.analysis.Analyser
@@ -50,8 +48,8 @@ class AnalyseExecutor(
         fileCollector.list(tools, baseDirectory, localConfigurationFile, remoteProjectConfiguration) match {
           case Failure(_) =>
             Future.successful(Left("Could not access project files"))
-          case Success(toolFileTargetsMap) =>
-            analyseAndUpload(toolFileTargetsMap, localConfigurationFile)
+          case Success(toolFilesTarget) =>
+            analyseAndUpload(tools, toolFilesTarget, localConfigurationFile)
         }
     }
 
@@ -61,12 +59,13 @@ class AnalyseExecutor(
   }
 
   private def analyseAndUpload(
+    tools: Set[Tool],
     filesTarget: FilesTarget,
     localConfigurationFile: Either[String, CodacyConfigurationFile]): Future[Either[String, Unit]] = {
 
-    val uploads: Seq[Future[Either[String, Unit]]] = filesTarget.configFiles.map {
-      case (tool, configFiles) =>
-        analyseAndUpload(tool, filesTarget, localConfigurationFile, configFiles)
+    val uploads: Seq[Future[Either[String, Unit]]] = tools.map { tool =>
+      val hasConfigFiles = fileCollector.hasConfigurationFiles(tool, filesTarget)
+      analyseAndUpload(tool, hasConfigFiles, filesTarget, localConfigurationFile)
     }(collection.breakOut)
 
     val joinedUploads: Future[Seq[Either[String, Unit]]] = Future.sequence(uploads)
@@ -74,13 +73,18 @@ class AnalyseExecutor(
     joinedUploads.map(sequenceWithFixedLeft("")(_))
   }
 
-  private def analyseAndUpload(tool: Tool,
-                               filesTarget: FilesTarget,
-                               localConfigurationFile: Either[String, CodacyConfigurationFile],
-                               configFiles: Set[Path]): Future[Either[String, Unit]] = {
+  private def analyseAndUpload(
+    tool: Tool,
+    toolHasConfigFiles: Boolean,
+    filesTarget: FilesTarget,
+    localConfigurationFile: Either[String, CodacyConfigurationFile]): Future[Either[String, Unit]] = {
     val result: Try[Set[Result]] = for {
       fileTarget <- fileCollector.filter(tool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
-      toolConfiguration <- getToolConfiguration(tool, configFiles, localConfigurationFile, remoteProjectConfiguration)
+      toolConfiguration <- getToolConfiguration(
+        tool,
+        toolHasConfigFiles,
+        localConfigurationFile,
+        remoteProjectConfiguration)
       results <- analyser.analyse(tool, fileTarget.directory, fileTarget.files, toolConfiguration)
     } yield results
 
@@ -113,7 +117,7 @@ class AnalyseExecutor(
   }
 
   private def getToolConfiguration(tool: Tool,
-                                   configFiles: Set[Path],
+                                   hasConfigFiles: Boolean,
                                    localConfiguration: Either[String, CodacyConfigurationFile],
                                    remoteConfiguration: Either[String, ProjectConfiguration]): Try[Configuration] = {
     val (baseSubDir, extraValues) = getExtraConfiguration(localConfiguration, tool)
@@ -123,7 +127,7 @@ class AnalyseExecutor(
         .find(_.uuid.equalsIgnoreCase(tool.uuid))
         .toRight[String]("Could not find tool")
     } yield {
-      val shouldUseConfigFile = toolConfiguration.notEdited && configFiles.nonEmpty
+      val shouldUseConfigFile = toolConfiguration.notEdited && hasConfigFiles
       val shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile && tool.allowsUIConfiguration && toolConfiguration.patterns.nonEmpty
       // TODO: Review isEnabled condition when running multiple tools since we might want to force this for single tools
       // val shouldRun = toolConfiguration.isEnabled && (!tool.needsPatternsToRun || shouldUseConfigFile || shouldUseRemoteConfiguredPatterns)
@@ -131,7 +135,7 @@ class AnalyseExecutor(
 
       if (!shouldRun) {
         logger.error(s"""Could not find conditions to run tool ${tool.name} with:
-             |shouldUseConfigFile:$shouldUseConfigFile = notEdited:${toolConfiguration.notEdited} && foundToolConfigFile:${configFiles.nonEmpty}
+             |shouldUseConfigFile:$shouldUseConfigFile = notEdited:${toolConfiguration.notEdited} && foundToolConfigFile:${hasConfigFiles}
              |shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile:$shouldUseConfigFile && allowsUIConfiguration:${tool.allowsUIConfiguration} && hasPatterns:${toolConfiguration.patterns.nonEmpty}
              |shouldRun:$shouldRun = !needsPatternsToRun:${tool.needsPatternsToRun} || shouldUseConfigFile:$shouldUseConfigFile || shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns
            """.stripMargin)

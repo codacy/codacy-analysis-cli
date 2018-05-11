@@ -25,6 +25,8 @@ trait FileCollector[T[_]] {
              localConfiguration: Either[String, CodacyConfigurationFile],
              remoteConfiguration: Either[String, ProjectConfiguration]): T[FilesTarget]
 
+  def hasConfigurationFiles(tool: Tool, filesTarget: FilesTarget): Boolean
+
 }
 
 object FileCollector {
