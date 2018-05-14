@@ -30,7 +30,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
     credentials match {
-      case token: APIToken => getProjectConfiguration(token.userName, token.projectName)
+      case token: APIToken => getProjectConfiguration(token.projectName, token.userName)
       case _: ProjectToken => getProjectConfiguration
     }
   }
