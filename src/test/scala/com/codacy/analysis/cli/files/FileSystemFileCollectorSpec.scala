@@ -10,7 +10,7 @@ import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 
 import scala.sys.process.Process
-import scala.util.{Failure, Success, Try}
+import scala.util.Success
 
 class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures {
 
@@ -345,10 +345,10 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38"), directory.toJava).!
 
+        val tool = Tool.from("brakeman").right.get
+
         val result = for {
-          tool <- Tool.from("brakeman").fold[Try[Tool]](msg => Failure(new Exception(msg)), Success.apply)
           filesTargetGlobal <- fsFc.list(
-            tool,
             directory,
             "Local configuration not found".asLeft,
             "Remote configuration not found".asLeft)
@@ -365,11 +365,11 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
           case Success((filesTargetGlobal, filesTargetTool)) =>
             filesTargetGlobal.directory must be(directory)
             filesTargetGlobal.files.to[List].map(_.toString) must containTheSameElementsAs(expectedFiles)
-            filesTargetGlobal.configFiles.to[List].map(_.toString) must containTheSameElementsAs(expectedConfigFiles)
+            fsFc.hasConfigurationFiles(tool, filesTargetGlobal) must beTrue
 
             filesTargetTool.directory must be(directory)
             filesTargetTool.files.to[List].map(_.toString) must containTheSameElementsAs(expectedToolFiles)
-            filesTargetTool.configFiles.to[List].map(_.toString) must containTheSameElementsAs(expectedConfigFiles)
+            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
     }
@@ -384,7 +384,6 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
           "src/main/scala/codacy/brakeman/Brakeman.scala",
           "src/main/scala/codacy/Test1.scala",
           "src/main/scala/codacy/TestWeird.sc")
-        val expectedConfigFiles = List()
 
         val remoteConfiguration = ProjectConfiguration(
           Set(FilePath("src/main/scala/codacy/brakeman/Test2.scala")),
@@ -394,9 +393,10 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
+        val tool = Tool.from("scalastyle").right.get
+
         val result = for {
-          tool <- Tool.from("scalastyle").fold[Try[Tool]](msg => Failure(new Exception(msg)), Success.apply)
-          filesTargetGlobal <- fsFc.list(tool, directory, "Local configuration not found".asLeft, remoteConfiguration)
+          filesTargetGlobal <- fsFc.list(directory, "Local configuration not found".asLeft, remoteConfiguration)
           filesTargetTool <- fsFc.filter(
             tool,
             filesTargetGlobal,
@@ -410,7 +410,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
           case Success(filesTargetTool) =>
             filesTargetTool.directory must be(directory)
             filesTargetTool.files.to[List].map(_.toString) must containTheSameElementsAs(expectedToolFiles)
-            filesTargetTool.configFiles.to[List].map(_.toString) must containTheSameElementsAs(expectedConfigFiles)
+            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
     }
@@ -424,7 +424,6 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
           "src/main/scala/codacy/Engine.scala",
           "src/main/scala/codacy/brakeman/Brakeman.scala",
           "src/main/scala/codacy/TestWeird.sc")
-        val expectedConfigFiles = List()
 
         val localConfiguration = CodacyConfigurationFile(
           Option(Map("scalastyle" -> EngineConfiguration(Some(Set(Glob("**/brakeman/Test2.scala"))), None, None))),
@@ -434,9 +433,10 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
+        val tool = Tool.from("scalastyle").right.get
+
         val result = for {
-          tool <- Tool.from("scalastyle").fold[Try[Tool]](msg => Failure(new Exception(msg)), Success.apply)
-          filesTargetGlobal <- fsFc.list(tool, directory, localConfiguration, "Remote configuration not found".asLeft)
+          filesTargetGlobal <- fsFc.list(directory, localConfiguration, "Remote configuration not found".asLeft)
           filesTargetTool <- fsFc.filter(
             tool,
             filesTargetGlobal,
@@ -450,7 +450,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
           case Success(filesTargetTool) =>
             filesTargetTool.directory must be(directory)
             filesTargetTool.files.to[List].map(_.toString) must containTheSameElementsAs(expectedToolFiles)
-            filesTargetTool.configFiles.to[List].map(_.toString) must containTheSameElementsAs(expectedConfigFiles)
+            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
     }

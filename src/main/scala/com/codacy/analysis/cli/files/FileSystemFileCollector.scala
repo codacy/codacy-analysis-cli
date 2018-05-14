@@ -12,7 +12,7 @@ import com.codacy.api.dtos.{Language, Languages}
 
 import scala.util.Try
 
-final case class FilesTarget(directory: File, files: Set[Path], configFiles: Set[Path])
+final case class FilesTarget(directory: File, files: Set[Path])
 
 class FileSystemFileCollector extends FileCollector[Try] {
 
@@ -22,8 +22,7 @@ class FileSystemFileCollector extends FileCollector[Try] {
   private type EitherA[A] = Either[String, A]
   private val foldable: Foldable[EitherA] = implicitly[Foldable[EitherA]]
 
-  override def list(tool: Tool,
-                    directory: File,
+  override def list(directory: File,
                     localConfiguration: Either[String, CodacyConfigurationFile],
                     remoteConfiguration: Either[String, ProjectConfiguration]): Try[FilesTarget] = {
     Try {
@@ -34,13 +33,15 @@ class FileSystemFileCollector extends FileCollector[Try] {
           .filterNot(_.startsWith(".git"))
           .to[Set]
 
-      val configFiles = allFiles.filter(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
-
       val filters = Set(excludeGlobal(localConfiguration) _, excludePrefixes(remoteConfiguration) _)
       val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
 
-      FilesTarget(directory, filteredFiles, configFiles)
+      FilesTarget(directory, filteredFiles)
     }
+  }
+
+  override def hasConfigurationFiles(tool: Tool, filesTarget: FilesTarget): Boolean = {
+    filesTarget.files.exists(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
   }
 
   override def filter(tool: Tool,
