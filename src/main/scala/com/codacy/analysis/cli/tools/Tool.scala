@@ -6,9 +6,11 @@ import better.files.File
 import codacy.docker.api
 import com.codacy.analysis.cli.analysis.CodacyPluginsAnalyser
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
+import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
+import com.codacy.analysis.cli.files.FilesTarget
 import com.codacy.analysis.cli.model.{Configuration, Issue, Result, _}
 import com.codacy.analysis.cli.utils.FileHelper
-import com.codacy.api.dtos.Language
+import com.codacy.api.dtos.{Language, Languages}
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 import plugins.results.interface.scala.{Pattern, PluginConfiguration, PluginRequest}
@@ -130,23 +132,45 @@ object Tool {
   def allToolShortNames: Set[String] = allTools.map(_.shortName)(collection.breakOut)
 
   def fromInput(toolInput: Option[String],
-                remoteProjectConfiguration: Either[String, ProjectConfiguration]): Either[String, Set[Tool]] = {
+                localConfiguration: Either[String, CodacyConfigurationFile],
+                remoteProjectConfiguration: Either[String, ProjectConfiguration],
+                filesTarget: FilesTarget): Either[String, Set[Tool]] = {
     toolInput match {
       case Some(toolStr) =>
         Tool.from(toolStr).map(Set(_))
       case None =>
-        remoteProjectConfiguration.right.flatMap { projectConfiguration =>
-          val toolUuids = projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)
-
-          if (toolUuids.isEmpty) {
-            Left("No active tool found on the remote configuration")
-          } else {
-            toolUuids
-              .map(Tool.from)
-              .sequenceWithFixedLeft("A tool from remote configuration could not be found locally")
-          }
+        remoteProjectConfiguration match {
+          case Right(configuration) =>
+            fromRemoteConfiguration(configuration)
+          case Left(error) =>
+            val logger = getLogger
+            logger.warn(error)
+            Right(fromFilesTarget(filesTarget, localConfiguration))
         }
     }
+  }
+
+  private def fromRemoteConfiguration(projectConfiguration: ProjectConfiguration): Either[String, Set[Tool]] = {
+    val toolUuids = projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)
+
+    if (toolUuids.isEmpty) {
+      Left("No active tool found on the remote configuration")
+    } else {
+      toolUuids.map(Tool.from).sequenceWithFixedLeft("A tool from remote configuration could not be found locally")
+    }
+  }
+
+  private def fromFilesTarget(filesTarget: FilesTarget,
+                              localConfiguration: Either[String, CodacyConfigurationFile]): Set[Tool] = {
+    val languageCustomExtensions =
+      localConfiguration.map(_.languageCustomExtensions.mapValues(_.toList).toList).getOrElse(List.empty)
+
+    val fileLanguages = filesTarget.files.flatMap(path => Languages.forPath(path.toString, languageCustomExtensions))
+
+    allTools.collect {
+      case tool if fileLanguages.exists(tool.languages.contains) =>
+        new Tool(tool)
+    }(collection.breakOut)
   }
 
   def from(value: String): Either[String, Tool] = find(value).map(new Tool(_))

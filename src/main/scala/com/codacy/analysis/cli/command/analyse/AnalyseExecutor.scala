@@ -42,20 +42,18 @@ class AnalyseExecutor(toolInput: Option[String],
 
     val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
 
-    val analysisResult: Future[Either[String, Unit]] = Tool.fromInput(toolInput, remoteProjectConfiguration) match {
-      case Left(error) =>
-        logger.error(error)
-
-        Future.successful(Left("Invalid tool input"))
-
-      case Right(tools) =>
-        fileCollector.list(baseDirectory, localConfigurationFile, remoteProjectConfiguration) match {
-          case Failure(_) =>
-            Future.successful(Left("Could not access project files"))
-          case Success(toolFilesTarget) =>
-            analyseAndUpload(tools, toolFilesTarget, localConfigurationFile, nrParallelTools)
-        }
-    }
+    val analysisResult: Future[Either[String, Unit]] =
+      fileCollector.list(baseDirectory, localConfigurationFile, remoteProjectConfiguration) match {
+        case Failure(_) =>
+          Future.successful(Left("Could not access project files"))
+        case Success(filesTarget) =>
+          Tool.fromInput(toolInput, localConfigurationFile, remoteProjectConfiguration, filesTarget) match {
+            case Left(error) =>
+              Future.successful(Left(error))
+            case Right(tools) =>
+              analyseAndUpload(tools, filesTarget, localConfigurationFile, nrParallelTools)
+          }
+      }
 
     formatter.end()
 

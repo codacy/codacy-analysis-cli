@@ -95,12 +95,9 @@ class FileSystemFileCollector extends FileCollector[Try] {
     tool: Tool,
     localConfiguration: Either[String, CodacyConfigurationFile],
     remoteConfiguration: Either[String, ProjectConfiguration])(files: Set[Path]): Set[Path] = {
+
     val localCustomExtensionsByLanguage =
-      localConfiguration.fold(_ => Map.empty[Language, Set[String]], localConfig => {
-        localConfig.languages.fold(Map.empty[Language, Set[String]])(_.map {
-          case (lang, config) => (lang, config.extensions.getOrElse(Set.empty[String]))
-        }(collection.breakOut): Map[Language, Set[String]])
-      })
+      localConfiguration.map(_.languageCustomExtensions).getOrElse(Map.empty)
 
     val remoteCustomExtensionsByLanguage: Map[Language, Set[String]] =
       foldable.foldMap(remoteConfiguration)(
