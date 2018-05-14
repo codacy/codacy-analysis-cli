@@ -46,8 +46,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
   def sendEndOfResults(commitUuid: String): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
-        sendEndOfResultsTo(s"/${token.userName}/${token.projectName}/commit/$commitUuid/endRemoteResults")
-      case _: ProjectToken => sendEndOfResultsTo(s"/commit/$commitUuid/endRemoteResults")
+        sendEndOfResultsTo(s"/${token.userName}/${token.projectName}/commit/$commitUuid/resultsFinal")
+      case _: ProjectToken => sendEndOfResultsTo(s"/commit/$commitUuid/resultsFinal")
     }
   }
 
@@ -56,12 +56,12 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
   }
 
   private def getProjectConfiguration(projectName: String, username: String): Either[String, ProjectConfiguration] = {
-    getProjectConfigurationFrom(s"/project/$username/$projectName/analysis/configuration")
+    getProjectConfigurationFrom(s"/project/$projectName/$username/analysis/configuration")
   }
 
   private def sendRemoteResultsTo(endpoint: String, tool: String, results: Set[Result]): Future[Either[String, Unit]] =
     Future {
-      http.post(endpoint, Some(ToolResults(tool, results).asJson)) match {
+      http.post(endpoint, Some(Seq(ToolResults(tool, results)).asJson)) match {
         case Left(error) =>
           logger.error(error)(s"Error posting data to endpoint $endpoint")
           Left(error.message)
