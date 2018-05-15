@@ -143,7 +143,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       analyser,
       resultsUploaderEither,
       fileCollector,
-      remoteProjectConfiguration).run()
+      remoteProjectConfiguration,
+      None).run()
   }
 
 }

@@ -60,7 +60,8 @@ class MainImpl extends CLIApp {
           analyser,
           resultsUploader,
           fileCollector,
-          remoteProjectConfiguration).run()
+          remoteProjectConfiguration,
+          analyse.parallel).run()
     }
 
     Await.result(res, Duration.Inf) match {

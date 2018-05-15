@@ -225,7 +225,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       analyser,
       resultsUploaderEither,
       fileCollector,
-      remoteProjectConfiguration).run() must beRight.await
+      remoteProjectConfiguration,
+      None).run() must beRight.await
     // scalafix:on
   }
 

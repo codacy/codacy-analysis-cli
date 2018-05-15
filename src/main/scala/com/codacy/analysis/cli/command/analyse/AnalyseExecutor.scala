@@ -1,5 +1,7 @@
 package com.codacy.analysis.cli.command.analyse
 
+import java.util.concurrent.ForkJoinPool
+
 import better.files.File
 import cats.implicits._
 import com.codacy.analysis.cli.analysis.Analyser
@@ -15,17 +17,19 @@ import com.codacy.analysis.cli.upload.ResultsUploader
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
+import scala.collection.parallel.ForkJoinTaskSupport
+import scala.collection.parallel.immutable.ParSet
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-class AnalyseExecutor(
-  toolInput: Option[String],
-  directory: Option[File],
-  formatter: Formatter,
-  analyser: Analyser[Try],
-  uploader: Either[String, ResultsUploader],
-  fileCollector: FileCollector[Try],
-  remoteProjectConfiguration: Either[String, ProjectConfiguration])(implicit context: ExecutionContext) {
+class AnalyseExecutor(toolInput: Option[String],
+                      directory: Option[File],
+                      formatter: Formatter,
+                      analyser: Analyser[Try],
+                      uploader: Either[String, ResultsUploader],
+                      fileCollector: FileCollector[Try],
+                      remoteProjectConfiguration: Either[String, ProjectConfiguration],
+                      nrParallelTools: Option[Int])(implicit context: ExecutionContext) {
 
   private val logger: Logger = getLogger
 
@@ -49,7 +53,7 @@ class AnalyseExecutor(
           case Failure(_) =>
             Future.successful(Left("Could not access project files"))
           case Success(toolFilesTarget) =>
-            analyseAndUpload(tools, toolFilesTarget, localConfigurationFile)
+            analyseAndUpload(tools, toolFilesTarget, localConfigurationFile, nrParallelTools)
         }
     }
 
@@ -58,12 +62,16 @@ class AnalyseExecutor(
     analysisResult
   }
 
-  private def analyseAndUpload(
-    tools: Set[Tool],
-    filesTarget: FilesTarget,
-    localConfigurationFile: Either[String, CodacyConfigurationFile]): Future[Either[String, Unit]] = {
+  private def analyseAndUpload(tools: Set[Tool],
+                               filesTarget: FilesTarget,
+                               localConfigurationFile: Either[String, CodacyConfigurationFile],
+                               nrParallelTools: Option[Int]): Future[Either[String, Unit]] = {
 
-    val uploads: Seq[Future[Either[String, Unit]]] = tools.map { tool =>
+    val toolsPar: ParSet[Tool] = tools.par
+
+    toolsPar.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(nrParallelTools.getOrElse(2)))
+
+    val uploads: Seq[Future[Either[String, Unit]]] = toolsPar.map { tool =>
       val hasConfigFiles = fileCollector.hasConfigurationFiles(tool, filesTarget)
       analyseAndUpload(tool, hasConfigFiles, filesTarget, localConfigurationFile)
     }(collection.breakOut)

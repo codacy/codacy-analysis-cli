@@ -95,6 +95,8 @@ final case class Analyse(
   commitUuid: Option[String] = Option.empty,
   @ExtraName("u") @ValueDescription("If the results should be uploaded to the API")
   upload: Int @@ Counter = Tag.of(0),
+  @ExtraName("p") @ValueDescription("The number of tools to run in parallel")
+  parallel: Option[Int] = Option.empty,
   @Recurse
   extras: ExtraOptions)
     extends Command
