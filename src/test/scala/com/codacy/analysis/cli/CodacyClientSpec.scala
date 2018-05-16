@@ -209,7 +209,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         case (endpoint: String) :: Nil =>
           val actualEndpoint = credentials match {
             case _: ProjectToken => "/project/analysis/configuration"
-            case _: APIToken     => s"/project/$project/$username/analysis/configuration"
+            case _: APIToken     => s"/project/$username/$project/analysis/configuration"
           }
           endpoint must beEqualTo(actualEndpoint)
         case _ =>

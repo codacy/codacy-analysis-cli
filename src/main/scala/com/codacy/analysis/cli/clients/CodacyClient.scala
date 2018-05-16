@@ -30,7 +30,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
     credentials match {
-      case token: APIToken => getProjectConfiguration(token.projectName, token.userName)
+      case token: APIToken => getProjectConfiguration(token.userName, token.projectName)
       case _: ProjectToken => getProjectConfiguration
     }
   }
@@ -55,8 +55,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     getProjectConfigurationFrom("/project/analysis/configuration")
   }
 
-  private def getProjectConfiguration(projectName: String, username: String): Either[String, ProjectConfiguration] = {
-    getProjectConfigurationFrom(s"/project/$projectName/$username/analysis/configuration")
+  private def getProjectConfiguration(username: String, projectName: String): Either[String, ProjectConfiguration] = {
+    getProjectConfigurationFrom(s"/project/$username/$projectName/analysis/configuration")
   }
 
   private def sendRemoteResultsTo(endpoint: String, tool: String, results: Set[Result]): Future[Either[String, Unit]] =
