@@ -98,7 +98,7 @@ class AnalyseExecutor(toolInput: Option[String],
 
     result match {
       case Success(res) =>
-        logger.info(s"Completed analysis for ${tool.name}")
+        logger.info(s"Completed analysis for ${tool.name} with ${res.size} results")
         res.foreach(formatter.add)
       case Failure(e) =>
         logger.error(e)(s"Failed analysis for ${tool.name}")

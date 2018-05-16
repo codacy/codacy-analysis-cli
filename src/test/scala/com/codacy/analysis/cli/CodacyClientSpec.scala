@@ -183,8 +183,8 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         invocation.getArguments.toList match {
           case (endpoint: String) :: Nil =>
             val actualEndpoint = credentials match {
-              case _: ProjectToken => s"/commit/$commitUuid/endRemoteResults"
-              case _: APIToken     => s"/$username/$project/commit/$commitUuid/endRemoteResults"
+              case _: ProjectToken => s"/commit/$commitUuid/resultsFinal"
+              case _: APIToken     => s"/$username/$project/commit/$commitUuid/resultsFinal"
             }
             endpoint must beEqualTo(actualEndpoint)
           case _ =>
@@ -209,7 +209,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         case (endpoint: String) :: Nil =>
           val actualEndpoint = credentials match {
             case _: ProjectToken => "/project/analysis/configuration"
-            case _: APIToken     => s"/project/$project/$username/analysis/configuration"
+            case _: APIToken     => s"/project/$username/$project/analysis/configuration"
           }
           endpoint must beEqualTo(actualEndpoint)
         case _ =>
