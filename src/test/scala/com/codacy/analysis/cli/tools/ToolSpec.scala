@@ -2,6 +2,7 @@ package com.codacy.analysis.cli.tools
 
 import better.files.File
 import com.codacy.analysis.cli.clients.api.{ProjectConfiguration, ToolConfiguration}
+import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.configuration.{CodacyConfigurationFile, LanguageConfiguration}
 import com.codacy.analysis.cli.files.FilesTarget
 import com.codacy.api.dtos.Languages
@@ -13,7 +14,7 @@ class ToolSpec extends Specification with NoLanguageFeatures {
   val emptyFilesTarget = FilesTarget(File(""), Set.empty)
   val noLocalConfiguration = Left("no config")
 
-  "Tool" should {
+  "AnalyseExecutor.tools" should {
     "use input over remote configuration" in {
 
       val expectedToolName = "pylint"
@@ -25,7 +26,8 @@ class ToolSpec extends Specification with NoLanguageFeatures {
           Set.empty,
           Set(ToolConfiguration("InvalidToolName", isEnabled = true, notEdited = false, Set.empty))))
 
-      val toolEither = Tool.fromInput(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget)
+      val toolEither =
+        AnalyseExecutor.tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -46,7 +48,8 @@ class ToolSpec extends Specification with NoLanguageFeatures {
           Set(
             ToolConfiguration("34225275-f79e-4b85-8126-c7512c987c0d", isEnabled = true, notEdited = false, Set.empty))))
 
-      val toolEither = Tool.fromInput(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget)
+      val toolEither =
+        AnalyseExecutor.tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget)
       toolEither must beLeft
     }
 
@@ -66,7 +69,8 @@ class ToolSpec extends Specification with NoLanguageFeatures {
             ToolConfiguration("someRandomTool", isEnabled = false, notEdited = false, Set.empty),
             ToolConfiguration("anotherRandomTool", isEnabled = false, notEdited = false, Set.empty))))
 
-      val toolEither = Tool.fromInput(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget)
+      val toolEither =
+        AnalyseExecutor.tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -81,7 +85,7 @@ class ToolSpec extends Specification with NoLanguageFeatures {
 
       val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rb").path))
 
-      val toolEither = Tool.fromInput(userInput, noLocalConfiguration, remoteProjectConfiguration, filesTarget)
+      val toolEither = AnalyseExecutor.tools(userInput, noLocalConfiguration, remoteProjectConfiguration, filesTarget)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -101,7 +105,7 @@ class ToolSpec extends Specification with NoLanguageFeatures {
           Option.empty,
           Option(Map(Languages.Java -> LanguageConfiguration(Option(Set("rawr")))))))
 
-      val toolEither = Tool.fromInput(userInput, localConfiguration, remoteProjectConfiguration, filesTarget)
+      val toolEither = AnalyseExecutor.tools(userInput, localConfiguration, remoteProjectConfiguration, filesTarget)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>

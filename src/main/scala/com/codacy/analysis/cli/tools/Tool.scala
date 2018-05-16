@@ -5,8 +5,6 @@ import java.nio.file.{Path, Paths}
 import better.files.File
 import codacy.docker.api
 import com.codacy.analysis.cli.analysis.CodacyPluginsAnalyser
-import com.codacy.analysis.cli.clients.api.ProjectConfiguration
-import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
 import com.codacy.analysis.cli.files.FilesTarget
 import com.codacy.analysis.cli.model.{Configuration, Issue, Result, _}
 import com.codacy.analysis.cli.utils.FileHelper
@@ -131,28 +129,11 @@ object Tool {
 
   def allToolShortNames: Set[String] = allTools.map(_.shortName)(collection.breakOut)
 
-  def fromInput(toolInput: Option[String],
-                localConfiguration: Either[String, CodacyConfigurationFile],
-                remoteProjectConfiguration: Either[String, ProjectConfiguration],
-                filesTarget: FilesTarget): Either[String, Set[Tool]] = {
-    toolInput match {
-      case Some(toolStr) =>
-        Tool.from(toolStr).map(Set(_))
-      case None =>
-        remoteProjectConfiguration match {
-          case Right(configuration) =>
-            fromRemoteConfiguration(configuration)
-          case Left(error) =>
-            val logger = getLogger
-            logger.warn(error)
-            Right(fromFilesTarget(filesTarget, localConfiguration))
-        }
-    }
+  def fromNameOrUUID(toolInput: String): Either[String, Set[Tool]] = {
+    from(toolInput).map(Set(_))
   }
 
-  private def fromRemoteConfiguration(projectConfiguration: ProjectConfiguration): Either[String, Set[Tool]] = {
-    val toolUuids = projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)
-
+  def fromToolUUIDs(toolUuids: Set[String]): Either[String, Set[Tool]] = {
     if (toolUuids.isEmpty) {
       Left("No active tool found on the remote configuration")
     } else {
@@ -160,17 +141,20 @@ object Tool {
     }
   }
 
-  private def fromFilesTarget(filesTarget: FilesTarget,
-                              localConfiguration: Either[String, CodacyConfigurationFile]): Set[Tool] = {
-    val languageCustomExtensions =
-      localConfiguration.map(_.languageCustomExtensions.mapValues(_.toList).toList).getOrElse(List.empty)
-
+  def fromFileTarget(filesTarget: FilesTarget,
+                     languageCustomExtensions: List[(Language, Seq[String])]): Either[String, Set[Tool]] = {
     val fileLanguages = filesTarget.files.flatMap(path => Languages.forPath(path.toString, languageCustomExtensions))
 
-    allTools.collect {
+    val tools: Set[Tool] = allTools.collect {
       case tool if fileLanguages.exists(tool.languages.contains) =>
         new Tool(tool)
     }(collection.breakOut)
+
+    if (tools.isEmpty) {
+      Left("No tools found for files provided")
+    } else {
+      Right(tools)
+    }
   }
 
   def from(value: String): Either[String, Tool] = find(value).map(new Tool(_))
