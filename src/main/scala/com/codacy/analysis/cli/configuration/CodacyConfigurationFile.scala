@@ -18,7 +18,12 @@ final case class EngineConfiguration(exclude_paths: Option[Set[Glob]],
 
 final case class CodacyConfigurationFile(engines: Option[Map[String, EngineConfiguration]],
                                          exclude_paths: Option[Set[Glob]],
-                                         languages: Option[Map[Language, LanguageConfiguration]])
+                                         languages: Option[Map[Language, LanguageConfiguration]]) {
+
+  lazy val languageCustomExtensions = languages.fold(Map.empty[Language, Set[String]])(_.map {
+    case (lang, config) => (lang, config.extensions.getOrElse(Set.empty[String]))
+  })
+}
 
 object CodacyConfigurationFile {
 

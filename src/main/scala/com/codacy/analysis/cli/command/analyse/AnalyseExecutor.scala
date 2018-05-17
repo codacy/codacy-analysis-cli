@@ -7,6 +7,7 @@ import cats.implicits._
 import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
 import com.codacy.analysis.cli.command.Properties
+import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
 import com.codacy.analysis.cli.converters.ConfigurationHelper
 import com.codacy.analysis.cli.files.{FileCollector, FilesTarget}
@@ -42,20 +43,17 @@ class AnalyseExecutor(toolInput: Option[String],
 
     val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
 
-    val analysisResult: Future[Either[String, Unit]] = Tool.fromInput(toolInput, remoteProjectConfiguration) match {
-      case Left(error) =>
-        logger.error(error)
+    val filesTargetAndTool: Either[String, (FilesTarget, Set[Tool])] = for {
+      filesTarget <- fileCollector
+        .list(baseDirectory, localConfigurationFile, remoteProjectConfiguration)
+        .toRight("Could not access project files")
+      tools <- tools(toolInput, localConfigurationFile, remoteProjectConfiguration, filesTarget)
+    } yield (filesTarget, tools)
 
-        Future.successful(Left("Invalid tool input"))
-
-      case Right(tools) =>
-        fileCollector.list(baseDirectory, localConfigurationFile, remoteProjectConfiguration) match {
-          case Failure(_) =>
-            Future.successful(Left("Could not access project files"))
-          case Success(toolFilesTarget) =>
-            analyseAndUpload(tools, toolFilesTarget, localConfigurationFile, nrParallelTools)
-        }
-    }
+    val analysisResult: Future[Either[String, Unit]] = filesTargetAndTool.fold(str => Future.successful(Left(str)), {
+      case (filesTarget, tools) =>
+        analyseAndUpload(tools, filesTarget, localConfigurationFile, nrParallelTools)
+    })
 
     formatter.end()
 
@@ -178,5 +176,40 @@ class AnalyseExecutor(toolInput: Option[String],
       logger.info(s"Found local extra configuration for ${tool.name}")
       (ec.baseSubDir, ec.extraValues)
     }
+  }
+
+  implicit class tryOps[A](tryA: Try[A]) {
+
+    def toRight[L](left: L): Either[L, A] = {
+      tryA.map(Right(_)).getOrElse(Left(left))
+    }
+  }
+}
+
+object AnalyseExecutor {
+
+  def tools(toolInput: Option[String],
+            localConfiguration: Either[String, CodacyConfigurationFile],
+            remoteProjectConfiguration: Either[String, ProjectConfiguration],
+            filesTarget: FilesTarget): Either[String, Set[Tool]] = {
+
+    def fromRemoteConfig =
+      remoteProjectConfiguration.flatMap(projectConfiguration =>
+        Tool.fromToolUUIDs(projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)))
+
+    def fromLocalConfig =
+      Tool.fromFileTarget(
+        filesTarget,
+        localConfiguration.map(_.languageCustomExtensions.mapValues(_.toList).toList).getOrElse(List.empty))
+
+    toolInput.map { toolStr =>
+      Tool.fromNameOrUUID(toolStr)
+    }.getOrElse {
+      for {
+        e1 <- fromRemoteConfig.left
+        e2 <- fromLocalConfig.left
+      } yield s"$e1 and $e2"
+    }
+
   }
 }
