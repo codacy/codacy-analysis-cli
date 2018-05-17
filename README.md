@@ -1,22 +1,24 @@
 # Codacy Analysis CLI
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e490e1a232a04bccb113ff55b8126947)](https://www.codacy.com?utm_source=git@bitbucket.org&amp;utm_medium=referral&amp;utm_content=qamine/codacy-analysis-cli&amp;utm_campaign=Badge_Grade)
-[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/e490e1a232a04bccb113ff55b8126947)](https://www.codacy.com?utm_source=git@bitbucket.org&utm_medium=referral&utm_content=qamine/codacy-analysis-cli&utm_campaign=Badge_Coverage)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/37634a4929cb44999101ba29d7da96dc)](https://www.codacy.com/app/Codacy/codacy-analysis-cli?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=codacy/codacy-analysis-cli&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/37634a4929cb44999101ba29d7da96dc)](https://www.codacy.com/app/Codacy/codacy-analysis-cli?utm_source=github.com&utm_medium=referral&utm_content=codacy/codacy-analysis-cli&utm_campaign=Badge_Coverage)
 
 Small command line interface to execute Codacy code analysis locally.
 
+## :warning: This project is under development and not production ready
+
 ## Features
 
-- [P] Invoke a tool
-  - [D] Local tool configuration file
-  - [D] Remote Codacy patterns, ignored files and language extensions
-  - [ ] Default settings
-- [P] Invoke multiple tools
-- [ ] Invoke tools in parallel
-- [P] Post results to Codacy
-- [ ] Exit with status from Codacy quality settings
+- (P) Invoke a tool
+  - (D) Local tool configuration file
+  - (D) Remote Codacy patterns, ignored files and language extensions
+  - ( ) Default settings
+- (P) Invoke multiple tools
+- ( ) Invoke tools in parallel
+- (P) Post results to Codacy
+- ( ) Exit with status from Codacy quality settings
 
-> [D] - Done | [P] - Partially Done | [ ] - Not Started
+> (D) - Done | (P) - Partially Done | ( ) - Not Started
 
 ## Prerequisites
 
@@ -182,3 +184,24 @@ codacy-analysis-cli analyse \
 ```
 
 > In alternative to setting `--api-token` you can define CODACY_API_TOKEN in the environment.
+
+## What is Codacy
+
+[Codacy](https://www.codacy.com/) is an Automated Code Review Tool that monitors your technical debt, helps you improve your code quality, teaches best practices to your developers, and helps you save time in Code Reviews.
+
+### Among Codacy’s features
+
+- Identify new Static Analysis issues
+- Commit and Pull Request Analysis with GitHub, BitBucket/Stash, GitLab (and also direct git repositories)
+- Auto-comments on Commits and Pull Requests
+- Integrations with Slack, HipChat, Jira, YouTrack
+- Track issues in Code Style, Security, Error Proneness, Performance, Unused Code and other categories
+
+Codacy also helps keep track of Code Coverage, Code Duplication, and Code Complexity.
+
+Codacy supports PHP, Python, Ruby, Java, JavaScript, and Scala, among others.
+
+### Free for Open Source
+
+Codacy is free for Open Source projects.
+
