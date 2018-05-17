@@ -1,0 +1,51 @@
+version: 2
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "build.sbt" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      - run: 
+        - name: Compile
+        - command: ./scripts/compile.sh
+
+      - save_cache:
+          key: dependencies-{{ checksum "build.sbt" }}
+          paths:
+            - "~/.ivy2"
+            - "~/.m2"
+            - "~/.sbt"
+
+      - run: 
+        - name: Lint
+        - command: ./scripts/lint.sh
+
+      - run: 
+        - name: Test
+        - command: ./scripts/test.sh
+
+      - run: 
+        - name: Publish local docker
+        - command: ./scripts/deploy.sh 0.1.0-alpha2.$CIRCLE_BUILD_NUM
+
+      - deploy:
+        - name: Push docker to dockerhub
+        - command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              docker push codacy/$CIRCLE_PROJECT_REPONAME:latest
+            fi
+            docker push codacy/$CIRCLE_PROJECT_REPONAME:0.1.0-alpha2.$CIRCLE_BUILD_NUM
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build
