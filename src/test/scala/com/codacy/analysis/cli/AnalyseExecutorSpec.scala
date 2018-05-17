@@ -2,14 +2,12 @@ package com.codacy.analysis.cli
 
 import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.clients.api._
-import com.codacy.analysis.cli.clients.{APIToken, CodacyClient, Credentials, ProjectToken}
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.cli.model.{Issue, Result}
 import com.codacy.analysis.cli.upload.ResultsUploader
-import com.codacy.analysis.cli.utils.HttpHelper
 import com.codacy.analysis.cli.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
@@ -45,23 +43,19 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
-        val credentials: Credentials = ProjectToken(projTokenStr)
-        val codacyClient = new CodacyClient(credentials, new HttpHelper(None, Map.empty)) {
-          override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
-            Right(
-              ProjectConfiguration(
-                Set(FilePath(pathToIgnore)),
-                Set.empty,
-                Set(
-                  ToolConfiguration(
-                    "34225275-f79e-4b85-8126-c7512c987c0d",
-                    isEnabled = true,
-                    notEdited = false,
-                    toolPatterns))))
-          }
-        }
+        val remoteConfiguration: Either[String, ProjectConfiguration] =
+          Right(
+            ProjectConfiguration(
+              Set(FilePath(pathToIgnore)),
+              Set.empty,
+              Set(
+                ToolConfiguration(
+                  "34225275-f79e-4b85-8126-c7512c987c0d",
+                  isEnabled = true,
+                  notEdited = false,
+                  toolPatterns))))
 
-        runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration, Left("No uploader available"))
+        runAnalyseExecutor(analyse, remoteConfiguration, Left("No uploader available"))
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -73,15 +67,15 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           case Right(response: Set[Result]) =>
             response.size must beGreaterThan(0)
 
-            response.exists {
-              case i: Issue => i.filename.startsWith(pathToIgnore)
-              case _        => false
-            } must beFalse
+            response.forall {
+              case i: Issue => !i.filename.startsWith(pathToIgnore)
+              case _        => true
+            } must beTrue
 
-            response.exists {
-              case i: Issue => !pyLintPatternsInternalIds.contains(i.patternId.value)
-              case _        => false
-            } must beFalse
+            response.forall {
+              case i: Issue => pyLintPatternsInternalIds.contains(i.patternId.value)
+              case _        => true
+            } must beTrue
         }
       }
     }
@@ -111,23 +105,19 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
-        val credentials: Credentials = APIToken(apiTokenStr, None, username, project)
-        val codacyClient = new CodacyClient(credentials, new HttpHelper(None, Map.empty)) {
-          override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
-            Right(
-              ProjectConfiguration(
-                Set.empty,
-                Set.empty,
-                Set(
-                  ToolConfiguration(
-                    "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
-                    isEnabled = true,
-                    notEdited = false,
-                    toolPatterns))))
-          }
-        }
+        val remoteConfiguration: Either[String, ProjectConfiguration] =
+          Right(
+            ProjectConfiguration(
+              Set.empty,
+              Set.empty,
+              Set(
+                ToolConfiguration(
+                  "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
+                  isEnabled = true,
+                  notEdited = false,
+                  toolPatterns))))
 
-        runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration, Left("No uploader available"))
+        runAnalyseExecutor(analyse, remoteConfiguration, Left("No uploader available"))
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -139,10 +129,10 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           case Right(response: Set[Result]) =>
             response.size must beGreaterThan(0)
 
-            response.exists {
-              case i: Issue => !esLintPatternsInternalIds.contains(i.patternId.value)
-              case _        => false
-            } must beFalse
+            response.forall {
+              case i: Issue => esLintPatternsInternalIds.contains(i.patternId.value)
+              case _        => true
+            } must beTrue
         }
       }
     }
