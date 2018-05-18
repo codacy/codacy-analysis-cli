@@ -50,6 +50,6 @@ object Formatter {
   }
 
   private def asPrintStream(file: File) = {
-    new PrintStream(new FileOutputStream(file.toJava, true))
+    new PrintStream(new FileOutputStream(file.toJava, false))
   }
 }
