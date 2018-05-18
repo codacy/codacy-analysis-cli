@@ -1,6 +1,6 @@
 .PHONY: install uninstall compile build lint test clean
 
-DESTDIR ?= /usr/local/bin
+PREFIX ?= /usr/local
 
 test:
 	scripts/test.sh
@@ -14,11 +14,11 @@ compile:
 install:
 	scripts/check_requirements.sh
 	docker pull codacy/codacy-analysis-cli:latest
-	mkdir -p $(DESTDIR)
-	install -m 0755 bin/codacy-analysis-cli.sh $(DESTDIR)/codacy-analysis-cli
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	install -m 0755 bin/codacy-analysis-cli.sh $(DESTDIR)$(PREFIX)/bin/codacy-analysis-cli
 
 uninstall:
-	$(RM) $(DESTDIR)/codacy-analysis-cli
+	$(RM) $(DESTDIR)$(PREFIX)/bin/codacy-analysis-cli
 	docker rmi codacy/codacy-analysis-cli:latest
 
 build: compile lint test
