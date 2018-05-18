@@ -2,6 +2,7 @@ version: 2
 jobs:
   build:
     machine: true
+    working_directory: ~/workdir
     steps:
       - checkout
 
@@ -22,6 +23,9 @@ jobs:
             - "~/.ivy2"
             - "~/.m2"
             - "~/.sbt"
+            - "~/workdir/target"
+            - "~/workdir/project/target"
+            - "~/workdir/project/project"
 
       - run: 
           name: Lint
