@@ -15,7 +15,9 @@ Small command line interface to execute Codacy code analysis locally.
   - (D) Remote Codacy patterns, ignored files and language extensions
   - ( ) Default settings
 - (P) Invoke multiple tools
-- ( ) Invoke tools in parallel
+  - (D) Using remote configurations
+  - ( ) Using local configurations
+- (D) Invoke tools in parallel
 - (P) Post results to Codacy
 - ( ) Exit with status from Codacy quality settings
 
@@ -142,7 +144,8 @@ codacy-analysis-cli analyse \
 * `--output` - Send the output results to a file
 * `--format` - Change the output format (e.g. json)
 * `--commit-uuid` - Set the commit UUID that will receive the results on Codacy
-* ` --upload` - Request to push results to Codacy 
+* ` --upload` - Request to push results to Codacy
+* `--parallel` - Number of tools to run in parallel
 
 ### Local configuration
 
