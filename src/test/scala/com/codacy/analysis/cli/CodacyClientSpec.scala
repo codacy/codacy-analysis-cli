@@ -15,6 +15,8 @@ import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
+import scala.concurrent.duration._
+
 class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
   val apiTokenStr = "RandomApiToken"
@@ -76,14 +78,16 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
           "with successful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsTest(success = true, apiCredentials)
             // scalafix:off
-            codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beRight.await
+            codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beRight
+              .await(retries = 1, timeout = Int.MaxValue.seconds)
             // scalafix:on
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
           "with unsuccessful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsTest(success = false, apiCredentials)
             // scalafix:off
-            codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beLeft.await
+            codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beLeft
+              .await(retries = 1, timeout = Int.MaxValue.seconds)
             // scalafix:on
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
@@ -91,7 +95,8 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         "with Project Token with successful return" in {
           val (codacyClient, httpHelper) = setupRemoteResultsTest(success = true, projectCredentials)
           // scalafix:off
-          codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beRight.await
+          codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beRight
+            .await(retries = 1, timeout = Int.MaxValue.seconds)
           // scalafix:on
           there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
         }
@@ -102,14 +107,14 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
           "with successful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = true, apiCredentials)
             // scalafix:off
-            codacyClient.sendEndOfResults(commitUuid) must beRight.await
+            codacyClient.sendEndOfResults(commitUuid) must beRight.await(retries = 1, timeout = Int.MaxValue.seconds)
             // scalafix:on
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
           "with unsuccessful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = false, apiCredentials)
             // scalafix:off
-            codacyClient.sendEndOfResults(commitUuid) must beLeft.await
+            codacyClient.sendEndOfResults(commitUuid) must beLeft.await(retries = 1, timeout = Int.MaxValue.seconds)
             // scalafix:on
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
@@ -117,7 +122,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         "with Project Token with successful return" in {
           val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = true, projectCredentials)
           // scalafix:off
-          codacyClient.sendEndOfResults(commitUuid) must beRight.await
+          codacyClient.sendEndOfResults(commitUuid) must beRight.await(retries = 1, timeout = Int.MaxValue.seconds)
           // scalafix:on
           there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
         }
