@@ -19,6 +19,7 @@ import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
+import scala.concurrent.duration._
 import scala.util.Try
 
 class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
@@ -219,7 +220,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       resultsUploaderEither,
       fileCollector,
       remoteProjectConfiguration,
-      None).run() must beRight.await
+      None).run() must beRight.awaitFor(Int.MaxValue.seconds)
     // scalafix:on
   }
 

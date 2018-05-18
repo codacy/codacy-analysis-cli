@@ -24,6 +24,7 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
 import scala.util.Try
 
 class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
@@ -76,7 +77,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
 
         // scalafix:off
-        runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration, uploader.asRight[String]) must beRight.await
+        runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration, uploader.asRight[String]) must beRight
+          .awaitFor(Int.MaxValue.seconds)
         // scalafix:on
 
         verifyNumberOfCalls(codacyClient, tool, commitUuid, actualBatchSize, file)
