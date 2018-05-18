@@ -78,7 +78,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
         // scalafix:off
         runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration, uploader.asRight[String]) must beRight
-          .await(retries = 1, timeout = Int.MaxValue.seconds)
+          .awaitFor(Int.MaxValue.seconds)
         // scalafix:on
 
         verifyNumberOfCalls(codacyClient, tool, commitUuid, actualBatchSize, file)

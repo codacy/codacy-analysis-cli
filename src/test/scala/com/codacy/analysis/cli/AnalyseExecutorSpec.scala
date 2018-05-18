@@ -220,7 +220,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       resultsUploaderEither,
       fileCollector,
       remoteProjectConfiguration,
-      None).run() must beRight.await(retries = 1, timeout = Int.MaxValue.seconds)
+      None).run() must beRight.awaitFor(Int.MaxValue.seconds)
     // scalafix:on
   }
 
