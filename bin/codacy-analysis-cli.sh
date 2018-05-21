@@ -32,7 +32,7 @@ run() {
     --volume /var/run/docker.sock:/var/run/docker.sock \
     --volume "$CODACY_CODE":"$CODACY_CODE" \
     --volume /tmp:/tmp \
-    codacy/codacy-analysis-cli \
+    codacy/codacy-analysis-cli -- \
     "$@"
 }
 

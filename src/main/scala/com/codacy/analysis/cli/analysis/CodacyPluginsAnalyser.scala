@@ -12,7 +12,7 @@ import scala.util.Try
 class CodacyPluginsAnalyser extends Analyser[Try] {
 
   override def analyse(tool: Tool, directory: File, files: Set[Path], config: Configuration): Try[Set[Result]] = {
-    tool.run(directory, files, config, 10.minutes)
+    tool.run(directory, files, config, timeout = 10.minutes)
   }
 
 }
