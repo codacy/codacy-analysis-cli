@@ -11,20 +11,34 @@ class Environment(variables: Map[String, String]) {
 
   private val logger: Logger = getLogger
 
-  def projectToken(projectToken: Option[String]): Option[String] = {
-    validate("Project token", "argument", "--project-token")(projectToken).orElse(
-      validate("Project token", "environment variable", "CODACY_PROJECT_TOKEN")(variables.get("CODACY_PROJECT_TOKEN")))
+  def projectTokenArgument(projectTokenFromArguments: Option[String]): Option[String] = {
+    validate("Project token", "argument", "--project-token")(projectTokenFromArguments)
   }
 
-  def apiToken(apiToken: Option[String]): Option[String] = {
-    validate("API token", "argument", "--api-token")(apiToken)
-      .orElse(validate("API token", "environment variable", "CODACY_API_TOKEN")(variables.get("CODACY_API_TOKEN")))
+  def projectTokenEnvironmentVariable(): Option[String] = {
+    validate("Project token", "environment variable", "CODACY_PROJECT_TOKEN")(variables.get("CODACY_PROJECT_TOKEN"))
   }
 
-  def apiBaseUrl(codacyApiBaseURL: Option[String]): Option[String] = {
-    val apiURL = validate("API base URL", "argument", "--codacy-api-base-url")(codacyApiBaseURL).orElse(
-      validate("API base URL", "environment variable", "CODACY_API_BASE_URL")(variables.get("CODACY_API_BASE_URL")))
+  def apiTokenArgument(apiTokenFromArguments: Option[String]): Option[String] = {
+    validate("API token", "argument", "--api-token")(apiTokenFromArguments)
+  }
 
+  def apiTokenEnvironmentVariable(): Option[String] = {
+    validate("API token", "environment variable", "CODACY_API_TOKEN")(variables.get("CODACY_API_TOKEN"))
+  }
+
+  def apiBaseUrlArgument(codacyApiBaseURLFromArguments: Option[String]): Option[String] = {
+    val apiURL = validate("API base URL", "argument", "--codacy-api-base-url")(codacyApiBaseURLFromArguments)
+    validateApiBaseUrl(apiURL)
+  }
+
+  def apiBaseUrlEnvironmentVariable(): Option[String] = {
+    val apiURL =
+      validate("API base URL", "environment variable", "CODACY_API_BASE_URL")(variables.get("CODACY_API_BASE_URL"))
+    validateApiBaseUrl(apiURL)
+  }
+
+  private def validateApiBaseUrl(apiURL: Option[String]): Option[String] = {
     apiURL.flatMap { url =>
       Try(new URL(url)) match {
         case Failure(_) =>
