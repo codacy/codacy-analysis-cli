@@ -17,7 +17,7 @@ abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command]
   }
 
   override def defaultCommand(command: DefaultCommand, remainingArgs: Seq[String]): Unit = {
-    if (command.version.## > 0) {
+    if (command.versionValue) {
       command.run()
     } else {
       helpAsked()
@@ -114,6 +114,8 @@ final case class Analyse(
   upload: Int @@ Counter = Tag.of(0),
   @ExtraName("p") @ValueDescription("The number of tools to run in parallel")
   parallel: Option[Int] = Option.empty,
+  @ValueDescription("The maximum number of issues allowed to pass the analysis")
+  maxAllowedIssues: Int = 0,
   @Recurse
   extras: ExtraOptions)
     extends Command {

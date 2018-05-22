@@ -1,9 +1,6 @@
 package com.codacy.analysis.cli.command.analyse
 
-import java.util.concurrent.ForkJoinPool
-
 import better.files.File
-import cats.implicits._
 import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
 import com.codacy.analysis.cli.command.Properties
@@ -14,27 +11,24 @@ import com.codacy.analysis.cli.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.cli.model.{CodacyCfg, Configuration, FileCfg, Result}
 import com.codacy.analysis.cli.tools.Tool
-import com.codacy.analysis.cli.upload.ResultsUploader
+import com.codacy.analysis.cli.utils.SetOps
+import com.codacy.analysis.cli.utils.TryOps._
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
-import scala.collection.parallel.ForkJoinTaskSupport
-import scala.collection.parallel.immutable.ParSet
-import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 class AnalyseExecutor(toolInput: Option[String],
                       directory: Option[File],
                       formatter: Formatter,
                       analyser: Analyser[Try],
-                      uploader: Either[String, ResultsUploader],
                       fileCollector: FileCollector[Try],
                       remoteProjectConfiguration: Either[String, ProjectConfiguration],
-                      nrParallelTools: Option[Int])(implicit context: ExecutionContext) {
+                      nrParallelTools: Option[Int]) {
 
   private val logger: Logger = getLogger
 
-  def run(): Future[Either[String, Unit]] = {
+  def run(): Either[String, Seq[ExecutorResult]] = {
     formatter.begin()
 
     val baseDirectory =
@@ -50,42 +44,25 @@ class AnalyseExecutor(toolInput: Option[String],
       tools <- tools(toolInput, localConfigurationFile, remoteProjectConfiguration, filesTarget)
     } yield (filesTarget, tools)
 
-    val analysisResult: Future[Either[String, Unit]] = filesTargetAndTool.fold(str => Future.successful(Left(str)), {
+    val analysisResult: Either[String, Seq[ExecutorResult]] = filesTargetAndTool.map {
       case (filesTarget, tools) =>
-        analyseAndUpload(tools, filesTarget, localConfigurationFile, nrParallelTools)
-    })
+        SetOps.mapInParallel(tools, nrParallelTools) { tool =>
+          val analysisResults: Try[Set[Result]] = analyseFiles(tool, filesTarget, localConfigurationFile)
+          ExecutorResult(tool.name, analysisResults)
+        }
+    }
 
     formatter.end()
 
     analysisResult
   }
 
-  private def analyseAndUpload(tools: Set[Tool],
-                               filesTarget: FilesTarget,
-                               localConfigurationFile: Either[String, CodacyConfigurationFile],
-                               nrParallelTools: Option[Int]): Future[Either[String, Unit]] = {
-
-    val toolsPar: ParSet[Tool] = tools.par
-
-    toolsPar.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(nrParallelTools.getOrElse(2)))
-
-    val uploads: Seq[Future[Either[String, Unit]]] = toolsPar.map { tool =>
-      val hasConfigFiles = fileCollector.hasConfigurationFiles(tool, filesTarget)
-      analyseAndUpload(tool, hasConfigFiles, filesTarget, localConfigurationFile)
-    }(collection.breakOut)
-
-    val joinedUploads: Future[Seq[Either[String, Unit]]] = Future.sequence(uploads)
-
-    joinedUploads.map(sequenceWithFixedLeft("")(_))
-  }
-
-  private def analyseAndUpload(
-    tool: Tool,
-    toolHasConfigFiles: Boolean,
-    filesTarget: FilesTarget,
-    localConfigurationFile: Either[String, CodacyConfigurationFile]): Future[Either[String, Unit]] = {
-    val result: Try[Set[Result]] = for {
+  private def analyseFiles(tool: Tool,
+                           filesTarget: FilesTarget,
+                           localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[Result]] = {
+    for {
       fileTarget <- fileCollector.filter(tool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
+      toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, filesTarget)
       toolConfiguration <- getToolConfiguration(
         tool,
         toolHasConfigFiles,
@@ -93,33 +70,6 @@ class AnalyseExecutor(toolInput: Option[String],
         remoteProjectConfiguration)
       results <- analyser.analyse(tool, fileTarget.directory, fileTarget.files, toolConfiguration)
     } yield results
-
-    result match {
-      case Success(res) =>
-        logger.info(s"Completed analysis for ${tool.name} with ${res.size} results")
-        res.foreach(formatter.add)
-      case Failure(e) =>
-        logger.error(e)(s"Failed analysis for ${tool.name}")
-    }
-
-    uploader.fold[Future[Either[String, Unit]]]({ message =>
-      logger.warn(message)
-      Future.successful(().asRight[String])
-    }, { upload =>
-      for {
-        results <- Future.fromTry(result)
-        upl <- upload.sendResults(tool.name, results)
-      } yield upl
-    })
-  }
-
-  private def sequenceWithFixedLeft[A](left: A)(eitherIterable: Seq[Either[A, Unit]]): Either[A, Unit] = {
-    eitherIterable
-      .foldLeft[Either[A, Unit]](Right(())) { (acc, either) =>
-        acc.flatMap(_ => either)
-      }
-      .left
-      .map(_ => left)
   }
 
   private def getToolConfiguration(tool: Tool,
@@ -143,7 +93,7 @@ class AnalyseExecutor(toolInput: Option[String],
         logger.error(s"""Could not find conditions to run tool ${tool.name} with:
              |shouldUseConfigFile:$shouldUseConfigFile = notEdited:${toolConfiguration.notEdited} && foundToolConfigFile:$hasConfigFiles
              |shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile:$shouldUseConfigFile && allowsUIConfiguration:${tool.allowsUIConfiguration} && hasPatterns:${toolConfiguration.patterns.nonEmpty}
-             |shouldRun:$shouldRun = !needsPatternsToRun:${tool.needsPatternsToRun} || shouldUseConfigFile:$shouldUseConfigFile || shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns
+             |shouldRun:$shouldRun = !needsPatternsToRun:${tool.needsPatternsToRun}|| shouldUseConfigFile:$shouldUseConfigFile|| shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns
            """.stripMargin)
         Failure(new Exception(s"Could not find conditions to run tool ${tool.name}"))
       } else if (shouldUseConfigFile) {
@@ -178,29 +128,27 @@ class AnalyseExecutor(toolInput: Option[String],
     }
   }
 
-  implicit class tryOps[A](tryA: Try[A]) {
-
-    def toRight[L](left: L): Either[L, A] = {
-      tryA.map(Right(_)).getOrElse(Left(left))
-    }
-  }
 }
 
 object AnalyseExecutor {
+
+  final case class ExecutorResult(toolName: String, analysisResults: Try[Set[Result]])
 
   def tools(toolInput: Option[String],
             localConfiguration: Either[String, CodacyConfigurationFile],
             remoteProjectConfiguration: Either[String, ProjectConfiguration],
             filesTarget: FilesTarget): Either[String, Set[Tool]] = {
 
-    def fromRemoteConfig =
+    def fromRemoteConfig: Either[String, Set[Tool]] = {
       remoteProjectConfiguration.flatMap(projectConfiguration =>
         Tool.fromToolUUIDs(projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)))
+    }
 
-    def fromLocalConfig =
+    def fromLocalConfig: Either[String, Set[Tool]] = {
       Tool.fromFileTarget(
         filesTarget,
         localConfiguration.map(_.languageCustomExtensions.mapValues(_.toList).toList).getOrElse(List.empty))
+    }
 
     toolInput.map { toolStr =>
       Tool.fromNameOrUUID(toolStr)

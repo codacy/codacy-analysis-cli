@@ -24,7 +24,6 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
 import scala.concurrent.Future
-import scala.concurrent.duration._
 import scala.util.Try
 
 class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
@@ -76,10 +75,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
         when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
 
-        // scalafix:off
-        runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration, uploader.asRight[String]) must beRight
-          .awaitFor(Int.MaxValue.seconds)
-        // scalafix:on
+        runAnalyseExecutor(analyse, codacyClient.getRemoteConfiguration) must beRight
 
         verifyNumberOfCalls(codacyClient, tool, commitUuid, actualBatchSize, file)
       }
@@ -130,10 +126,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
     } must beRight
   }
 
-  private def runAnalyseExecutor(
-    analyse: Analyse,
-    remoteProjectConfiguration: Either[String, ProjectConfiguration],
-    resultsUploaderEither: Either[String, ResultsUploader]): Future[Either[String, Unit]] = {
+  private def runAnalyseExecutor(analyse: Analyse, remoteProjectConfiguration: Either[String, ProjectConfiguration])
+    : Either[String, Seq[AnalyseExecutor.ExecutorResult]] = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
@@ -143,7 +137,6 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       analyse.directory,
       formatter,
       analyser,
-      resultsUploaderEither,
       fileCollector,
       remoteProjectConfiguration,
       None).run()

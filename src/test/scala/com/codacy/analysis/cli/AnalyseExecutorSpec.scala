@@ -10,7 +10,6 @@ import com.codacy.analysis.cli.configuration.{CodacyConfigurationFile, LanguageC
 import com.codacy.analysis.cli.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.cli.model.{Issue, Result}
-import com.codacy.analysis.cli.upload.ResultsUploader
 import com.codacy.analysis.cli.utils.TestUtils._
 import com.codacy.api.dtos.Languages
 import io.circe.generic.auto._
@@ -20,7 +19,6 @@ import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-import scala.concurrent.duration._
 import scala.util.Try
 
 class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
@@ -60,7 +58,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
                   notEdited = false,
                   toolPatterns))))
 
-        runAnalyseExecutor(analyse, remoteConfiguration, Left("No uploader available"))
+        runAnalyseExecutor(analyse, remoteConfiguration)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -122,7 +120,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
                   notEdited = false,
                   toolPatterns))))
 
-        runAnalyseExecutor(analyse, remoteConfiguration, Left("No uploader available"))
+        runAnalyseExecutor(analyse, remoteConfiguration)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -185,7 +183,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
                     ToolPattern(patternId, Set.empty)
                   }))))
 
-        runAnalyseExecutor(analyse, remoteConfiguration, Left("No uploader available"))
+        runAnalyseExecutor(analyse, remoteConfiguration)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -205,24 +203,19 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     }
   }
 
-  private def runAnalyseExecutor(analyse: Analyse,
-                                 remoteProjectConfiguration: Either[String, ProjectConfiguration],
-                                 resultsUploaderEither: Either[String, ResultsUploader]) = {
+  private def runAnalyseExecutor(analyse: Analyse, remoteProjectConfiguration: Either[String, ProjectConfiguration]) = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    // scalafix:off
     new AnalyseExecutor(
       analyse.tool,
       analyse.directory,
       formatter,
       analyser,
-      resultsUploaderEither,
       fileCollector,
       remoteProjectConfiguration,
-      None).run() must beRight.awaitFor(Int.MaxValue.seconds)
-    // scalafix:on
+      None).run() must beRight
   }
 
   "AnalyseExecutor.tools" should {
