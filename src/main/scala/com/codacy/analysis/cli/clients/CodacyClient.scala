@@ -2,16 +2,16 @@ package com.codacy.analysis.cli.clients
 
 import java.nio.file.Path
 
-import com.codacy.analysis.cli.clients.api.{ProjectConfiguration, RemoteResultResponse}
+import cats.implicits._
+import codacy.docker
+import com.codacy.analysis.cli.clients.api.{CodacyError, ProjectConfiguration, RemoteResultResponse}
+import com.codacy.analysis.cli.model.{Result, ToolResults}
+import com.codacy.analysis.cli.utils.HttpHelper
 import com.codacy.api.dtos.{Language, Languages}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, Json}
 import org.log4s.{Logger, getLogger}
-import com.codacy.analysis.cli.model.{Result, ToolResults}
-import codacy.docker
-import cats.implicits._
-import com.codacy.analysis.cli.utils.HttpHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -93,24 +93,31 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
-  private def parseProjectConfigResponse(json: Json): Either[String, ProjectConfiguration] =
-    json.as[ProjectConfiguration] match {
-      case Left(error) =>
-        logger.error(error)("Error parsing config file")
-        Left(error.message)
-      case Right(p) =>
-        logger.info("Success parsing remote configuration")
-        Right(p)
+  private def parseProjectConfigResponse(json: Json): Either[String, ProjectConfiguration] = {
+    parse[ProjectConfiguration]("getting Project Configuration", json).map { p =>
+      logger.info("Success parsing remote configuration")
+      p
     }
+  }
 
   private def validateRemoteResultsResponse(json: Json): Either[String, Unit] = {
-    json.as[RemoteResultResponse] match {
-      case Left(error) =>
-        logger.error(error)("Error parsing remote results upload response")
-        Left(error.message)
-      case Right(_) =>
-        logger.info("Success parsing remote results response ")
-        ().asRight[String]
+    parse[RemoteResultResponse]("sending results", json).map { _ =>
+      logger.info("Success parsing remote results response ")
+      ()
+    }
+  }
+
+  private def parse[T](action: String, json: Json)(implicit decoder: Decoder[T]): Either[String, T] = {
+    json.as[T].leftMap { error =>
+      json.as[CodacyError] match {
+        case Right(codacyError) =>
+          val message = s"Error $action: ${codacyError.error}"
+          logger.error(message)
+          message
+        case _ =>
+          logger.error(error)(s"Error parsing remote results upload response: $json")
+          error.message
+      }
     }
   }
 }
