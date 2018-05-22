@@ -4,6 +4,7 @@ import better.files.File
 import caseapp._
 import caseapp.core.ArgParser
 import com.codacy.analysis.cli.analysis.Analyser
+import com.codacy.analysis.cli.clients.{ProjectName, UserName}
 import com.codacy.analysis.cli.command.ArgumentParsers._
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.cli.tools.Tool
@@ -28,6 +29,18 @@ object ArgumentParsers {
   implicit val fileParser: ArgParser[File] = {
     ArgParser.instance[File]("file") { path: String =>
       Right(File(path))
+    }
+  }
+
+  implicit val userNameParser: ArgParser[UserName] = {
+    ArgParser.instance[UserName]("username") { path: String =>
+      Right(UserName(path))
+    }
+  }
+
+  implicit val projectNameParser: ArgParser[ProjectName] = {
+    ArgParser.instance[ProjectName]("project") { path: String =>
+      Right(ProjectName(path))
     }
   }
 }
@@ -72,9 +85,9 @@ final case class APIOptions(@ValueDescription("The project token.")
                             @ValueDescription("The api token.")
                             apiToken: Option[String] = Option.empty,
                             @ValueDescription("The username.")
-                            username: Option[String] = Option.empty,
+                            username: Option[UserName] = Option.empty,
                             @ValueDescription("The project name.")
-                            project: Option[String] = Option.empty,
+                            project: Option[ProjectName] = Option.empty,
                             @ValueDescription("The codacy api base url.")
                             codacyApiBaseUrl: Option[String] = Option.empty)
 

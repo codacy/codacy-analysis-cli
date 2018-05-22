@@ -16,8 +16,12 @@ final case class APIToken(token: String,
                           projectName: ProjectName)
     extends Credentials
 
-final case class UserName(userName: String) extends AnyVal
-final case class ProjectName(projectName: String) extends AnyVal
+final case class UserName(userName: String) extends AnyVal {
+  override def toString: String = userName
+}
+final case class ProjectName(projectName: String) extends AnyVal {
+  override def toString: String = projectName
+}
 
 object Credentials {
 
@@ -48,13 +52,13 @@ object Credentials {
 
   private def getCredentialsWithAdditionalParams(apiToken: String,
                                                  apiUrlOpt: Option[String],
-                                                 projectOpt: Option[String],
-                                                 userNameOpt: Option[String]): Option[Credentials] = {
+                                                 projectOpt: Option[ProjectName],
+                                                 userNameOpt: Option[UserName]): Option[Credentials] = {
     (for {
       project <- projectOpt
       userName <- userNameOpt
     } yield {
-      APIToken(apiToken, apiUrlOpt, UserName(userName), ProjectName(project))
+      APIToken(apiToken, apiUrlOpt, userName, project)
     }).ifEmpty(logger.warn("Could not username and/or project"))
   }
 }
