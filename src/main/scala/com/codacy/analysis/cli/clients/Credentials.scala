@@ -12,9 +12,12 @@ sealed trait Credentials {
 final case class ProjectToken(token: String, baseUrl: Option[String] = Option.empty[String]) extends Credentials
 final case class APIToken(token: String,
                           baseUrl: Option[String] = Option.empty[String],
-                          userName: String,
-                          projectName: String)
+                          userName: UserName,
+                          projectName: ProjectName)
     extends Credentials
+
+final case class UserName(userName: String) extends AnyVal
+final case class ProjectName(projectName: String) extends AnyVal
 
 object Credentials {
 
@@ -51,7 +54,7 @@ object Credentials {
       project <- projectOpt
       userName <- userNameOpt
     } yield {
-      APIToken(apiToken, apiUrlOpt, userName, project)
+      APIToken(apiToken, apiUrlOpt, UserName(userName), ProjectName(project))
     }).ifEmpty(logger.warn("Could not username and/or project"))
   }
 }

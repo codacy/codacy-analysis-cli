@@ -1,6 +1,6 @@
 package com.codacy.analysis.cli
 
-import com.codacy.analysis.cli.clients.{APIToken, CodacyClient, Credentials, ProjectToken}
+import com.codacy.analysis.cli.clients._
 import com.codacy.analysis.cli.command.APIOptions
 import com.codacy.analysis.cli.configuration.Environment
 import com.codacy.analysis.cli.utils.HttpHelper
@@ -27,7 +27,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
   val remoteUrl = "codacy.com/2.0"
   val tool = "eslint"
   val environment = new Environment(Map.empty)
-  val apiCredentials: Credentials = APIToken(apiTokenStr, Some(remoteUrl), username, project)
+  val apiCredentials: Credentials = APIToken(apiTokenStr, Some(remoteUrl), UserName(username), ProjectName(project))
   val projectCredentials: Credentials = ProjectToken(projectTokenStr, Some(remoteUrl))
 
   "Credentials" should {
