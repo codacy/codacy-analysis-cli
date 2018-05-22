@@ -2,6 +2,7 @@ package com.codacy.analysis.cli
 
 import better.files.File
 import com.codacy.analysis.cli.analysis.Analyser
+import com.codacy.analysis.cli.clients.{ProjectName, UserName}
 import com.codacy.analysis.cli.clients.api._
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
@@ -97,8 +98,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           options = CommonOptions(),
           api = APIOptions(
             apiToken = Option(apiTokenStr),
-            username = Option(username),
-            project = Option(project),
+            username = Option(UserName(username)),
+            project = Option(ProjectName(project)),
             codacyApiBaseUrl = Option("codacy.com")),
           tool = Option("eslint"),
           directory = Option(directory),
@@ -153,8 +154,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           options = CommonOptions(),
           api = APIOptions(
             apiToken = Option(apiTokenStr),
-            username = Option(username),
-            project = Option(project),
+            username = Option(UserName(username)),
+            project = Option(ProjectName(project)),
             codacyApiBaseUrl = Option("codacy.com")),
           tool = None,
           directory = Option(directory),

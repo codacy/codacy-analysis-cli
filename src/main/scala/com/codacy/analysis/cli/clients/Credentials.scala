@@ -16,10 +16,10 @@ final case class APIToken(token: String,
                           projectName: ProjectName)
     extends Credentials
 
-final case class UserName(userName: String) extends AnyVal {
+final case class UserName(private val userName: String) extends AnyVal {
   override def toString: String = userName
 }
-final case class ProjectName(projectName: String) extends AnyVal {
+final case class ProjectName(private val projectName: String) extends AnyVal {
   override def toString: String = projectName
 }
 

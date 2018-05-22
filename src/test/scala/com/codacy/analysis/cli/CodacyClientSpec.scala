@@ -37,8 +37,8 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         "with user and project name" in {
           val apiOptions = APIOptions(
             apiToken = Option(apiTokenStr),
-            username = Option(username),
-            project = Option(project),
+            username = Option(UserName(username)),
+            project = Option(ProjectName(project)),
             codacyApiBaseUrl = Option("codacy.com"))
           val credentials: Option[Credentials] = Credentials.get(environment, apiOptions)
 

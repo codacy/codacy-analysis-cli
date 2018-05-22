@@ -4,7 +4,7 @@ import better.files.File
 import caseapp.Tag
 import cats.implicits._
 import com.codacy.analysis.cli.analysis.Analyser
-import com.codacy.analysis.cli.clients.CodacyClient
+import com.codacy.analysis.cli.clients.{CodacyClient, ProjectName, UserName}
 import com.codacy.analysis.cli.clients.api._
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
@@ -54,8 +54,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
           options = CommonOptions(Tag.of(1)),
           api = APIOptions(
             apiToken = Option(apiTokenStr),
-            username = Option(username),
-            project = Option(project),
+            username = Option(UserName(username)),
+            project = Option(ProjectName(project)),
             codacyApiBaseUrl = Option("codacy.com")),
           tool = Option(tool),
           directory = Option(directory),
