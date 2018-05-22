@@ -3,7 +3,9 @@ package com.codacy.analysis.cli.upload
 import com.codacy.analysis.cli.clients.CodacyClient
 import com.codacy.analysis.cli.model.Result
 import org.log4s.{Logger, getLogger}
-import scala.concurrent.{Future, ExecutionContext}
+
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeOpt: Option[Int])(
   implicit context: ExecutionContext) {
@@ -20,10 +22,19 @@ class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeO
   }.getOrElse(defaultBatchSize)
 
   def sendResults(tool: String, results: Set[Result]): Future[Either[String, Unit]] = {
-    uploadResultsBatch(tool, batchSize, results).flatMap {
+    val res = uploadResultsBatch(tool, batchSize, results).flatMap {
       case Right(_)        => endUpload()
       case error @ Left(_) => Future.successful(error)
     }
+
+    res.onComplete {
+      case Success(_) =>
+        logger.info("Completed upload of results to API successfully")
+      case Failure(e) =>
+        logger.info(e)(s"Failed to push results to API")
+    }
+
+    res
   }
 
   private def endUpload(): Future[Either[String, Unit]] = {

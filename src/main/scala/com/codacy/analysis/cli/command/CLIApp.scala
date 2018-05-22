@@ -48,8 +48,10 @@ final case class DefaultCommand(
   version: Int @@ Counter = Tag.of(0))
     extends Runnable {
 
+  val versionValue: Boolean = version.## > 0
+
   def run(): Unit = {
-    if (version.## > 0) {
+    if (versionValue) {
       Console.println(s"codacy-analysis-cli is on version ${Version.version}")
     }
   }
@@ -57,7 +59,9 @@ final case class DefaultCommand(
 
 final case class CommonOptions(
   @ValueDescription("Run the tool with verbose output")
-  verbose: Int @@ Counter = Tag.of(0))
+  verbose: Int @@ Counter = Tag.of(0)) {
+  val verboseValue: Boolean = verbose.## > 0
+}
 
 sealed trait Command {
   def options: CommonOptions
@@ -99,4 +103,6 @@ final case class Analyse(
   parallel: Option[Int] = Option.empty,
   @Recurse
   extras: ExtraOptions)
-    extends Command
+    extends Command {
+  val uploadValue: Boolean = upload.## > 0
+}

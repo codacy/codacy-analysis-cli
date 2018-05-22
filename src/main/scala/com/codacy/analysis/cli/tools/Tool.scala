@@ -77,8 +77,8 @@ class Tool(private val plugin: IDockerPlugin) {
         files.to[List].map(f => sourceDirectory.removePrefix(f.toString)),
         pluginConfiguration)
 
-    // HACK: Give permissions to unprivileged docker user inside the docker to read this files since we cannot do chown without sudo
-    Process(Seq("chmod", "-R", "0777", sourceDirectory.sourceDirectory)).!
+    // HACK: Give default permissions to files so they can be read inside the docker
+    overridePermissions(sourceDirectory)
 
     plugin.run(request, Option(timeout)).map { res =>
       (res.results.map(r =>
@@ -91,6 +91,13 @@ class Tool(private val plugin: IDockerPlugin) {
           LineLocation(r.line)))(collection.breakOut): Set[Result]) ++
         res.failedFiles.map(fe => FileError(FileHelper.relativePath(fe), "Failed to analyse file."))
     }
+  }
+
+  private def overridePermissions(sourceDirectory: SourceDirectory) = {
+    Process(Seq("find", sourceDirectory.sourceDirectory, "-type", "d", "-exec", "chmod", "u+rwx", "{}", ";")).!
+    Process(Seq("find", sourceDirectory.sourceDirectory, "-type", "d", "-exec", "chmod", "ugo+rx", "{}", ";")).!
+    Process(Seq("find", sourceDirectory.sourceDirectory, "-type", "f", "-exec", "chmod", "u+rw", "{}", ";")).!
+    Process(Seq("find", sourceDirectory.sourceDirectory, "-type", "f", "-exec", "chmod", "ugo+r", "{}", ";")).!
   }
 
   private def getSourceDirectory(directory: File, baseSubDir: Option[String]): SourceDirectory = {
