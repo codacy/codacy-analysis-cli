@@ -85,8 +85,13 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
           "with unsuccessful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsTest(success = false, apiCredentials)
             // scalafix:off
-            codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beLeft.awaitFor(Int.MaxValue.seconds)
+            val remoteResults = codacyClient.sendRemoteResults(tool, commitUuid, Set())
+            remoteResults must beLeft.awaitFor(Int.MaxValue.seconds)
             // scalafix:on
+            remoteResults must beLike[Either[String, Unit]] {
+              case Left(errorMsg) =>
+                errorMsg mustEqual "Error sending results: failed!"
+            }.awaitFor(Int.MaxValue.seconds)
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
         }
@@ -111,8 +116,13 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
           "with unsuccessful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = false, apiCredentials)
             // scalafix:off
-            codacyClient.sendEndOfResults(commitUuid) must beLeft.awaitFor(Int.MaxValue.seconds)
+            val endOfResults = codacyClient.sendEndOfResults(commitUuid)
+            endOfResults must beLeft.awaitFor(Int.MaxValue.seconds)
             // scalafix:on
+            endOfResults must beLike[Either[String, Unit]] {
+              case Left(errorMsg) =>
+                errorMsg mustEqual "Error sending results: failed!"
+            }.awaitFor(Int.MaxValue.seconds)
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
         }
@@ -134,7 +144,12 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
           }
           "with unsuccessful return" in {
             val (codacyClient, httpHelper) = setupGetRemoteConfigurationTest(success = false, apiCredentials)
-            codacyClient.getRemoteConfiguration must beLeft
+            val remoteConfig = codacyClient.getRemoteConfiguration
+            remoteConfig must beLeft
+            remoteConfig must beLike {
+              case Left(errorMsg) =>
+                errorMsg mustEqual "Error getting Project Configuration: failed!"
+            }
             there was one(httpHelper).get(ArgumentMatchers.any[String])
           }
         }
@@ -153,7 +168,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
 
     val response: Either[ParsingFailure, Json] =
       if (success) parse("""{ "success": "Results received successfully."}""")
-      else parse("""{ "error": "failed."}""")
+      else parse("""{ "error": "failed!"}""")
 
     when(mockedHttpHelper.post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]]))
       .thenAnswer((invocation: InvocationOnMock) => {
@@ -178,7 +193,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
 
     val response: Either[ParsingFailure, Json] =
       if (success) parse("""{ "success": "Results received successfully."}""")
-      else parse("""{ "error": "failed."}""")
+      else parse("""{ "error": "failed!"}""")
 
     when(mockedHttpHelper.post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]]))
       .thenAnswer((invocation: InvocationOnMock) => {
@@ -204,7 +219,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
     val response: Either[ParsingFailure, Json] =
       if (success)
         parse("""{ "ignoredPaths": [], "projectExtensions": [], "toolConfiguration": [] }""")
-      else parse("""{ "error": "failed."}""")
+      else parse("""{ "error": "failed!"}""")
 
     when(mockedHttpHelper.get(ArgumentMatchers.any[String])).thenAnswer((invocation: InvocationOnMock) => {
       invocation.getArguments.toList match {

@@ -10,3 +10,4 @@ final case class ToolConfiguration(uuid: String, isEnabled: Boolean, notEdited: 
 final case class ProjectConfiguration(ignoredPaths: Set[FilePath],
                                       projectExtensions: Set[LanguageExtensions],
                                       toolConfiguration: Set[ToolConfiguration])
+final case class CodacyError(error: String)
