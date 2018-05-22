@@ -78,7 +78,7 @@ class Tool(private val plugin: IDockerPlugin) {
         pluginConfiguration)
 
     // HACK: Give default permissions to files so they can be read inside the docker
-    doOverridePermissions(sourceDirectory)
+    overridePermissions(sourceDirectory)
 
     plugin.run(request, Option(timeout)).map { res =>
       (res.results.map(r =>
@@ -93,7 +93,7 @@ class Tool(private val plugin: IDockerPlugin) {
     }
   }
 
-  private def doOverridePermissions(sourceDirectory: SourceDirectory) = {
+  private def overridePermissions(sourceDirectory: SourceDirectory) = {
     Process(Seq("find", sourceDirectory.sourceDirectory, "-type", "d", "-exec", "chmod", "u+rwx", "{}", ";")).!
     Process(Seq("find", sourceDirectory.sourceDirectory, "-type", "d", "-exec", "chmod", "ugo+rx", "{}", ";")).!
     Process(Seq("find", sourceDirectory.sourceDirectory, "-type", "f", "-exec", "chmod", "u+rw", "{}", ";")).!
