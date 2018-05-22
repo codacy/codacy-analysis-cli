@@ -12,9 +12,16 @@ sealed trait Credentials {
 final case class ProjectToken(token: String, baseUrl: Option[String] = Option.empty[String]) extends Credentials
 final case class APIToken(token: String,
                           baseUrl: Option[String] = Option.empty[String],
-                          userName: String,
-                          projectName: String)
+                          userName: UserName,
+                          projectName: ProjectName)
     extends Credentials
+
+final case class UserName(private val userName: String) extends AnyVal {
+  override def toString: String = userName
+}
+final case class ProjectName(private val projectName: String) extends AnyVal {
+  override def toString: String = projectName
+}
 
 object Credentials {
 
@@ -45,8 +52,8 @@ object Credentials {
 
   private def getCredentialsWithAdditionalParams(apiToken: String,
                                                  apiUrlOpt: Option[String],
-                                                 projectOpt: Option[String],
-                                                 userNameOpt: Option[String]): Option[Credentials] = {
+                                                 projectOpt: Option[ProjectName],
+                                                 userNameOpt: Option[UserName]): Option[Credentials] = {
     (for {
       project <- projectOpt
       userName <- userNameOpt
