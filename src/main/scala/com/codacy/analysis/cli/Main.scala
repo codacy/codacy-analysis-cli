@@ -48,17 +48,21 @@ class MainImpl extends CLIApp {
           remoteProjectConfiguration,
           analyse.parallel).run()
 
-        val uploadResult = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
-        Await.result(uploadResult, Duration.Inf) match {
-          case Left(err) if analyse.uploadValue =>
-            logger.error(s"Upload of results failed: $err")
-          case Right(_) if analyse.uploadValue =>
+        val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
+        val uploadResult = Try(Await.result(uploadResultFut, Duration.Inf)) match {
+          case Failure(err) =>
+            logger.error(err.getMessage)
+            Left(err.getMessage)
+          case Success(Left(err)) =>
+            logger.warn(err)
+            Left(err)
+          case Success(Right(_)) =>
             logger.info("Completed upload of results to API")
-          case _ =>
-            logger.info("Skipping upload of results to API")
+            Right(())
         }
 
-        System.exit(new Status(analyse.maxAllowedIssues).exitCode(analysisResults))
+        System.exit(
+          new Status(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult))
     }
 
     ()
@@ -68,36 +72,42 @@ class MainImpl extends CLIApp {
     upload: Boolean,
     commitUuid: Option[String],
     executorResultsEither: Either[String, Seq[ExecutorResult]]): Future[Either[String, Unit]] = {
-    val resultsUploader: Either[String, ResultsUploader] = codacyClientOpt.fold {
-      "No credentials found.".asLeft[ResultsUploader]
-    } { codacyClient =>
-      commitUuid.fold {
-        "No commit option found.".asLeft[ResultsUploader]
-      } { commit =>
-        if (upload) {
-          new ResultsUploader(commit, codacyClient, None).asRight[String]
-        } else {
-          "Upload option disabled.".asLeft[ResultsUploader]
-        }
-      }
-    }
-
     (for {
-      uploader <- resultsUploader
+      uploaderOpt <- retrieveUploader(codacyClientOpt, upload, commitUuid)
       executorResults <- executorResultsEither
     } yield {
-      val uploadResults = executorResults.map {
-        case ExecutorResult(toolName, Success(results)) =>
-          logger.info(s"Going to upload ${results.size} results for $toolName")
-          uploader.sendResults(toolName, results)
+      uploaderOpt.map { uploader =>
+        val uploadResults = executorResults.map {
+          case ExecutorResult(toolName, Success(results)) =>
+            logger.info(s"Going to upload ${results.size} results for $toolName")
+            uploader.sendResults(toolName, results)
 
-        case ExecutorResult(toolName, Failure(err)) =>
-          logger.warn(s"Skipping upload for $toolName since analysis failed: ${err.getMessage}")
-          Future.successful(().asRight[String])
-      }
+          case ExecutorResult(toolName, Failure(err)) =>
+            logger.warn(s"Skipping upload for $toolName since analysis failed: ${err.getMessage}")
+            Future.successful(().asRight[String])
+        }
 
-      Future.sequence(uploadResults).map(EitherOps.sequenceWithFixedLeftUnit("Failed upload of results")(_))
+        Future.sequence(uploadResults).map(EitherOps.sequenceUnitWithFixedLeft("Failed upload of results")(_))
+      }.getOrElse(Future.successful(().asRight[String]))
     }).fold(err => Future.successful(err.asLeft[Unit]), identity)
   }
 
+  private def retrieveUploader(codacyClientOpt: Option[CodacyClient],
+                               upload: Boolean,
+                               commitUuid: Option[String]): Either[String, Option[ResultsUploader]] = {
+    if (upload) {
+      codacyClientOpt.fold {
+        "No credentials found.".asLeft[Option[ResultsUploader]]
+      } { codacyClient =>
+        commitUuid.fold {
+          "No commit found.".asLeft[Option[ResultsUploader]]
+        } { commit =>
+          Option(new ResultsUploader(commit, codacyClient, None)).asRight[String]
+        }
+      }
+    } else {
+      logger.info(s"Upload step disabled")
+      Option.empty[ResultsUploader].asRight[String]
+    }
+  }
 }

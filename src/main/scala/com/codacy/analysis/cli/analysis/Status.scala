@@ -2,15 +2,20 @@ package com.codacy.analysis.cli.analysis
 
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.ExecutorResult
 
-class Status(maxAllowedIssues: Int) {
+object Status {
 
   object ExitCodes {
     val success = 0
     val failedAnalysis = 1
-    val maxAllowedIssuesExceeded = 101
+    val partiallyFailedAnalysis = 2
+    val failedUpload = 101
+    val maxAllowedIssuesExceeded = 201
   }
+}
 
-  def exitCode(executorResultsEither: Either[String, Seq[ExecutorResult]]): Int = {
+class Status(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
+
+  def exitCode(executorResultsEither: Either[String, Seq[ExecutorResult]], uploadResult: Either[String, Unit]): Int = {
     val resultsCount = executorResultsEither
       .getOrElse(Seq.empty[ExecutorResult])
       .map { executorResult =>
@@ -19,11 +24,15 @@ class Status(maxAllowedIssues: Int) {
       .sum
 
     if (executorResultsEither.isLeft) {
-      ExitCodes.failedAnalysis
+      Status.ExitCodes.failedAnalysis
+    } else if (failIfIncomplete && executorResultsEither.exists(_.exists(_.analysisResults.isFailure))) {
+      Status.ExitCodes.partiallyFailedAnalysis
     } else if (resultsCount > maxAllowedIssues) {
-      ExitCodes.maxAllowedIssuesExceeded
+      Status.ExitCodes.maxAllowedIssuesExceeded
+    } else if (uploadResult.isLeft) {
+      Status.ExitCodes.failedUpload
     } else {
-      ExitCodes.success
+      Status.ExitCodes.success
     }
   }
 

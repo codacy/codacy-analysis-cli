@@ -93,7 +93,7 @@ class AnalyseExecutor(toolInput: Option[String],
         logger.error(s"""Could not find conditions to run tool ${tool.name} with:
              |shouldUseConfigFile:$shouldUseConfigFile = notEdited:${toolConfiguration.notEdited} && foundToolConfigFile:$hasConfigFiles
              |shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile:$shouldUseConfigFile && allowsUIConfiguration:${tool.allowsUIConfiguration} && hasPatterns:${toolConfiguration.patterns.nonEmpty}
-             |shouldRun:$shouldRun = !needsPatternsToRun:${tool.needsPatternsToRun}|| shouldUseConfigFile:$shouldUseConfigFile|| shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns
+             |shouldRun:$shouldRun = !needsPatternsToRun:${tool.needsPatternsToRun} || shouldUseConfigFile:$shouldUseConfigFile || shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns
            """.stripMargin)
         Failure(new Exception(s"Could not find conditions to run tool ${tool.name}"))
       } else if (shouldUseConfigFile) {

@@ -116,8 +116,11 @@ final case class Analyse(
   parallel: Option[Int] = Option.empty,
   @ValueDescription("The maximum number of issues allowed to pass the analysis")
   maxAllowedIssues: Int = 0,
+  @ValueDescription("Fail the analysis if any tool fails to run")
+  failIfIncomplete: Int @@ Counter = Tag.of(0),
   @Recurse
   extras: ExtraOptions)
     extends Command {
   val uploadValue: Boolean = upload.## > 0
+  val failIfIncompleteValue: Boolean = failIfIncomplete.## > 0
 }
