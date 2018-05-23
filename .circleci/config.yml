@@ -35,6 +35,15 @@ jobs:
           name: Test
           command: ./scripts/test.sh
 
+      - run:
+          name: Store test reports
+          working_directory: ~/
+          command: |
+            mkdir -p ~/coverage-reports/scoverage
+            cp -f ~/workdir/target/scala-2.12/coverage-report/cobertura.xml ~/coverage-reports/scoverage/results.xml
+      - store_test_results:
+          path: ~/coverage-reports
+
       - run: 
           name: Publish local docker
           command: ./scripts/deploy.sh 0.1.0-alpha2.$CIRCLE_BUILD_NUM
