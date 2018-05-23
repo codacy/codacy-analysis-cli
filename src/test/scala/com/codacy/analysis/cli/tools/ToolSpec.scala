@@ -24,6 +24,7 @@ class ToolSpec extends Specification with NoLanguageFeatures {
         ProjectConfiguration(
           Set.empty,
           Set.empty,
+          Set.empty,
           Set(ToolConfiguration("InvalidToolName", isEnabled = true, notEdited = false, Set.empty))))
 
       val toolEither =
@@ -45,6 +46,7 @@ class ToolSpec extends Specification with NoLanguageFeatures {
         ProjectConfiguration(
           Set.empty,
           Set.empty,
+          Set.empty,
           Set(
             ToolConfiguration("34225275-f79e-4b85-8126-c7512c987c0d", isEnabled = true, notEdited = false, Set.empty))))
 
@@ -61,6 +63,7 @@ class ToolSpec extends Specification with NoLanguageFeatures {
       val userInput = None
       val remoteProjectConfiguration = Right(
         ProjectConfiguration(
+          Set.empty,
           Set.empty,
           Set.empty,
           Set(

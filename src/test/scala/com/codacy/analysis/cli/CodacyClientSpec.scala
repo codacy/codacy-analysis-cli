@@ -218,7 +218,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
     val mockedHttpHelper = mock[HttpHelper]
     val response: Either[ParsingFailure, Json] =
       if (success)
-        parse("""{ "ignoredPaths": [], "projectExtensions": [], "toolConfiguration": [] }""")
+        parse("""{ "ignoredPaths": [], "defaultRegexIgnores": [], "projectExtensions": [], "toolConfiguration": [] }""")
       else parse("""{ "error": "failed!"}""")
 
     when(mockedHttpHelper.get(ArgumentMatchers.any[String])).thenAnswer((invocation: InvocationOnMock) => {

@@ -90,6 +90,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
     ProjectConfiguration(
       Set.empty,
       Set.empty,
+      Set.empty,
       Set(ToolConfiguration("cf05f3aa-fd23-4586-8cce-5368917ec3e5", isEnabled = true, notEdited = false, toolPatterns)))
       .asRight[String]
   }
