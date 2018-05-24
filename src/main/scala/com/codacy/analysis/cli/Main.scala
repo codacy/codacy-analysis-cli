@@ -1,7 +1,7 @@
 package com.codacy.analysis.cli
 
 import cats.implicits._
-import com.codacy.analysis.cli.analysis.{Analyser, Status}
+import com.codacy.analysis.cli.analysis.{Analyser, ExitStatus}
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
 import com.codacy.analysis.cli.clients.{CodacyClient, Credentials}
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
@@ -62,7 +62,7 @@ class MainImpl extends CLIApp {
         }
 
         exit(
-          new Status(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult))
+          new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult))
     }
 
     ()

@@ -114,7 +114,7 @@ final case class Analyse(
   upload: Int @@ Counter = Tag.of(0),
   @ExtraName("p") @ValueDescription("The number of tools to run in parallel")
   parallel: Option[Int] = Option.empty,
-  @ValueDescription("The maximum number of issues allowed to pass the analysis")
+  @ValueDescription("The maximum number of issues allowed for the analysis to succeed")
   maxAllowedIssues: Int = 0,
   @ValueDescription("Fail the analysis if any tool fails to run")
   failIfIncomplete: Int @@ Counter = Tag.of(0),

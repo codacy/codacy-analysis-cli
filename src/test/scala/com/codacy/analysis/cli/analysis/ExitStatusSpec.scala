@@ -12,16 +12,16 @@ import org.specs2.mutable.Specification
 
 import scala.util.{Failure, Success}
 
-class StatusSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
+class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
-  "Status" should {
+  "ExitStatus" should {
 
     "send failed analysis code" in {
-      new Status(3).exitCode(Left("Failed analysis"), Right(())) should beEqualTo(Status.ExitCodes.failedAnalysis)
+      new ExitStatus(3).exitCode(Left("Failed analysis"), Right(())) should beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
     }
 
     "send success code when issues do not exceed max issues number" in {
-      new Status(10).exitCode(
+      new ExitStatus(10).exitCode(
         Right(
           Seq(ExecutorResult(
             "MyTool",
@@ -48,11 +48,11 @@ class StatusSpec extends Specification with NoLanguageFeatures with Mockito with
                 Result.Level.Err,
                 Option(Pattern.Category.ErrorProne),
                 FullLocation(3, 20))))))),
-        Right(())) should beEqualTo(Status.ExitCodes.success)
+        Right(())) should beEqualTo(ExitStatus.ExitCodes.success)
     }
 
     "send exceed max issues number code when issues do not exceed max issues number" in {
-      new Status(2).exitCode(
+      new ExitStatus(2).exitCode(
         Right(
           Seq(ExecutorResult(
             "MyTool",
@@ -79,31 +79,31 @@ class StatusSpec extends Specification with NoLanguageFeatures with Mockito with
                 Result.Level.Err,
                 Option(Pattern.Category.ErrorProne),
                 FullLocation(3, 20))))))),
-        Right(())) should beEqualTo(Status.ExitCodes.maxAllowedIssuesExceeded)
+        Right(())) should beEqualTo(ExitStatus.ExitCodes.maxAllowedIssuesExceeded)
     }
 
     "send success code when no issues" in {
-      new Status(10).exitCode(Right(Seq(ExecutorResult("MyTool", Success(Set())))), Right(())) should beEqualTo(
-        Status.ExitCodes.success)
+      new ExitStatus(10).exitCode(Right(Seq(ExecutorResult("MyTool", Success(Set())))), Right(())) should beEqualTo(
+        ExitStatus.ExitCodes.success)
     }
 
     "send partial failure when some tools fail" in {
-      new Status(10, failIfIncomplete = true).exitCode(
+      new ExitStatus(10, failIfIncomplete = true).exitCode(
         Right(
           Seq(ExecutorResult("MyTool", Success(Set())), ExecutorResult("MyTool", Failure(new Exception("Failed"))))),
-        Right(())) should beEqualTo(Status.ExitCodes.partiallyFailedAnalysis)
+        Right(())) should beEqualTo(ExitStatus.ExitCodes.partiallyFailedAnalysis)
     }
 
     "send ok when some tools fail and incomplete not requested" in {
-      new Status(10, failIfIncomplete = false).exitCode(
+      new ExitStatus(10, failIfIncomplete = false).exitCode(
         Right(
           Seq(ExecutorResult("MyTool", Success(Set())), ExecutorResult("MyTool", Failure(new Exception("Failed"))))),
-        Right(())) should beEqualTo(Status.ExitCodes.success)
+        Right(())) should beEqualTo(ExitStatus.ExitCodes.success)
     }
 
     "send failedUpload when uploader has an error" in {
-      new Status(10, failIfIncomplete = true).exitCode(Right(Seq()), Left("Failed to get uploader")) should beEqualTo(
-        Status.ExitCodes.failedUpload)
+      new ExitStatus(10, failIfIncomplete = true).exitCode(Right(Seq()), Left("Failed to get uploader")) should beEqualTo(
+        ExitStatus.ExitCodes.failedUpload)
     }
   }
 

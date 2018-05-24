@@ -2,7 +2,7 @@ package com.codacy.analysis.cli.analysis
 
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.ExecutorResult
 
-object Status {
+object ExitStatus {
 
   object ExitCodes {
     val success = 0
@@ -13,7 +13,7 @@ object Status {
   }
 }
 
-class Status(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
+class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
 
   def exitCode(executorResultsEither: Either[String, Seq[ExecutorResult]], uploadResult: Either[String, Unit]): Int = {
     val resultsCount = executorResultsEither
@@ -24,15 +24,15 @@ class Status(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
       .sum
 
     if (executorResultsEither.isLeft) {
-      Status.ExitCodes.failedAnalysis
+      ExitStatus.ExitCodes.failedAnalysis
     } else if (failIfIncomplete && executorResultsEither.exists(_.exists(_.analysisResults.isFailure))) {
-      Status.ExitCodes.partiallyFailedAnalysis
+      ExitStatus.ExitCodes.partiallyFailedAnalysis
     } else if (resultsCount > maxAllowedIssues) {
-      Status.ExitCodes.maxAllowedIssuesExceeded
+      ExitStatus.ExitCodes.maxAllowedIssuesExceeded
     } else if (uploadResult.isLeft) {
-      Status.ExitCodes.failedUpload
+      ExitStatus.ExitCodes.failedUpload
     } else {
-      Status.ExitCodes.success
+      ExitStatus.ExitCodes.success
     }
   }
 
