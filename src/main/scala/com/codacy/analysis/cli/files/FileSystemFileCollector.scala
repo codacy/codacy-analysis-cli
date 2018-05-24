@@ -33,11 +33,11 @@ class FileSystemFileCollector extends FileCollector[Try] {
           .filterNot(_.startsWith(".git"))
           .to[Set]
 
-      val autoIgnoresFilter: Set[Path] => Set[Path] = localConfiguration.fold({ _ =>
-        excludeAutoIgnores(remoteConfiguration) _
-      }, { _ =>
+      val autoIgnoresFilter: Set[Path] => Set[Path] = if (localConfiguration.isLeft) {
+        excludeAutoIgnores(remoteConfiguration)
+      } else {
         identity
-      })
+      }
 
       val filters: Set[Set[Path] => Set[Path]] =
         Set(excludeGlobal(localConfiguration) _, excludePrefixes(remoteConfiguration) _, autoIgnoresFilter)
