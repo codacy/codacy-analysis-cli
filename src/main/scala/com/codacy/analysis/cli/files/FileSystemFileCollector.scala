@@ -33,10 +33,15 @@ class FileSystemFileCollector extends FileCollector[Try] {
           .filterNot(_.startsWith(".git"))
           .to[Set]
 
-      val filters: Set[Set[Path] => Set[Path]] = Set(
-        excludeGlobal(localConfiguration) _,
-        excludePrefixes(remoteConfiguration) _,
-        excludeAutoIgnores(remoteConfiguration) _)
+      val autoIgnoresFilter: Set[Path] => Set[Path] = localConfiguration.fold({ _ =>
+        excludeAutoIgnores(remoteConfiguration) _
+      }, { _ =>
+        identity
+      })
+
+      val filters: Set[Set[Path] => Set[Path]] =
+        Set(excludeGlobal(localConfiguration) _, excludePrefixes(remoteConfiguration) _, autoIgnoresFilter _)
+
       val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
 
       FilesTarget(directory, filteredFiles)
@@ -80,7 +85,7 @@ class FileSystemFileCollector extends FileCollector[Try] {
 
   private def excludeAutoIgnores(remoteConfiguration: Either[String, ProjectConfiguration])(
     files: Set[Path]): Set[Path] = {
-    val excludeIgnores: Set[PathRegex] = foldable.foldMap(remoteConfiguration)(_.defaultRegexIgnores)
+    val excludeIgnores: Set[PathRegex] = foldable.foldMap(remoteConfiguration)(_.defaultIgnores)
     filterByExpression(files, excludeIgnores)
   }
 
