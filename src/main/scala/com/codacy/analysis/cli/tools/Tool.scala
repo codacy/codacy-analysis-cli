@@ -7,7 +7,7 @@ import codacy.docker.api
 import com.codacy.analysis.cli.analysis.CodacyPluginsAnalyser
 import com.codacy.analysis.cli.files.FilesTarget
 import com.codacy.analysis.cli.model.{Configuration, Issue, Result, _}
-import com.codacy.analysis.cli.utils.FileHelper
+import com.codacy.analysis.cli.utils.{EitherOps, FileHelper}
 import com.codacy.api.dtos.{Language, Languages}
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
@@ -144,7 +144,8 @@ object Tool {
     if (toolUuids.isEmpty) {
       Left("No active tool found on the remote configuration")
     } else {
-      toolUuids.map(Tool.from).sequenceWithFixedLeft("A tool from remote configuration could not be found locally")
+      EitherOps.sequenceWithFixedLeft("A tool from remote configuration could not be found locally")(
+        toolUuids.map(Tool.from))
     }
   }
 
@@ -170,20 +171,6 @@ object Tool {
     allTools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
       .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
-  }
-
-  implicit class eitherSetOps[A, B](eitherSeq: Set[Either[A, B]]) {
-
-    def sequenceWithFixedLeft(left: A): Either[A, Set[B]] = {
-      eitherSeq
-        .foldLeft[Either[A, Set[B]]](Right(Set.empty)) { (acc, either) =>
-          acc.flatMap { bSeq =>
-            either.map(b => bSeq ++ Set(b))
-          }
-        }
-        .left
-        .map(_ => left)
-    }
   }
 
 }

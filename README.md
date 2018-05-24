@@ -19,15 +19,135 @@ Small command line interface to execute Codacy code analysis locally.
   - ( ) Using local configurations
 - (D) Invoke tools in parallel
 - (P) Post results to Codacy
-- ( ) Exit with status from Codacy quality settings
+- (D) Exit with status
+  - (D) Absolute issues value
+  - ( ) Codacy quality settings
 
 > (D) - Done | (P) - Partially Done | ( ) - Not Started
 
 ## Prerequisites
 
+### Usage
+
+* Java 8+
+* Docker 17.09+
+
+### Development
+
 * Java 8+
 * SBT 1.1.x
 * Scala 2.12.x
+* Docker 17.09+
+
+## Install
+
+### MacOS
+
+```bash
+brew tap codacy/tap
+brew install codacy-analysis-cli
+```
+
+### Others
+
+```bash
+curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
+cd codacy-analysis-cli-* && sudo make install
+```
+
+## Usage
+
+### Script
+
+```sh
+codacy-analysis-cli analyse \
+  --tool <TOOL-SHORT-NAME> \
+  --directory <SOURCE-CODE-PATH>
+```
+
+### Local
+
+```sh
+sbt "runMain com.codacy.analysis.cli.Main analyse --tool <TOOL-SHORT-NAME> --directory <SOURCE-CODE-PATH>"
+```
+
+### Docker
+
+```sh
+docker run \
+  --rm=true \
+  --env CODACY_CODE="$CODACY_CODE" \
+  --volume /var/run/docker.sock:/var/run/docker.sock \
+  --volume "$CODACY_CODE":"$CODACY_CODE" \
+  --volume /tmp:/tmp \
+  codacy/codacy-analysis-cli \
+    --tool <TOOL-SHORT-NAME>
+```
+
+## Exit Status Codes
+
+* :tada: 0: Success
+* :cold_sweat: 1: Failed Analysis
+* :frowning: 2: Partially Failed Analysis
+* :weary: 101: Failed Upload
+* :cop: 201: Max Allowed Issues Exceeded
+
+## Configuration
+
+### CLI Parameters
+
+* `--tool` - Choose the tool to analyse the code (e.g. brakeman)
+* `--directory` - Choose the directory to be analysed
+* `--codacy-api-base-url` or env.`CODACY_API_BASE_URL` - Change the Codacy installation API URL to retrieve the configuration (e.g. Enterprise installation)
+* `--output` - Send the output results to a file
+* `--format` [default: text] - Change the output format (e.g. json)
+* `--commit-uuid` - Set the commit UUID that will receive the results on Codacy
+* ` --upload` [default: false] - Request to push results to Codacy
+* `--parallel` [default: 2] - Number of tools to run in parallel
+* `--max-allowed-issues` [default: 0] - Maximum number of issues allowed for the analysis to succeed
+* `--fail-if-incomplete` [default: false] - Fail the analysis if any tool fails to run
+
+### Local configuration
+
+To perform certain advanced configurations, Codacy allows to create a configuration file.
+Check our [documentation](https://support.codacy.com/hc/en-us/articles/115002130625-Codacy-Configuration-File) for
+more details.
+
+### Remote configuration
+
+To run locally the same analysis that Codacy does in your code you can request remotely the configuration.
+
+#### Project Token
+
+You can find the project token in:
+* `Project -> Settings -> Integrations -> Add Integration -> Project API`
+
+```sh
+codacy-analysis-cli analyse \
+  --project-token <PROJECT-TOKEN> \
+  --tool <TOOL-SHORT-NAME> \
+  --directory <SOURCE-CODE-PATH>
+```
+
+> In alternative to setting `--project-token` you can define CODACY_PROJECT_TOKEN in the environment.
+
+#### API Token
+
+You can find the project token in:
+* `Account -> API Tokens`
+
+The username and project name can be retrieved from the URL in Codacy.
+
+```sh
+codacy-analysis-cli analyse \
+  --api-token <PROJECT-TOKEN> \
+  --username <USERNAME> \
+  --project <PROJECT-NAME> \
+  --tool <TOOL-SHORT-NAME> \
+  --directory <SOURCE-CODE-PATH>
+```
+
+> In alternative to setting `--api-token` you can define CODACY_API_TOKEN in the environment.
 
 ## Build
 
@@ -88,106 +208,6 @@ sbt codacyCoverage
 * **Release**
 
         sbt 'set version := "<VERSION>"' docker:publish
-
-## Install
-
-### MacOS
-
-```bash
-brew tap codacy/tap
-brew install codacy-analysis-cli
-```
-
-### Others
-
-```bash
-curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
-cd codacy-analysis-cli-* && sudo make install
-```
-
-## Usage
-
-### Local
-
-```sh
-sbt "runMain com.codacy.analysis.cli.Main analyse --tool <TOOL-SHORT-NAME> --directory <SOURCE-CODE-PATH>"
-```
-
-### Docker
-
-```sh
-docker run \
-  --rm=true \
-  --env CODACY_CODE="$CODACY_CODE" \
-  --volume /var/run/docker.sock:/var/run/docker.sock \
-  --volume "$CODACY_CODE":"$CODACY_CODE" \
-  --volume /tmp:/tmp \
-  codacy/codacy-analysis-cli \
-    --tool <TOOL-SHORT-NAME>
-```
-
-### Script
-
-```sh
-codacy-analysis-cli analyse \
-  --tool <TOOL-SHORT-NAME> \
-  --directory <SOURCE-CODE-PATH>
-```
-
-## Configuration
-
-### CLI Parameters
-
-* `--tool` - Choose the tool to analyse the code (e.g. brakeman)
-* `--directory` - Choose the directory to be analysed
-* `--codacy-api-base-url` or env.`CODACY_API_BASE_URL` - Change the Codacy installation API URL to retrieve the configuration (e.g. Enterprise installation)
-* `--output` - Send the output results to a file
-* `--format` - Change the output format (e.g. json)
-* `--commit-uuid` - Set the commit UUID that will receive the results on Codacy
-* ` --upload` - Request to push results to Codacy
-* `--parallel` - Number of tools to run in parallel
-
-### Local configuration
-
-To perform certain advanced configurations, Codacy allows to create a configuration file.
-Check our [documentation](https://support.codacy.com/hc/en-us/articles/115002130625-Codacy-Configuration-File) for
-more details.
-
-### Remote configuration
-
-To run locally the same analysis that Codacy does in your code you can request remotely the configuration.
-
-#### Project Token
-
-You can find the project token in:
-* `Project -> Settings -> Integrations -> Add Integration -> Project API`
-
-```sh
-codacy-analysis-cli analyse \
-  --project-token <PROJECT-TOKEN> \
-  --tool <TOOL-SHORT-NAME> \
-  --directory <SOURCE-CODE-PATH>
-```
-
-> In alternative to setting `--project-token` you can define CODACY_PROJECT_TOKEN in the environment.
-
-#### API Token
-
-You can find the project token in:
-* `Account -> API Tokens`
-
-The username and project name can be retrieved from the URL in Codacy.
-
-```sh
-codacy-analysis-cli analyse \
-  --api-token <PROJECT-TOKEN> \
-  --username <USERNAME> \
-  --project <PROJECT-NAME> \
-  --tool <TOOL-SHORT-NAME> \
-  --directory <SOURCE-CODE-PATH>
-```
-
-> In alternative to setting `--api-token` you can define CODACY_API_TOKEN in the environment.
 
 ## What is Codacy
 

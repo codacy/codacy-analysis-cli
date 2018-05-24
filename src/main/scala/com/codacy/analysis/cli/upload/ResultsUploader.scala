@@ -1,5 +1,6 @@
 package com.codacy.analysis.cli.upload
 
+import cats.implicits._
 import com.codacy.analysis.cli.clients.CodacyClient
 import com.codacy.analysis.cli.model.Result
 import org.log4s.{Logger, getLogger}
@@ -7,7 +8,28 @@ import org.log4s.{Logger, getLogger}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class ResultsUploader(commitUuid: String, codacyClient: CodacyClient, batchSizeOpt: Option[Int])(
+object ResultsUploader {
+
+  private val logger: Logger = getLogger
+
+  def apply(codacyClientOpt: Option[CodacyClient],
+            upload: Boolean,
+            commitUuidOpt: Option[String],
+            batchSize: Option[Int] = Option.empty[Int])(
+    implicit context: ExecutionContext): Either[String, Option[ResultsUploader]] = {
+    if (upload) {
+      for {
+        codacyClient <- codacyClientOpt.toRight("No credentials found.")
+        commitUuid <- commitUuidOpt.toRight("No commit found.")
+      } yield Option(new ResultsUploader(commitUuid, codacyClient, batchSize))
+    } else {
+      logger.info(s"Upload step disabled")
+      Option.empty[ResultsUploader].asRight[String]
+    }
+  }
+}
+
+class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, batchSizeOpt: Option[Int])(
   implicit context: ExecutionContext) {
 
   private val logger: Logger = getLogger
