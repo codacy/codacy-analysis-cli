@@ -19,6 +19,7 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.core.Fragment
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
@@ -60,7 +61,9 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
       when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
 
-      uploader.sendResults(tool, exampleResults)
+      // scalafix:off NoInfer.any
+      uploader.sendResults(tool, exampleResults) must beRight.awaitFor(10.minutes)
+      // scalafix:on NoInfer.any
 
       verifyNumberOfCalls(exampleResults)(codacyClient, tool, commitUuid, actualBatchSize)
     }
