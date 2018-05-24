@@ -23,7 +23,28 @@ import scala.concurrent.duration._
 
 class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
+  private val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
+  private val tool = "eslint"
+  private val batchSize = 10
+
   "ResultsUploader" should {
+
+    "not create the uploader if upload is not requested" in {
+      val codacyClient = mock[CodacyClient]
+      ResultsUploader(Option(codacyClient), upload = false, Option(commitUuid), Option(batchSize)) must beEqualTo(
+        Right(Option.empty[ResultsUploader]))
+    }
+
+    "fail to create the uploader if the client is not passed" in {
+      ResultsUploader(Option.empty[CodacyClient], upload = true, Option(commitUuid), Option(batchSize)) must beLeft(
+        "No credentials found.")
+    }
+
+    "fail to create the uploader if the commitc is not passed" in {
+      val codacyClient = mock[CodacyClient]
+      ResultsUploader(Option(codacyClient), upload = true, Option.empty[String], Option(batchSize)) must beLeft(
+        "No commit found.")
+    }
 
     val exampleResultsEither = for {
       resultsJson <- parser.parse(
@@ -45,14 +66,12 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
     val esLintPatternsInternalIds = Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
 
     s"analyse a javascript project with eslint, $message".stripMargin in {
-      val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
-      val tool = "eslint"
-
       val toolPatterns = esLintPatternsInternalIds.map { patternId =>
         ToolPattern(patternId, Set.empty)
       }
       val codacyClient = mock[CodacyClient]
-      val uploader: ResultsUploader = new ResultsUploader(commitUuid, codacyClient, Some(batchSize))
+      val uploader: ResultsUploader =
+        ResultsUploader(Option(codacyClient), upload = true, Option(commitUuid), Option(batchSize)).right.get.get
       val actualBatchSize = if (batchSize > 0) batchSize else uploader.defaultBatchSize
 
       when(codacyClient.getRemoteConfiguration).thenReturn(getMockedRemoteConfiguration(toolPatterns))

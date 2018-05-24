@@ -77,17 +77,17 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         "with API Token" in {
           "with successful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsTest(success = true, apiCredentials)
-            // scalafix:off
+            // scalafix:off NoInfer.any
             codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beRight.awaitFor(Int.MaxValue.seconds)
-            // scalafix:on
+            // scalafix:on NoInfer.any NoInfer.any
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
           "with unsuccessful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsTest(success = false, apiCredentials)
-            // scalafix:off
+            // scalafix:off NoInfer.any
             val remoteResults = codacyClient.sendRemoteResults(tool, commitUuid, Set())
             remoteResults must beLeft.awaitFor(Int.MaxValue.seconds)
-            // scalafix:on
+            // scalafix:on NoInfer.any
             remoteResults must beLike[Either[String, Unit]] {
               case Left(errorMsg) =>
                 errorMsg mustEqual "Error sending results: failed!"
@@ -97,9 +97,9 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         }
         "with Project Token with successful return" in {
           val (codacyClient, httpHelper) = setupRemoteResultsTest(success = true, projectCredentials)
-          // scalafix:off
+          // scalafix:off NoInfer.any
           codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beRight.awaitFor(Int.MaxValue.seconds)
-          // scalafix:on
+          // scalafix:on NoInfer.any
           there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
         }
       }
@@ -108,17 +108,17 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         "with API Token" in {
           "with successful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = true, apiCredentials)
-            // scalafix:off
+            // scalafix:off NoInfer.any
             codacyClient.sendEndOfResults(commitUuid) must beRight.awaitFor(Int.MaxValue.seconds)
-            // scalafix:on
+            // scalafix:on NoInfer.any
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
           "with unsuccessful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = false, apiCredentials)
-            // scalafix:off
+            // scalafix:off NoInfer.any
             val endOfResults = codacyClient.sendEndOfResults(commitUuid)
             endOfResults must beLeft.awaitFor(Int.MaxValue.seconds)
-            // scalafix:on
+            // scalafix:on NoInfer.any
             endOfResults must beLike[Either[String, Unit]] {
               case Left(errorMsg) =>
                 errorMsg mustEqual "Error sending results: failed!"
@@ -128,9 +128,9 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         }
         "with Project Token with successful return" in {
           val (codacyClient, httpHelper) = setupRemoteResultsEndTest(success = true, projectCredentials)
-          // scalafix:off
+          // scalafix:off NoInfer.any
           codacyClient.sendEndOfResults(commitUuid) must beRight.awaitFor(Int.MaxValue.seconds)
-          // scalafix:on
+          // scalafix:on NoInfer.any
           there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
         }
       }

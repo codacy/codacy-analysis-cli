@@ -12,7 +12,10 @@ object ResultsUploader {
 
   private val logger: Logger = getLogger
 
-  def apply(codacyClientOpt: Option[CodacyClient], upload: Boolean, commitUuid: Option[String])(
+  def apply(codacyClientOpt: Option[CodacyClient],
+            upload: Boolean,
+            commitUuid: Option[String],
+            batchSize: Option[Int] = Option.empty[Int])(
     implicit context: ExecutionContext): Either[String, Option[ResultsUploader]] = {
     if (upload) {
       codacyClientOpt.fold {
@@ -21,7 +24,7 @@ object ResultsUploader {
         commitUuid.fold {
           "No commit found.".asLeft[Option[ResultsUploader]]
         } { commit =>
-          Option(new ResultsUploader(commit, codacyClient, None)).asRight[String]
+          Option(new ResultsUploader(commit, codacyClient, batchSize)).asRight[String]
         }
       }
     } else {
@@ -31,7 +34,7 @@ object ResultsUploader {
   }
 }
 
-class ResultsUploader private[upload] (commitUuid: String, codacyClient: CodacyClient, batchSizeOpt: Option[Int])(
+class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, batchSizeOpt: Option[Int])(
   implicit context: ExecutionContext) {
 
   private val logger: Logger = getLogger

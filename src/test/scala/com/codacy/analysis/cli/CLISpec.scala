@@ -41,8 +41,8 @@ class CLISpec extends Specification with NoLanguageFeatures {
           Array("analyse", "--directory", directory.pathAsString, "--tool", "pylint", "--output", file.pathAsString))
 
         file.contentAsString must beEqualTo("""|Starting analysis ...
-                 |Analysis complete
-                 |""".stripMargin)
+                                               |Analysis complete
+                                               |""".stripMargin)
       }).get()
     }
 
