@@ -73,7 +73,7 @@ class MainImpl extends CLIApp {
     commitUuid: Option[String],
     executorResultsEither: Either[String, Seq[ExecutorResult]]): Future[Either[String, Unit]] = {
     (for {
-      uploaderOpt <- retrieveUploader(codacyClientOpt, upload, commitUuid)
+      uploaderOpt <- ResultsUploader(codacyClientOpt, upload, commitUuid)
       executorResults <- executorResultsEither
     } yield {
       uploaderOpt.map { uploader =>
@@ -92,22 +92,4 @@ class MainImpl extends CLIApp {
     }).fold(err => Future.successful(err.asLeft[Unit]), identity)
   }
 
-  private def retrieveUploader(codacyClientOpt: Option[CodacyClient],
-                               upload: Boolean,
-                               commitUuid: Option[String]): Either[String, Option[ResultsUploader]] = {
-    if (upload) {
-      codacyClientOpt.fold {
-        "No credentials found.".asLeft[Option[ResultsUploader]]
-      } { codacyClient =>
-        commitUuid.fold {
-          "No commit found.".asLeft[Option[ResultsUploader]]
-        } { commit =>
-          Option(new ResultsUploader(commit, codacyClient, None)).asRight[String]
-        }
-      }
-    } else {
-      logger.info(s"Upload step disabled")
-      Option.empty[ResultsUploader].asRight[String]
-    }
-  }
 }
