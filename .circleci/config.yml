@@ -45,7 +45,9 @@ jobs:
           path: ~/coverage-reports
       - store_artifacts:
           path: ~/workdir/target/scala-2.12/coverage-report
+      - store_artifacts:
           path: ~/workdir/target/scala-2.12/scoverage-report
+      - store_artifacts:
           path: ~/workdir/target/scala-2.12/scoverage-data
 
       - run: 
