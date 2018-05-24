@@ -496,6 +496,51 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         }
       }).get()
     }
+
+    "list files and filter files per tool with local excludes and remote ignores (should ignore remote ignores in favor of local configuration)" in {
+      (for {
+        directory <- File.temporaryDirectory()
+      } yield {
+
+        val expectedToolFiles = List(
+          "src/main/scala/codacy/Engine.scala",
+          "src/main/scala/codacy/brakeman/Brakeman.scala",
+          "src/main/scala/codacy/TestWeird.sc")
+
+        val localConfiguration = CodacyConfigurationFile(
+          Option(Map("scalastyle" -> EngineConfiguration(Some(Set(Glob("**/brakeman/Test2.scala"))), None, None))),
+          Option(Set(Glob("**/Test1.scala"))),
+          Option(Map((Languages.Scala, LanguageConfiguration(Option(Set(".sc"))))))).asRight
+        val remoteConfiguration = ProjectConfiguration(
+          Set.empty,
+          Set(PathRegex(""".*/main/scala/codacy/brakeman/.*""")),
+          Set(LanguageExtensions(Languages.Scala, Set(".sc"))),
+          Set()).asRight
+
+        Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
+        Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
+
+        val tool = Tool.from("scalastyle").right.get
+
+        val result = for {
+          filesTargetGlobal <- fsFc.list(directory, localConfiguration, remoteConfiguration)
+          filesTargetTool <- fsFc.filter(
+            tool,
+            filesTargetGlobal,
+            localConfiguration,
+            "Remote configuration not found".asLeft)
+        } yield filesTargetTool
+
+        result must beSuccessfulTry
+
+        result must beLike {
+          case Success(filesTargetTool) =>
+            filesTargetTool.directory must be(directory)
+            filesTargetTool.files.to[List].map(_.toString) must containTheSameElementsAs(expectedToolFiles)
+            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
+        }
+      }).get()
+    }
   }
 
 }
