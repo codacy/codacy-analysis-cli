@@ -11,7 +11,7 @@ final case class ToolPattern(internalId: String, parameters: Set[ToolParameter])
 final case class ToolConfiguration(uuid: String, isEnabled: Boolean, notEdited: Boolean, patterns: Set[ToolPattern])
 
 final case class ProjectConfiguration(ignoredPaths: Set[FilePath],
-                                      defaultRegexIgnores: Set[PathRegex],
+                                      defaultIgnores: Set[PathRegex],
                                       projectExtensions: Set[LanguageExtensions],
                                       toolConfiguration: Set[ToolConfiguration])
 
