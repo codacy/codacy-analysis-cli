@@ -62,7 +62,8 @@ class MainImpl extends CLIApp {
         }
 
         exit(
-          new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult))
+          new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
+            .exitCode(analysisResults, uploadResult))
     }
 
     ()

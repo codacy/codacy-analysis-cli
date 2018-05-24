@@ -17,7 +17,8 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
   "ExitStatus" should {
 
     "send failed analysis code" in {
-      new ExitStatus(3).exitCode(Left("Failed analysis"), Right(())) should beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
+      new ExitStatus(3).exitCode(Left("Failed analysis"), Right(())) should beEqualTo(
+        ExitStatus.ExitCodes.failedAnalysis)
     }
 
     "send success code when issues do not exceed max issues number" in {
@@ -102,8 +103,8 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
     }
 
     "send failedUpload when uploader has an error" in {
-      new ExitStatus(10, failIfIncomplete = true).exitCode(Right(Seq()), Left("Failed to get uploader")) should beEqualTo(
-        ExitStatus.ExitCodes.failedUpload)
+      new ExitStatus(10, failIfIncomplete = true)
+        .exitCode(Right(Seq()), Left("Failed to get uploader")) should beEqualTo(ExitStatus.ExitCodes.failedUpload)
     }
   }
 

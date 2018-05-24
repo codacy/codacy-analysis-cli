@@ -14,19 +14,14 @@ object ResultsUploader {
 
   def apply(codacyClientOpt: Option[CodacyClient],
             upload: Boolean,
-            commitUuid: Option[String],
+            commitUuidOpt: Option[String],
             batchSize: Option[Int] = Option.empty[Int])(
     implicit context: ExecutionContext): Either[String, Option[ResultsUploader]] = {
     if (upload) {
-      codacyClientOpt.fold {
-        "No credentials found.".asLeft[Option[ResultsUploader]]
-      } { codacyClient =>
-        commitUuid.fold {
-          "No commit found.".asLeft[Option[ResultsUploader]]
-        } { commit =>
-          Option(new ResultsUploader(commit, codacyClient, batchSize)).asRight[String]
-        }
-      }
+      for {
+        codacyClient <- codacyClientOpt.toRight("No credentials found.")
+        commitUuid <- commitUuidOpt.toRight("No commit found.")
+      } yield Option(new ResultsUploader(commitUuid, codacyClient, batchSize))
     } else {
       logger.info(s"Upload step disabled")
       Option.empty[ResultsUploader].asRight[String]
