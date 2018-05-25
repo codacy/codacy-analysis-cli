@@ -50,6 +50,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           Right(
             ProjectConfiguration(
               Set(FilePath(pathToIgnore)),
+              Some(Set.empty),
               Set.empty,
               Set(
                 ToolConfiguration(
@@ -112,6 +113,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           Right(
             ProjectConfiguration(
               Set.empty,
+              Some(Set.empty),
               Set.empty,
               Set(
                 ToolConfiguration(
@@ -166,6 +168,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           Right(
             ProjectConfiguration(
               Set.empty,
+              None,
               Set.empty,
               Set(
                 ToolConfiguration(
@@ -230,6 +233,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       val remoteProjectConfiguration = Right(
         ProjectConfiguration(
           Set.empty,
+          Some(Set.empty),
           Set.empty,
           Set(ToolConfiguration("InvalidToolName", isEnabled = true, notEdited = false, Set.empty))))
 
@@ -251,6 +255,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       val remoteProjectConfiguration = Right(
         ProjectConfiguration(
           Set.empty,
+          None,
           Set.empty,
           Set(
             ToolConfiguration("34225275-f79e-4b85-8126-c7512c987c0d", isEnabled = true, notEdited = false, Set.empty))))
@@ -269,6 +274,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       val remoteProjectConfiguration = Right(
         ProjectConfiguration(
           Set.empty,
+          None,
           Set.empty,
           Set(
             ToolConfiguration(expectedToolUuid1, isEnabled = true, notEdited = false, Set.empty),

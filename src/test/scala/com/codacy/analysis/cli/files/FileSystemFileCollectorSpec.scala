@@ -2,7 +2,7 @@ package com.codacy.analysis.cli.files
 
 import better.files.File
 import cats.implicits._
-import com.codacy.analysis.cli.clients.api.{FilePath, LanguageExtensions, ProjectConfiguration}
+import com.codacy.analysis.cli.clients.api._
 import com.codacy.analysis.cli.configuration.{CodacyConfigurationFile, EngineConfiguration, LanguageConfiguration}
 import com.codacy.analysis.cli.tools.Tool
 import com.codacy.api.dtos.Languages
@@ -387,6 +387,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
 
         val remoteConfiguration = ProjectConfiguration(
           Set(FilePath("src/main/scala/codacy/brakeman/Test2.scala")),
+          Some(Set.empty),
           Set(LanguageExtensions(Languages.Scala, Set(".sc"))),
           Set()).asRight
 
@@ -437,6 +438,92 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
 
         val result = for {
           filesTargetGlobal <- fsFc.list(directory, localConfiguration, "Remote configuration not found".asLeft)
+          filesTargetTool <- fsFc.filter(
+            tool,
+            filesTargetGlobal,
+            localConfiguration,
+            "Remote configuration not found".asLeft)
+        } yield filesTargetTool
+
+        result must beSuccessfulTry
+
+        result must beLike {
+          case Success(filesTargetTool) =>
+            filesTargetTool.directory must be(directory)
+            filesTargetTool.files.to[List].map(_.toString) must containTheSameElementsAs(expectedToolFiles)
+            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
+        }
+      }).get()
+    }
+
+    "list files and filter files per tool with default ignores" in {
+      (for {
+        directory <- File.temporaryDirectory()
+      } yield {
+
+        val expectedToolFiles = List(
+          "src/main/scala/codacy/Engine.scala",
+          "src/main/scala/codacy/Test1.scala",
+          "src/main/scala/codacy/TestWeird.sc")
+
+        val remoteConfiguration = ProjectConfiguration(
+          Set.empty,
+          Some(Set(PathRegex(""".*/main/scala/codacy/brakeman/.*"""))),
+          Set(LanguageExtensions(Languages.Scala, Set(".sc"))),
+          Set()).asRight
+
+        Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
+        Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
+
+        val tool = Tool.from("scalastyle").right.get
+
+        val result = for {
+          filesTargetGlobal <- fsFc.list(directory, "Local configuration not found".asLeft, remoteConfiguration)
+          filesTargetTool <- fsFc.filter(
+            tool,
+            filesTargetGlobal,
+            "Local configuration not found".asLeft,
+            remoteConfiguration)
+        } yield filesTargetTool
+
+        result must beSuccessfulTry
+
+        result must beLike {
+          case Success(filesTargetTool) =>
+            filesTargetTool.directory must be(directory)
+            filesTargetTool.files.to[List].map(_.toString) must containTheSameElementsAs(expectedToolFiles)
+            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
+        }
+      }).get()
+    }
+
+    "list files and filter files per tool with local excludes and remote ignores (should ignore remote ignores in favor of local configuration)" in {
+      (for {
+        directory <- File.temporaryDirectory()
+      } yield {
+
+        val expectedToolFiles = List(
+          "src/main/scala/codacy/Engine.scala",
+          "src/main/scala/codacy/brakeman/Brakeman.scala",
+          "src/main/scala/codacy/TestWeird.sc")
+
+        val localConfiguration = CodacyConfigurationFile(
+          Option(Map("scalastyle" -> EngineConfiguration(Some(Set(Glob("**/brakeman/Test2.scala"))), None, None))),
+          Option(Set(Glob("**/Test1.scala"))),
+          Option(Map((Languages.Scala, LanguageConfiguration(Option(Set(".sc"))))))).asRight
+        val remoteConfiguration = ProjectConfiguration(
+          Set.empty,
+          Some(Set(PathRegex(""".*/main/scala/codacy/brakeman/.*"""))),
+          Set(LanguageExtensions(Languages.Scala, Set(".sc"))),
+          Set()).asRight
+
+        Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
+        Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
+
+        val tool = Tool.from("scalastyle").right.get
+
+        val result = for {
+          filesTargetGlobal <- fsFc.list(directory, localConfiguration, remoteConfiguration)
           filesTargetTool <- fsFc.filter(
             tool,
             filesTargetGlobal,
