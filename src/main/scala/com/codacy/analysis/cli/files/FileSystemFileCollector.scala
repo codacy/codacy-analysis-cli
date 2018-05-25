@@ -40,7 +40,7 @@ class FileSystemFileCollector extends FileCollector[Try] {
       }
 
       val filters: Set[Set[Path] => Set[Path]] =
-        Set(excludeGlobal(localConfiguration) _, excludePrefixes(remoteConfiguration) _, autoIgnoresFilter)
+        Set(excludeGlobal(localConfiguration)(_), excludePrefixes(remoteConfiguration)(_), autoIgnoresFilter(_))
 
       val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
 
