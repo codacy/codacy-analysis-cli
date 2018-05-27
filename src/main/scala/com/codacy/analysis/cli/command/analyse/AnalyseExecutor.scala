@@ -10,7 +10,7 @@ import com.codacy.analysis.cli.converters.ConfigurationHelper
 import com.codacy.analysis.cli.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.cli.model.{CodacyCfg, Configuration, FileCfg, Result}
-import com.codacy.analysis.cli.tools.Tool
+import com.codacy.analysis.cli.tools.{Tool, ToolCollector}
 import com.codacy.analysis.cli.utils.SetOps
 import com.codacy.analysis.cli.utils.TryOps._
 import org.log4s.{Logger, getLogger}
@@ -24,7 +24,8 @@ class AnalyseExecutor(toolInput: Option[String],
                       analyser: Analyser[Try],
                       fileCollector: FileCollector[Try],
                       remoteProjectConfiguration: Either[String, ProjectConfiguration],
-                      nrParallelTools: Option[Int]) {
+                      nrParallelTools: Option[Int],
+                      allowNetwork: Boolean) {
 
   private val logger: Logger = getLogger
 
@@ -41,7 +42,7 @@ class AnalyseExecutor(toolInput: Option[String],
       filesTarget <- fileCollector
         .list(baseDirectory, localConfigurationFile, remoteProjectConfiguration)
         .toRight("Could not access project files")
-      tools <- tools(toolInput, localConfigurationFile, remoteProjectConfiguration, filesTarget)
+      tools <- tools(toolInput, localConfigurationFile, remoteProjectConfiguration, filesTarget, allowNetwork)
     } yield (filesTarget, tools)
 
     val analysisResult: Either[String, Seq[ExecutorResult]] = filesTargetAndTool.map {
@@ -144,21 +145,24 @@ object AnalyseExecutor {
   def tools(toolInput: Option[String],
             localConfiguration: Either[String, CodacyConfigurationFile],
             remoteProjectConfiguration: Either[String, ProjectConfiguration],
-            filesTarget: FilesTarget): Either[String, Set[Tool]] = {
+            filesTarget: FilesTarget,
+            allowNetwork: Boolean): Either[String, Set[Tool]] = {
+
+    val toolCollector = new ToolCollector(allowNetwork)
 
     def fromRemoteConfig: Either[String, Set[Tool]] = {
       remoteProjectConfiguration.flatMap(projectConfiguration =>
-        Tool.fromToolUUIDs(projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)))
+        toolCollector.fromToolUUIDs(projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)))
     }
 
     def fromLocalConfig: Either[String, Set[Tool]] = {
-      Tool.fromFileTarget(
+      toolCollector.fromFileTarget(
         filesTarget,
         localConfiguration.map(_.languageCustomExtensions.mapValues(_.toList).toList).getOrElse(List.empty))
     }
 
     toolInput.map { toolStr =>
-      Tool.fromNameOrUUID(toolStr)
+      toolCollector.fromNameOrUUID(toolStr)
     }.getOrElse {
       for {
         e1 <- fromRemoteConfig.left

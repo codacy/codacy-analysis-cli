@@ -27,7 +27,8 @@ class ToolSpec extends Specification with NoLanguageFeatures {
           Set(ToolConfiguration("InvalidToolName", isEnabled = true, notEdited = false, Set.empty))))
 
       val toolEither =
-        AnalyseExecutor.tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget)
+        AnalyseExecutor
+          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget, allowNetwork = false)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -49,7 +50,8 @@ class ToolSpec extends Specification with NoLanguageFeatures {
             ToolConfiguration("34225275-f79e-4b85-8126-c7512c987c0d", isEnabled = true, notEdited = false, Set.empty))))
 
       val toolEither =
-        AnalyseExecutor.tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget)
+        AnalyseExecutor
+          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget, allowNetwork = false)
       toolEither must beLeft
     }
 
@@ -70,7 +72,8 @@ class ToolSpec extends Specification with NoLanguageFeatures {
             ToolConfiguration("anotherRandomTool", isEnabled = false, notEdited = false, Set.empty))))
 
       val toolEither =
-        AnalyseExecutor.tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget)
+        AnalyseExecutor
+          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget, allowNetwork = false)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -79,13 +82,14 @@ class ToolSpec extends Specification with NoLanguageFeatures {
       }
     }
 
-    "fallback to finding tools if remove configuration is not present" in {
+    "fallback to finding tools if remote configuration is not present" in {
       val userInput = None
       val remoteProjectConfiguration = Left("some error")
 
       val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rb").path))
 
-      val toolEither = AnalyseExecutor.tools(userInput, noLocalConfiguration, remoteProjectConfiguration, filesTarget)
+      val toolEither = AnalyseExecutor
+        .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = false)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -93,7 +97,7 @@ class ToolSpec extends Specification with NoLanguageFeatures {
       }
     }
 
-    "fallback to finding tools (with custom extensions) if remove configuration is not present" in {
+    "fallback to finding tools (with custom extensions) if remote configuration is not present" in {
       val userInput = None
       val remoteProjectConfiguration = Left("some error")
 
@@ -105,13 +109,57 @@ class ToolSpec extends Specification with NoLanguageFeatures {
           Option.empty,
           Option(Map(Languages.Java -> LanguageConfiguration(Option(Set("rawr")))))))
 
-      val toolEither = AnalyseExecutor.tools(userInput, localConfiguration, remoteProjectConfiguration, filesTarget)
+      val toolEither = AnalyseExecutor
+        .tools(userInput, localConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = true)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
           toolSet.map(_.name) mustEqual Set("checkstyle", "findbugs", "findbugssec", "pmd")
       }
     }
-  }
 
+    """return an informative error message if the user selects a tool that needs access
+      |to the network but doesn't provide the needed argument""".stripMargin in {
+      val toolName = "gendarme"
+      val remoteProjectConfiguration = Left("some error")
+      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path))
+      val localConfiguration = Right(CodacyConfigurationFile(Option.empty, Option.empty, Option.empty))
+
+      val toolEither = AnalyseExecutor
+        .tools(Some(toolName), localConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = false)
+
+      toolEither must beLeft(
+        s"The tool $toolName needs network access to execute. Run the command with the parameter 'allow-network', or '-n'.")
+    }
+
+    "list tools that need access to the network if this argument is provided" in {
+      val remoteProjectConfiguration = Left("some error")
+      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path))
+      val localConfiguration = Right(CodacyConfigurationFile(Option.empty, Option.empty, Option.empty))
+
+      val toolEither =
+        AnalyseExecutor.tools(None, localConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = true)
+
+      toolEither must beRight
+      toolEither must beLike {
+        case Right(toolSet) =>
+          Tool.allEnterpriseToolShortNames must contain(toolSet.map(_.name))
+      }
+    }
+
+    "not list tools that need access to the network if this argument is not provided" in {
+      val remoteProjectConfiguration = Left("some error")
+      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path))
+      val localConfiguration = Right(CodacyConfigurationFile(Option.empty, Option.empty, Option.empty))
+
+      val toolEither =
+        AnalyseExecutor.tools(None, localConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = false)
+
+      toolEither must beRight
+      toolEither must beLike {
+        case Right(toolSet) =>
+          Tool.allEnterpriseToolShortNames must not contain toolSet.map(_.name)
+      }
+    }
+  }
 }

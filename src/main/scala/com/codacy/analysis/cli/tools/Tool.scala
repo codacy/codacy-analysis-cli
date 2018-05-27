@@ -132,9 +132,21 @@ class Tool(private val plugin: IDockerPlugin) {
 
 object Tool {
 
-  private val allTools = PluginHelper.dockerPlugins.++(PluginHelper.dockerEnterprisePlugins)
+  val allEnterpriseToolShortNames: Set[String] =
+    PluginHelper.dockerEnterprisePlugins.map(_.shortName)(collection.breakOut)
 
-  def allToolShortNames: Set[String] = allTools.map(_.shortName)(collection.breakOut)
+  val allToolShortNames: Set[String] = allEnterpriseToolShortNames ++ PluginHelper.dockerPlugins.map(_.shortName)(
+    collection.breakOut)
+}
+
+class ToolCollector(allowNetwork: Boolean) {
+
+  private val tools =
+    PluginHelper.dockerPlugins.++ {
+      if (allowNetwork) {
+        PluginHelper.dockerEnterprisePlugins
+      } else { List.empty }
+    }
 
   def fromNameOrUUID(toolInput: String): Either[String, Set[Tool]] = {
     from(toolInput).map(Set(_))
@@ -145,7 +157,7 @@ object Tool {
       Left("No active tool found on the remote configuration")
     } else {
       EitherOps.sequenceWithFixedLeft("A tool from remote configuration could not be found locally")(
-        toolUuids.map(Tool.from))
+        toolUuids.map(from))
     }
   }
 
@@ -153,22 +165,22 @@ object Tool {
                      languageCustomExtensions: List[(Language, Seq[String])]): Either[String, Set[Tool]] = {
     val fileLanguages = filesTarget.files.flatMap(path => Languages.forPath(path.toString, languageCustomExtensions))
 
-    val tools: Set[Tool] = allTools.collect {
+    val collectedTools: Set[Tool] = tools.collect {
       case tool if fileLanguages.exists(tool.languages.contains) =>
         new Tool(tool)
     }(collection.breakOut)
 
-    if (tools.isEmpty) {
+    if (collectedTools.isEmpty) {
       Left("No tools found for files provided")
     } else {
-      Right(tools)
+      Right(collectedTools)
     }
   }
 
   def from(value: String): Either[String, Tool] = find(value).map(new Tool(_))
 
   private def find(value: String): Either[String, IDockerPlugin] = {
-    allTools
+    tools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
       .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
   }
