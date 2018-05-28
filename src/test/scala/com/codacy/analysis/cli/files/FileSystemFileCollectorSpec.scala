@@ -477,7 +477,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
-        val tool = Tool.from("scalastyle").right.get
+        val tool = toolCollector.from("scalastyle").right.get
 
         val result = for {
           filesTargetGlobal <- fsFc.list(directory, "Local configuration not found".asLeft, remoteConfiguration)
@@ -522,7 +522,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
-        val tool = Tool.from("scalastyle").right.get
+        val tool = toolCollector.from("scalastyle").right.get
 
         val result = for {
           filesTargetGlobal <- fsFc.list(directory, localConfiguration, remoteConfiguration)
