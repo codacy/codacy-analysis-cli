@@ -115,7 +115,8 @@ final case class Analyse(
   @ExtraName("p") @ValueDescription("The number of tools to run in parallel")
   parallel: Option[Int] = Option.empty,
   @ExtraName("n") @ValueDescription(
-    s"""If the access to the network is allowed, the cli will run tools that need it. (${Tool.allEnterpriseToolShortNames.mkString(", ")})""")
+    s"""If the access to the network is allowed, the cli will run tools that need it. (${Tool.allEnterpriseToolShortNames
+      .mkString(", ")})""")
   allowNetwork: Int @@ Counter = Tag.of(0),
   @ValueDescription("The maximum number of issues allowed for the analysis to succeed")
   maxAllowedIssues: Int = 0,
