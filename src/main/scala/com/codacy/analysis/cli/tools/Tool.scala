@@ -132,15 +132,15 @@ class Tool(private val plugin: IDockerPlugin) {
 
 object Tool {
 
-  val allEnterpriseToolShortNames: Set[String] =
+  val allInternetToolShortNames: Set[String] =
     PluginHelper.dockerEnterprisePlugins.map(_.shortName)(collection.breakOut)
 
-  val allToolShortNames: Set[String] = allEnterpriseToolShortNames ++ PluginHelper.dockerPlugins.map(_.shortName)
+  val allToolShortNames: Set[String] = allInternetToolShortNames ++ PluginHelper.dockerPlugins.map(_.shortName)
 }
 
 class ToolCollector(allowNetwork: Boolean) {
 
-  private val tools =
+  private val availableTools =
     PluginHelper.dockerPlugins.++ {
       if (allowNetwork) {
         PluginHelper.dockerEnterprisePlugins
@@ -164,7 +164,7 @@ class ToolCollector(allowNetwork: Boolean) {
                      languageCustomExtensions: List[(Language, Seq[String])]): Either[String, Set[Tool]] = {
     val fileLanguages = filesTarget.files.flatMap(path => Languages.forPath(path.toString, languageCustomExtensions))
 
-    val collectedTools: Set[Tool] = tools.collect {
+    val collectedTools: Set[Tool] = availableTools.collect {
       case tool if fileLanguages.exists(tool.languages.contains) =>
         new Tool(tool)
     }(collection.breakOut)
@@ -179,7 +179,7 @@ class ToolCollector(allowNetwork: Boolean) {
   def from(value: String): Either[String, Tool] = find(value).map(new Tool(_))
 
   private def find(value: String): Either[String, IDockerPlugin] = {
-    tools
+    availableTools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
       .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
   }

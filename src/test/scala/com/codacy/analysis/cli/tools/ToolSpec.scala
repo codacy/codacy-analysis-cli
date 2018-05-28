@@ -129,7 +129,7 @@ class ToolSpec extends Specification with NoLanguageFeatures {
         .tools(Some(toolName), localConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = false)
 
       toolEither must beLeft(
-        s"The tool $toolName needs network access to execute. Run the command with the parameter 'allow-network', or '-n'.")
+        s"The tool $toolName needs network access to execute. Run with the parameter 'allow-network', or '-n'.")
     }
 
     "list tools that need access to the network if this argument is provided" in {
@@ -143,7 +143,7 @@ class ToolSpec extends Specification with NoLanguageFeatures {
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
-          Tool.allEnterpriseToolShortNames must contain(toolSet.map(_.name))
+          Tool.allInternetToolShortNames must contain(toolSet.map(_.name))
       }
     }
 
@@ -158,7 +158,7 @@ class ToolSpec extends Specification with NoLanguageFeatures {
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
-          Tool.allEnterpriseToolShortNames must not contain toolSet.map(_.name)
+          Tool.allInternetToolShortNames must not contain toolSet.map(_.name)
       }
     }
   }
