@@ -114,8 +114,8 @@ final case class Analyse(
   upload: Int @@ Counter = Tag.of(0),
   @ExtraName("p") @ValueDescription("The number of tools to run in parallel")
   parallel: Option[Int] = Option.empty,
-  @ExtraName("n") @ValueDescription(s"""If the access to the network is allowed, the cli will run tools that need it.
-    Supported tools that need network access: (${Tool.allInternetToolShortNames.mkString(", ")})""")
+  @ValueDescription(s"""If the access to the network is allowed, the cli will run tools that need it.
+    Supported tools that need network access: (${Tool.internetToolShortNames.mkString(", ")})""")
   allowNetwork: Int @@ Counter = Tag.of(0),
   @ValueDescription("The maximum number of issues allowed for the analysis to succeed")
   maxAllowedIssues: Int = 0,
@@ -126,5 +126,5 @@ final case class Analyse(
     extends Command {
   val uploadValue: Boolean = upload.## > 0
   val failIfIncompleteValue: Boolean = failIfIncomplete.## > 0
-  val hasNetworkAccess: Boolean = allowNetwork.## > 0
+  val allowNetworkValue: Boolean = allowNetwork.## > 0
 }

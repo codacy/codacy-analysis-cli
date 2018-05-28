@@ -132,20 +132,19 @@ class Tool(private val plugin: IDockerPlugin) {
 
 object Tool {
 
-  val allInternetToolShortNames: Set[String] =
+  val internetToolShortNames: Set[String] =
     PluginHelper.dockerEnterprisePlugins.map(_.shortName)(collection.breakOut)
 
-  val allToolShortNames: Set[String] = allInternetToolShortNames ++ PluginHelper.dockerPlugins.map(_.shortName)
+  val allToolShortNames: Set[String] = internetToolShortNames ++ PluginHelper.dockerPlugins.map(_.shortName)
 }
 
 class ToolCollector(allowNetwork: Boolean) {
 
-  private val availableTools =
-    PluginHelper.dockerPlugins.++ {
-      if (allowNetwork) {
-        PluginHelper.dockerEnterprisePlugins
-      } else { List.empty }
-    }
+  private val availableInternetTools = if (allowNetwork) {
+    PluginHelper.dockerEnterprisePlugins
+  } else { List.empty[IDockerPlugin] }
+
+  private val availableTools = PluginHelper.dockerPlugins ++ availableInternetTools
 
   def fromNameOrUUID(toolInput: String): Either[String, Set[Tool]] = {
     from(toolInput).map(Set(_))
