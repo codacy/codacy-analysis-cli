@@ -5,7 +5,7 @@ import java.nio.file.{Path, Paths}
 import better.files.File
 import cats.Foldable
 import cats.implicits._
-import com.codacy.analysis.cli.clients.api.{FilePath, ProjectConfiguration}
+import com.codacy.analysis.cli.clients.api.{FilePath, PathRegex, ProjectConfiguration}
 import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
 import com.codacy.analysis.cli.tools.Tool
 import com.codacy.api.dtos.{Language, Languages}
@@ -33,7 +33,15 @@ class FileSystemFileCollector extends FileCollector[Try] {
           .filterNot(_.startsWith(".git"))
           .to[Set]
 
-      val filters = Set(excludeGlobal(localConfiguration) _, excludePrefixes(remoteConfiguration) _)
+      val autoIgnoresFilter: Set[Path] => Set[Path] = if (localConfiguration.isLeft) {
+        excludeAutoIgnores(remoteConfiguration)
+      } else {
+        identity
+      }
+
+      val filters: Set[Set[Path] => Set[Path]] =
+        Set(excludeGlobal(localConfiguration)(_), excludePrefixes(remoteConfiguration)(_), autoIgnoresFilter(_))
+
       val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
 
       FilesTarget(directory, filteredFiles)
@@ -75,9 +83,23 @@ class FileSystemFileCollector extends FileCollector[Try] {
     filterByGlobs(files, excludeGlobs)
   }
 
+  private def excludeAutoIgnores(remoteConfiguration: Either[String, ProjectConfiguration])(
+    files: Set[Path]): Set[Path] = {
+    val excludeIgnores: Set[PathRegex] = foldable.foldMap(remoteConfiguration)(_.defaultIgnores.getOrElse(Set.empty))
+    filterByExpression(files, excludeIgnores)
+  }
+
   private def filterByGlobs(files: Set[Path], excludeGlobs: Set[Glob]): Set[Path] = {
     if (excludeGlobs.nonEmpty) {
       files.filterNot(file => excludeGlobs.exists(_.matches(file.toString)))
+    } else {
+      files
+    }
+  }
+
+  private def filterByExpression(files: Set[Path], regexExcludes: Set[PathRegex]): Set[Path] = {
+    if (regexExcludes.nonEmpty) {
+      files.filterNot(file => regexExcludes.exists(regex => file.toString.matches(regex.value)))
     } else {
       files
     }
