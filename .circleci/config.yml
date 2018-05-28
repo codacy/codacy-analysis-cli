@@ -3,17 +3,39 @@ version: 2
 
 # Re-usable blocks to reduce boilerplate in job definitions.
 references:
+  host_environment_defaults: &host_environment_defaults
+    # Customize the JVM maximum heap limit
+    JAVA_OPTS: -Xmx3200m
+  docker_environment_defaults: &docker_environment_defaults
+    # Customize the JVM to read correct memory values
+    JAVA_OPTS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1'
+
+  default_java_job: &default_java_job
+    docker:
+      - image: circleci/openjdk:8-jdk
+        environment:
+          <<: *docker_environment_defaults
+    environment:
+      <<: *host_environment_defaults
+    working_directory: ~/workdir
+
   restore_source_code: &restore_source_code
     restore_cache:
       keys:
-        - source-code-1.0.0-{{ .Branch }}-{{ .Revision }}
-        - source-code-1.0.0-{{ .Branch }}
-        - source-code-1.0.0
+        - source-code-0.0.3-{{ .Branch }}-{{ .Revision }}
+        - source-code-0.0.3-{{ .Branch }}
+        - source-code-0.0.3
   restore_dependencies: &restore_dependencies
     restore_cache:
       keys:
-        - sbt-ivy2-dependencies-1.0.0-{{ checksum "/tmp/dependencies.cache.tmp" }}
-        - sbt-ivy2-dependencies-1.0.0
+        - sbt-ivy2-dependencies-0.0.3-{{ checksum "/tmp/dependencies.cache.tmp" }}
+        - sbt-ivy2-dependencies-0.0.3
+  restore_build: &restore_build
+    restore_cache:
+      keys:
+        - sbt-build-0.0.3-{{ .Branch }}-{{ .Revision }}
+        - sbt-build-0.0.3
+
   setup_dependencies_key: &setup_dependencies_key
     run:
       name: Generate cache key
@@ -23,39 +45,58 @@ references:
           project/build.properties \
           project/Common.scala \
           project/Dependencies.scala > /tmp/dependencies.cache.tmp
-  restore_build: &restore_build
+
+  restore_integration_tests_source_code: &restore_integration_tests_source_code
     restore_cache:
       keys:
-        - sbt-build-1.0.0-{{ .Branch }}-{{ .Revision }}
-        - sbt-build-1.0.0
+        - integration-tests-source-code-0.0.3
+  restore_maven_dependencies: &restore_maven_dependencies
+    restore_cache:
+      keys:
+        - maven-dependencies-0.0.3-{{ checksum "pom.xml" }}
+        - maven-dependencies-0.0.3
+
+  run_integration_tests: &run_integration_tests
+    machine: true
+    working_directory: ~/integration-tests
+    steps:
+      - *restore_integration_tests_source_code
+      - *restore_maven_dependencies
+      - run:
+          name: Install codacy-analysis-cli
+          command: |
+            curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
+            cd codacy-analysis-cli-* && sudo make install
+            rm -rf codacy-analysis-cli-*
+      - run:
+          name: Run tests
+          command: mvn test -Dsurefire.suiteXmlFiles=$TEST_PATH
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
+      - store_artifacts:
+          path: ExtentReports/
 
 jobs:
   checkout_code:
-    docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          JAVA_OPTS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1'
-    environment:
-      # Customize the JVM maximum heap limit
-      JAVA_OPTS: -Xmx3200m
-    working_directory: ~/workdir
+    <<: *default_java_job
     steps:
       - *restore_source_code
       - checkout
       - save_cache:
-          key: source-code-1.0.0-{{ .Branch }}-{{ .Revision }}
+          key: source-code-0.0.3-{{ .Branch }}-{{ .Revision }}
           paths:
             - ~/workdir
 
   sbt_dependencies:
-    docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          JAVA_OPTS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1'
-    environment:
-      # Customize the JVM maximum heap limit
-      JAVA_OPTS: -Xmx3200m
-    working_directory: ~/workdir
+    <<: *default_java_job
     steps:
       - *restore_source_code
       - *setup_dependencies_key
@@ -68,17 +109,10 @@ jobs:
           paths:
             - ~/.ivy2
             - ~/.sbt
-          key: sbt-ivy2-dependencies-1.0.0-{{ checksum "/tmp/dependencies.cache.tmp" }}
+          key: sbt-ivy2-dependencies-0.0.3-{{ checksum "/tmp/dependencies.cache.tmp" }}
 
   compile:
-    docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          JAVA_OPTS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1'
-    environment:
-      # Customize the JVM maximum heap limit
-      JAVA_OPTS: -Xmx3200m
-    working_directory: ~/workdir
+    <<: *default_java_job
     steps:
       - *restore_source_code
       - *setup_dependencies_key
@@ -91,13 +125,12 @@ jobs:
           paths:
             - ~/workdir/target
             - ~/workdir/project/target
-          key: sbt-build-1.0.0-{{ .Branch }}-{{ .Revision }}
+          key: sbt-build-0.0.3-{{ .Branch }}-{{ .Revision }}
 
   test:
     machine: true
     environment:
-      # Customize the JVM maximum heap limit
-      JAVA_OPTS: -Xmx3200m
+      <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
       - *restore_source_code
@@ -123,14 +156,7 @@ jobs:
           path: ~/workdir/target/scala-2.12/scoverage-data
 
   lint:
-    docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          JAVA_OPTS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1'
-    environment:
-      # Customize the JVM maximum heap limit
-      JAVA_OPTS: -Xmx3200m
-    working_directory: ~/workdir
+    <<: *default_java_job
     steps:
       - *restore_source_code
       - *setup_dependencies_key
@@ -143,8 +169,7 @@ jobs:
   publish:
     machine: true
     environment:
-      # Customize the JVM maximum heap limit
-      JAVA_OPTS: -Xmx3200m
+      <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
       - *restore_source_code
@@ -162,6 +187,47 @@ jobs:
               docker push codacy/$CIRCLE_PROJECT_REPONAME:latest
             fi
             docker push codacy/$CIRCLE_PROJECT_REPONAME:0.1.0-alpha2.$CIRCLE_BUILD_NUM
+
+  checkout_integration_tests_source_code:
+    <<: *default_java_job
+    steps:
+      - *restore_source_code
+      - checkout
+      - *restore_integration_tests_source_code
+      - run:
+          name: Checkout integration tests
+          command: |
+            ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+            ~/workdir/scripts/checkout.sh git@bitbucket.org:qamine/codacy-website-qa-automation ~/integration-tests master
+      - save_cache:
+          key: integration-tests-source-code-0.0.3
+          paths:
+            - ~/integration-tests
+
+  maven_dependencies:
+    <<: *default_java_job
+    working_directory: ~/integration-tests
+    steps:
+      - *restore_integration_tests_source_code
+      - *restore_maven_dependencies
+      - run: mvn dependency:go-offline
+      - run:
+          name: Compile tests
+          command: mvn test-compile
+      - save_cache:
+          key: maven-dependencies-0.0.3-{{ checksum "pom.xml" }}
+          paths:
+            - ~/.m2
+
+  test_integration:
+    <<: *run_integration_tests
+    environment:
+      TEST_PATH: Suite/CLI/QA.xml
+
+  test_production:
+    <<: *run_integration_tests
+    environment:
+      TEST_PATH: Suite/CLI/PROD.xml
 
 workflows:
   version: 2
@@ -182,11 +248,47 @@ workflows:
           requires:
             - compile
       - publish:
-          type: approval
           requires:
             - test
             - lint
+            - test_integration
           filters:
             branches:
               only:
                 - master
+      - checkout_integration_tests_source_code:
+          filters:
+            branches:
+              only:
+                - master
+      - maven_dependencies:
+          requires:
+            - checkout_integration_tests_source_code
+          filters:
+            branches:
+              only:
+                - master
+      - test_integration:
+          requires:
+            - maven_dependencies
+          filters:
+            branches:
+              only:
+                - master
+
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *" # Every day “At minute 00:00”
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - checkout_integration_tests_source_code
+      - maven_dependencies:
+          requires:
+            - checkout_integration_tests_source_code
+      - test_production:
+          requires:
+            - maven_dependencies
