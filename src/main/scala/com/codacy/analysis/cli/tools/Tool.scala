@@ -135,8 +135,7 @@ object Tool {
   val allEnterpriseToolShortNames: Set[String] =
     PluginHelper.dockerEnterprisePlugins.map(_.shortName)(collection.breakOut)
 
-  val allToolShortNames: Set[String] = allEnterpriseToolShortNames ++ PluginHelper.dockerPlugins.map(_.shortName)(
-    collection.breakOut)
+  val allToolShortNames: Set[String] = allEnterpriseToolShortNames ++ PluginHelper.dockerPlugins.map(_.shortName)
 }
 
 class ToolCollector(allowNetwork: Boolean) {
