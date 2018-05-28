@@ -106,6 +106,8 @@ docker run \
 * `--parallel` [default: 2] - Number of tools to run in parallel
 * `--max-allowed-issues` [default: 0] - Maximum number of issues allowed for the analysis to succeed
 * `--fail-if-incomplete` [default: false] - Fail the analysis if any tool fails to run
+* `--allow-network` [default: false] - Allow network access, so tools that need it can execute (e.g. findbugs)
+
 
 ### Local configuration
 

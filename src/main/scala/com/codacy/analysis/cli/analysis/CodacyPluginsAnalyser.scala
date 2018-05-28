@@ -35,12 +35,18 @@ object CodacyPluginsAnalyser extends AnalyserCompanion[Try] {
 
   private val allToolShortNames = Tool.allToolShortNames
 
+  private val internetToolShortNames = Tool.internetToolShortNames
+
   override def apply(): Analyser[Try] = new CodacyPluginsAnalyser()
 
   object errors {
 
     def missingTool(tool: String): String = {
-      s"Could not find tool $tool in (${allToolShortNames.mkString(", ")})"
+      if (internetToolShortNames.contains(tool)) {
+        s"The tool $tool needs network access to execute. Run with the parameter 'allow-network'."
+      } else {
+        s"Could not find tool $tool in (${allToolShortNames.mkString(", ")})"
+      }
     }
   }
 

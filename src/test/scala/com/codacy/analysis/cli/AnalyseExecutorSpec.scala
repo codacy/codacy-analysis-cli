@@ -218,7 +218,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       analyser,
       fileCollector,
       remoteProjectConfiguration,
-      None).run() must beRight
+      None,
+      false).run() must beRight
   }
 
   "AnalyseExecutor.tools" should {
@@ -238,7 +239,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           Set(ToolConfiguration("InvalidToolName", isEnabled = true, notEdited = false, Set.empty))))
 
       val toolEither =
-        AnalyseExecutor.tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget)
+        AnalyseExecutor
+          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget, allowNetwork = false)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -261,7 +263,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
             ToolConfiguration("34225275-f79e-4b85-8126-c7512c987c0d", isEnabled = true, notEdited = false, Set.empty))))
 
       val toolEither =
-        AnalyseExecutor.tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget)
+        AnalyseExecutor
+          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget, allowNetwork = false)
       toolEither must beLeft
     }
 
@@ -283,7 +286,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
             ToolConfiguration("anotherRandomTool", isEnabled = false, notEdited = false, Set.empty))))
 
       val toolEither =
-        AnalyseExecutor.tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget)
+        AnalyseExecutor
+          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget, allowNetwork = false)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -292,13 +296,15 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       }
     }
 
-    "fallback to finding tools if remove configuration is not present" in {
+    "fallback to finding tools if remote configuration is not present" in {
       val userInput = None
       val remoteProjectConfiguration = Left("some error")
 
       val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rb").path))
 
-      val toolEither = AnalyseExecutor.tools(userInput, noLocalConfiguration, remoteProjectConfiguration, filesTarget)
+      val toolEither =
+        AnalyseExecutor
+          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = false)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -306,7 +312,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       }
     }
 
-    "fallback to finding tools (with custom extensions) if remove configuration is not present" in {
+    "fallback to finding tools (with custom extensions) if remote configuration is not present" in {
       val userInput = None
       val remoteProjectConfiguration = Left("some error")
 
@@ -318,7 +324,9 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           Option.empty,
           Option(Map(Languages.Java -> LanguageConfiguration(Option(Set("rawr")))))))
 
-      val toolEither = AnalyseExecutor.tools(userInput, localConfiguration, remoteProjectConfiguration, filesTarget)
+      val toolEither =
+        AnalyseExecutor
+          .tools(userInput, localConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = true)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>

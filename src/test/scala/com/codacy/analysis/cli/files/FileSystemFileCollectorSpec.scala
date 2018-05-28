@@ -4,7 +4,7 @@ import better.files.File
 import cats.implicits._
 import com.codacy.analysis.cli.clients.api._
 import com.codacy.analysis.cli.configuration.{CodacyConfigurationFile, EngineConfiguration, LanguageConfiguration}
-import com.codacy.analysis.cli.tools.Tool
+import com.codacy.analysis.cli.tools.ToolCollector
 import com.codacy.api.dtos.Languages
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
@@ -15,6 +15,8 @@ import scala.util.Success
 class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures {
 
   val fsFc = new FileSystemFileCollector()
+
+  val toolCollector = new ToolCollector(false)
 
   val expectedFiles = List(
     "src/main/resources/docs/directory-tests/rails3/config/initializers/inflections.rb",
@@ -345,7 +347,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38"), directory.toJava).!
 
-        val tool = Tool.from("brakeman").right.get
+        val tool = toolCollector.from("brakeman").right.get
 
         val result = for {
           filesTargetGlobal <- fsFc.list(
@@ -394,7 +396,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
-        val tool = Tool.from("scalastyle").right.get
+        val tool = toolCollector.from("scalastyle").right.get
 
         val result = for {
           filesTargetGlobal <- fsFc.list(directory, "Local configuration not found".asLeft, remoteConfiguration)
@@ -434,7 +436,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
-        val tool = Tool.from("scalastyle").right.get
+        val tool = toolCollector.from("scalastyle").right.get
 
         val result = for {
           filesTargetGlobal <- fsFc.list(directory, localConfiguration, "Remote configuration not found".asLeft)
