@@ -5,7 +5,7 @@ import java.nio.file.Path
 import cats.implicits._
 import codacy.docker
 import com.codacy.analysis.cli.clients.api.{CodacyError, ProjectConfiguration, RemoteResultResponse}
-import com.codacy.analysis.cli.model.{Result, ToolResults}
+import com.codacy.analysis.cli.model.{FileResults, ToolResults}
 import com.codacy.analysis.cli.utils.HttpHelper
 import com.codacy.api.dtos.{Language, Languages}
 import io.circe.generic.auto._
@@ -35,7 +35,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
-  def sendRemoteResults(tool: String, commitUuid: String, results: Set[Result]): Future[Either[String, Unit]] = {
+  def sendRemoteResults(tool: String, commitUuid: String, results: Set[FileResults]): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
         sendRemoteResultsTo(s"/${token.userName}/${token.projectName}/commit/$commitUuid/remoteResults", tool, results)
@@ -60,7 +60,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     getProjectConfigurationFrom(s"/project/$username/$projectName/analysis/configuration")
   }
 
-  private def sendRemoteResultsTo(endpoint: String, tool: String, results: Set[Result]): Future[Either[String, Unit]] =
+  private def sendRemoteResultsTo(endpoint: String,
+                                  tool: String,
+                                  results: Set[FileResults]): Future[Either[String, Unit]] =
     Future {
       http.post(endpoint, Some(Seq(ToolResults(tool, results)).asJson)) match {
         case Left(error) =>

@@ -80,11 +80,11 @@ class MainImpl extends CLIApp {
     } yield {
       uploaderOpt.map { uploader =>
         val uploadResults = executorResults.map {
-          case ExecutorResult(toolName, Success(results)) =>
+          case ExecutorResult(toolName, files, Success(results)) =>
             logger.info(s"Going to upload ${results.size} results for $toolName")
-            uploader.sendResults(toolName, results)
+            uploader.sendResults(toolName, files, results)
 
-          case ExecutorResult(toolName, Failure(err)) =>
+          case ExecutorResult(toolName, _, Failure(err)) =>
             logger.warn(s"Skipping upload for $toolName since analysis failed: ${err.getMessage}")
             Future.successful(().asRight[String])
         }

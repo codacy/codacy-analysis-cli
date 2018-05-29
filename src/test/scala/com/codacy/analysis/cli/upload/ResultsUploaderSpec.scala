@@ -4,14 +4,13 @@ import better.files.File
 import cats.implicits._
 import com.codacy.analysis.cli.clients.CodacyClient
 import com.codacy.analysis.cli.clients.api._
-import com.codacy.analysis.cli.model.Result
+import com.codacy.analysis.cli.model.{FileResults, Result}
 import com.codacy.analysis.cli.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito._
 import org.mockito.invocation.InvocationOnMock
-import org.mockito.stubbing.OngoingStubbing
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.{FutureMatchers, MatchResult}
 import org.specs2.mock.Mockito
@@ -53,16 +52,18 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
     } yield exampleResults
 
     val exampleResults = exampleResultsEither.right.get
-    testBatchSize(exampleResults)(-10, "sending batches of -10 results in each payload - should use default")
-    testBatchSize(exampleResults)(0, "sending batches of 0 results in each payload - should use default")
-    testBatchSize(exampleResults)(100, "sending batches of 100 results in each payload - should use 100")
+    testBatchSize(exampleResults)(-10, "sending batches of -10 results in each payload - should use default", 1)
+    testBatchSize(exampleResults)(0, "sending batches of 0 results in each payload - should use default", 1)
+    testBatchSize(exampleResults)(5, "sending batches of 5 results in each payload - should use 5", 13)
     testBatchSize(exampleResults)(
       5000,
-      "sending batches of 5000 (> results.length) results in each payload - should use results.length")
+      "sending batches of 5000 (> results.length) results in each payload - should use results.length",
+      1)
 
   }
 
-  private def testBatchSize(exampleResults: Set[Result])(batchSize: Int, message: String): Fragment = {
+  private def testBatchSize(
+    exampleResults: Set[Result])(batchSize: Int, message: String, expectedNrOfBatches: Int): Fragment = {
     val esLintPatternsInternalIds = Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
 
     s"analyse a javascript project with eslint, $message".stripMargin in {
@@ -72,19 +73,24 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       val codacyClient = mock[CodacyClient]
       val uploader: ResultsUploader =
         ResultsUploader(Option(codacyClient), upload = true, Option(commitUuid), Option(batchSize)).right.get.get
-      val actualBatchSize = if (batchSize > 0) batchSize else uploader.defaultBatchSize
+
+      when(
+        codacyClient.sendRemoteResults(
+          ArgumentMatchers.eq(tool),
+          ArgumentMatchers.eq(commitUuid),
+          ArgumentMatchers.any[Set[FileResults]])).thenAnswer((invocation: InvocationOnMock) => {
+        Future.successful(().asRight[String])
+      })
 
       when(codacyClient.getRemoteConfiguration).thenReturn(getMockedRemoteConfiguration(toolPatterns))
-
-      verifyBatchSize(codacyClient, tool, commitUuid, actualBatchSize)
 
       when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
 
       // scalafix:off NoInfer.any
-      uploader.sendResults(tool, exampleResults) must beRight.awaitFor(10.minutes)
+      uploader.sendResults(tool, Set.empty, exampleResults) must beRight.awaitFor(10.minutes)
       // scalafix:on NoInfer.any
 
-      verifyNumberOfCalls(exampleResults)(codacyClient, tool, commitUuid, actualBatchSize)
+      verifyNumberOfCalls(codacyClient, tool, commitUuid, expectedNrOfBatches)
     }
   }
 
@@ -97,30 +103,16 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       .asRight[String]
   }
 
-  private def verifyBatchSize(codacyClient: CodacyClient,
-                              tool: String,
-                              commitUuid: String,
-                              batchSize: Int): OngoingStubbing[Future[Either[String, Unit]]] = {
-    when(codacyClient
-      .sendRemoteResults(ArgumentMatchers.eq(tool), ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Set[Result]]))
-      .thenAnswer((invocation: InvocationOnMock) => {
-        val a = invocation.getArguments()(2).asInstanceOf[Set[Result]]
-        a.size must beLessThanOrEqualTo(batchSize)
-        Future.successful(().asRight[String])
-      })
-  }
-
-  private def verifyNumberOfCalls(exampleResults: Set[Result])(
-    codacyClient: CodacyClient,
-    tool: String,
-    commitUuid: String,
-    batchSize: Int): MatchResult[Future[Either[String, Unit]]] = {
-    val numBatchesDouble: Double = exampleResults.size.toDouble / batchSize.toDouble
-    val numBatches = Math.ceil(numBatchesDouble).toInt
-
-    there was numBatches
+  private def verifyNumberOfCalls(codacyClient: CodacyClient,
+                                  tool: String,
+                                  commitUuid: String,
+                                  expectedNrOfBatches: Int): MatchResult[Future[Either[String, Unit]]] = {
+    there was expectedNrOfBatches
       .times(codacyClient)
-      .sendRemoteResults(ArgumentMatchers.eq(tool), ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Set[Result]])
+      .sendRemoteResults(
+        ArgumentMatchers.eq(tool),
+        ArgumentMatchers.eq(commitUuid),
+        ArgumentMatchers.any[Set[FileResults]])
 
     there was one(codacyClient).sendEndOfResults(ArgumentMatchers.eq(commitUuid))
   }

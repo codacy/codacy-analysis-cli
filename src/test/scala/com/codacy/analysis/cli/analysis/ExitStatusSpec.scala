@@ -26,6 +26,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
         Right(
           Seq(ExecutorResult(
             "MyTool",
+            Set(Paths.get("Test.scala")),
             // scalafmt: { binPack.defnSite = true }
             Success(Set(
               Issue(
@@ -57,6 +58,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
         Right(
           Seq(ExecutorResult(
             "MyTool",
+            Set(Paths.get("Test.scala")),
             // scalafmt: { binPack.defnSite = true }
             Success(Set(
               Issue(
@@ -84,21 +86,26 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
     }
 
     "send success code when no issues" in {
-      new ExitStatus(10).exitCode(Right(Seq(ExecutorResult("MyTool", Success(Set())))), Right(())) should beEqualTo(
-        ExitStatus.ExitCodes.success)
+      new ExitStatus(10).exitCode(
+        Right(Seq(ExecutorResult("MyTool", Set(Paths.get("Test.scala")), Success(Set())))),
+        Right(())) should beEqualTo(ExitStatus.ExitCodes.success)
     }
 
     "send partial failure when some tools fail" in {
       new ExitStatus(10, failIfIncomplete = true).exitCode(
         Right(
-          Seq(ExecutorResult("MyTool", Success(Set())), ExecutorResult("MyTool", Failure(new Exception("Failed"))))),
+          Seq(
+            ExecutorResult("MyTool", Set(), Success(Set())),
+            ExecutorResult("MyTool", Set(Paths.get("Test.scala")), Failure(new Exception("Failed"))))),
         Right(())) should beEqualTo(ExitStatus.ExitCodes.partiallyFailedAnalysis)
     }
 
     "send ok when some tools fail and incomplete not requested" in {
       new ExitStatus(10, failIfIncomplete = false).exitCode(
         Right(
-          Seq(ExecutorResult("MyTool", Success(Set())), ExecutorResult("MyTool", Failure(new Exception("Failed"))))),
+          Seq(
+            ExecutorResult("MyTool", Set(), Success(Set())),
+            ExecutorResult("MyTool", Set(Paths.get("Test.scala")), Failure(new Exception("Failed"))))),
         Right(())) should beEqualTo(ExitStatus.ExitCodes.success)
     }
 

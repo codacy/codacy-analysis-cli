@@ -34,6 +34,8 @@ object Issue {
 
 final case class FileError(filename: Path, message: String) extends Result
 
+final case class FileResults(filename: Path, results: Set[Result])
+
 sealed trait ResultsSet
 
-final case class ToolResults(tool: String, results: Set[Result]) extends ResultsSet
+final case class ToolResults(tool: String, fileResults: Set[FileResults]) extends ResultsSet
