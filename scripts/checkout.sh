@@ -30,5 +30,3 @@ fi
 
 git fetch --force origin "$BRANCH:remotes/origin/$BRANCH"
 git reset --hard "origin/$BRANCH"
-git checkout -q -B "$BRANCH"
-git reset --hard "$BRANCH"
