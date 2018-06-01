@@ -1,10 +1,12 @@
 package com.codacy.analysis.cli.upload
 
+import java.nio.file.Path
+
 import better.files.File
 import cats.implicits._
 import com.codacy.analysis.cli.clients.CodacyClient
 import com.codacy.analysis.cli.clients.api._
-import com.codacy.analysis.cli.model.{FileResults, Result}
+import com.codacy.analysis.cli.model.{FileError, FileResults, Issue, Result}
 import com.codacy.analysis.cli.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
@@ -86,8 +88,13 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
       when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
 
+      val filenames: Set[Path] = exampleResults.map {
+        case i: Issue      => i.filename
+        case fe: FileError => fe.filename
+      }(collection.breakOut)
+
       // scalafix:off NoInfer.any
-      uploader.sendResults(tool, Set.empty, exampleResults) must beRight.awaitFor(10.minutes)
+      uploader.sendResults(tool, filenames, exampleResults) must beRight.awaitFor(10.minutes)
       // scalafix:on NoInfer.any
 
       verifyNumberOfCalls(codacyClient, tool, commitUuid, expectedNrOfBatches)

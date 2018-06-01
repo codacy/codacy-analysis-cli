@@ -70,19 +70,34 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
   private def uploadResultsBatch(tool: String,
                                  batchSize: Int,
                                  results: Set[FileResults]): Future[Either[String, Unit]] = {
-    val (_, remainingFileResults, uploadResponses) =
-      results.foldLeft((0, Set.empty[FileResults], Seq.empty[Future[Either[String, Unit]]])) {
-        case ((accumulatedResultsSize, accumulatedFileResults, responses), fileResults)
-            if (accumulatedResultsSize + fileResults.results.size) >= batchSize =>
-          val response = codacyClient.sendRemoteResults(tool, commitUuid, accumulatedFileResults)
-          (fileResults.results.size, Set(fileResults), responses :+ response)
+    val fileResultBatches = splitInBatches(batchSize, results)
+    uploadResultBatches(tool, fileResultBatches)
+  }
 
-        case ((accumulatedResultsSize, accumulatedFileResults, responses), fileResults) =>
-          (accumulatedResultsSize + fileResults.results.size, accumulatedFileResults + fileResults, responses)
+  private def uploadResultBatches(tool: String,
+                                  fileResultBatches: Seq[Set[FileResults]]): Future[Either[String, Unit]] = {
+    val responses = fileResultBatches.map { fileResultBatch =>
+      codacyClient.sendRemoteResults(tool, commitUuid, fileResultBatch)
+    }
+    sequenceUploads(responses)
+  }
+
+  private def splitInBatches(batchSize: Int, results: Set[FileResults]): List[Set[FileResults]] = {
+
+    def exceedsBatch(accumulatedFileResults: Set[FileResults], fileResults: FileResults): Boolean = {
+      (accumulatedFileResults.map(_.results.size).sum + fileResults.results.size) >= batchSize
+    }
+
+    val (remainingFileResults, fileResultBatches) =
+      results.foldLeft((Set.empty[FileResults], List.empty[Set[FileResults]])) {
+        case ((accumulatedFileResults, resultBatches), fileResults)
+            if exceedsBatch(accumulatedFileResults, fileResults) =>
+          (Set(fileResults), resultBatches :+ accumulatedFileResults)
+
+        case ((accumulatedFileResults, resultBatches), fileResults) =>
+          (accumulatedFileResults + fileResults, resultBatches)
       }
-    val response = codacyClient.sendRemoteResults(tool, commitUuid, remainingFileResults)
-
-    sequenceUploads(uploadResponses :+ response)
+    fileResultBatches :+ remainingFileResults
   }
 
   private def groupResultsByFile(files: Set[Path], results: Set[Result]): Set[FileResults] = {
@@ -91,13 +106,7 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
       case fe: FileError => fe.filename
     }
 
-    val filesWithResults: Set[FileResults] = resultsByFile.map {
-      case (filename, fileResults) => FileResults(filename, fileResults)
-    }(collection.breakOut)
-
-    val filesWithoutResults: Set[FileResults] = files.diff(resultsByFile.keySet).map(FileResults(_, Set.empty[Result]))
-
-    filesWithResults ++ filesWithoutResults
+    files.map(filename => FileResults(filename, resultsByFile.getOrElse(filename, Set())))(collection.breakOut)
   }
 
   private def sequenceUploads(uploads: Seq[Future[Either[String, Unit]]]): Future[Either[String, Unit]] = {
