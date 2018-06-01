@@ -1,5 +1,7 @@
 package com.codacy.analysis.cli.command.analyse
 
+import java.nio.file.Path
+
 import better.files.File
 import com.codacy.analysis.cli.analysis.Analyser
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
@@ -50,9 +52,9 @@ class AnalyseExecutor(toolInput: Option[String],
         SetOps.mapInParallel(tools, nrParallelTools) { tool =>
           val analysisResults: Try[Set[Result]] = analyseFiles(tool, filesTarget, localConfigurationFile)
 
-          analysisResults.foreach(ress => formatter.addAll(ress.to[List]))
+          analysisResults.foreach(results => formatter.addAll(results.to[List]))
 
-          ExecutorResult(tool.name, analysisResults)
+          ExecutorResult(tool.name, filesTarget.files, analysisResults)
         }
     }
 
@@ -140,7 +142,7 @@ class AnalyseExecutor(toolInput: Option[String],
 
 object AnalyseExecutor {
 
-  final case class ExecutorResult(toolName: String, analysisResults: Try[Set[Result]])
+  final case class ExecutorResult(toolName: String, files: Set[Path], analysisResults: Try[Set[Result]])
 
   def tools(toolInput: Option[String],
             localConfiguration: Either[String, CodacyConfigurationFile],
