@@ -106,7 +106,8 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
       case fe: FileError => fe.filename
     }
 
-    files.map(filename => FileResults(filename, resultsByFile.getOrElse(filename, Set())))(collection.breakOut)
+    files.map(filename => FileResults(filename, resultsByFile.getOrElse(filename, Set.empty[Result])))(
+      collection.breakOut)
   }
 
   private def sequenceUploads(uploads: Seq[Future[Either[String, Unit]]]): Future[Either[String, Unit]] = {
