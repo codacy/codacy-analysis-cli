@@ -69,7 +69,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
           logger.error(error)(s"Error posting data to endpoint $endpoint")
           Left(error.message)
         case Right(json) =>
-          logger.info(s"""Success posting batch of results to endpoint "$endpoint" """)
+          logger.info(s"""Success posting batch of ${results.size} results to endpoint "$endpoint" """)
           validateRemoteResultsResponse(json)
       }
     }
@@ -81,7 +81,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
         Left(error.message)
       case Right(json) =>
         logger.info(s"""Success posting end of results to endpoint "$endpoint" """)
-        validateRemoteResultsResponse(json)
+        validateRemoteResultsResponse(json, isEnd = true)
     }
   }
 
@@ -103,20 +103,22 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
-  private def validateRemoteResultsResponse(json: Json): Either[String, Unit] = {
-    parse[RemoteResultResponse]("sending results", json).map { _ =>
+  private def validateRemoteResultsResponse(json: Json, isEnd: Boolean = false): Either[String, Unit] = {
+    val action = if (isEnd) "end of results" else "sending results"
+    val message = s"Endpoint for $action replyed with an error"
+    parse[RemoteResultResponse](message, json).map { _ =>
       logger.info("Success parsing remote results response ")
       ()
     }
   }
 
-  private def parse[T](action: String, json: Json)(implicit decoder: Decoder[T]): Either[String, T] = {
+  private def parse[T](message: String, json: Json)(implicit decoder: Decoder[T]): Either[String, T] = {
     json.as[T].leftMap { error =>
       json.as[CodacyError] match {
         case Right(codacyError) =>
-          val message = s"Error $action: ${codacyError.error}"
-          logger.error(message)
-          message
+          val fullMessage = s"Error: $message : ${codacyError.error}"
+          logger.error(fullMessage)
+          fullMessage
         case _ =>
           logger.error(error)(s"Error parsing remote results upload response: $json")
           error.message
