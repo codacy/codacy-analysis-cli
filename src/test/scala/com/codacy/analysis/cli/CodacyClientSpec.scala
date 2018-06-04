@@ -90,7 +90,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
             // scalafix:on NoInfer.any
             remoteResults must beLike[Either[String, Unit]] {
               case Left(errorMsg) =>
-                errorMsg mustEqual "Error sending results: failed!"
+                errorMsg mustEqual "Error: Endpoint for sending results replyed with an error : failed!"
             }.awaitFor(Int.MaxValue.seconds)
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
@@ -121,7 +121,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
             // scalafix:on NoInfer.any
             endOfResults must beLike[Either[String, Unit]] {
               case Left(errorMsg) =>
-                errorMsg mustEqual "Error sending results: failed!"
+                errorMsg mustEqual "Error: Endpoint for end of results replyed with an error : failed!"
             }.awaitFor(Int.MaxValue.seconds)
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
@@ -148,7 +148,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
             remoteConfig must beLeft
             remoteConfig must beLike {
               case Left(errorMsg) =>
-                errorMsg mustEqual "Error getting Project Configuration: failed!"
+                errorMsg mustEqual "Error: getting Project Configuration : failed!"
             }
             there was one(httpHelper).get(ArgumentMatchers.any[String])
           }
