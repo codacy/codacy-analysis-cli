@@ -22,19 +22,19 @@ references:
   restore_source_code: &restore_source_code
     restore_cache:
       keys:
-        - source-code-1.0.3-{{ .Branch }}-{{ .Revision }}
-        - source-code-1.0.3-{{ .Branch }}
-        - source-code-1.0.3
+        - source-code-1.0.4-{{ .Branch }}-{{ .Revision }}
+        - source-code-1.0.4-{{ .Branch }}
+        - source-code-1.0.4
   restore_dependencies: &restore_dependencies
     restore_cache:
       keys:
-        - sbt-ivy2-dependencies-1.0.3-{{ checksum "/tmp/dependencies.cache.tmp" }}
-        - sbt-ivy2-dependencies-1.0.3
+        - sbt-ivy2-dependencies-1.0.4-{{ checksum "/tmp/dependencies.cache.tmp" }}
+        - sbt-ivy2-dependencies-1.0.4
   restore_build: &restore_build
     restore_cache:
       keys:
-        - sbt-build-1.0.3-{{ .Branch }}-{{ .Revision }}
-        - sbt-build-1.0.3
+        - sbt-build-1.0.4-{{ .Branch }}-{{ .Revision }}
+        - sbt-build-1.0.4
 
   setup_dependencies_key: &setup_dependencies_key
     run:
@@ -49,12 +49,12 @@ references:
   restore_integration_tests_source_code: &restore_integration_tests_source_code
     restore_cache:
       keys:
-        - integration-tests-source-code-1.0.3-{{ .Environment.CIRCLE_SHA1 }}
+        - integration-tests-source-code-1.0.4-{{ .Environment.CIRCLE_WORKFLOW_ID }}
   restore_maven_dependencies: &restore_maven_dependencies
     restore_cache:
       keys:
-        - maven-dependencies-1.0.3-{{ checksum "pom.xml" }}
-        - maven-dependencies-1.0.3
+        - maven-dependencies-1.0.4-{{ checksum "pom.xml" }}
+        - maven-dependencies-1.0.4
 
   run_integration_tests: &run_integration_tests
     machine: true
@@ -91,7 +91,7 @@ jobs:
       - *restore_source_code
       - checkout
       - save_cache:
-          key: source-code-1.0.3-{{ .Branch }}-{{ .Revision }}
+          key: source-code-1.0.4-{{ .Branch }}-{{ .Revision }}
           paths:
             - ~/workdir
 
@@ -109,7 +109,7 @@ jobs:
           paths:
             - ~/.ivy2
             - ~/.sbt
-          key: sbt-ivy2-dependencies-1.0.3-{{ checksum "/tmp/dependencies.cache.tmp" }}
+          key: sbt-ivy2-dependencies-1.0.4-{{ checksum "/tmp/dependencies.cache.tmp" }}
 
   compile:
     <<: *default_java_job
@@ -125,7 +125,7 @@ jobs:
           paths:
             - ~/workdir/target
             - ~/workdir/project/target
-          key: sbt-build-1.0.3-{{ .Branch }}-{{ .Revision }}
+          key: sbt-build-1.0.4-{{ .Branch }}-{{ .Revision }}
 
   test:
     machine: true
@@ -200,7 +200,7 @@ jobs:
             ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
             ~/workdir/scripts/checkout.sh git@bitbucket.org:qamine/codacy-website-qa-automation ~/integration-tests master
       - save_cache:
-          key: integration-tests-source-code-1.0.3-{{ .Environment.CIRCLE_SHA1 }}
+          key: integration-tests-source-code-1.0.4-{{ .Environment.CIRCLE_WORKFLOW_ID }}
           paths:
             - ~/integration-tests
 
@@ -215,7 +215,7 @@ jobs:
           name: Compile tests
           command: mvn test-compile
       - save_cache:
-          key: maven-dependencies-1.0.3-{{ checksum "pom.xml" }}
+          key: maven-dependencies-1.0.4-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
 
