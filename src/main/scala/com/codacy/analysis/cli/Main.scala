@@ -50,17 +50,19 @@ class MainImpl extends CLIApp {
           analyse.allowNetworkValue).run()
 
         val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
-        val uploadResult = Try(Await.result(uploadResultFut, Duration.Inf)) match {
-          case Failure(err) =>
-            logger.error(err.getMessage)
-            Left(err.getMessage)
-          case Success(Left(err)) =>
-            logger.warn(err)
-            Left(err)
-          case Success(Right(_)) =>
-            logger.info("Completed upload of results to API")
-            Right(())
-        }
+        val uploadResult = if (analyse.uploadValue) {
+          Try(Await.result(uploadResultFut, Duration.Inf)) match {
+            case Failure(err) =>
+              logger.error(err.getMessage)
+              Left(err.getMessage)
+            case Success(Left(err)) =>
+              logger.warn(err)
+              Left(err)
+            case Success(Right(_)) =>
+              logger.info("Completed upload of results to API")
+              Right(())
+          }
+        } else Right(())
 
         exit(
           new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
