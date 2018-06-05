@@ -58,10 +58,18 @@ references:
 
   run_integration_tests: &run_integration_tests
     machine: true
+    docker_layer_caching: true
     working_directory: ~/integration-tests
     steps:
       - *restore_integration_tests_source_code
       - *restore_maven_dependencies
+      - run:
+          name: Setup codacy-analysis-cli version for integration tests
+          command: |
+          if [[ -z "$CODACY_CLI_VERSION" ]]
+          then
+            echo 'export CODACY_CLI_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"' >> $BASH_ENV
+          fi
       - run:
           name: Install codacy-analysis-cli
           command: |
@@ -168,8 +176,9 @@ jobs:
           name: Lint
           command: ./scripts/lint.sh
 
-  publish:
+  publish_locally:
     machine: true
+    docker_layer_caching: true
     environment:
       <<: *host_environment_defaults
     working_directory: ~/workdir
@@ -180,7 +189,15 @@ jobs:
       - *restore_build
       - run:
           name: Publish local docker
-          command: ./scripts/publish.sh 0.1.0-alpha2.$CIRCLE_BUILD_NUM
+          command: ./scripts/publish.sh 0.1.0-alpha3.$CIRCLE_BUILD_NUM
+
+  publish_dockerhub:
+    machine: true
+    docker_layer_caching: true
+    environment:
+      <<: *host_environment_defaults
+    working_directory: ~/workdir
+    steps:
       - deploy:
           name: Push docker to DockerHub
           command: |
@@ -188,7 +205,7 @@ jobs:
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
               docker push codacy/$CIRCLE_PROJECT_REPONAME:latest
             fi
-            docker push codacy/$CIRCLE_PROJECT_REPONAME:0.1.0-alpha2.$CIRCLE_BUILD_NUM
+            docker push codacy/$CIRCLE_PROJECT_REPONAME:0.1.0-alpha3.$CIRCLE_BUILD_NUM
 
   checkout_integration_tests_source_code:
     <<: *default_java_job
@@ -230,6 +247,7 @@ jobs:
     <<: *run_integration_tests
     environment:
       TEST_PATH: Suite/CLI/PROD.xml
+      CODACY_CLI_VERSION: latest
 
 workflows:
   version: 2

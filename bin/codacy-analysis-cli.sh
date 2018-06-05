@@ -26,6 +26,7 @@ test_docker_socket() {
 }
 
 run() {
+  local CODACY_CLI_VERSION="${CODACY_CLI_VERSION:-latest}"
   docker run \
     --rm \
     --env CODACY_CODE="$CODACY_CODE" \
@@ -35,7 +36,7 @@ run() {
     --volume /var/run/docker.sock:/var/run/docker.sock \
     --volume "$CODACY_CODE":"$CODACY_CODE" \
     --volume /tmp:/tmp \
-    codacy/codacy-analysis-cli -- \
+    codacy/codacy-analysis-cli:${CODACY_CLI_VERSION} -- \
     "$@"
 }
 
