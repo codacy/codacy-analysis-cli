@@ -1,5 +1,6 @@
 package com.codacy.analysis.cli
 
+import better.files._
 import cats.implicits._
 import com.codacy.analysis.cli.analysis.{Analyser, ExitStatus}
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
@@ -28,7 +29,9 @@ class MainImpl extends CLIApp {
   def run(command: Command): Unit = {
     command match {
       case analyse: Analyse =>
+        cleanup(analyse.directory)
         Logger.setLevel(analyse.options.verboseValue)
+
         val formatter: Formatter = Formatter(analyse.format, analyse.output)
         val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
         val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
@@ -96,4 +99,8 @@ class MainImpl extends CLIApp {
     }).fold(err => Future.successful(err.asLeft[Unit]), identity)
   }
 
+  private def cleanup(directoryOpt: Option[File]): Unit = {
+    val directory = directoryOpt.getOrElse(File.currentWorkingDirectory) / ".codacy.json"
+    directory.delete(swallowIOExceptions = true)
+  }
 }
