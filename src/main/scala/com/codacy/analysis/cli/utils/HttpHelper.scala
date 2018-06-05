@@ -21,7 +21,9 @@ class HttpHelper(apiUrl: Option[String], extraHeaders: Map[String, String]) {
   }
 
   def post(endpoint: String, dataOpt: Option[Json] = None): Either[ParsingFailure, Json] = {
-    val headers: Map[String, String] = Map("Content-Type" -> "application/json") ++ extraHeaders
+    val headers: Map[String, String] = dataOpt.fold(Map.empty[String, String]) { _ =>
+      Map("Content-Type" -> "application/json")
+    } ++ extraHeaders
 
     val request: HttpRequest = dataOpt.map { data =>
       Http(s"$remoteUrl$endpoint").postData(data.toString)
