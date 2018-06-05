@@ -144,8 +144,8 @@ jobs:
           name: Store test reports
           working_directory: ~/
           command: |
-            mkdir -p ~/coverage-reports/scoverage
-            cp -f ~/workdir/target/scala-2.12/coverage-report/cobertura.xml ~/coverage-reports/scoverage/results.xml
+            mkdir -p ~/coverage-reports
+            cp -rf ~/workdir/target/test-reports ~/coverage-reports/junit
       - store_test_results:
           path: ~/coverage-reports
       - store_artifacts:
@@ -154,6 +154,8 @@ jobs:
           path: ~/workdir/target/scala-2.12/scoverage-report
       - store_artifacts:
           path: ~/workdir/target/scala-2.12/scoverage-data
+      - store_artifacts:
+          path: ~/workdir/target/test-reports
 
   lint:
     <<: *default_java_job
