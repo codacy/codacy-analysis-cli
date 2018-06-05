@@ -105,7 +105,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   private def validateRemoteResultsResponse(json: Json, isEnd: Boolean = false): Either[String, Unit] = {
     val action = if (isEnd) "end of results" else "sending results"
-    val message = s"Endpoint for $action replyed with an error"
+    val message = s"Endpoint for $action replied with an error"
     parse[RemoteResultResponse](message, json).map { _ =>
       logger.info("Success parsing remote results response ")
       ()

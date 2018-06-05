@@ -90,7 +90,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
             // scalafix:on NoInfer.any
             remoteResults must beLike[Either[String, Unit]] {
               case Left(errorMsg) =>
-                errorMsg mustEqual "Error: Endpoint for sending results replyed with an error : failed!"
+                errorMsg mustEqual "Error: Endpoint for sending results replied with an error : failed!"
             }.awaitFor(Int.MaxValue.seconds)
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
@@ -121,7 +121,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
             // scalafix:on NoInfer.any
             endOfResults must beLike[Either[String, Unit]] {
               case Left(errorMsg) =>
-                errorMsg mustEqual "Error: Endpoint for end of results replyed with an error : failed!"
+                errorMsg mustEqual "Error: Endpoint for end of results replied with an error : failed!"
             }.awaitFor(Int.MaxValue.seconds)
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
