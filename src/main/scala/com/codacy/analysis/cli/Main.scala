@@ -1,5 +1,6 @@
 package com.codacy.analysis.cli
 
+import better.files._
 import cats.implicits._
 import com.codacy.analysis.cli.analysis.{Analyser, ExitStatus}
 import com.codacy.analysis.cli.clients.api.ProjectConfiguration
@@ -28,7 +29,9 @@ class MainImpl extends CLIApp {
   def run(command: Command): Unit = {
     command match {
       case analyse: Analyse =>
+        cleanup(analyse.directory)
         Logger.setLevel(analyse.options.verboseValue)
+
         val formatter: Formatter = Formatter(analyse.format, analyse.output)
         val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
         val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
@@ -50,17 +53,19 @@ class MainImpl extends CLIApp {
           analyse.allowNetworkValue).run()
 
         val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
-        val uploadResult = Try(Await.result(uploadResultFut, Duration.Inf)) match {
-          case Failure(err) =>
-            logger.error(err.getMessage)
-            Left(err.getMessage)
-          case Success(Left(err)) =>
-            logger.warn(err)
-            Left(err)
-          case Success(Right(_)) =>
-            logger.info("Completed upload of results to API")
-            Right(())
-        }
+        val uploadResult = if (analyse.uploadValue) {
+          Try(Await.result(uploadResultFut, Duration.Inf)) match {
+            case Failure(err) =>
+              logger.error(err.getMessage)
+              Left(err.getMessage)
+            case Success(Left(err)) =>
+              logger.warn(err)
+              Left(err)
+            case Success(Right(_)) =>
+              logger.info("Completed upload of results to API")
+              Right(())
+          }
+        } else Right(())
 
         exit(
           new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
@@ -94,4 +99,8 @@ class MainImpl extends CLIApp {
     }).fold(err => Future.successful(err.asLeft[Unit]), identity)
   }
 
+  private def cleanup(directoryOpt: Option[File]): Unit = {
+    val directory = directoryOpt.getOrElse(File.currentWorkingDirectory) / ".codacy.json"
+    directory.delete(swallowIOExceptions = true)
+  }
 }

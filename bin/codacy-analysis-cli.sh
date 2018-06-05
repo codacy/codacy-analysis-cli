@@ -29,6 +29,9 @@ run() {
   docker run \
     --rm \
     --env CODACY_CODE="$CODACY_CODE" \
+    --env CODACY_PROJECT_TOKEN="$CODACY_PROJECT_TOKEN" \
+    --env CODACY_API_TOKEN="$CODACY_API_TOKEN" \
+    --env CODACY_API_BASE_URL="$CODACY_API_BASE_URL" \
     --volume /var/run/docker.sock:/var/run/docker.sock \
     --volume "$CODACY_CODE":"$CODACY_CODE" \
     --volume /tmp:/tmp \

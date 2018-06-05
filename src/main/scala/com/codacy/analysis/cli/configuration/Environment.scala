@@ -60,7 +60,9 @@ class Environment(variables: Map[String, String]) {
 
   private def validate(name: String, paramType: String, param: String)(value: Option[String]): Option[String] = {
     value.ifEmpty(logger.info(s"$name not passed through $paramType `$param`")).flatMap {
-      case t if t.trim.nonEmpty => Option(t.trim)
+      case t if t.trim.nonEmpty =>
+        logger.info(s"$name found in $paramType `$param`")
+        Option(t.trim)
       case _ =>
         logger.warn(s"$name passed through $paramType `$param` is empty")
         Option.empty[String]
