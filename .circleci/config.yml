@@ -58,18 +58,22 @@ references:
 
   run_integration_tests: &run_integration_tests
     machine: true
-    docker_layer_caching: true
     working_directory: ~/integration-tests
     steps:
       - *restore_integration_tests_source_code
       - *restore_maven_dependencies
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Load docker from file
+          command: docker load --input /tmp/workspace/codacy-analysis-cli.tar
       - run:
           name: Setup codacy-analysis-cli version for integration tests
           command: |
-          if [[ -z "$CODACY_CLI_VERSION" ]]
-          then
-            echo 'export CODACY_CLI_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"' >> $BASH_ENV
-          fi
+            if [[ -z "$CODACY_ANALYSIS_CLI_VERSION" ]]
+            then
+              echo 'export CODACY_ANALYSIS_CLI_VERSION="$CIRCLE_BRANCH-SNAPSHOT"' >> $BASH_ENV
+            fi
       - run:
           name: Install codacy-analysis-cli
           command: |
@@ -133,6 +137,7 @@ jobs:
           paths:
             - ~/workdir/target
             - ~/workdir/project/target
+            - ~/workdir/project/project
           key: sbt-build-1.0.4-{{ .Branch }}-{{ .Revision }}
 
   test:
@@ -178,7 +183,6 @@ jobs:
 
   publish_locally:
     machine: true
-    docker_layer_caching: true
     environment:
       <<: *host_environment_defaults
     working_directory: ~/workdir
@@ -189,23 +193,42 @@ jobs:
       - *restore_build
       - run:
           name: Publish local docker
-          command: ./scripts/publish.sh 0.1.0-alpha3.$CIRCLE_BUILD_NUM
+          command: ./scripts/publish.sh $CIRCLE_BRANCH-SNAPSHOT
+      - run:
+          name: Save docker to file
+          command: |
+            mkdir workspace
+            docker save --output workspace/codacy-analysis-cli.tar codacy/$CIRCLE_PROJECT_REPONAME:$CIRCLE_BRANCH-SNAPSHOT
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - codacy-analysis-cli.tar
 
   publish_dockerhub:
     machine: true
-    docker_layer_caching: true
     environment:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Load docker from file
+          command: docker load --input /tmp/workspace/codacy-analysis-cli.tar
       - deploy:
           name: Push docker to DockerHub
           command: |
+            export PUBLISH_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"
+
             docker login -u $DOCKER_USER -p $DOCKER_PASS
+
+            docker tag codacy/$CIRCLE_PROJECT_REPONAME:$CIRCLE_BRANCH-SNAPSHOT codacy/$CIRCLE_PROJECT_REPONAME:$PUBLISH_VERSION
+
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
               docker push codacy/$CIRCLE_PROJECT_REPONAME:latest
             fi
-            docker push codacy/$CIRCLE_PROJECT_REPONAME:0.1.0-alpha3.$CIRCLE_BUILD_NUM
+
+            docker push codacy/$CIRCLE_PROJECT_REPONAME:$PUBLISH_VERSION
 
   checkout_integration_tests_source_code:
     <<: *default_java_job
@@ -247,7 +270,7 @@ jobs:
     <<: *run_integration_tests
     environment:
       TEST_PATH: Suite/CLI/PROD.xml
-      CODACY_CLI_VERSION: latest
+      CODACY_ANALYSIS_CLI_VERSION: latest
 
 workflows:
   version: 2
@@ -259,7 +282,6 @@ workflows:
             - checkout_code
       - compile:
           requires:
-            - checkout_code
             - sbt_dependencies
       - test:
           requires:
@@ -267,11 +289,14 @@ workflows:
       - lint:
           requires:
             - compile
-      - publish:
+      - publish_locally:
+          requires:
+            - compile
+      - publish_dockerhub:
           requires:
             - test
             - lint
-            - test_integration
+            - publish_locally
           filters:
             branches:
               only:
@@ -291,6 +316,7 @@ workflows:
       - test_integration:
           requires:
             - maven_dependencies
+            - publish_locally
           filters:
             branches:
               only:
