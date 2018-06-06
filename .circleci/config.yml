@@ -298,6 +298,7 @@ workflows:
             - test
             - lint
             - publish_locally
+            - test_integration
           filters:
             branches:
               only:
