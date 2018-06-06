@@ -225,6 +225,7 @@ jobs:
             docker tag codacy/$CIRCLE_PROJECT_REPONAME:$CIRCLE_BRANCH-SNAPSHOT codacy/$CIRCLE_PROJECT_REPONAME:$PUBLISH_VERSION
 
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              docker tag codacy/$CIRCLE_PROJECT_REPONAME:$CIRCLE_BRANCH-SNAPSHOT codacy/$CIRCLE_PROJECT_REPONAME:latest
               docker push codacy/$CIRCLE_PROJECT_REPONAME:latest
             fi
 
