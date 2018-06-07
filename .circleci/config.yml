@@ -86,7 +86,6 @@ references:
             curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
             cd codacy-analysis-cli-* && sudo make install
             rm -rf codacy-analysis-cli-*
-            docker pull codacy/$CIRCLE_PROJECT_REPONAME:$CODACY_ANALYSIS_CLI_VERSION
       - run:
           name: Run tests
           command: mvn test -Dsurefire.suiteXmlFiles=$TEST_PATH
