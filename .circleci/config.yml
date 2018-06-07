@@ -66,7 +66,13 @@ references:
           at: /tmp/workspace
       - run:
           name: Load docker from file
-          command: docker load --input /tmp/workspace/codacy-analysis-cli.tar
+          command: |
+            if [[ "$CODACY_ANALYSIS_CLI_VERSION" != "latest" ]]
+            then
+              docker load --input /tmp/workspace/codacy-analysis-cli.tar
+            else
+              echo "Skipping load of docker when testing latest"
+            fi
       - run:
           name: Setup codacy-analysis-cli version for integration tests
           command: |
@@ -80,6 +86,7 @@ references:
             curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
             cd codacy-analysis-cli-* && sudo make install
             rm -rf codacy-analysis-cli-*
+            docker pull codacy/$CIRCLE_PROJECT_REPONAME:$CODACY_ANALYSIS_CLI_VERSION
       - run:
           name: Run tests
           command: mvn test -Dsurefire.suiteXmlFiles=$TEST_PATH
