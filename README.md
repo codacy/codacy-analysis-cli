@@ -19,8 +19,8 @@ Small command line interface to execute Codacy code analysis locally.
   - (D) Using remote configurations
   - ( ) Using local configurations
 - (D) Invoke tools in parallel
-- (P) Post results to Codacy
-- (D) Exit with status
+- (D) Post results to Codacy
+- (P) Exit with status
   - (D) Absolute issues value
   - ( ) Codacy quality settings
 
