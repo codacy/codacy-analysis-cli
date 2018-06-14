@@ -82,7 +82,7 @@ docker run \
   --volume "$CODACY_CODE":"$CODACY_CODE" \
   --volume /tmp:/tmp \
   codacy/codacy-analysis-cli \
-    --tool <TOOL-SHORT-NAME>
+    analyse --tool <TOOL-SHORT-NAME>
 ```
 
 ## Exit Status Codes
