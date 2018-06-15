@@ -2,7 +2,4 @@
 
 set -e
 
-sbt scalafmtCheck
-sbt scapegoat
-sbt scalafixEnable "scalafixCli --test"
-sbt dependencyCheckAggregate
+sbt scalafmtCheck scapegoat scalafixEnable "scalafixCli --test" dependencyCheckAggregate
