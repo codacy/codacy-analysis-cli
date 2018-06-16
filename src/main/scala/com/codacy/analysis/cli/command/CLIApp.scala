@@ -10,9 +10,9 @@ import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.cli.tools.Tool
 
 abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command] {
-  def run(command: Command): Unit
+  def run(command: Command): ExitCode
 
-  override final def run(command: Command, remainingArgs: RemainingArgs): Unit = {
+  override final def run(command: Command, remainingArgs: RemainingArgs): ExitCode = {
     run(command)
   }
 
@@ -128,3 +128,10 @@ final case class Analyse(
   val failIfIncompleteValue: Boolean = failIfIncomplete.## > 0
   val allowNetworkValue: Boolean = allowNetwork.## > 0
 }
+
+final case class ValidateConfiguration(
+  @Recurse
+  options: CommonOptions,
+  @ExtraName("d") @ValueDescription("The directory where the configuration file is located")
+  directory: Option[File])
+    extends Command

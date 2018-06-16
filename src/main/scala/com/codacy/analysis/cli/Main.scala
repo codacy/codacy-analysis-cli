@@ -7,7 +7,7 @@ import com.codacy.analysis.cli.clients.api.ProjectConfiguration
 import com.codacy.analysis.cli.clients.{CodacyClient, Credentials}
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.ExecutorResult
-import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
+import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.configuration.Environment
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.Formatter
@@ -26,7 +26,7 @@ class MainImpl extends CLIApp {
 
   private val logger: org.log4s.Logger = getLogger
 
-  def run(command: Command): Unit = {
+  def run(command: Command): ExitCode = {
     command match {
       case analyse: Analyse =>
         cleanup(analyse.directory)
@@ -67,12 +67,12 @@ class MainImpl extends CLIApp {
           }
         } else Right(())
 
-        exit(
-          new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
-            .exitCode(analysisResults, uploadResult))
-    }
+        new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
+          .exitCode(analysisResults, uploadResult)
 
-    ()
+      case validateConfiguration: ValidateConfiguration =>
+        new ValidateConfigurationExecutor(validateConfiguration).run()
+    }
   }
 
   private def uploadResults(codacyClientOpt: Option[CodacyClient])(

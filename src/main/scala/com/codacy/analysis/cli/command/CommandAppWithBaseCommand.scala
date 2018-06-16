@@ -8,12 +8,13 @@ abstract class CommandAppWithBaseCommand[D, T](implicit
                                                baseBeforeCommandMessages: Messages[D],
                                                val commandParser: CommandParser[T],
                                                val commandsMessages: CommandsMessages[T]) {
+  type ExitCode = Int
 
   def defaultCommand(options: D, remainingArgs: Seq[String]): Unit
 
-  def run(options: T, remainingArgs: RemainingArgs): Unit
+  def run(options: T, remainingArgs: RemainingArgs): ExitCode
 
-  def exit(code: Int): Unit =
+  def exit(code: ExitCode): Unit =
     sys.exit(code)
 
   def error(message: String): Unit = {
@@ -98,7 +99,8 @@ abstract class CommandAppWithBaseCommand[D, T](implicit
               case Left(err) =>
                 error(err)
               case Right(t0) =>
-                run(t0, RemainingArgs(commandArgs, commandArgs0))
+                val code = run(t0, RemainingArgs(commandArgs, commandArgs0))
+                exit(code)
             }
         }
     }

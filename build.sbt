@@ -27,6 +27,7 @@ lazy val codacyAnalysisCli = project
       Dependencies.jodaTime,
       Dependencies.codacyPlugins,
       Dependencies.fansi,
+      Dependencies.pprint,
       Dependencies.scalajHttp,
       Dependencies.cats) ++
       Dependencies.circe ++
