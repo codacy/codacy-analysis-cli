@@ -112,7 +112,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
 
     "send uncommited changes exit code when a validation error of that type is present" in {
       new ExitStatus(10).exitCode(Left(CLIError.UncommitedChanges(Set.empty))) should beEqualTo(
-        ExitStatus.ExitCodes.uncommitedChanges)
+        ExitStatus.ExitCodes.uncommittedChanges)
     }
 
     "send commit uuids do not match exit code when the commit uuid from git did not match the cli argument" in {

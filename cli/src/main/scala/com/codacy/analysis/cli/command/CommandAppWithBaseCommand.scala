@@ -2,6 +2,8 @@ package com.codacy.analysis.cli.command
 
 import caseapp.core.{CommandsMessages, Messages, WithHelp}
 import caseapp.{CommandParser, Parser, RemainingArgs}
+import com.codacy.analysis.cli.analysis.ExitStatus
+import com.codacy.analysis.cli.analysis.ExitStatus.ExitCodes
 
 abstract class CommandAppWithBaseCommand[D, T](implicit
                                                val beforeCommandParser: Parser[D],
@@ -11,14 +13,14 @@ abstract class CommandAppWithBaseCommand[D, T](implicit
 
   def defaultCommand(options: D, remainingArgs: Seq[String]): Unit
 
-  def run(options: T, remainingArgs: RemainingArgs): Unit
+  def run(options: T, remainingArgs: RemainingArgs): ExitStatus.ExitCode
 
-  def exit(code: Int): Unit =
-    sys.exit(code)
+  def exit(code: ExitStatus.ExitCode): Unit =
+    sys.exit(code.value)
 
   def error(message: String): Unit = {
     Console.err.println(message)
-    exit(255)
+    exit(ExitCodes.genericError)
   }
 
   lazy val beforeCommandMessages: Messages[D] = baseBeforeCommandMessages.copy(
@@ -33,24 +35,24 @@ abstract class CommandAppWithBaseCommand[D, T](implicit
     print(beforeCommandMessages.helpMessage)
     println(s"Available commands: ${commands.mkString(", ")}\n")
     println(s"Type  $progName command --help  for help on an individual command")
-    exit(0)
+    exit(ExitCodes.success)
   }
 
   def commandHelpAsked(command: String): Unit = {
     println(commandsMessages.messagesMap(command).helpMessage(beforeCommandMessages.progName, command))
-    exit(0)
+    exit(ExitCodes.success)
   }
 
   def usageAsked(): Unit = {
     println(beforeCommandMessages.usageMessage)
     println(s"Available commands: ${commands.mkString(", ")}\n")
     println(s"Type  $progName command --usage  for usage of an individual command")
-    exit(0)
+    exit(ExitCodes.success)
   }
 
   def commandUsageAsked(command: String): Unit = {
     println(commandsMessages.messagesMap(command).usageMessage(beforeCommandMessages.progName, command))
-    exit(0)
+    exit(ExitCodes.success)
   }
 
   def appName: String = Messages[D].appName
@@ -98,7 +100,8 @@ abstract class CommandAppWithBaseCommand[D, T](implicit
               case Left(err) =>
                 error(err)
               case Right(t0) =>
-                run(t0, RemainingArgs(commandArgs, commandArgs0))
+                val code = run(t0, RemainingArgs(commandArgs, commandArgs0))
+                exit(code)
             }
         }
     }
