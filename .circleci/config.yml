@@ -105,7 +105,8 @@ references:
   export_docker_publish_version: &export_docker_publish_version
     run:
       name: Export publish version
-      command: export PUBLISH_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"
+      command: echo 'export PUBLISH_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"' >> $BASH_ENV
+
 
   load_docker_file: &load_docker_file
     run:
@@ -251,7 +252,7 @@ jobs:
       - *dockerhub_login
       - run:
           name: Publish tag
-          command: export DOCKER_TAG=$PUBLISH_VERSION
+          command: echo 'export DOCKER_TAG=$PUBLISH_VERSION' >> $BASH_ENV
       - *dockerhub_tag
 
   publish_dockerhub_latest:
@@ -267,7 +268,7 @@ jobs:
       - *dockerhub_login
       - run:
           name: Publish tag
-          command: export DOCKER_TAG="latest"
+          command: echo 'export DOCKER_TAG="latest"' >> $BASH_ENV
       - *dockerhub_tag
 
   publish_dockerhub_stable:
@@ -283,7 +284,7 @@ jobs:
       - *dockerhub_login
       - run:
           name: Publish tag
-          command: export DOCKER_TAG="stable"
+          command: echo 'export DOCKER_TAG="stable"' >> $BASH_ENV
       - *dockerhub_tag
 
   checkout_integration_tests_source_code:
