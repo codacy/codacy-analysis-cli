@@ -223,7 +223,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
   }
 
   "AnalyseExecutor.tools" should {
-    val emptyFilesTarget = FilesTarget(File(""), Set.empty)
+    val emptyFilesTarget = FilesTarget(File(""), Set.empty, Set.empty)
     val noLocalConfiguration = Left("no config")
 
     "use input over remote configuration" in {
@@ -300,7 +300,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       val userInput = None
       val remoteProjectConfiguration = Left("some error")
 
-      val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rb").path))
+      val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rb").path), Set.empty)
 
       val toolEither =
         AnalyseExecutor
@@ -316,7 +316,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       val userInput = None
       val remoteProjectConfiguration = Left("some error")
 
-      val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rawr").path))
+      val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rawr").path), Set.empty)
 
       val localConfiguration = Right(
         CodacyConfigurationFile(

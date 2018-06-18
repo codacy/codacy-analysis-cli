@@ -54,7 +54,7 @@ class AnalyseExecutor(toolInput: Option[String],
 
           analysisResults.foreach(results => formatter.addAll(results.to[List]))
 
-          ExecutorResult(tool.name, filesTarget.files, analysisResults)
+          ExecutorResult(tool.name, filesTarget.readableFiles, analysisResults)
         }
     }
 
@@ -74,7 +74,7 @@ class AnalyseExecutor(toolInput: Option[String],
         toolHasConfigFiles,
         localConfigurationFile,
         remoteProjectConfiguration)
-      results <- analyser.analyse(tool, fileTarget.directory, fileTarget.files, toolConfiguration)
+      results <- analyser.analyse(tool, fileTarget.directory, fileTarget.readableFiles, toolConfiguration)
     } yield results
   }
 

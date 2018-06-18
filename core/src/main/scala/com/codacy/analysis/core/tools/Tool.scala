@@ -164,7 +164,8 @@ class ToolCollector(allowNetwork: Boolean) {
 
   def fromFileTarget(filesTarget: FilesTarget,
                      languageCustomExtensions: List[(Language, Seq[String])]): Either[String, Set[Tool]] = {
-    val fileLanguages = filesTarget.files.flatMap(path => Languages.forPath(path.toString, languageCustomExtensions))
+    val fileLanguages =
+      filesTarget.readableFiles.flatMap(path => Languages.forPath(path.toString, languageCustomExtensions))
 
     val collectedTools: Set[Tool] = availableTools.collect {
       case tool if fileLanguages.exists(tool.languages.contains) =>
