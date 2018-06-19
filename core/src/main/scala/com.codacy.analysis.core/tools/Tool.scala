@@ -143,7 +143,9 @@ class ToolCollector(allowNetwork: Boolean) {
 
   private val availableInternetTools = if (allowNetwork) {
     PluginHelper.dockerEnterprisePlugins
-  } else { List.empty[DockerTool] }
+  } else {
+    List.empty[IDockerPlugin]
+  }
 
   private val availableTools = PluginHelper.dockerPlugins ++ availableInternetTools
 
