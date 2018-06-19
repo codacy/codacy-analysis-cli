@@ -12,7 +12,7 @@ import com.codacy.analysis.cli.configuration.Environment
 import com.codacy.analysis.cli.files.FileCollector
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.cli.upload.ResultsUploader
-import com.codacy.analysis.cli.utils.{EitherOps, Logger}
+import com.codacy.analysis.cli.utils.Logger
 import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -84,17 +84,17 @@ class MainImpl extends CLIApp {
       executorResults <- executorResultsEither
     } yield {
       uploaderOpt.map { uploader =>
-        val uploadResults = executorResults.map {
+        val resultsToUpload = executorResults.flatMap {
           case ExecutorResult(toolName, files, Success(results)) =>
             logger.info(s"Going to upload ${results.size} results for $toolName")
-            uploader.sendResults(toolName, files, results)
+            Option(ResultsUploader.ToolResults(toolName, files, results))
 
           case ExecutorResult(toolName, _, Failure(err)) =>
             logger.warn(s"Skipping upload for $toolName since analysis failed: ${err.getMessage}")
-            Future.successful(().asRight[String])
+            Option.empty[ResultsUploader.ToolResults]
         }
 
-        Future.sequence(uploadResults).map(EitherOps.sequenceUnitWithFixedLeft("Failed upload of results")(_))
+        uploader.sendResults(resultsToUpload)
       }.getOrElse(Future.successful(().asRight[String]))
     }).fold(err => Future.successful(err.asLeft[Unit]), identity)
   }
