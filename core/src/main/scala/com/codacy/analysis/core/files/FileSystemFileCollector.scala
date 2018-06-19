@@ -16,13 +16,11 @@ import scala.util.Try
 
 final case class FilesTarget(directory: File, readableFiles: Set[Path], unreadableFiles: Set[Path])
 
+private[files] final case class CheckedFiles(unreadableFiles: Set[Path], readableFiles: Set[Path])
+
 class FileSystemFileCollector extends FileCollector[Try] {
 
-  private case class CheckedFiles(unreadableFiles: Set[Path], readableFiles: Set[Path])
-
   private val logger: Logger = getLogger
-
-  // TODO: Check if File will work or if we might need Path to support relative paths
 
   // HACK: Fixes Intellij IDEA highlight problems
   private type EitherA[A] = Either[String, A]

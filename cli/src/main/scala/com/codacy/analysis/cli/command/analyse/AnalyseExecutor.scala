@@ -18,6 +18,7 @@ import com.codacy.analysis.core.utils.TryOps._
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
+import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
 
 class AnalyseExecutor(toolInput: Option[String],
@@ -27,7 +28,8 @@ class AnalyseExecutor(toolInput: Option[String],
                       fileCollector: FileCollector[Try],
                       remoteProjectConfiguration: Either[String, ProjectConfiguration],
                       nrParallelTools: Option[Int],
-                      allowNetwork: Boolean) {
+                      allowNetwork: Boolean,
+                      forceFilePermissions: Boolean) {
 
   private val logger: Logger = getLogger
 
@@ -38,7 +40,12 @@ class AnalyseExecutor(toolInput: Option[String],
       directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
         if (dir.isDirectory) dir else dir.parent)
 
-    val localConfigurationFile = CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
+    val localConfigurationFile: Either[String, CodacyConfigurationFile] =
+      CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
+
+    if (forceFilePermissions) {
+      overrideFilePermissions(baseDirectory)
+    }
 
     val filesTargetAndTool: Either[String, (FilesTarget, Set[Tool])] = for {
       filesTarget <- fileCollector
@@ -132,6 +139,13 @@ class AnalyseExecutor(toolInput: Option[String],
       logger.info(s"Found local extra configuration for ${tool.name}")
       (ec.baseSubDir, ec.extraValues)
     }
+  }
+
+  private def overrideFilePermissions(sourceDirectory: File) = {
+    Process(Seq("find", sourceDirectory.pathAsString, "-type", "d", "-exec", "chmod", "u+rwx", "{}", ";")).!
+    Process(Seq("find", sourceDirectory.pathAsString, "-type", "d", "-exec", "chmod", "ugo+rx", "{}", ";")).!
+    Process(Seq("find", sourceDirectory.pathAsString, "-type", "f", "-exec", "chmod", "u+rw", "{}", ";")).!
+    Process(Seq("find", sourceDirectory.pathAsString, "-type", "f", "-exec", "chmod", "ugo+r", "{}", ";")).!
   }
 
 }
