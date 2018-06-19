@@ -12,6 +12,8 @@ import scala.util.{Failure, Success}
 
 object ResultsUploader {
 
+  final case class ToolResults(tool: String, files: Set[Path], results: Set[Result])
+
   //TODO: Make this a config
   val defaultBatchSize = 50000
 
@@ -46,9 +48,13 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
       ResultsUploader.defaultBatchSize
   }.getOrElse(ResultsUploader.defaultBatchSize)
 
-  def sendResults(tool: String, files: Set[Path], results: Set[Result]): Future[Either[String, Unit]] = {
-    val fileResults = groupResultsByFile(files, results)
-    val res = uploadResultsBatch(tool, batchSize, fileResults).flatMap {
+  def sendResults(toolResults: Seq[ResultsUploader.ToolResults]): Future[Either[String, Unit]] = {
+    val uploadResultsBatches = toolResults.map { toolResult =>
+      val fileResults = groupResultsByFile(toolResult.files, toolResult.results)
+      uploadResultsBatch(toolResult.tool, batchSize, fileResults)
+    }
+
+    val res = sequenceUploads(uploadResultsBatches).flatMap {
       case Right(_)        => endUpload()
       case error @ Left(_) => Future.successful(error)
     }

@@ -1,6 +1,6 @@
 package com.codacy.analysis.cli.upload
 
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 
 import better.files.File
 import cats.implicits._
@@ -11,7 +11,7 @@ import com.codacy.analysis.cli.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito._
+import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.{FutureMatchers, MatchResult}
@@ -26,6 +26,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
   private val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
   private val tool = "eslint"
+  private val otherTool = "rubocop"
+  private val otherFilenames = Set(Paths.get("src/things/Clazz.scala"))
   private val batchSize = 10
 
   "ResultsUploader" should {
@@ -83,6 +85,13 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
           ArgumentMatchers.any[Set[FileResults]])).thenAnswer((invocation: InvocationOnMock) => {
         Future.successful(().asRight[String])
       })
+      when(
+        codacyClient.sendRemoteResults(
+          ArgumentMatchers.eq(otherTool),
+          ArgumentMatchers.eq(commitUuid),
+          ArgumentMatchers.any[Set[FileResults]])).thenAnswer((invocation: InvocationOnMock) => {
+        Future.successful(().asRight[String])
+      })
 
       when(codacyClient.getRemoteConfiguration).thenReturn(getMockedRemoteConfiguration(toolPatterns))
 
@@ -94,7 +103,10 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       }(collection.breakOut)
 
       // scalafix:off NoInfer.any
-      uploader.sendResults(tool, filenames, exampleResults) must beRight.awaitFor(10.minutes)
+      uploader.sendResults(
+        Seq(
+          ResultsUploader.ToolResults(tool, filenames, exampleResults),
+          ResultsUploader.ToolResults(otherTool, otherFilenames, Set.empty[Result]))) must beRight.awaitFor(10.minutes)
       // scalafix:on NoInfer.any
 
       verifyNumberOfCalls(codacyClient, tool, commitUuid, expectedNrOfBatches)
