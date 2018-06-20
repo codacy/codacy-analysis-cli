@@ -18,34 +18,15 @@ lazy val root = project
     version := "0.1.0-SNAPSHOT",
     organization := "com.codacy",
     scalacOptions ++= Common.compilerFlags,
-    scalacOptions in Test ++= Seq("-Yrangepos"),
-    scalacOptions in (Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"))))
+    scalacOptions.in(Test) ++= Seq("-Yrangepos"),
+    scalacOptions.in(Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"))))
   .aggregate(aggregatedProjects: _*)
   .settings(publish := {}, publishLocal := {}, publishArtifact := false)
 
 lazy val codacyAnalysisCore = project
   .in(file("core"))
-  .settings(
-    // Sonatype repository settings
-    credentials += Credentials(
-      "Sonatype Nexus Repository Manager",
-      "oss.sonatype.org",
-      sys.env.getOrElse("SONATYPE_USER", "username"),
-      sys.env.getOrElse("SONATYPE_PASSWORD", "password")),
-    publishMavenStyle := true,
-    name := "codacy-analysis-core",
-    publishArtifact in Test := false,
-    pomIncludeRepository := { _ =>
-      false
-    },
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (version.value.trim.endsWith("SNAPSHOT"))
-        Some("snapshots" at nexus + "content/repositories/snapshots")
-      else
-        Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    },
-    // App Dependencies
+  .settings(name := "codacy-analysis-core")
+  .settings( // App Dependencies
     libraryDependencies ++= Seq(
       Dependencies.caseApp,
       Dependencies.betterFiles,
@@ -56,8 +37,30 @@ lazy val codacyAnalysisCore = project
       Dependencies.cats) ++
       Dependencies.circe ++
       Dependencies.jackson ++
-      Dependencies.log4s)
-  .settings(libraryDependencies ++= testDependencies)
+      Dependencies.log4s,
+    libraryDependencies ++= testDependencies)
+  .settings(
+    // Sonatype repository settings
+    credentials += Credentials(
+      "Sonatype Nexus Repository Manager",
+      "oss.sonatype.org",
+      sys.env.getOrElse("SONATYPE_USER", "username"),
+      sys.env.getOrElse("SONATYPE_PASSWORD", "password")),
+    publishMavenStyle := true,
+    publishArtifact.in(Test) := false,
+    publishArtifact.in(makePom.in(Docker)) := false,
+    publish.in(Docker) := {},
+    publishLocal.in(Docker) := {},
+    pomIncludeRepository := { _ =>
+      false
+    },
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (version.value.trim.endsWith("SNAPSHOT"))
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    })
   .settings(pomExtra := <scm>
     <url>https://github.com/codacy/codacy-analysis-cli</url>
     <connection>scm:git:git@github.com:codacy/codacy-analysis-cli.git</connection>
