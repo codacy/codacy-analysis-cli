@@ -163,7 +163,7 @@ jobs:
           name: Store test reports
           working_directory: ~/
           command: |
-            mkdir -p ~/coverage-reports
+            mkdir -p ~/coverage-reports/junit
             cp -rf ~/workdir/cli/target/test-reports ~/coverage-reports/junit/cli
             cp -rf ~/workdir/core/target/test-reports ~/coverage-reports/junit/core
       - store_test_results:
