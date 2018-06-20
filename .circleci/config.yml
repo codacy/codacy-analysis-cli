@@ -361,7 +361,7 @@ workflows:
                 - master
       - publish_dockerhub_latest:
           requires:
-            - publish_local
+            - publish_locally
           filters:
             branches:
               only:
@@ -369,7 +369,7 @@ workflows:
       - publish_dockerhub_stable:
           type: approval
           requires:
-            - publish_local
+            - publish_locally
           filters:
             branches:
               only:
