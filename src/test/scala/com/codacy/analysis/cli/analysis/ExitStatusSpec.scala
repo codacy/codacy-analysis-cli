@@ -2,9 +2,9 @@ package com.codacy.analysis.cli.analysis
 
 import java.nio.file.Paths
 
-import codacy.docker.api.{Pattern, Result}
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.ExecutorResult
 import com.codacy.analysis.cli.model.{FullLocation, Issue}
+import com.codacy.plugins.api.results.{Pattern, Result}
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito

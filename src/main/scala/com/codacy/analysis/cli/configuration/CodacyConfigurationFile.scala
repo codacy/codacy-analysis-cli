@@ -2,7 +2,7 @@ package com.codacy.analysis.cli.configuration
 
 import better.files.File
 import com.codacy.analysis.cli.files.Glob
-import com.codacy.api.dtos.{Language, Languages}
+import com.codacy.plugins.api.languages.{Language, Languages}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.{YAMLFactory, YAMLGenerator}
 import play.api.libs.json.Reads._
@@ -20,9 +20,10 @@ final case class CodacyConfigurationFile(engines: Option[Map[String, EngineConfi
                                          exclude_paths: Option[Set[Glob]],
                                          languages: Option[Map[Language, LanguageConfiguration]]) {
 
-  lazy val languageCustomExtensions = languages.fold(Map.empty[Language, Set[String]])(_.map {
-    case (lang, config) => (lang, config.extensions.getOrElse(Set.empty[String]))
-  })
+  lazy val languageCustomExtensions: Map[Language, Set[String]] =
+    languages.fold(Map.empty[Language, Set[String]])(_.map {
+      case (lang, config) => (lang, config.extensions.getOrElse(Set.empty[String]))
+    })
 }
 
 object CodacyConfigurationFile {

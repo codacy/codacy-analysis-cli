@@ -1,7 +1,7 @@
 package com.codacy.analysis.cli.utils
 
-import io.circe.{Json, ParsingFailure}
 import io.circe.parser.parse
+import io.circe.{Json, ParsingFailure}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 
 class HttpHelper(apiUrl: Option[String], extraHeaders: Map[String, String]) {

@@ -1,6 +1,6 @@
 package com.codacy.analysis.cli.clients.api
 
-import com.codacy.api.dtos.Language
+import com.codacy.plugins.api.languages.Language
 
 final case class FilePath(value: String)
 final case class LanguageExtensions(language: Language, extensions: Set[String])

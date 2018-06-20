@@ -3,8 +3,8 @@ package com.codacy.analysis.cli.formatter
 import java.io.PrintStream
 import java.nio.file.Path
 
-import codacy.docker.api
 import com.codacy.analysis.cli.model._
+import com.codacy.plugins.api.results
 
 object Text extends FormatterCompanion {
   val name: String = "text"
@@ -35,11 +35,11 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
     }
   }
 
-  private def prettyMessage(patternId: api.Pattern.Id,
+  private def prettyMessage(patternId: results.Pattern.Id,
                             filename: Path,
                             message: Issue.Message,
-                            level: api.Result.Level,
-                            category: Option[api.Pattern.Category],
+                            level: results.Result.Level,
+                            category: Option[results.Pattern.Category],
                             location: Location): String = {
     val categoryColored = Console.YELLOW + category.fold("")(c => s"/${c.toString}") + Console.RESET
     val levelColored = levelColor(level) + level + Console.RESET
@@ -47,11 +47,11 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
     s"Found [$levelColored$categoryColored] `$message` in $filename:$location ($patternColored)"
   }
 
-  private def levelColor(level: api.Result.Level): String = {
+  private def levelColor(level: results.Result.Level): String = {
     level match {
-      case api.Result.Level.Info => Console.BLUE
-      case api.Result.Level.Warn => Console.YELLOW
-      case api.Result.Level.Err  => Console.RED
+      case results.Result.Level.Info => Console.BLUE
+      case results.Result.Level.Warn => Console.YELLOW
+      case results.Result.Level.Err  => Console.RED
     }
   }
 

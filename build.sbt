@@ -25,13 +25,13 @@ lazy val codacyAnalysisCli = project
       Dependencies.caseApp,
       Dependencies.betterFiles,
       Dependencies.jodaTime,
-      Dependencies.codacyPlugins,
       Dependencies.fansi,
       Dependencies.scalajHttp,
       Dependencies.cats) ++
       Dependencies.circe ++
       Dependencies.jackson ++
-      Dependencies.log4s,
+      Dependencies.log4s ++
+      Dependencies.codacyPlugins,
     // Test Dependencies
     libraryDependencies ++= Dependencies.specs2.map(_ % Test))
   .settings(Common.dockerSettings: _*)

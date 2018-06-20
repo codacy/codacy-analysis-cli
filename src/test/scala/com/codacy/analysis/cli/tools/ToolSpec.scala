@@ -5,7 +5,7 @@ import com.codacy.analysis.cli.clients.api.{ProjectConfiguration, ToolConfigurat
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.configuration.{CodacyConfigurationFile, LanguageConfiguration}
 import com.codacy.analysis.cli.files.FilesTarget
-import com.codacy.api.dtos.Languages
+import com.codacy.plugins.api.languages.Languages
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 

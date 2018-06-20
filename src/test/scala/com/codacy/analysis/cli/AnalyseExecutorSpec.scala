@@ -2,8 +2,8 @@ package com.codacy.analysis.cli
 
 import better.files.File
 import com.codacy.analysis.cli.analysis.Analyser
-import com.codacy.analysis.cli.clients.{ProjectName, UserName}
 import com.codacy.analysis.cli.clients.api._
+import com.codacy.analysis.cli.clients.{ProjectName, UserName}
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.configuration.{CodacyConfigurationFile, LanguageConfiguration}
@@ -11,7 +11,7 @@ import com.codacy.analysis.cli.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.cli.model.{Issue, Result}
 import com.codacy.analysis.cli.utils.TestUtils._
-import com.codacy.api.dtos.Languages
+import com.codacy.plugins.api.languages.Languages
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
