@@ -23,7 +23,8 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
   private val commitUuid = "some_commitUuid"
   private val remoteUrl = "codacy.com/2.0"
   private val tool = "eslint"
-  private val apiCredentials: Credentials = APIToken(apiTokenStr, Some(remoteUrl), UserName(username), ProjectName(project))
+  private val apiCredentials: Credentials =
+    APIToken(apiTokenStr, Some(remoteUrl), UserName(username), ProjectName(project))
   private val projectCredentials: Credentials = ProjectToken(projectTokenStr, Some(remoteUrl))
 
   "CodacyClient" should {
@@ -133,7 +134,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
           case (endpoint: String) :: Nil =>
             val actualEndpoint = credentials match {
               case _: ProjectToken => s"/commit/$commitUuid/remoteResults"
-              case _: APIToken => s"/$username/$project/commit/$commitUuid/remoteResults"
+              case _: APIToken     => s"/$username/$project/commit/$commitUuid/remoteResults"
             }
             endpoint must beEqualTo(actualEndpoint)
           case _ =>
@@ -158,7 +159,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
           case (endpoint: String) :: Nil =>
             val actualEndpoint = credentials match {
               case _: ProjectToken => s"/commit/$commitUuid/resultsFinal"
-              case _: APIToken => s"/$username/$project/commit/$commitUuid/resultsFinal"
+              case _: APIToken     => s"/$username/$project/commit/$commitUuid/resultsFinal"
             }
             endpoint must beEqualTo(actualEndpoint)
           case _ =>
@@ -183,7 +184,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         case (endpoint: String) :: Nil =>
           val actualEndpoint = credentials match {
             case _: ProjectToken => "/project/analysis/configuration"
-            case _: APIToken => s"/project/$username/$project/analysis/configuration"
+            case _: APIToken     => s"/project/$username/$project/analysis/configuration"
           }
           endpoint must beEqualTo(actualEndpoint)
         case _ =>

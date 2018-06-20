@@ -9,7 +9,6 @@ import com.codacy.analysis.core.tools.Tool
 import com.codacy.analysis.cli.command.ArgumentParsers._
 import com.codacy.analysis.cli.formatter.Formatter
 
-
 abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command] {
   def run(command: Command): Unit
 

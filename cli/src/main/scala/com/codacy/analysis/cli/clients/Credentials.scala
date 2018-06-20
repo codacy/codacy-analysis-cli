@@ -18,18 +18,18 @@ object Credentials {
       .projectTokenArgument(options.projectToken)
       .map[Credentials](ProjectToken(_, apiURL))
       .orElse[Credentials] {
-      environment
-        .apiTokenArgument(options.apiToken)
-        .flatMap(getCredentialsWithAdditionalParams(_, apiURL, options.project, options.username))
-    }
+        environment
+          .apiTokenArgument(options.apiToken)
+          .flatMap(getCredentialsWithAdditionalParams(_, apiURL, options.project, options.username))
+      }
       .orElse[Credentials] {
-      environment.projectTokenEnvironmentVariable().map[Credentials](ProjectToken(_, apiURL))
-    }
+        environment.projectTokenEnvironmentVariable().map[Credentials](ProjectToken(_, apiURL))
+      }
       .orElse[Credentials] {
-      environment
-        .apiTokenEnvironmentVariable()
-        .flatMap(getCredentialsWithAdditionalParams(_, apiURL, options.project, options.username))
-    }
+        environment
+          .apiTokenEnvironmentVariable()
+          .flatMap(getCredentialsWithAdditionalParams(_, apiURL, options.project, options.username))
+      }
       .ifEmpty(logger.warn("Could not retrieve credentials"))
   }
 

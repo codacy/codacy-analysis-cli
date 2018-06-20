@@ -72,12 +72,12 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
             response.forall {
               case i: Issue => !i.filename.startsWith(pathToIgnore)
-              case _ => true
+              case _        => true
             } must beTrue
 
             response.forall {
               case i: Issue => pyLintPatternsInternalIds.contains(i.patternId.value)
-              case _ => true
+              case _        => true
             } must beTrue
         }
       }
@@ -135,7 +135,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
             response.forall {
               case i: Issue => esLintPatternsInternalIds.contains(i.patternId.value)
-              case _ => true
+              case _        => true
             } must beTrue
         }
       }
