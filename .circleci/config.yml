@@ -164,7 +164,8 @@ jobs:
           working_directory: ~/
           command: |
             mkdir -p ~/coverage-reports
-            cp -rf ~/workdir/target/test-reports ~/coverage-reports/junit
+            cp -rf ~/workdir/cli/target/test-reports ~/coverage-reports/junit
+            cp -rf ~/workdir/core/target/test-reports ~/coverage-reports/junit
       - store_test_results:
           path: ~/coverage-reports
       - store_artifacts:
