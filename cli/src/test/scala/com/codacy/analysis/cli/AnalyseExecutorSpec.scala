@@ -28,9 +28,9 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     val pyLintPatternsInternalIds = Set("PyLint_C0111", "PyLint_E1101")
     val pathToIgnore = "lib/improver/tests/"
 
-    s"""analyse a python project with pylint, using a remote project configuration retrieved with a project token
-       | that ignores the files that start with the path $pathToIgnore
-       | and considers just patterns ${pyLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
+    s"""|analyse a python project with pylint, using a remote project configuration retrieved with a project token
+        | that ignores the files that start with the path $pathToIgnore
+        | and considers just patterns ${pyLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/improver.git", commitUuid) { (file, directory) =>
         val projTokenStr = "RandomProjectToken"
@@ -86,8 +86,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
     val esLintPatternsInternalIds = Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
 
-    s"""analyse a javascript project with eslint, using a remote project configuration retrieved with an api token
-       | that considers just patterns ${esLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
+    s"""|analyse a javascript project with eslint, using a remote project configuration retrieved with an api token
+        | that considers just patterns ${esLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
         val apiTokenStr = "RandomApiToken"
@@ -220,7 +220,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       remoteProjectConfiguration,
       None,
       false,
-      false).run() must beRight
+      true).run() must beRight
   }
 
   "AnalyseExecutor.tools" should {

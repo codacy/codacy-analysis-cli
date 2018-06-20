@@ -112,7 +112,8 @@ class CLISpec extends Specification with NoLanguageFeatures {
             "json",
             "--output",
             file.pathAsString,
-            "--verbose"))
+            "--verbose",
+            "--force-file-permissions"))
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
