@@ -16,7 +16,7 @@ import scala.util.Try
 
 final case class FilesTarget(directory: File, readableFiles: Set[Path], unreadableFiles: Set[Path])
 
-private[files] final case class CheckedFiles(unreadableFiles: Set[Path], readableFiles: Set[Path])
+private[files] final case class CheckedFiles(readableFiles: Set[Path], unreadableFiles: Set[Path])
 
 class FileSystemFileCollector extends FileCollector[Try] {
 
