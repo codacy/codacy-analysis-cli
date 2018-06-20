@@ -14,7 +14,7 @@ import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api.ProjectConfiguration
 import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.upload.ResultsUploader
-import com.codacy.analysis.core.utils.{EitherOps, Logger}
+import com.codacy.analysis.core.utils.Logger
 import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext.Implicits.global
