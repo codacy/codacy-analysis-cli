@@ -53,6 +53,37 @@ lazy val codacyAnalysisCore = project
       Dependencies.jackson ++
       Dependencies.log4s)
   .settings(libraryDependencies ++= testDependencies)
+  .settings(pomExtra := <scm>
+    <url>https://github.com/codacy/codacy-analysis-cli</url>
+    <connection>scm:git:git@github.com:codacy/codacy-analysis-cli.git</connection>
+    <developerConnection>scm:git:https://github.com/codacy/codacy-analysis-cli.git</developerConnection>
+  </scm>
+    <developers>
+      <developer>
+        <id>rtfpessoa</id>
+        <name>Rodrigo Fernandes</name>
+        <email>rodrigo [at] codacy.com</email>
+        <url>https://github.com/rtfpessoa</url>
+      </developer>
+      <developer>
+        <id>bmbferreira</id>
+        <name>Bruno Ferreira</name>
+        <email>bruno.ferreira [at] codacy.com</email>
+        <url>https://github.com/bmbferreira</url>
+      </developer>
+      <developer>
+        <id>xplosunn</id>
+        <name>Hugo Sousa</name>
+        <email>hugo [at] codacy.com</email>
+        <url>https://github.com/xplosunn</url>
+      </developer>
+      <developer>
+        <id>pedrocodacy</id>
+        <name>Pedro Amaral</name>
+        <email>pamaral [at] codacy.com</email>
+        <url>https://github.com/pedrocodacy</url>
+      </developer>
+    </developers>)
 
 lazy val codacyAnalysisCli = project
   .in(file("cli"))
