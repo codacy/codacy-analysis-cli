@@ -189,28 +189,29 @@ jobs:
           command: ./scripts/lint.sh
 
   publish_lib:
+    <<: *default_java_job
     steps:
-          - *restore_source_code
-          - *setup_dependencies_key
-          - *restore_dependencies
-          - *restore_build
-          - run:
-              name: Install AWS CLI
-              command: |
-                sudo apt -y update
-                sudo apt -y install python3-pip
-                sudo python3 -m pip install awscli
-          - run:
-              name: Setup AWS Credentials
-              command: ./scripts/setup-aws-credentials.sh
-          - run:
-              name: Retrieve GPG Keys
-              command: |
-                mkdir -p ~/.gnupg
-                aws s3 sync --profile shared-services --include '*.gpg' s3://$AWS_CREDENTIALS_BUCKET/gnupg/ ~/.gnupg
-          - run:
-              name: Publish to Sonatype
-              command: ./scripts/publish.sh 0.1.$CIRCLE_BUILD_NUM
+      - *restore_source_code
+      - *setup_dependencies_key
+      - *restore_dependencies
+      - *restore_build
+      - run:
+          name: Install AWS CLI
+          command: |
+            sudo apt -y update
+            sudo apt -y install python3-pip
+            sudo python3 -m pip install awscli
+      - run:
+          name: Setup AWS Credentials
+          command: ./scripts/setup-aws-credentials.sh
+      - run:
+          name: Retrieve GPG Keys
+          command: |
+            mkdir -p ~/.gnupg
+            aws s3 sync --profile shared-services --include '*.gpg' s3://$AWS_CREDENTIALS_BUCKET/gnupg/ ~/.gnupg
+      - run:
+          name: Publish to Sonatype
+          command: ./scripts/publish.sh 0.1.$CIRCLE_BUILD_NUM
 
   publish_docker_locally:
     machine: true
