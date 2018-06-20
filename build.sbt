@@ -26,7 +26,12 @@ lazy val root = project
 lazy val codacyAnalysisCore = project
   .in(file("core"))
   .settings(
-    inThisBuild(List(scalaVersion := scalaVersionNumber, version := "0.1.0-SNAPSHOT")),
+    // Sonatype repository settings
+    credentials += Credentials(
+      "Sonatype Nexus Repository Manager",
+      "oss.sonatype.org",
+      sys.env.getOrElse("SONATYPE_USER", "username"),
+      sys.env.getOrElse("SONATYPE_PASSWORD", "password")),
     publishMavenStyle := true,
     name := "codacy-analysis-core",
     publishArtifact in Test := false,
