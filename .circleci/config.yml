@@ -200,7 +200,7 @@ jobs:
       - *restore_build
       - run:
           name: Publish local docker
-          command: ./scripts/publish.sh $CIRCLE_BRANCH-SNAPSHOT
+          command: ./scripts/publish_docker.sh $CIRCLE_BRANCH-SNAPSHOT
       - run:
           name: Save docker to file
           command: |
