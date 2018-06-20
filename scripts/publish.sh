@@ -9,4 +9,4 @@ if [ -n "$1" ]; then
 fi
 
 echo "Deploying version ${VERSION}"
-sbt 'set version := "'"${VERSION}"'"' docker:publishLocal
+sbt 'set codacyAnalysisCli/version := "'"${VERSION}"'"' codacyAnalysisCli/docker:publishLocal
