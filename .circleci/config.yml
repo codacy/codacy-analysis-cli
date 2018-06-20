@@ -359,7 +359,7 @@ workflows:
       - test_integration:
           requires:
             - maven_dependencies
-            - publish_locally
+            - publish_docker_locally
           filters:
             branches:
               only:
