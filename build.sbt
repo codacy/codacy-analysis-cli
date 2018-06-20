@@ -8,10 +8,14 @@ resolvers += Resolver.bintrayIvyRepo("sbt", "sbt-plugin-releases")
 
 lazy val aggregatedProjects: Seq[ProjectReference] = Seq(codacyAnalysisCore, codacyAnalysisCli)
 
+lazy val testDependencies = Dependencies.specs2.map(_ % Test)
+
 lazy val root = project
   .in(file("."))
   .settings(name := "root")
   .settings(inThisBuild(List(
+    scalaVersion := scalaVersionNumber,
+    version := "0.1.0-SNAPSHOT",
     organization := "com.codacy",
     scalacOptions ++= Common.compilerFlags,
     scalacOptions in Test ++= Seq("-Yrangepos"),
@@ -48,19 +52,20 @@ lazy val codacyAnalysisCore = project
       Dependencies.circe ++
       Dependencies.jackson ++
       Dependencies.log4s)
-  .settings(libraryDependencies ++= Dependencies.specs2.map(_ % Test))
+  .settings(libraryDependencies ++= testDependencies)
 
 lazy val codacyAnalysisCli = project
   .in(file("cli"))
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
-  .settings(
-    inThisBuild(List(scalaVersion := scalaVersionNumber, version := "0.1.0-SNAPSHOT")),
-    name := "codacy-analysis-cli")
+  .settings(name := "codacy-analysis-cli")
   .settings(Common.dockerSettings: _*)
   .settings(Common.genericSettings: _*)
-  .settings(publish := {}, publishLocal := {}, publishArtifact := false)
-  .settings(libraryDependencies ++= Dependencies.specs2.map(_ % Test))
+  .settings(
+    publish := publish.in(Docker).value,
+    publishLocal := publishLocal.in(Docker).value,
+    publishArtifact := false)
+  .settings(libraryDependencies ++= testDependencies)
   .dependsOn(codacyAnalysisCore)
   .aggregate(codacyAnalysisCore)
 
