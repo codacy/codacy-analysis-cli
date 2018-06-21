@@ -1,4 +1,4 @@
-import sbt.Keys.{publishArtifact, _}
+import sbt.Keys._
 import sbt._
 
 val scalaBinaryVersionNumber = "2.12"
