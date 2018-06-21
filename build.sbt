@@ -54,13 +54,7 @@ lazy val codacyAnalysisCore = project
     pomIncludeRepository := { _ =>
       false
     },
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (version.value.trim.endsWith("SNAPSHOT"))
-        Some("snapshots" at nexus + "content/repositories/snapshots")
-      else
-        Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    })
+    publishTo := sonatypePublishTo.value)
   .settings(pomExtra := <scm>
     <url>https://github.com/codacy/codacy-analysis-cli</url>
     <connection>scm:git:git@github.com:codacy/codacy-analysis-cli.git</connection>
