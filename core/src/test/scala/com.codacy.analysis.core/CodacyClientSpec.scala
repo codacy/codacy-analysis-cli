@@ -2,6 +2,7 @@ package com.codacy.analysis.core
 
 import com.codacy.analysis.core.clients._
 import com.codacy.analysis.core.utils.HttpHelper
+import com.codacy.analysis.core.utils.TestUtils._
 import io.circe.parser.parse
 import io.circe.{Json, ParsingFailure}
 import org.mockito.ArgumentMatchers
@@ -11,7 +12,7 @@ import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
-import com.codacy.analysis.core.utils.TestUtils._
+
 import scala.concurrent.duration._
 
 class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {

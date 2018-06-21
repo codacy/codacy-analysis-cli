@@ -1,7 +1,7 @@
 package com.codacy.analysis.cli.command
 
-import caseapp.{CommandParser, Parser, RemainingArgs}
 import caseapp.core.{CommandsMessages, Messages, WithHelp}
+import caseapp.{CommandParser, Parser, RemainingArgs}
 
 abstract class CommandAppWithBaseCommand[D, T](implicit
                                                val beforeCommandParser: Parser[D],

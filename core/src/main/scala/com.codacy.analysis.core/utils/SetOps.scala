@@ -2,7 +2,8 @@ package com.codacy.analysis.core.utils
 
 import java.util.concurrent.ForkJoinPool
 
-import scala.collection.parallel.{ForkJoinTaskSupport, ParSet}
+import scala.collection.parallel.ForkJoinTaskSupport
+import scala.collection.parallel.immutable.ParSet
 
 object SetOps {
 

@@ -3,11 +3,11 @@ package com.codacy.analysis.cli.command
 import better.files.File
 import caseapp._
 import caseapp.core.ArgParser
+import com.codacy.analysis.cli.command.ArgumentParsers._
+import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
 import com.codacy.analysis.core.tools.Tool
-import com.codacy.analysis.cli.command.ArgumentParsers._
-import com.codacy.analysis.cli.formatter.Formatter
 
 abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command] {
   def run(command: Command): Unit

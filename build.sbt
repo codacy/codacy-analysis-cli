@@ -26,18 +26,20 @@ lazy val root = project
 lazy val codacyAnalysisCore = project
   .in(file("core"))
   .settings(name := "codacy-analysis-core")
-  .settings( // App Dependencies
+  .settings(
+    // App Dependencies
     libraryDependencies ++= Seq(
       Dependencies.caseApp,
       Dependencies.betterFiles,
       Dependencies.jodaTime,
-      Dependencies.codacyPlugins,
       Dependencies.fansi,
       Dependencies.scalajHttp,
       Dependencies.cats) ++
       Dependencies.circe ++
       Dependencies.jackson ++
-      Dependencies.log4s,
+      Dependencies.log4s ++
+      Dependencies.codacyPlugins,
+    // Test Dependencies
     libraryDependencies ++= testDependencies)
   .settings(
     // Sonatype repository settings
@@ -107,18 +109,3 @@ scalaVersion in ThisBuild := scalaVersionNumber
 scalaBinaryVersion in ThisBuild := scalaBinaryVersionNumber
 scapegoatDisabledInspections in ThisBuild := Seq()
 scapegoatVersion in ThisBuild := "1.3.4"
-compile.in(Compile) := Def.taskDyn {
-  val c = compile.in(Compile).value
-  Def.task {
-    if (sys.env.get("CI").exists(_.nonEmpty)) Def.taskDyn(Def.task(scapegoat.in(Compile).value))
-    c
-  }
-}.value
-
-compile.in(Test) := Def.taskDyn {
-  val c = compile.in(Test).value
-  Def.task {
-    if (sys.env.get("CI").exists(_.nonEmpty)) Def.taskDyn(Def.task(scapegoat.in(Compile).value))
-    c
-  }
-}.value

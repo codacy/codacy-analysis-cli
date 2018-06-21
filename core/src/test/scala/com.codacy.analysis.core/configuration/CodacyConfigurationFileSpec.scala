@@ -2,7 +2,7 @@ package com.codacy.analysis.core.configuration
 
 import better.files.File
 import com.codacy.analysis.core.files.Glob
-import com.codacy.api.dtos.Languages
+import com.codacy.plugins.api.languages.Languages
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
