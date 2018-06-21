@@ -6,8 +6,6 @@ references:
   host_environment_defaults: &host_environment_defaults
     # Customize the JVM maximum heap limit
     JAVA_OPTS: -Xmx3200m
-    # Publish version number for the CLI docker and library
-    PUBLISH_VERSION: "0.1.0-alpha3.$CIRCLE_BUILD_NUM"
 
   docker_environment_defaults: &docker_environment_defaults
     # Customize the JVM to read correct memory values
@@ -38,6 +36,11 @@ references:
       keys:
         - sbt-build-1.0.4-{{ .Branch }}-{{ .Revision }}
         - sbt-build-1.0.4
+
+  export_docker_publish_version: &export_docker_publish_version
+      run:
+        name: Export publish version
+        command: echo 'export PUBLISH_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"' >> $BASH_ENV
 
   setup_dependencies_key: &setup_dependencies_key
     run:
@@ -198,6 +201,7 @@ jobs:
       - *setup_dependencies_key
       - *restore_dependencies
       - *restore_build
+      - *export_docker_publish_version
       - run:
           name: Install AWS CLI
           command: |
@@ -245,6 +249,7 @@ jobs:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
+      - *export_docker_publish_version
       - attach_workspace:
           at: /tmp/workspace
       - run:
