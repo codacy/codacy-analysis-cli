@@ -2,7 +2,7 @@ package com.codacy.analysis.cli.model
 
 import java.nio.file.Path
 
-import codacy.docker.api
+import com.codacy.plugins.api.results
 
 sealed trait Location
 
@@ -16,11 +16,11 @@ final case class LineLocation(line: Int) extends Location {
 
 sealed trait Result
 
-final case class Issue(patternId: api.Pattern.Id,
+final case class Issue(patternId: results.Pattern.Id,
                        filename: Path,
                        message: Issue.Message,
-                       level: api.Result.Level,
-                       category: Option[api.Pattern.Category],
+                       level: results.Result.Level,
+                       category: Option[results.Pattern.Category],
                        location: Location)
     extends Result
 

@@ -3,11 +3,11 @@ package com.codacy.analysis.cli
 import better.files.File
 import com.codacy.analysis.cli.command.{Command, DefaultCommand}
 import com.codacy.analysis.cli.model.{FileError, Result}
+import com.codacy.analysis.cli.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
-import com.codacy.analysis.cli.utils.TestUtils._
 
 class CLISpec extends Specification with NoLanguageFeatures {
 

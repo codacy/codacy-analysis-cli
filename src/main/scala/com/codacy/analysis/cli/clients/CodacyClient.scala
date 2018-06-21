@@ -3,11 +3,10 @@ package com.codacy.analysis.cli.clients
 import java.nio.file.Path
 
 import cats.implicits._
-import codacy.docker
 import com.codacy.analysis.cli.clients.api.{CodacyError, ProjectConfiguration, RemoteResultResponse}
 import com.codacy.analysis.cli.model.{FileResults, ToolResults}
 import com.codacy.analysis.cli.utils.HttpHelper
-import com.codacy.api.dtos.{Language, Languages}
+import com.codacy.plugins.api.languages.{Language, Languages}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, Json}
@@ -19,10 +18,10 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   private val logger: Logger = getLogger
 
-  private implicit val levelEncoder: Encoder[docker.api.Result.Level.Value] =
-    Encoder.enumEncoder(docker.api.Result.Level)
-  private implicit val categoryEncoder: Encoder[docker.api.Pattern.Category.Value] =
-    Encoder.enumEncoder(docker.api.Pattern.Category)
+  private implicit val levelEncoder: Encoder[com.codacy.plugins.api.results.Result.Level.Value] =
+    Encoder.enumEncoder(com.codacy.plugins.api.results.Result.Level)
+  private implicit val categoryEncoder: Encoder[com.codacy.plugins.api.results.Pattern.Category.Value] =
+    Encoder.enumEncoder(com.codacy.plugins.api.results.Pattern.Category)
   private implicit val pathEncoder: Encoder[Path] = Encoder[String].contramap(_.toString)
   private implicit val languageDecoder: Decoder[Language] =
     Decoder[String].emap(lang =>
@@ -69,7 +68,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
           logger.error(error)(s"Error posting data to endpoint $endpoint")
           Left(error.message)
         case Right(json) =>
-          logger.info(s"""Success posting batch of ${results.size} results to endpoint "$endpoint" """)
+          logger.info(s"""Success posting batch of ${results.size} files with ${results
+            .map(_.results.size)
+            .sum} results to endpoint "$endpoint" """)
           validateRemoteResultsResponse(json)
       }
     }

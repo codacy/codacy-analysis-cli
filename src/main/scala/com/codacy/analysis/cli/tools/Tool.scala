@@ -3,17 +3,18 @@ package com.codacy.analysis.cli.tools
 import java.nio.file.{Path, Paths}
 
 import better.files.File
-import codacy.docker.api
 import com.codacy.analysis.cli.analysis.CodacyPluginsAnalyser
 import com.codacy.analysis.cli.files.FilesTarget
 import com.codacy.analysis.cli.model.{Configuration, Issue, Result, _}
 import com.codacy.analysis.cli.utils.{EitherOps, FileHelper}
-import com.codacy.api.dtos.{Language, Languages}
+import com.codacy.plugins.api
+import com.codacy.plugins.api.languages.{Language, Languages}
+import com.codacy.plugins.api.results
+import com.codacy.plugins.results.traits.{DockerTool, DockerToolWithConfig, ToolRunner}
+import com.codacy.plugins.results.{PatternRequest, PluginConfiguration, PluginRequest}
+import com.codacy.plugins.utils.PluginHelper
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
-import plugins.results.interface.scala.{Pattern, PluginConfiguration, PluginRequest}
-import plugins.results.traits.{IDockerPlugin, IDockerPluginConfig}
-import utils.PluginHelper
 
 import scala.concurrent.duration._
 import scala.sys.process.Process
@@ -35,7 +36,7 @@ final case class SubDirectory(sourceDirectory: String, protected val subDirector
   def removePrefix(filename: String): String = filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(private val plugin: IDockerPlugin) {
+class Tool(private val plugin: DockerTool) {
 
   private val logger: Logger = getLogger
 
@@ -48,7 +49,7 @@ class Tool(private val plugin: IDockerPlugin) {
   def languages: Set[Language] = plugin.languages
 
   def configFilenames: Set[String] = plugin match {
-    case plugin: IDockerPluginConfig =>
+    case plugin: DockerToolWithConfig =>
       plugin.configFilename.to[Set]
     case _ =>
       Set.empty[String]
@@ -60,9 +61,9 @@ class Tool(private val plugin: IDockerPlugin) {
           timeout: Duration = 10.minutes): Try[Set[Result]] = {
     val pluginConfiguration = config match {
       case CodacyCfg(patterns, _, extraValues) =>
-        val pts: List[Pattern] = patterns.map { pt =>
+        val pts: List[PatternRequest] = patterns.map { pt =>
           val pms: Map[String, String] = pt.parameters.map(pm => (pm.name, pm.value))(collection.breakOut)
-          Pattern(pt.id, pms)
+          PatternRequest(pt.id, pms)
         }(collection.breakOut)
         PluginConfiguration(Option(pts), convertExtraValues(extraValues))
 
@@ -80,10 +81,10 @@ class Tool(private val plugin: IDockerPlugin) {
     // HACK: Give default permissions to files so they can be read inside the docker
     overridePermissions(sourceDirectory)
 
-    plugin.run(request, Option(timeout)).map { res =>
+    ToolRunner(plugin).run(request, Option(timeout)).map { res =>
       (res.results.map(r =>
         Issue(
-          api.Pattern.Id(r.patternIdentifier),
+          results.Pattern.Id(r.patternIdentifier),
           FileHelper.relativePath(sourceDirectory.appendPrefix(r.filename)),
           Issue.Message(r.message),
           r.level,
@@ -122,9 +123,9 @@ class Tool(private val plugin: IDockerPlugin) {
   }
 
   private implicit def convertExtraValues(
-    options: Option[Map[String, JsValue]]): Option[Map[api.Configuration.Key, api.Configuration.Value]] = {
+    options: Option[Map[String, JsValue]]): Option[Map[api.Options.Key, api.Options.Value]] = {
     options.map(_.map {
-      case (k, v) => api.Configuration.Key(k) -> api.Configuration.Value(v)
+      case (k, v) => api.Options.Key(k) -> api.Options.Value(v)
     })
   }
 
@@ -142,7 +143,7 @@ class ToolCollector(allowNetwork: Boolean) {
 
   private val availableInternetTools = if (allowNetwork) {
     PluginHelper.dockerEnterprisePlugins
-  } else { List.empty[IDockerPlugin] }
+  } else { List.empty[DockerTool] }
 
   private val availableTools = PluginHelper.dockerPlugins ++ availableInternetTools
 
@@ -177,7 +178,7 @@ class ToolCollector(allowNetwork: Boolean) {
 
   def from(value: String): Either[String, Tool] = find(value).map(new Tool(_))
 
-  private def find(value: String): Either[String, IDockerPlugin] = {
+  private def find(value: String): Either[String, DockerTool] = {
     availableTools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
       .toRight(CodacyPluginsAnalyser.errors.missingTool(value))

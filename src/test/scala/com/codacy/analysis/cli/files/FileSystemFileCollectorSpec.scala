@@ -5,7 +5,7 @@ import cats.implicits._
 import com.codacy.analysis.cli.clients.api._
 import com.codacy.analysis.cli.configuration.{CodacyConfigurationFile, EngineConfiguration, LanguageConfiguration}
 import com.codacy.analysis.cli.tools.ToolCollector
-import com.codacy.api.dtos.Languages
+import com.codacy.plugins.api.languages.Languages
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 

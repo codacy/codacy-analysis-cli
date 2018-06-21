@@ -8,7 +8,7 @@ import cats.implicits._
 import com.codacy.analysis.cli.clients.api.{FilePath, PathRegex, ProjectConfiguration}
 import com.codacy.analysis.cli.configuration.CodacyConfigurationFile
 import com.codacy.analysis.cli.tools.Tool
-import com.codacy.api.dtos.{Language, Languages}
+import com.codacy.plugins.api.languages.{Language, Languages}
 
 import scala.util.Try
 
