@@ -19,11 +19,7 @@ class GitFileCollector extends FileCollector[Try] {
 
     Try {
       val builder = new FileRepositoryBuilder
-      val repository = builder
-        .setGitDir((directory / ".git").toJava)
-        .readEnvironment
-        .findGitDir
-        .build
+      val repository = builder.setGitDir((directory / ".git").toJava).readEnvironment.findGitDir.build
 
       val git = new Git(repository)
 
@@ -31,6 +27,7 @@ class GitFileCollector extends FileCollector[Try] {
       val commit = gitLog.iterator().next()
 
       val treeWalk = new TreeWalk(repository)
+      treeWalk.setRecursive(true)
 
       treeWalk.addTree(new RevWalk(repository).parseTree(commit))
 
