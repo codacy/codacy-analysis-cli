@@ -6,6 +6,9 @@ references:
   host_environment_defaults: &host_environment_defaults
     # Customize the JVM maximum heap limit
     JAVA_OPTS: -Xmx3200m
+    # Publish version number for the CLI docker and library
+    PUBLISH_VERSION: "0.1.0-alpha3.$CIRCLE_BUILD_NUM"
+
   docker_environment_defaults: &docker_environment_defaults
     # Customize the JVM to read correct memory values
     JAVA_OPTS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1'
@@ -211,7 +214,7 @@ jobs:
             aws s3 sync --profile shared-services --include '*.gpg' s3://$AWS_CREDENTIALS_BUCKET/gnupg/ ~/.gnupg
       - run:
           name: Publish to Sonatype
-          command: ./scripts/publish.sh 0.1.$CIRCLE_BUILD_NUM
+          command: ./scripts/publish.sh $PUBLISH_VERSION
 
   publish_docker_locally:
     machine: true
@@ -250,8 +253,6 @@ jobs:
       - deploy:
           name: Push docker to DockerHub
           command: |
-            export PUBLISH_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"
-
             docker login -u $DOCKER_USER -p $DOCKER_PASS
 
             docker tag codacy/$CIRCLE_PROJECT_REPONAME:$CIRCLE_BRANCH-SNAPSHOT codacy/$CIRCLE_PROJECT_REPONAME:$PUBLISH_VERSION
