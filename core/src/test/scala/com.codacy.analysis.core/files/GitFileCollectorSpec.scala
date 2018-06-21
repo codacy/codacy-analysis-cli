@@ -12,9 +12,9 @@ import org.specs2.mutable.Specification
 import scala.sys.process.Process
 import scala.util.Success
 
-class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures {
+class GitFileCollectorSpec extends Specification with NoLanguageFeatures {
 
-  val fsFc = new FileSystemFileCollector()
+  val gitFc = new GitFileCollector()
 
   val toolCollector = new ToolCollector(false)
 
@@ -338,7 +338,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
 
   val expectedConfigFiles = List("src/main/resources/docs/directory-tests/rails3/config/brakeman.yml")
 
-  "FileSystemFileCollector" should {
+  "GitFileCollector" should {
     "list files and filter files per tool" in {
       (for {
         directory <- File.temporaryDirectory()
@@ -350,11 +350,11 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         val tool = toolCollector.from("brakeman").right.get
 
         val result = for {
-          filesTargetGlobal <- fsFc.list(
+          filesTargetGlobal <- gitFc.list(
             directory,
             "Local configuration not found".asLeft,
             "Remote configuration not found".asLeft)
-          filesTargetTool = fsFc.filter(
+          filesTargetTool = gitFc.filter(
             tool,
             filesTargetGlobal,
             "Local configuration not found".asLeft,
@@ -367,11 +367,11 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
           case Success((filesTargetGlobal, filesTargetTool)) =>
             filesTargetGlobal.directory must be(directory)
             filesTargetGlobal.readableFiles.to[List].map(_.toString) must containTheSameElementsAs(expectedFiles)
-            fsFc.hasConfigurationFiles(tool, filesTargetGlobal) must beTrue
+            gitFc.hasConfigurationFiles(tool, filesTargetGlobal) must beTrue
 
             filesTargetTool.directory must be(directory)
             filesTargetTool.readableFiles.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
-            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
+            gitFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
     }
@@ -399,8 +399,8 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         val tool = toolCollector.from("scalastyle").right.get
 
         val result = for {
-          filesTargetGlobal <- fsFc.list(directory, "Local configuration not found".asLeft, remoteConfiguration)
-          filesTargetTool = fsFc.filter(
+          filesTargetGlobal <- gitFc.list(directory, "Local configuration not found".asLeft, remoteConfiguration)
+          filesTargetTool = gitFc.filter(
             tool,
             filesTargetGlobal,
             "Local configuration not found".asLeft,
@@ -413,7 +413,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
           case Success(filesTargetTool) =>
             filesTargetTool.directory must be(directory)
             filesTargetTool.readableFiles.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
-            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
+            gitFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
     }
@@ -439,8 +439,8 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         val tool = toolCollector.from("scalastyle").right.get
 
         val result = for {
-          filesTargetGlobal <- fsFc.list(directory, localConfiguration, "Remote configuration not found".asLeft)
-          filesTargetTool = fsFc.filter(
+          filesTargetGlobal <- gitFc.list(directory, localConfiguration, "Remote configuration not found".asLeft)
+          filesTargetTool = gitFc.filter(
             tool,
             filesTargetGlobal,
             localConfiguration,
@@ -453,7 +453,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
           case Success(filesTargetTool) =>
             filesTargetTool.directory must be(directory)
             filesTargetTool.readableFiles.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
-            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
+            gitFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
     }
@@ -480,8 +480,8 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         val tool = toolCollector.from("scalastyle").right.get
 
         val result = for {
-          filesTargetGlobal <- fsFc.list(directory, "Local configuration not found".asLeft, remoteConfiguration)
-          filesTargetTool = fsFc.filter(
+          filesTargetGlobal <- gitFc.list(directory, "Local configuration not found".asLeft, remoteConfiguration)
+          filesTargetTool = gitFc.filter(
             tool,
             filesTargetGlobal,
             "Local configuration not found".asLeft,
@@ -494,7 +494,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
           case Success(filesTargetTool) =>
             filesTargetTool.directory must be(directory)
             filesTargetTool.readableFiles.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
-            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
+            gitFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
     }
@@ -525,8 +525,8 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         val tool = toolCollector.from("scalastyle").right.get
 
         val result = for {
-          filesTargetGlobal <- fsFc.list(directory, localConfiguration, remoteConfiguration)
-          filesTargetTool = fsFc.filter(
+          filesTargetGlobal <- gitFc.list(directory, localConfiguration, remoteConfiguration)
+          filesTargetTool = gitFc.filter(
             tool,
             filesTargetGlobal,
             localConfiguration,
@@ -539,7 +539,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
           case Success(filesTargetTool) =>
             filesTargetTool.directory must be(directory)
             filesTargetTool.readableFiles.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
-            fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
+            gitFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
     }

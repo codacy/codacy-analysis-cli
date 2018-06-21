@@ -73,9 +73,10 @@ class AnalyseExecutor(toolInput: Option[String],
   private def analyseFiles(tool: Tool,
                            filesTarget: FilesTarget,
                            localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[Result]] = {
+    val fileTarget = fileCollector.filter(tool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
+    val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, filesTarget)
+
     for {
-      fileTarget <- fileCollector.filter(tool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
-      toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, filesTarget)
       toolConfiguration <- getToolConfiguration(
         tool,
         toolHasConfigFiles,
