@@ -78,7 +78,7 @@ references:
           command: |
             if [[ -z "$CODACY_ANALYSIS_CLI_VERSION" ]]
             then
-              echo 'export CODACY_ANALYSIS_CLI_VERSION="$CIRCLE_BRANCH-SNAPSHOT"' >> $BASH_ENV
+              echo 'export CODACY_ANALYSIS_CLI_VERSION="DEV-SNAPSHOT"' >> $BASH_ENV
             fi
       - run:
           name: Install codacy-analysis-cli
@@ -199,12 +199,12 @@ jobs:
       - *restore_build
       - run:
           name: Publish local docker
-          command: ./scripts/publish.sh $CIRCLE_BRANCH-SNAPSHOT
+          command: ./scripts/publish.sh DEV-SNAPSHOT
       - run:
           name: Save docker to file
           command: |
             mkdir workspace
-            docker save --output workspace/codacy-analysis-cli.tar codacy/$CIRCLE_PROJECT_REPONAME:$CIRCLE_BRANCH-SNAPSHOT
+            docker save --output workspace/codacy-analysis-cli.tar codacy/$CIRCLE_PROJECT_REPONAME:DEV-SNAPSHOT
       - persist_to_workspace:
           root: workspace
           paths:
@@ -228,10 +228,10 @@ jobs:
 
             docker login -u $DOCKER_USER -p $DOCKER_PASS
 
-            docker tag codacy/$CIRCLE_PROJECT_REPONAME:$CIRCLE_BRANCH-SNAPSHOT codacy/$CIRCLE_PROJECT_REPONAME:$PUBLISH_VERSION
+            docker tag codacy/$CIRCLE_PROJECT_REPONAME:DEV-SNAPSHOT codacy/$CIRCLE_PROJECT_REPONAME:$PUBLISH_VERSION
 
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              docker tag codacy/$CIRCLE_PROJECT_REPONAME:$CIRCLE_BRANCH-SNAPSHOT codacy/$CIRCLE_PROJECT_REPONAME:latest
+              docker tag codacy/$CIRCLE_PROJECT_REPONAME:DEV-SNAPSHOT codacy/$CIRCLE_PROJECT_REPONAME:latest
               docker push codacy/$CIRCLE_PROJECT_REPONAME:latest
             fi
 
