@@ -6,6 +6,7 @@ references:
   host_environment_defaults: &host_environment_defaults
     # Customize the JVM maximum heap limit
     JAVA_OPTS: -Xmx3200m
+
   docker_environment_defaults: &docker_environment_defaults
     # Customize the JVM to read correct memory values
     JAVA_OPTS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1'
@@ -35,6 +36,11 @@ references:
       keys:
         - sbt-build-1.0.4-{{ .Branch }}-{{ .Revision }}
         - sbt-build-1.0.4
+
+  export_docker_publish_version: &export_docker_publish_version
+      run:
+        name: Export publish version
+        command: echo 'export PUBLISH_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"' >> $BASH_ENV
 
   setup_dependencies_key: &setup_dependencies_key
     run:
@@ -192,8 +198,9 @@ jobs:
           name: Store test reports
           working_directory: ~/
           command: |
-            mkdir -p ~/coverage-reports
-            cp -rf ~/workdir/target/test-reports ~/coverage-reports/junit
+            mkdir -p ~/coverage-reports/junit
+            cp -rf ~/workdir/cli/target/test-reports ~/coverage-reports/junit/cli
+            cp -rf ~/workdir/core/target/test-reports ~/coverage-reports/junit/core
       - store_test_results:
           path: ~/coverage-reports
       - store_artifacts:
@@ -216,7 +223,33 @@ jobs:
           name: Lint
           command: ./scripts/lint.sh
 
-  publish_locally:
+  publish_lib:
+    <<: *default_java_job
+    steps:
+      - *restore_source_code
+      - *setup_dependencies_key
+      - *restore_dependencies
+      - *restore_build
+      - *export_docker_publish_version
+      - run:
+          name: Install AWS CLI
+          command: |
+            sudo apt -y update
+            sudo apt -y install python3-pip
+            sudo python3 -m pip install awscli
+      - run:
+          name: Setup AWS Credentials
+          command: ./scripts/setup-aws-credentials.sh
+      - run:
+          name: Retrieve GPG Keys
+          command: |
+            mkdir -p ~/.gnupg
+            aws s3 sync --profile shared-services --include '*.gpg' s3://$AWS_CREDENTIALS_BUCKET/gnupg/ ~/.gnupg
+      - run:
+          name: Publish to Sonatype
+          command: ./scripts/publish.sh $PUBLISH_VERSION
+
+  publish_docker_locally:
     machine: true
     environment:
       <<: *host_environment_defaults
@@ -228,7 +261,7 @@ jobs:
       - *restore_build
       - run:
           name: Publish local docker
-          command: ./scripts/publish.sh dev-snapshot
+          command: ./scripts/publish_docker.sh dev-snapshot
       - run:
           name: Save docker to file
           command: |
@@ -245,6 +278,7 @@ jobs:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
+      - *export_docker_publish_version
       - attach_workspace:
           at: /tmp/workspace
       - *load_docker_file
@@ -346,14 +380,23 @@ workflows:
       - lint:
           requires:
             - compile
-      - publish_locally:
+      - publish_lib:
+          context: CodacyAWS
+          requires:
+            - test
+            - lint
+          filters:
+            branches:
+              only:
+                - master
+      - publish_docker_locally:
           requires:
             - compile
       - publish_dockerhub:
           requires:
             - test
             - lint
-            - publish_locally
+            - publish_docker_locally
             - test_integration
           filters:
             branches:
@@ -361,7 +404,7 @@ workflows:
                 - master
       - publish_dockerhub_latest:
           requires:
-            - publish_locally
+            - publish_docker_locally
           filters:
             branches:
               only:
@@ -369,7 +412,7 @@ workflows:
       - publish_dockerhub_stable:
           type: approval
           requires:
-            - publish_locally
+            - publish_docker_locally
           filters:
             branches:
               only:
@@ -389,7 +432,7 @@ workflows:
       - test_integration:
           requires:
             - maven_dependencies
-            - publish_locally
+            - publish_docker_locally
           filters:
             branches:
               only:
