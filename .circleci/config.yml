@@ -404,7 +404,7 @@ workflows:
                 - master
       - publish_dockerhub_latest:
           requires:
-            - publish_locally
+            - publish_docker_locally
           filters:
             branches:
               only:
@@ -412,7 +412,7 @@ workflows:
       - publish_dockerhub_stable:
           type: approval
           requires:
-            - publish_locally
+            - publish_docker_locally
           filters:
             branches:
               only:
