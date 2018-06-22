@@ -16,8 +16,8 @@ fi
 
 echo "Publishing version ${VERSION}"
 if [[ -n "$CI" ]] && [[ "$CURRENT_BRANCH" == "$PUBLISH_BRANCH" || "$CIRCLE_BRANCH" == "$PUBLISH_BRANCH" ]]; then
-  sbt 'set codacyAnalysisCore/version := "'"${VERSION}"'"' 'set codacyAnalysisCore/pgpPassphrase := Some("'"$SONATYPE_GPG_PASSPHRASE"'".toCharArray)' codacyAnalysisCore/publishSigned
-  sbt 'set codacyAnalysisCore/version := "'"${VERSION}"'"' codacyAnalysisCore/sonatypeRelease
+  sbt 'set version in codacyAnalysisCore := "'"${VERSION}"'"' 'set pgpPassphrase in codacyAnalysisCore := Some("'"$SONATYPE_GPG_PASSPHRASE"'".toCharArray)' codacyAnalysisCore/publishSigned
+  sbt 'set version in codacyAnalysisCore := "'"${VERSION}"'"' codacyAnalysisCore/sonatypeRelease
 else
-  sbt 'set codacyAnalysisCore/version := "'"${VERSION}"'"' codacyAnalysisCore/publishLocal
+  sbt 'set version in codacyAnalysisCore := "'"${VERSION}"'"' codacyAnalysisCore/publishLocal
 fi
