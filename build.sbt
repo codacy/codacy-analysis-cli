@@ -2,7 +2,7 @@ import sbt.Keys._
 import sbt._
 
 val scalaBinaryVersionNumber = "2.12"
-val scalaVersionNumber = s"$scalaBinaryVersionNumber.4"
+val scalaVersionNumber = s"$scalaBinaryVersionNumber.6"
 
 resolvers += Resolver.bintrayIvyRepo("sbt", "sbt-plugin-releases")
 
