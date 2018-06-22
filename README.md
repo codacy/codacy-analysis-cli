@@ -206,22 +206,22 @@ sbt codacyCoverage
 
 * **Local**
 
-        sbt 'set codacyAnalysisCli/version := "<VERSION>"' codacyAnalysisCli/docker:publishLocal
+        sbt 'set version in codacyAnalysisCli := "<VERSION>"' codacyAnalysisCli/docker:publishLocal
 
 * **Release**
 
-        sbt 'set codacyAnalysisCli/version := "<VERSION>"' codacyAnalysisCli/docker:publish
+        sbt 'set version in codacyAnalysisCli := "<VERSION>"' codacyAnalysisCli/docker:publish
 
 ### Library
 
 * **Local**
 
-        sbt 'set codacyAnalysisCore/version := "<VERSION>"' codacyAnalysisCore/publishLocal
+        sbt 'set version in codacyAnalysisCore := "<VERSION>"' codacyAnalysisCore/publishLocal
 
 * **Release**
 
-        sbt 'set codacyAnalysisCore/version := "<VERSION>"' 'set codacyAnalysisCore/pgpPassphrase := Some("<SONATYPE_GPG_PASSPHRASE>".toCharArray)' codacyAnalysisCore/publishSigned
-        sbt 'set codacyAnalysisCore/version := "<VERSION>"' codacyAnalysisCore/sonatypeRelease
+        sbt 'set version in codacyAnalysisCore := "<VERSION>"' 'set pgpPassphrase in codacyAnalysisCore := Some("<SONATYPE_GPG_PASSPHRASE>".toCharArray)' codacyAnalysisCore/publishSigned
+        sbt 'set version in codacyAnalysisCore := "<VERSION>"' codacyAnalysisCore/sonatypeRelease
 
 ## What is Codacy
 

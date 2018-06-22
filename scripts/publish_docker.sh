@@ -12,4 +12,4 @@ fi
 VERSION="$(echo $VERSION | awk -F '[^[:alnum:]]+' -v OFS=- '{$0=tolower($0); $1=$1; gsub(/^-|-$/, "")} 1')"
 
 echo "Deploying version ${VERSION}"
-sbt 'set codacyAnalysisCli/version := "'"${VERSION}"'"' codacyAnalysisCli/docker:publishLocal
+sbt 'set version in codacyAnalysisCli := "'"${VERSION}"'"' codacyAnalysisCli/docker:publishLocal

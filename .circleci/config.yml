@@ -247,7 +247,7 @@ jobs:
             aws s3 sync --profile shared-services --include '*.gpg' s3://$AWS_CREDENTIALS_BUCKET/gnupg/ ~/.gnupg
       - run:
           name: Publish to Sonatype
-          command: ./scripts/publish.sh $PUBLISH_VERSION
+          command: ./scripts/publish_lib.sh $PUBLISH_VERSION
 
   publish_docker_locally:
     machine: true
