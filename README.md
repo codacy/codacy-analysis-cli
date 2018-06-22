@@ -220,8 +220,8 @@ sbt codacyCoverage
 
 * **Release**
 
-        sbt 'set version in codacyAnalysisCore := "<VERSION>"' 'set pgpPassphrase in codacyAnalysisCore := Some("<SONATYPE_GPG_PASSPHRASE>".toCharArray)' codacyAnalysisCore/publishSigned
-        sbt 'set version in codacyAnalysisCore := "<VERSION>"' codacyAnalysisCore/sonatypeRelease
+        sbt 'set version in codacyAnalysisCore := "<VERSION>"' 'set pgpPassphrase := Some("<SONATYPE_GPG_PASSPHRASE>".toCharArray)' codacyAnalysisCore/publishSigned
+        sbt 'set version in codacyAnalysisCore := "<VERSION>"' sonatypeRelease
 
 ## What is Codacy
 
