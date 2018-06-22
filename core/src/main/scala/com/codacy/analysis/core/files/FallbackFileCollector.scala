@@ -4,9 +4,10 @@ import better.files.File
 import com.codacy.analysis.core.clients.api.ProjectConfiguration
 import com.codacy.analysis.core.configuration.CodacyConfigurationFile
 
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 class FallbackFileCollector(fileCollectorCompanions: List[FileCollectorCompanion[Try]]) extends FileCollector[Try] {
+
   private val fileCollectors = fileCollectorCompanions.map(_.apply())
 
   override def list(directory: File,
@@ -23,11 +24,15 @@ class FallbackFileCollector(fileCollectorCompanions: List[FileCollectorCompanion
       case fileCollector :: tail =>
         fileCollector.list(directory, localConfiguration, remoteConfiguration).recoverWith {
           case _ =>
+            logger.info(s"Failed to list files with ${fileCollector.getClass.getName}")
             list(tail, directory, localConfiguration, remoteConfiguration)
         }
       case Nil =>
-        scala.util.Failure(
-          new Exception(s"All FileCollectors failed: ${fileCollectorCompanions.map(_.name).mkString(",")}"))
+        val errorMessage =
+          s"All FileCollectors failed to list files: ${fileCollectorCompanions.map(_.name).mkString(",")}"
+        logger.error(errorMessage)
+
+        Failure(new Exception(errorMessage))
     }
   }
 }

@@ -13,8 +13,7 @@ object Dependencies {
     "com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion,
     "com.fasterxml.jackson.core" % "jackson-annotations" % jacksonVersion,
     "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % jacksonVersion
-  )
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % jacksonVersion)
 
   lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.4.0"
 
@@ -27,10 +26,7 @@ object Dependencies {
 
   lazy val caseApp = "com.github.alexarchambault" %% "case-app" % "1.2.0"
 
-  lazy val codacyPlugins = Seq(
-    "com.codacy" %% "codacy-plugins-api" % "3.0.2",
-    "codacy" %% "codacy-plugins" % "5.0.22"
-  )
+  lazy val codacyPlugins = Seq("com.codacy" %% "codacy-plugins-api" % "3.0.2", "codacy" %% "codacy-plugins" % "5.0.22")
 
   lazy val fansi = "com.lihaoyi" %% "fansi" % "0.2.5"
 
@@ -38,5 +34,5 @@ object Dependencies {
 
   lazy val cats = "org.typelevel" %% "cats-core" % "1.0.1"
 
-  lazy val jGit = "org.eclipse.jgit" % "org.eclipse.jgit" % "4.11.0.201803080745-r"
+  lazy val jGit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.0.0.201806131550-r"
 }
