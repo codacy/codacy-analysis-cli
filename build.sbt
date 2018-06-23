@@ -14,6 +14,12 @@ lazy val root = project
   .in(file("."))
   .settings(name := "root")
   .settings(inThisBuild(List(
+    //Credentials for sonatype
+    credentials += Credentials(
+      "Sonatype Nexus Repository Manager",
+      "oss.sonatype.org",
+      sys.env.getOrElse("SONATYPE_USER", "username"),
+      sys.env.getOrElse("SONATYPE_PASSWORD", "password")),
     scalaVersion := scalaVersionNumber,
     version := "0.1.0-SNAPSHOT",
     organization := "com.codacy",
@@ -43,11 +49,6 @@ lazy val codacyAnalysisCore = project
     libraryDependencies ++= testDependencies)
   .settings(
     // Sonatype repository settings
-    credentials += Credentials(
-      "Sonatype Nexus Repository Manager",
-      "oss.sonatype.org",
-      sys.env.getOrElse("SONATYPE_USER", "username"),
-      sys.env.getOrElse("SONATYPE_PASSWORD", "password")),
     publishMavenStyle := true,
     publishArtifact.in(Test) := false,
     publishArtifact.in(makePom.in(Docker)) := false,
