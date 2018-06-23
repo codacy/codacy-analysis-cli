@@ -84,14 +84,10 @@ class AnalyseExecutor(toolInput: Option[String],
                                    remoteConfiguration: Either[String, ProjectConfiguration]): Try[Configuration] = {
     val (baseSubDir, extraValues) = getExtraConfiguration(localConfiguration, tool)
     (for {
-      // scalafix:off NoInfer.product
       projectConfig <- remoteConfiguration
-      // scalafix:on NoInfer.product
       toolConfiguration <- projectConfig.toolConfiguration
         .find(_.uuid.equalsIgnoreCase(tool.uuid))
-        // scalafix:off NoInfer.product
         .toRight[String]("Could not find tool")
-      // scalafix:on NoInfer.product
     } yield {
       val shouldUseConfigFile = toolConfiguration.notEdited && hasConfigFiles
       val shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile && tool.allowsUIConfiguration && toolConfiguration.patterns.nonEmpty

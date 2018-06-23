@@ -11,8 +11,9 @@ object Common {
   private val defaultDockerInstallationPath = "/opt/codacy"
   private val dockerVersion = "docker-17.09.0-ce"
 
-  val genericSettings: Seq[Def.Setting[Seq[Resolver]]] = Seq(
-    resolvers += "Codacy Public Mvn bucket" at "https://s3-eu-west-1.amazonaws.com/public.mvn.codacy.com")
+  val genericSettings: Seq[Def.Setting[_]] = Seq(
+    resolvers += "Codacy Public Mvn bucket" at "https://s3-eu-west-1.amazonaws.com/public.mvn.codacy.com",
+    addCompilerPlugin("org.scalameta" % "semanticdb-scalac" % "4.0.0-M4" cross CrossVersion.full))
 
   val dockerSettings: Seq[Def.Setting[_]] = Seq(
     packageName in Docker := packageName.value,
@@ -97,7 +98,7 @@ object Common {
     "-Ywarn-unused:params", // Warn if a value parameter is unused.
     "-Ywarn-unused:patvars", // Warn if a variable bound in a pattern is unused.
     "-Ywarn-unused:privates", // Warn if a private member is unused.
-    "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
-  )
+    "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
+    "-Yrangepos")
 
 }

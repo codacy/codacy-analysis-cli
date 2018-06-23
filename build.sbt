@@ -2,7 +2,7 @@ import sbt.Keys._
 import sbt._
 
 val scalaBinaryVersionNumber = "2.12"
-val scalaVersionNumber = s"$scalaBinaryVersionNumber.4"
+val scalaVersionNumber = s"$scalaBinaryVersionNumber.6"
 
 resolvers += Resolver.bintrayIvyRepo("sbt", "sbt-plugin-releases")
 
@@ -103,6 +103,11 @@ lazy val codacyAnalysisCli = project
   .settings(libraryDependencies ++= testDependencies)
   .dependsOn(codacyAnalysisCore)
   .aggregate(codacyAnalysisCore)
+
+// sbt-dependency-check
+dependencyCheckFailBuildOnCVSS := 11 // Never fail
+dependencyCheckEnableExperimental := Option(true)
+dependencyCheckBundleAuditEnabled := Option(false)
 
 // Scapegoat
 scalaVersion in ThisBuild := scalaVersionNumber

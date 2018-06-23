@@ -4,4 +4,5 @@ set -e
 
 sbt scalafmtCheck
 sbt scapegoat
-sbt "scalafixCli --test"
+sbt scalafixEnable "scalafixCli --test"
+sbt dependencyCheckAggregate
