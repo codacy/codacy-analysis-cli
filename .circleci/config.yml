@@ -380,18 +380,19 @@ workflows:
       - lint:
           requires:
             - compile
+      - publish_docker_locally:
+          requires:
+            - compile
       - publish_lib:
           context: CodacyAWS
           requires:
             - test
             - lint
+            - test_integration
           filters:
             branches:
               only:
                 - master
-      - publish_docker_locally:
-          requires:
-            - compile
       - publish_dockerhub:
           requires:
             - test
@@ -404,7 +405,10 @@ workflows:
                 - master
       - publish_dockerhub_latest:
           requires:
+            - test
+            - lint
             - publish_docker_locally
+            - test_integration
           filters:
             branches:
               only:
@@ -412,7 +416,10 @@ workflows:
       - publish_dockerhub_stable_hold:
           type: approval
           requires:
+            - test
+            - lint
             - publish_docker_locally
+            - test_integration
           filters:
             branches:
               only:
