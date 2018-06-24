@@ -109,6 +109,9 @@ docker run \
 * `--fail-if-incomplete` [default: false] - Fail the analysis if any tool fails to run
 * `--allow-network` [default: false] - Allow network access, so tools that need it can execute (e.g. findbugs)
 
+### Environment Variables
+
+* `CODACY_ANALYSIS_CLI_VERSION` - Set an alternative version of the CLI to run. (e.g. latest, 0.1.0-alpha3.1350, ...)
 
 ### Local configuration
 

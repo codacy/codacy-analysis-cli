@@ -26,7 +26,7 @@ test_docker_socket() {
 }
 
 run() {
-  local CODACY_ANALYSIS_CLI_VERSION="${CODACY_ANALYSIS_CLI_VERSION:-latest}"
+  local CODACY_ANALYSIS_CLI_VERSION="${CODACY_ANALYSIS_CLI_VERSION:-stable}"
   docker run \
     --rm \
     --env CODACY_CODE="$CODACY_CODE" \
