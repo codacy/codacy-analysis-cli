@@ -52,7 +52,8 @@ class MainImpl extends CLIApp {
           fileCollector,
           remoteProjectConfiguration,
           analyse.parallel,
-          analyse.allowNetworkValue).run()
+          analyse.allowNetworkValue,
+          analyse.forceFilePermissionsValue).run()
 
         val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
         val uploadResult = if (analyse.uploadValue) {

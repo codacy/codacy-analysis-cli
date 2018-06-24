@@ -366,11 +366,11 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         result must beLike {
           case Success((filesTargetGlobal, filesTargetTool)) =>
             filesTargetGlobal.directory must be(directory)
-            filesTargetGlobal.files.to[List].map(_.toString) must containTheSameElementsAs(expectedFiles)
+            filesTargetGlobal.readableFiles.to[List].map(_.toString) must containTheSameElementsAs(expectedFiles)
             fsFc.hasConfigurationFiles(tool, filesTargetGlobal) must beTrue
 
             filesTargetTool.directory must be(directory)
-            filesTargetTool.files.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
+            filesTargetTool.readableFiles.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
             fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
@@ -412,7 +412,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         result must beLike {
           case Success(filesTargetTool) =>
             filesTargetTool.directory must be(directory)
-            filesTargetTool.files.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
+            filesTargetTool.readableFiles.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
             fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
@@ -452,7 +452,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         result must beLike {
           case Success(filesTargetTool) =>
             filesTargetTool.directory must be(directory)
-            filesTargetTool.files.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
+            filesTargetTool.readableFiles.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
             fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
@@ -493,7 +493,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         result must beLike {
           case Success(filesTargetTool) =>
             filesTargetTool.directory must be(directory)
-            filesTargetTool.files.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
+            filesTargetTool.readableFiles.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
             fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
@@ -538,7 +538,7 @@ class FileSystemFileCollectorSpec extends Specification with NoLanguageFeatures 
         result must beLike {
           case Success(filesTargetTool) =>
             filesTargetTool.directory must be(directory)
-            filesTargetTool.files.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
+            filesTargetTool.readableFiles.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
             fsFc.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()

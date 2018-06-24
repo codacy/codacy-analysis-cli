@@ -17,7 +17,6 @@ import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
 import scala.concurrent.duration._
-import scala.sys.process.Process
 import scala.util.Try
 
 sealed trait SourceDirectory {
@@ -78,9 +77,6 @@ class Tool(private val plugin: DockerTool) {
         files.to[List].map(f => sourceDirectory.removePrefix(f.toString)),
         pluginConfiguration)
 
-    // HACK: Give default permissions to files so they can be read inside the docker
-    overridePermissions(sourceDirectory)
-
     ToolRunner(plugin).run(request, Option(timeout)).map { res =>
       (res.results.map(r =>
         Issue(
@@ -92,13 +88,6 @@ class Tool(private val plugin: DockerTool) {
           LineLocation(r.line)))(collection.breakOut): Set[Result]) ++
         res.failedFiles.map(fe => FileError(FileHelper.relativePath(fe), "Failed to analyse file."))
     }
-  }
-
-  private def overridePermissions(sourceDirectory: SourceDirectory) = {
-    Process(Seq("find", sourceDirectory.sourceDirectory, "-type", "d", "-exec", "chmod", "u+rwx", "{}", ";")).!
-    Process(Seq("find", sourceDirectory.sourceDirectory, "-type", "d", "-exec", "chmod", "ugo+rx", "{}", ";")).!
-    Process(Seq("find", sourceDirectory.sourceDirectory, "-type", "f", "-exec", "chmod", "u+rw", "{}", ";")).!
-    Process(Seq("find", sourceDirectory.sourceDirectory, "-type", "f", "-exec", "chmod", "ugo+r", "{}", ";")).!
   }
 
   private def getSourceDirectory(directory: File, baseSubDir: Option[String]): SourceDirectory = {
@@ -164,7 +153,8 @@ class ToolCollector(allowNetwork: Boolean) {
 
   def fromFileTarget(filesTarget: FilesTarget,
                      languageCustomExtensions: List[(Language, Seq[String])]): Either[String, Set[Tool]] = {
-    val fileLanguages = filesTarget.files.flatMap(path => Languages.forPath(path.toString, languageCustomExtensions))
+    val fileLanguages =
+      filesTarget.readableFiles.flatMap(path => Languages.forPath(path.toString, languageCustomExtensions))
 
     val collectedTools: Set[Tool] = availableTools.collect {
       case tool if fileLanguages.exists(tool.languages.contains) =>

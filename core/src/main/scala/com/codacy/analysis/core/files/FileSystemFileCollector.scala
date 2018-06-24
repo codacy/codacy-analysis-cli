@@ -1,5 +1,6 @@
 package com.codacy.analysis.core.files
 
+import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{Path, Paths}
 
 import better.files.File
@@ -9,14 +10,17 @@ import com.codacy.analysis.core.clients.api.{FilePath, PathRegex, ProjectConfigu
 import com.codacy.analysis.core.configuration.CodacyConfigurationFile
 import com.codacy.analysis.core.tools.Tool
 import com.codacy.plugins.api.languages.{Language, Languages}
+import org.log4s.{Logger, getLogger}
 
 import scala.util.Try
 
-final case class FilesTarget(directory: File, files: Set[Path])
+final case class FilesTarget(directory: File, readableFiles: Set[Path], unreadableFiles: Set[Path])
+
+private[files] final case class CheckedFiles(readableFiles: Set[Path], unreadableFiles: Set[Path])
 
 class FileSystemFileCollector extends FileCollector[Try] {
 
-  // TODO: Check if File will work or if we might need Path to support relative paths
+  private val logger: Logger = getLogger
 
   // HACK: Fixes Intellij IDEA highlight problems
   private type EitherA[A] = Either[String, A]
@@ -44,12 +48,14 @@ class FileSystemFileCollector extends FileCollector[Try] {
 
       val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
 
-      FilesTarget(directory, filteredFiles)
+      val checkedFiles = checkPermissions(directory, filteredFiles)
+
+      FilesTarget(directory, checkedFiles.readableFiles, checkedFiles.unreadableFiles)
     }
   }
 
   override def hasConfigurationFiles(tool: Tool, filesTarget: FilesTarget): Boolean = {
-    filesTarget.files.exists(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
+    filesTarget.readableFiles.exists(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
   }
 
   override def filter(tool: Tool,
@@ -60,8 +66,8 @@ class FileSystemFileCollector extends FileCollector[Try] {
       val filters = Set(
         excludeForTool(tool, localConfiguration) _,
         filterByLanguage(tool, localConfiguration, remoteConfiguration) _)
-      val filteredFiles = filters.foldLeft(target.files) { case (fs, filter) => filter(fs) }
-      target.copy(files = filteredFiles)
+      val filteredFiles = filters.foldLeft(target.readableFiles) { case (fs, filter) => filter(fs) }
+      target.copy(readableFiles = filteredFiles)
     }
   }
 
@@ -131,6 +137,16 @@ class FileSystemFileCollector extends FileCollector[Try] {
         tool.languages,
         localCustomExtensionsByLanguage ++ remoteCustomExtensionsByLanguage)
       .map(Paths.get(_))
+  }
+
+  private def checkPermissions(directory: File, files: Set[Path]): CheckedFiles = {
+    files.map(path => (path, directory / path.toString)).foldLeft(CheckedFiles(Set.empty[Path], Set.empty[Path])) {
+      case (checkedFiles, (path, file)) if file.isRegularFile && file.testPermission(PosixFilePermission.OTHERS_READ) =>
+        checkedFiles.copy(readableFiles = checkedFiles.readableFiles + path)
+      case (checkedFiles, (path, file)) =>
+        logger.error(s"Could not read file $file, make sure it is readable by everybody.")
+        checkedFiles.copy(unreadableFiles = checkedFiles.unreadableFiles + path)
+    }
   }
 
 }

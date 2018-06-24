@@ -12,7 +12,7 @@ import org.specs2.mutable.Specification
 
 class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
-  val emptyFilesTarget = FilesTarget(File(""), Set.empty)
+  val emptyFilesTarget = FilesTarget(File(""), Set.empty, Set.empty)
   val noLocalConfiguration = Left("no config")
 
   "AnalyseExecutor.tools" should {
@@ -90,7 +90,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val userInput = None
       val remoteProjectConfiguration = Left("some error")
 
-      val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rb").path))
+      val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rb").path), Set.empty)
 
       val toolEither = AnalyseExecutor
         .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = false)
@@ -105,7 +105,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val userInput = None
       val remoteProjectConfiguration = Left("some error")
 
-      val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rawr").path))
+      val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rawr").path), Set.empty)
 
       val localConfiguration = Right(
         CodacyConfigurationFile(
@@ -126,7 +126,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       |to the network but doesn't provide the needed argument""".stripMargin in {
       val toolName = "gendarme"
       val remoteProjectConfiguration = Left("some error")
-      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path))
+      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path), Set.empty)
       val localConfiguration = Right(CodacyConfigurationFile(Option.empty, Option.empty, Option.empty))
 
       val toolEither = AnalyseExecutor
@@ -138,7 +138,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
     "list tools that need access to the network if this argument is provided" in {
       val remoteProjectConfiguration = Left("some error")
-      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path))
+      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
       val localConfiguration = Right(CodacyConfigurationFile(Option.empty, Option.empty, Option.empty))
 
       val toolEither =
@@ -153,7 +153,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
     "not list tools that need access to the network if this argument is not provided" in {
       val remoteProjectConfiguration = Left("some error")
-      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path))
+      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
       val localConfiguration = Right(CodacyConfigurationFile(Option.empty, Option.empty, Option.empty))
 
       val toolEither =

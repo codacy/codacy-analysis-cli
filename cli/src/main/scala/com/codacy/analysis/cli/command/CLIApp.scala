@@ -121,10 +121,13 @@ final case class Analyse(
   maxAllowedIssues: Int = 0,
   @ValueDescription("Fail the analysis if any tool fails to run")
   failIfIncomplete: Int @@ Counter = Tag.of(0),
+  @ValueDescription("Force files to be readable by changing the permissions before running the analysis")
+  forceFilePermissions: Int @@ Counter = Tag.of(0),
   @Recurse
   extras: ExtraOptions)
     extends Command {
   val uploadValue: Boolean = upload.## > 0
   val failIfIncompleteValue: Boolean = failIfIncomplete.## > 0
   val allowNetworkValue: Boolean = allowNetwork.## > 0
+  val forceFilePermissionsValue: Boolean = forceFilePermissions.## > 0
 }

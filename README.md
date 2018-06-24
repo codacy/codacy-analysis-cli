@@ -108,6 +108,7 @@ docker run \
 * `--max-allowed-issues` [default: 0] - Maximum number of issues allowed for the analysis to succeed
 * `--fail-if-incomplete` [default: false] - Fail the analysis if any tool fails to run
 * `--allow-network` [default: false] - Allow network access, so tools that need it can execute (e.g. findbugs)
+* `--force-file-permissions` [default: false] - Force files to be readable by changing the permissions before running the analysis
 
 
 ### Local configuration
