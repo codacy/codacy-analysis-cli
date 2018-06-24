@@ -409,7 +409,7 @@ workflows:
             branches:
               only:
                 - master
-      - publish_dockerhub_stable:
+      - publish_dockerhub_stable_hold:
           type: approval
           requires:
             - publish_docker_locally
@@ -417,6 +417,9 @@ workflows:
             branches:
               only:
                 - master
+      - publish_dockerhub_stable:
+          requires:
+            - publish_dockerhub_stable_hold
       - checkout_integration_tests_source_code:
           filters:
             branches:
