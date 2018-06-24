@@ -110,6 +110,9 @@ docker run \
 * `--allow-network` [default: false] - Allow network access, so tools that need it can execute (e.g. findbugs)
 * `--force-file-permissions` [default: false] - Force files to be readable by changing the permissions before running the analysis
 
+### Environment Variables
+
+* `CODACY_ANALYSIS_CLI_VERSION` - Set an alternative version of the CLI to run. (e.g. latest, 0.1.0-alpha3.1350, ...)
 
 ### Local configuration
 
