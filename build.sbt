@@ -51,7 +51,6 @@ lazy val codacyAnalysisCore = project
     // Sonatype repository settings
     publishMavenStyle := true,
     publishArtifact.in(Test) := false,
-    publishArtifact.in(makePom.in(Docker)) := false,
     publish.in(Docker) := {},
     publishLocal.in(Docker) := {},
     pomIncludeRepository := { _ =>
