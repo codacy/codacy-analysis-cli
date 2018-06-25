@@ -2,9 +2,9 @@ package com.codacy.analysis.core.git
 
 import java.nio.file.{Path, Paths}
 
+import org.eclipse.jgit.lib.{Repository => JGitRepository}
 import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
 import org.eclipse.jgit.treewalk.TreeWalk
-import org.eclipse.jgit.lib.{Repository => JGitRepository}
 
 import scala.util.Try
 
