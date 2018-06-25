@@ -9,7 +9,7 @@ if [ -n "$1" ]; then
 fi
 
 # Sanitize
-VERSION="$(echo $VERSION | awk -F '[^[:alnum:]]+' -v OFS=- '{$0=tolower($0); $1=$1; gsub(/^-|-$/, "")} 1')"
+VERSION="$(echo $VERSION | awk -F '[^(?!A-Za-z0-9\.\-\_)]+' -v OFS=- '{$0=tolower($0); $1=$1; gsub(/^-|-$/, "")} 1')"
 
 echo "Deploying version ${VERSION}"
 sbt 'set version in codacyAnalysisCli := "'"${VERSION}"'"' codacyAnalysisCli/docker:publishLocal
