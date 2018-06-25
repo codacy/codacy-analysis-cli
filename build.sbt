@@ -13,19 +13,21 @@ lazy val testDependencies = Dependencies.specs2.map(_ % Test)
 lazy val root = project
   .in(file("."))
   .settings(name := "root")
-  .settings(inThisBuild(List(
-    //Credentials for sonatype
-    credentials += Credentials(
-      "Sonatype Nexus Repository Manager",
-      "oss.sonatype.org",
-      sys.env.getOrElse("SONATYPE_USER", "username"),
-      sys.env.getOrElse("SONATYPE_PASSWORD", "password")),
-    scalaVersion := scalaVersionNumber,
-    version := "0.1.0-SNAPSHOT",
-    organization := "com.codacy",
-    scalacOptions ++= Common.compilerFlags,
-    scalacOptions.in(Test) ++= Seq("-Yrangepos"),
-    scalacOptions.in(Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"))))
+  .settings(
+    inThisBuild(
+      List(
+        //Credentials for sonatype
+        credentials += Credentials(
+          "Sonatype Nexus Repository Manager",
+          "oss.sonatype.org",
+          sys.env.getOrElse("SONATYPE_USER", "username"),
+          sys.env.getOrElse("SONATYPE_PASSWORD", "password")),
+        scalaVersion := scalaVersionNumber,
+        version := "0.1.0-SNAPSHOT",
+        organization := "com.codacy",
+        scalacOptions ++= Common.compilerFlags,
+        scalacOptions.in(Test) ++= Seq("-Yrangepos"),
+        scalacOptions.in(Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"))))
   .aggregate(aggregatedProjects: _*)
   .settings(publish := {}, publishLocal := {}, publishArtifact := false)
 
@@ -57,37 +59,44 @@ lazy val codacyAnalysisCore = project
       false
     },
     publishTo := sonatypePublishTo.value)
-  .settings(pomExtra := <scm>
-    <url>https://github.com/codacy/codacy-analysis-cli</url>
-    <connection>scm:git:git@github.com:codacy/codacy-analysis-cli.git</connection>
-    <developerConnection>scm:git:https://github.com/codacy/codacy-analysis-cli.git</developerConnection>
-  </scm>
-    <developers>
-      <developer>
-        <id>rtfpessoa</id>
-        <name>Rodrigo Fernandes</name>
-        <email>rodrigo [at] codacy.com</email>
-        <url>https://github.com/rtfpessoa</url>
-      </developer>
-      <developer>
-        <id>bmbferreira</id>
-        <name>Bruno Ferreira</name>
-        <email>bruno.ferreira [at] codacy.com</email>
-        <url>https://github.com/bmbferreira</url>
-      </developer>
-      <developer>
-        <id>xplosunn</id>
-        <name>Hugo Sousa</name>
-        <email>hugo [at] codacy.com</email>
-        <url>https://github.com/xplosunn</url>
-      </developer>
-      <developer>
-        <id>pedrocodacy</id>
-        <name>Pedro Amaral</name>
-        <email>pamaral [at] codacy.com</email>
-        <url>https://github.com/pedrocodacy</url>
-      </developer>
-    </developers>)
+  .settings(
+    organizationName := "Codacy",
+    organizationHomepage := Some(new URL("https://www.codacy.com")),
+    startYear := Some(2018),
+    description := "Library to analyse projects",
+    licenses := Seq("AGPL-3.0" -> url("https://opensource.org/licenses/AGPL-3.0")),
+    homepage := Some(url("https://github.com/codacy/codacy-analysis-cli")),
+    pomExtra := <scm>
+      <url>https://github.com/codacy/codacy-analysis-cli</url>
+      <connection>scm:git:git@github.com:codacy/codacy-analysis-cli.git</connection>
+      <developerConnection>scm:git:https://github.com/codacy/codacy-analysis-cli.git</developerConnection>
+    </scm>
+      <developers>
+        <developer>
+          <id>rtfpessoa</id>
+          <name>Rodrigo Fernandes</name>
+          <email>rodrigo [at] codacy.com</email>
+          <url>https://github.com/rtfpessoa</url>
+        </developer>
+        <developer>
+          <id>bmbferreira</id>
+          <name>Bruno Ferreira</name>
+          <email>bruno.ferreira [at] codacy.com</email>
+          <url>https://github.com/bmbferreira</url>
+        </developer>
+        <developer>
+          <id>xplosunn</id>
+          <name>Hugo Sousa</name>
+          <email>hugo [at] codacy.com</email>
+          <url>https://github.com/xplosunn</url>
+        </developer>
+        <developer>
+          <id>pedrocodacy</id>
+          <name>Pedro Amaral</name>
+          <email>pamaral [at] codacy.com</email>
+          <url>https://github.com/pedrocodacy</url>
+        </developer>
+      </developers>)
 
 lazy val codacyAnalysisCli = project
   .in(file("cli"))
