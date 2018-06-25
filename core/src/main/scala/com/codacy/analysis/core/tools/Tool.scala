@@ -6,7 +6,7 @@ import better.files.File
 import com.codacy.analysis.core.analysis.CodacyPluginsAnalyser
 import com.codacy.analysis.core.files.FilesTarget
 import com.codacy.analysis.core.model.{Configuration, Issue, Result, _}
-import com.codacy.analysis.core.utils.{EitherOps, FileHelper}
+import com.codacy.analysis.core.utils.FileHelper
 import com.codacy.plugins.api
 import com.codacy.plugins.api.languages.{Language, Languages}
 import com.codacy.plugins.api.results
@@ -130,6 +130,8 @@ object Tool {
 
 class ToolCollector(allowNetwork: Boolean) {
 
+  private val logger: Logger = getLogger
+
   private val availableInternetTools = if (allowNetwork) {
     PluginHelper.dockerEnterprisePlugins
   } else {
@@ -146,8 +148,18 @@ class ToolCollector(allowNetwork: Boolean) {
     if (toolUuids.isEmpty) {
       Left("No active tool found on the remote configuration")
     } else {
-      EitherOps.sequenceWithFixedLeft("A tool from remote configuration could not be found locally")(
-        toolUuids.map(from))
+      val toolsIdentified = toolUuids.flatMap { toolUuid =>
+        from(toolUuid).fold({ _ =>
+          logger.warn(s"Failed to get tool for uuid:$toolUuid")
+          Option.empty[Tool]
+        }, Option(_))
+      }
+
+      if (toolsIdentified.size != toolUuids.size) {
+        logger.warn("Some tools from remote configuration could not be found locally")
+      }
+
+      Right(toolsIdentified)
     }
   }
 
