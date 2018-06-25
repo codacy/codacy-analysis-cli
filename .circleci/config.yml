@@ -192,6 +192,11 @@ jobs:
       - *restore_dependencies
       - *restore_build
       - run:
+          name: Configure git
+          command: |
+            git config --global user.email "team@codacy.com"
+            git config --global user.name "Codacy Team"
+      - run:
           name: Test
           command: ./scripts/test.sh
       - run:
