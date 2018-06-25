@@ -42,6 +42,7 @@ lazy val codacyAnalysisCore = project
       Dependencies.jodaTime,
       Dependencies.fansi,
       Dependencies.scalajHttp,
+      Dependencies.jGit,
       Dependencies.cats) ++
       Dependencies.circe ++
       Dependencies.jackson ++
