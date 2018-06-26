@@ -12,7 +12,7 @@ object Common {
   private val dockerVersion = "docker-17.09.0-ce"
 
   val genericSettings: Seq[Def.Setting[_]] = Seq(
-    resolvers += "Codacy Public Mvn bucket" at "https://s3-eu-west-1.amazonaws.com/public.mvn.codacy.com",
+    resolvers in ThisBuild += "Codacy Public Mvn bucket" at "https://s3-eu-west-1.amazonaws.com/public.mvn.codacy.com",
     addCompilerPlugin("org.scalameta" % "semanticdb-scalac" % "4.0.0-M4" cross CrossVersion.full))
 
   val dockerSettings: Seq[Def.Setting[_]] = Seq(
