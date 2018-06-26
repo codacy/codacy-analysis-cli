@@ -4,7 +4,7 @@ import sbt._
 val scalaBinaryVersionNumber = "2.12"
 val scalaVersionNumber = s"$scalaBinaryVersionNumber.6"
 
-resolvers += Resolver.bintrayIvyRepo("sbt", "sbt-plugin-releases")
+resolvers in ThisBuild += Resolver.bintrayIvyRepo("sbt", "sbt-plugin-releases")
 
 lazy val aggregatedProjects: Seq[ProjectReference] = Seq(codacyAnalysisCore, codacyAnalysisCli)
 
