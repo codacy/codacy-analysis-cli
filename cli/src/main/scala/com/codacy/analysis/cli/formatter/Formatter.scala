@@ -3,7 +3,7 @@ package com.codacy.analysis.cli.formatter
 import java.io.{FileOutputStream, PrintStream}
 
 import better.files.File
-import com.codacy.analysis.core.model.Result
+import com.codacy.analysis.core.model.ToolResult
 import org.log4s.{Logger, getLogger}
 
 trait FormatterCompanion {
@@ -17,9 +17,9 @@ trait Formatter {
 
   def begin(): Unit
 
-  def add(element: Result): Unit
+  def add(element: ToolResult): Unit
 
-  def addAll(elements: Seq[Result]): Unit = elements.foreach(add)
+  def addAll(elements: Seq[ToolResult]): Unit = elements.foreach(add)
 
   def end(): Unit
 

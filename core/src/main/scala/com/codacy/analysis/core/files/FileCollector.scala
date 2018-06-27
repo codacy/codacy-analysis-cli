@@ -8,7 +8,7 @@ import cats.Foldable
 import cats.implicits._
 import com.codacy.analysis.core.clients.api.{FilePath, PathRegex, ProjectConfiguration}
 import com.codacy.analysis.core.configuration.CodacyConfigurationFile
-import com.codacy.analysis.core.tools.Tool
+import com.codacy.analysis.core.tools.{ITool, Tool}
 import com.codacy.plugins.api.languages.{Language, Languages}
 import org.log4s.{Logger, getLogger}
 
@@ -53,16 +53,17 @@ trait FileCollector[T[_]] {
     filesTarget.readableFiles.exists(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
   }
 
-  def filter(tool: Tool,
+  def filter(tool: ITool,
              target: FilesTarget,
              localConfiguration: Either[String, CodacyConfigurationFile],
              remoteConfiguration: Either[String, ProjectConfiguration]): FilesTarget = {
 
     val filters =
-      Set(excludeForTool(tool, localConfiguration) _, filterByLanguage(tool, localConfiguration, remoteConfiguration) _)
+      Set(
+        excludeForTool(tool.name, localConfiguration) _,
+        filterByLanguage(tool.supportedLanguages, localConfiguration, remoteConfiguration) _)
     val filteredFiles = filters.foldLeft(target.readableFiles) { case (fs, filter) => filter(fs) }
     target.copy(readableFiles = filteredFiles)
-
   }
 
   private def excludePrefixes(remoteConfiguration: Either[String, ProjectConfiguration])(
@@ -76,10 +77,10 @@ trait FileCollector[T[_]] {
     filterByGlobs(files, excludeGlobs)
   }
 
-  private def excludeForTool(tool: Tool, localConfiguration: Either[String, CodacyConfigurationFile])(
+  private def excludeForTool(toolName: String, localConfiguration: Either[String, CodacyConfigurationFile])(
     files: Set[Path]): Set[Path] = {
     val excludeGlobs = foldable.foldMap(localConfiguration)(localConfig =>
-      localConfig.engines.foldMap(_.get(tool.name).foldMap(_.exclude_paths.getOrElse(Set.empty[Glob]))))
+      localConfig.engines.foldMap(_.get(toolName).foldMap(_.exclude_paths.getOrElse(Set.empty[Glob]))))
     filterByGlobs(files, excludeGlobs)
   }
 
@@ -114,7 +115,7 @@ trait FileCollector[T[_]] {
   }
 
   private def filterByLanguage(
-    tool: Tool,
+    languages: Set[Language],
     localConfiguration: Either[String, CodacyConfigurationFile],
     remoteConfiguration: Either[String, ProjectConfiguration])(files: Set[Path]): Set[Path] = {
 
@@ -126,10 +127,7 @@ trait FileCollector[T[_]] {
         _.projectExtensions.map(le => (le.language, le.extensions))(collection.breakOut))
 
     Languages
-      .filter(
-        files.map(_.toString),
-        tool.languages,
-        localCustomExtensionsByLanguage ++ remoteCustomExtensionsByLanguage)
+      .filter(files.map(_.toString), languages, localCustomExtensionsByLanguage ++ remoteCustomExtensionsByLanguage)
       .map(Paths.get(_))
   }
 

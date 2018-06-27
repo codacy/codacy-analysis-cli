@@ -56,6 +56,7 @@ class MainImpl extends CLIApp {
           analyse.forceFilePermissionsValue).run()
 
         val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
+
         val uploadResult = if (analyse.uploadValue) {
           Try(Await.result(uploadResultFut, Duration.Inf)) match {
             case Failure(err) =>

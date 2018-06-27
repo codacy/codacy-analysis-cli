@@ -3,6 +3,7 @@ package com.codacy.analysis.core.model
 import java.nio.file.Path
 
 import com.codacy.plugins.api.results
+import com.codacy.plugins.duplication.api.DuplicationCloneFile
 
 sealed trait Location
 
@@ -14,7 +15,7 @@ final case class LineLocation(line: Int) extends Location {
   override def toString: String = line.toString
 }
 
-sealed trait Result
+sealed trait ToolResult
 
 final case class Issue(patternId: results.Pattern.Id,
                        filename: Path,
@@ -22,7 +23,9 @@ final case class Issue(patternId: results.Pattern.Id,
                        level: results.Result.Level,
                        category: Option[results.Pattern.Category],
                        location: Location)
-    extends Result
+    extends ToolResult
+
+final case class DuplicationClone(cloneLines: String, nrTokens: Int, nrLines: Int, files: Seq[DuplicationCloneFile])
 
 object Issue {
 
@@ -32,9 +35,9 @@ object Issue {
 
 }
 
-final case class FileError(filename: Path, message: String) extends Result
+final case class FileError(filename: Path, message: String) extends ToolResult
 
-final case class FileResults(filename: Path, results: Set[Result])
+final case class FileResults(filename: Path, results: Set[ToolResult])
 
 sealed trait ResultsSet
 

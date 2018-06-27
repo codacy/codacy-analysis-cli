@@ -24,7 +24,7 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
     stream.flush()
   }
 
-  def add(element: Result): Unit = {
+  def add(element: ToolResult): Unit = {
     element match {
       case Issue(patternId, filename, message, level, category, location) =>
         stream.println(prettyMessage(patternId, filename, message, level, category, location))
