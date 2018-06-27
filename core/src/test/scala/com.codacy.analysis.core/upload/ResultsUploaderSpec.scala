@@ -6,7 +6,7 @@ import better.files.File
 import cats.implicits._
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api.{ProjectConfiguration, ToolConfiguration, ToolPattern}
-import com.codacy.analysis.core.model.{FileError, FileResults, Issue, Result}
+import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
@@ -97,7 +97,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
       when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
 
-      val filenames: Set[Path] = exampleResults.map {
+      val filenames: Set[Path] = exampleResults.collect {
         case i: Issue      => i.filename
         case fe: FileError => fe.filename
       }(collection.breakOut)

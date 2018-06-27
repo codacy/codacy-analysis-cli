@@ -5,6 +5,7 @@ import java.nio.file.Path
 
 import com.codacy.analysis.core.model._
 import com.codacy.plugins.api.results
+import com.codacy.plugins.duplication.api.DuplicationCloneFile
 
 object Text extends FormatterCompanion {
   val name: String = "text"
@@ -32,6 +33,10 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
       case FileError(filename, message) =>
         stream.println(s"Found $message in $filename")
         stream.flush()
+      case DuplicationClone(_, nrTokens, nrLines, files) =>
+        //TODO: add parameter to alsoprint the lines of the clone
+        stream.println(prettyMessage(nrTokens, nrLines, files))
+        stream.flush()
     }
   }
 
@@ -47,6 +52,15 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
     s"Found [$levelColored$categoryColored] `$message` in $filename:$location ($patternColored)"
   }
 
+  private def prettyMessage(nrTokens: Int, nrLines: Int, files: Seq[DuplicationCloneFile]): String = {
+    val cloneFoundColored = Console.MAGENTA + "Clone" + Console.RESET
+    val duplicatedFilesMsg = files.map { file =>
+      s"${file.filePath}, from line ${file.startLine} to ${file.endLine}"
+    }.mkString("; ")
+    val message =
+      s"There are $nrLines duplicated lines with $nrTokens tokens on these files: $duplicatedFilesMsg"
+    s"Found [$cloneFoundColored] $message"
+  }
   private def levelColor(level: results.Result.Level): String = {
     level match {
       case results.Result.Level.Info => Console.BLUE

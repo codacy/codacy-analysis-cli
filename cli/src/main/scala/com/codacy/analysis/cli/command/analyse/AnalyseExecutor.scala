@@ -12,7 +12,7 @@ import com.codacy.analysis.core.configuration.CodacyConfigurationFile
 import com.codacy.analysis.core.converters.ConfigurationHelper
 import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.core.model.{CodacyCfg, Configuration, FileCfg, Result}
-import com.codacy.analysis.core.tools.{Tool, ToolCollector}
+import com.codacy.analysis.core.tools._
 import com.codacy.analysis.core.utils.SetOps
 import com.codacy.analysis.core.utils.TryOps._
 import org.log4s.{Logger, getLogger}
@@ -47,27 +47,44 @@ class AnalyseExecutor(toolInput: Option[String],
       overrideFilePermissions(baseDirectory)
     }
 
-    val filesTargetAndTool: Either[String, (FilesTarget, Set[Tool])] = for {
+    val filesTargetAndTool: Either[String, (FilesTarget, Set[ITool])] = for {
       filesTarget <- fileCollector
         .list(baseDirectory, localConfigurationFile, remoteProjectConfiguration)
         .toRight("Could not access project files")
       tools <- tools(toolInput, localConfigurationFile, remoteProjectConfiguration, filesTarget, allowNetwork)
-    } yield (filesTarget, tools)
+      duplicationTools <- duplicationTools(localConfigurationFile, filesTarget)
+    } yield (filesTarget, tools ++ duplicationTools)
 
     val analysisResult: Either[String, Seq[ExecutorResult]] = filesTargetAndTool.map {
       case (filesTarget, tools) =>
-        SetOps.mapInParallel(tools, nrParallelTools) { tool =>
-          val analysisResults: Try[Set[Result]] = analyseFiles(tool, filesTarget, localConfigurationFile)
+        SetOps.mapInParallel(tools, nrParallelTools) {
+          case tool: Tool =>
+            val analysisResults: Try[Set[Result]] = analyseFiles(tool, filesTarget, localConfigurationFile)
 
-          analysisResults.foreach(results => formatter.addAll(results.to[List]))
+            analysisResults.foreach(results => formatter.addAll(results.to[List]))
 
-          ExecutorResult(tool.name, filesTarget.readableFiles, analysisResults)
+            ExecutorResult(tool.name, filesTarget.readableFiles, analysisResults)
+          case duplicationTool: DuplicationTool =>
+            val analysisResults: Try[Set[Result]] =
+              runDuplicationOnFiles(duplicationTool, filesTarget, localConfigurationFile)
+
+            analysisResults.foreach(results => formatter.addAll(results.to[List]))
+
+            ExecutorResult(duplicationTool.name, filesTarget.readableFiles, analysisResults)
         }
     }
 
     formatter.end()
 
     analysisResult
+  }
+
+  private def runDuplicationOnFiles(
+    tool: DuplicationTool,
+    fileTarget: FilesTarget,
+    localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[Result]] = {
+    val filteredFileTarget = fileCollector.filter(tool, fileTarget, localConfigurationFile, remoteProjectConfiguration)
+    tool.run(filteredFileTarget.directory, filteredFileTarget)
   }
 
   private def analyseFiles(tool: Tool,
@@ -183,5 +200,12 @@ object AnalyseExecutor {
       } yield s"$e1 and $e2"
     }
 
+  }
+
+  def duplicationTools(localConfiguration: Either[String, CodacyConfigurationFile],
+                       filesTarget: FilesTarget): Either[String, Set[DuplicationTool]] = {
+    DuplicationToolCollector.fromFileTarget(
+      filesTarget,
+      localConfiguration.map(_.languageCustomExtensions.mapValues(_.toList).toList).getOrElse(List.empty))
   }
 }

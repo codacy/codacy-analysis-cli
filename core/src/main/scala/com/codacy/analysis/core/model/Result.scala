@@ -3,6 +3,7 @@ package com.codacy.analysis.core.model
 import java.nio.file.Path
 
 import com.codacy.plugins.api.results
+import com.codacy.plugins.duplication.api.DuplicationCloneFile
 
 sealed trait Location
 
@@ -22,6 +23,9 @@ final case class Issue(patternId: results.Pattern.Id,
                        level: results.Result.Level,
                        category: Option[results.Pattern.Category],
                        location: Location)
+    extends Result
+
+case class DuplicationClone(cloneLines: String, nrTokens: Int, nrLines: Int, files: Seq[DuplicationCloneFile])
     extends Result
 
 object Issue {

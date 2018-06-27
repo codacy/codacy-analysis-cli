@@ -35,17 +35,17 @@ final case class SubDirectory(sourceDirectory: String, protected val subDirector
   def removePrefix(filename: String): String = filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(private val plugin: DockerTool) {
+class Tool(private val plugin: DockerTool) extends ITool {
 
   private val logger: Logger = getLogger
 
-  def name: String = plugin.shortName
+  override def name: String = plugin.shortName
   def uuid: String = plugin.uuid
 
   def needsPatternsToRun: Boolean = plugin.needsPatternsToRun
   def allowsUIConfiguration: Boolean = plugin.hasUIConfiguration
 
-  def languages: Set[Language] = plugin.languages
+  override def languages: Set[Language] = plugin.languages
 
   def configFilenames: Set[String] = plugin match {
     case plugin: DockerToolWithConfig =>

@@ -4,7 +4,7 @@ import java.nio.file.Path
 
 import cats.implicits._
 import com.codacy.analysis.core.clients.CodacyClient
-import com.codacy.analysis.core.model.{FileError, FileResults, Issue, Result}
+import com.codacy.analysis.core.model._
 import org.log4s.{Logger, getLogger}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -110,6 +110,8 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
     val resultsByFile: Map[Path, Set[Result]] = results.groupBy {
       case i: Issue      => i.filename
       case fe: FileError => fe.filename
+      //TODO: what about here?
+      case _ => files.head
     }
 
     files.map(filename => FileResults(filename, resultsByFile.getOrElse(filename, Set.empty[Result])))(
