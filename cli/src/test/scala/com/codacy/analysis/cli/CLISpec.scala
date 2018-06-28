@@ -82,7 +82,8 @@ class CLISpec extends Specification with NoLanguageFeatures {
               "json",
               "--output",
               file.pathAsString,
-              "--verbose"))
+              "--verbose",
+              "--skip-duplication"))
 
           val result = for {
             responseJson <- parser.parse(file.contentAsString)
@@ -113,7 +114,8 @@ class CLISpec extends Specification with NoLanguageFeatures {
             "--output",
             file.pathAsString,
             "--verbose",
-            "--force-file-permissions"))
+            "--force-file-permissions",
+            "--skip-duplication"))
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -145,7 +147,8 @@ class CLISpec extends Specification with NoLanguageFeatures {
               "json",
               "--output",
               file.pathAsString,
-              "--verbose"))
+              "--verbose",
+              "--skip-duplication"))
 
           val result = for {
             responseJson <- parser.parse(file.contentAsString)

@@ -123,6 +123,8 @@ final case class Analyse(
   failIfIncomplete: Int @@ Counter = Tag.of(0),
   @ValueDescription("Force files to be readable by changing the permissions before running the analysis")
   forceFilePermissions: Int @@ Counter = Tag.of(0),
+  @ValueDescription("Skips the duplication analysis")
+  skipDuplication: Int @@ Counter = Tag.of(0),
   @Recurse
   extras: ExtraOptions)
     extends Command {
@@ -130,4 +132,5 @@ final case class Analyse(
   val failIfIncompleteValue: Boolean = failIfIncomplete.## > 0
   val allowNetworkValue: Boolean = allowNetwork.## > 0
   val forceFilePermissionsValue: Boolean = forceFilePermissions.## > 0
+  val skipDuplicationValue: Boolean = skipDuplication.## > 0
 }

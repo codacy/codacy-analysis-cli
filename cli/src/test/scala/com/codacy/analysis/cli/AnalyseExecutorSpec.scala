@@ -220,6 +220,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       remoteProjectConfiguration,
       None,
       false,
+      true,
       true).run() must beRight
   }
 

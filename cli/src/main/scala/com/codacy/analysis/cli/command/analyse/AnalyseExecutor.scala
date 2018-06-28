@@ -29,7 +29,8 @@ class AnalyseExecutor(toolInput: Option[String],
                       remoteProjectConfiguration: Either[String, ProjectConfiguration],
                       nrParallelTools: Option[Int],
                       allowNetwork: Boolean,
-                      forceFilePermissions: Boolean) {
+                      forceFilePermissions: Boolean,
+                      skipDuplication: Boolean) {
 
   private val logger: Logger = getLogger
 
@@ -52,7 +53,8 @@ class AnalyseExecutor(toolInput: Option[String],
         .list(baseDirectory, localConfigurationFile, remoteProjectConfiguration)
         .toRight("Could not access project files")
       tools <- tools(toolInput, localConfigurationFile, remoteProjectConfiguration, filesTarget, allowNetwork)
-      duplicationTools <- duplicationTools(localConfigurationFile, filesTarget)
+      duplicationTools <- if (!skipDuplication) duplicationTools(localConfigurationFile, filesTarget)
+      else Right(Set.empty)
     } yield (filesTarget, tools ++ duplicationTools)
 
     val analysisResult: Either[String, Seq[ExecutorResult]] = filesTargetAndTool.map {
