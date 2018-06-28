@@ -30,7 +30,8 @@ class AnalyseExecutor(toolInput: Option[String],
                       nrParallelTools: Option[Int],
                       allowNetwork: Boolean,
                       forceFilePermissions: Boolean,
-                      skipDuplication: Boolean) {
+                      skipDuplication: Boolean,
+                      minCloneLines: Int) {
 
   private val logger: Logger = getLogger
 
@@ -68,7 +69,7 @@ class AnalyseExecutor(toolInput: Option[String],
             ExecutorResult(tool.name, filesTarget.readableFiles, analysisResults)
           case duplicationTool: DuplicationTool =>
             val analysisResults: Try[Set[Result]] =
-              analyseDuplicationOnFiles(duplicationTool, filesTarget, localConfigurationFile)
+              analyseDuplicationOnFiles(duplicationTool, filesTarget, minCloneLines, localConfigurationFile)
 
             analysisResults.foreach(results => formatter.addAll(results.to[List]))
 
@@ -84,9 +85,10 @@ class AnalyseExecutor(toolInput: Option[String],
   private def analyseDuplicationOnFiles(
     tool: DuplicationTool,
     fileTarget: FilesTarget,
+    minCloneLines: Int,
     localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[Result]] = {
     val filteredFileTarget = fileCollector.filter(tool, fileTarget, localConfigurationFile, remoteProjectConfiguration)
-    tool.run(filteredFileTarget.directory, filteredFileTarget)
+    tool.run(filteredFileTarget.directory, filteredFileTarget, minCloneLines)
   }
 
   private def analyseFiles(tool: Tool,

@@ -18,12 +18,12 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, priva
   override def name: String = "duplication"
   override def supportedLanguages: Set[Language] = duplicationTool.languages.to[Set]
 
-  def run(directory: File, filesTarget: FilesTarget, timeout: Duration = 10.minutes): Try[Set[Result]] = {
+  def run(directory: File,
+          filesTarget: FilesTarget,
+          minCloneLines: Int,
+          timeout: Duration = 10.minutes): Try[Set[Result]] = {
 
     val request = DuplicationRequest(directory.pathAsString)
-
-    //TODO: get this as a cli parameter?????
-    val minCloneLines = 5
 
     // The duplication files should be more than 1. If it is one, then it means
     // that the other clone was in an ignored file. This is based on the assumption

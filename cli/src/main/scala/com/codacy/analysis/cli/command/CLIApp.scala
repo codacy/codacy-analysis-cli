@@ -126,7 +126,9 @@ final case class Analyse(
   @ValueDescription("Skips the duplication analysis")
   skipDuplication: Int @@ Counter = Tag.of(0),
   @Recurse
-  extras: ExtraOptions)
+  extras: ExtraOptions,
+  @ValueDescription("Number of minimum lines to be considered a clone")
+  minCloneLines: Int = 5)
     extends Command {
   val uploadValue: Boolean = upload.## > 0
   val failIfIncompleteValue: Boolean = failIfIncomplete.## > 0

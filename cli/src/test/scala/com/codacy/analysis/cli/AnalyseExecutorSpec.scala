@@ -221,7 +221,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       None,
       false,
       true,
-      true).run() must beRight
+      true,
+      0).run() must beRight
   }
 
   "AnalyseExecutor.tools" should {
