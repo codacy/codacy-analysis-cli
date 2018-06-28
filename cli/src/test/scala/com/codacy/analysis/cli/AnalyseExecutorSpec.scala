@@ -221,8 +221,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       None,
       false,
       true,
-      true,
-      0).run() must beRight
+      analyse.skipDuplicationValue,
+      analyse.minClonedLines).run() must beRight
   }
 
   "AnalyseExecutor.tools" should {

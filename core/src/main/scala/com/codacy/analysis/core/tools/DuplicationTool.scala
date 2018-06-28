@@ -12,7 +12,7 @@ import com.codacy.plugins.utils.PluginHelper
 import scala.concurrent.duration._
 import scala.util.Try
 
-class DuplicationTool(private val duplicationTool: traits.DuplicationTool, private val language: Language)
+class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val language: Language)
     extends ITool {
 
   override def name: String = "duplication"

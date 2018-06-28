@@ -128,7 +128,7 @@ final case class Analyse(
   @Recurse
   extras: ExtraOptions,
   @ValueDescription("Number of minimum lines to be considered a clone")
-  minCloneLines: Int = 5)
+  minClonedLines: Int = 5)
     extends Command {
   val uploadValue: Boolean = upload.## > 0
   val failIfIncompleteValue: Boolean = failIfIncomplete.## > 0

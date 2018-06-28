@@ -55,7 +55,7 @@ class MainImpl extends CLIApp {
           analyse.allowNetworkValue,
           analyse.forceFilePermissionsValue,
           analyse.skipDuplicationValue,
-          analyse.minCloneLines).run()
+          analyse.minClonedLines).run()
 
         val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
         val uploadResult = if (analyse.uploadValue) {
