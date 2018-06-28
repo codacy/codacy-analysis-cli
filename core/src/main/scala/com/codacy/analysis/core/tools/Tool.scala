@@ -45,7 +45,7 @@ class Tool(private val plugin: DockerTool) extends ITool {
   def needsPatternsToRun: Boolean = plugin.needsPatternsToRun
   def allowsUIConfiguration: Boolean = plugin.hasUIConfiguration
 
-  override def languages: Set[Language] = plugin.languages
+  override def supportedLanguages: Set[Language] = plugin.languages
 
   def configFilenames: Set[String] = plugin match {
     case plugin: DockerToolWithConfig =>

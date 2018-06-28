@@ -61,7 +61,7 @@ trait FileCollector[T[_]] {
     val filters =
       Set(
         excludeForTool(tool.name, localConfiguration) _,
-        filterByLanguage(tool.languages, localConfiguration, remoteConfiguration) _)
+        filterByLanguage(tool.supportedLanguages, localConfiguration, remoteConfiguration) _)
     val filteredFiles = filters.foldLeft(target.readableFiles) { case (fs, filter) => filter(fs) }
     target.copy(readableFiles = filteredFiles)
   }

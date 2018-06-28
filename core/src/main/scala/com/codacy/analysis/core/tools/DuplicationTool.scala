@@ -16,7 +16,7 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, priva
     extends ITool {
 
   override def name: String = "duplication"
-  override def languages: Set[Language] = duplicationTool.languages.to[Set]
+  override def supportedLanguages: Set[Language] = duplicationTool.languages.to[Set]
 
   def run(directory: File, filesTarget: FilesTarget, timeout: Duration = 10.minutes): Try[Set[Result]] = {
 
@@ -24,7 +24,6 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, priva
 
     //TODO: get this as a cli parameter?????
     val minCloneLines = 5
-    val commitFileNames = filesTarget.readableFiles.map(_.toString)
 
     // The duplication files should be more than 1. If it is one, then it means
     // that the other clone was in an ignored file. This is based on the assumption
@@ -35,10 +34,11 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, priva
       .map(clones =>
         clones.collect {
           case clone if clone.nrLines >= minCloneLines =>
+            val commitFileNames = filesTarget.readableFiles.map(_.toString)
             val filteredFiles = filterUnignoredFilesFromDuplication(clone.files, commitFileNames)
             (clone.copy(files = filteredFiles), filteredFiles.length)
-        }.collect { case (clone, cloneFiles) if cloneFiles > 1 => clone }
-          .map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files))(
+        }.collect { case (clone, nrCloneFiles) if nrCloneFiles > 1 => clone }
+          .map(clone => DuplicationClone(clone.nrTokens, clone.nrLines, clone.files))(
             collection.breakOut): Set[Result])
 
   }

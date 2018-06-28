@@ -66,7 +66,7 @@ class AnalyseExecutor(toolInput: Option[String],
             ExecutorResult(tool.name, filesTarget.readableFiles, analysisResults)
           case duplicationTool: DuplicationTool =>
             val analysisResults: Try[Set[Result]] =
-              runDuplicationOnFiles(duplicationTool, filesTarget, localConfigurationFile)
+              analyseDuplicationOnFiles(duplicationTool, filesTarget, localConfigurationFile)
 
             analysisResults.foreach(results => formatter.addAll(results.to[List]))
 
@@ -79,7 +79,7 @@ class AnalyseExecutor(toolInput: Option[String],
     analysisResult
   }
 
-  private def runDuplicationOnFiles(
+  private def analyseDuplicationOnFiles(
     tool: DuplicationTool,
     fileTarget: FilesTarget,
     localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[Result]] = {

@@ -6,7 +6,6 @@ import cats.implicits._
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.model._
 import org.log4s.{Logger, getLogger}
-
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
@@ -107,11 +106,13 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
   }
 
   private def groupResultsByFile(files: Set[Path], results: Set[Result]): Set[FileResults] = {
-    val resultsByFile: Map[Path, Set[Result]] = results.groupBy {
-      case i: Issue      => i.filename
-      case fe: FileError => fe.filename
-      //TODO: what about here?
-      case _ => files.head
+
+    val resultsByFile: Map[Path, Set[Result]] = results.foldLeft(Map.empty[Path, Set[Result]]) {
+      case (acc, result: Issue) =>
+        acc + (result.filename -> (acc.getOrElse(result.filename, Set.empty[Result]) + result))
+      case (acc, result: FileError) =>
+        acc + (result.filename -> (acc.getOrElse(result.filename, Set.empty[Result]) + result))
+      case (acc, _) => acc
     }
 
     files.map(filename => FileResults(filename, resultsByFile.getOrElse(filename, Set.empty[Result])))(
