@@ -164,33 +164,32 @@ class CLISpec extends Specification with NoLanguageFeatures {
     }
 
     "output duplication clones for clones with a minimum of 10 lines" in {
-      withClonedRepo(
-        "git://github.com/qamine-test/Monogatari.git",
-        "9232dbdcae98b19412c8dd98c49da8c391612bfa") { (file, directory) =>
-        cli.main(
-          Array(
-            "analyse",
-            "--directory",
-            directory.pathAsString,
-            "--max-allowed-issues",
-            "1000",
-            "--format",
-            "json",
-            "--output",
-            file.pathAsString,
-            "--min-cloned-lines",
-            "10"))
+      withClonedRepo("git://github.com/qamine-test/Monogatari.git", "9232dbdcae98b19412c8dd98c49da8c391612bfa") {
+        (file, directory) =>
+          cli.main(
+            Array(
+              "analyse",
+              "--directory",
+              directory.pathAsString,
+              "--max-allowed-issues",
+              "1000",
+              "--format",
+              "json",
+              "--output",
+              file.pathAsString,
+              "--min-cloned-lines",
+              "10"))
 
-        val result = for {
-          responseJson <- parser.parse(file.contentAsString)
-          response <- responseJson.as[Set[Result]]
-          expectedJson <- parser.parse(
-            File.resource("com/codacy/analysis/cli/cli-output-with-duplication.json").contentAsString)
-          expected <- expectedJson.as[Set[Result]]
-        } yield (response, expected)
+          val result = for {
+            responseJson <- parser.parse(file.contentAsString)
+            response <- responseJson.as[Set[Result]]
+            expectedJson <- parser.parse(
+              File.resource("com/codacy/analysis/cli/cli-output-with-duplication.json").contentAsString)
+            expected <- expectedJson.as[Set[Result]]
+          } yield (response, expected)
 
-        result must beRight
-        result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+          result must beRight
+          result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
       }
     }
 
