@@ -1,6 +1,7 @@
 package com.codacy.analysis.cli
 
 import better.files.File
+import caseapp.Tag
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
@@ -8,10 +9,9 @@ import com.codacy.analysis.cli.utils.TestUtils._
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
-import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, LanguageConfiguration}
-import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
-import com.codacy.analysis.core.model.{Issue, Result}
-import com.codacy.plugins.api.languages.Languages
+import com.codacy.analysis.core.files.FileCollector
+import com.codacy.analysis.core.model.{DuplicationClone, Issue, Result}
+import com.codacy.plugins.duplication.api.DuplicationCloneFile
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
@@ -42,7 +42,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid))
+          commitUuid = Option(commitUuid),
+          skipDuplication = Tag.of(1))
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
@@ -105,7 +106,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid))
+          commitUuid = Option(commitUuid),
+          skipDuplication = Tag.of(1))
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
@@ -144,7 +146,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
     val cssLintPatternsInternalIds = Set("CSSLint_important")
 
-    "analyse a javascript and css project " in {
+    "analyse a javascript and css project" in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
         val apiTokenStr = "RandomApiToken"
@@ -162,7 +164,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid))
+          commitUuid = Option(commitUuid),
+          skipDuplication = Tag.of(1))
 
         val remoteConfiguration: Either[String, ProjectConfiguration] =
           Right(
@@ -201,6 +204,70 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
             response.collect {
               case i: Issue => i.patternId.value
             } must containAllOf((esLintPatternsInternalIds ++ cssLintPatternsInternalIds).toSeq)
+        }
+      }
+    }
+
+    "analyse duplication on a project, ignoring the files listed on the configuration file" in {
+      val commitUuid = "625e19cd9be4898939a7c40dbeb2b17e40df9d54"
+      withClonedRepo("git://github.com/qamine-test/jquery.git", commitUuid) { (file, directory) =>
+        File
+          .resource("com/codacy/analysis/cli/codacy-config-file-1.yml")
+          .copyToDirectory(directory)
+          .renameTo(".codacy.yml")
+        val analyse = Analyse(
+          options = CommonOptions(),
+          api = APIOptions(),
+          tool = None,
+          directory = Option(directory),
+          format = Json.name,
+          output = Option(file),
+          extras = ExtraOptions(),
+          commitUuid = Option(commitUuid))
+
+        runAnalyseExecutor(analyse, Left("not needed"))
+
+        val result = for {
+          responseJson <- parser.parse(file.contentAsString)
+          response <- responseJson.as[Set[Result]]
+        } yield response
+
+        result must beRight
+        result must beLike {
+          case Right(response: Set[Result]) =>
+            response.size must beGreaterThan(0)
+
+            val clones = response.collect {
+              case clone: DuplicationClone => clone
+            }
+
+            clones must containTheSameElementsAs(Seq(
+              DuplicationClone(
+                69,
+                29,
+                List(
+                  DuplicationCloneFile("src/core/ready.js", 23, 51),
+                  DuplicationCloneFile("src/core/ready-no-deferred.js", 23, 49))),
+              DuplicationClone(
+                89,
+                29,
+                List(
+                  DuplicationCloneFile("src/core/ready.js", 58, 86),
+                  DuplicationCloneFile("src/core/ready-no-deferred.js", 67, 97))),
+              DuplicationClone(
+                50,
+                5,
+                List(
+                  DuplicationCloneFile("src/manipulation.js", 339, 343),
+                  DuplicationCloneFile("src/manipulation.js", 348, 352))),
+              DuplicationClone(
+                81,
+                13,
+                List(DuplicationCloneFile("src/event.js", 149, 161), DuplicationCloneFile("src/event.js", 231, 243))),
+              DuplicationClone(
+                62,
+                6,
+                List(DuplicationCloneFile("src/event.js", 153, 158), DuplicationCloneFile("src/event.js", 235, 240)))))
         }
       }
     }
