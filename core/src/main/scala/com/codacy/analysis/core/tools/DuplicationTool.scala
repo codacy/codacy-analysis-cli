@@ -32,14 +32,19 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, priva
     DuplicationRunner(duplicationTool)
       .run(request, DuplicationConfiguration(language, Map.empty), Some(timeout), None)
       .map(clones =>
-        clones.collect {
-          case clone if clone.nrLines >= minCloneLines =>
-            val commitFileNames = filesTarget.readableFiles.map(_.toString)
-            val filteredFiles = filterUnignoredFilesFromDuplication(clone.files, commitFileNames)
-            (clone.copy(files = filteredFiles), filteredFiles.length)
-        }.collect { case (clone, nrCloneFiles) if nrCloneFiles > 1 => clone }.map(clone =>
+        filterDuplicationClones(clones, filesTarget, minCloneLines).map(clone =>
           DuplicationClone(clone.nrTokens, clone.nrLines, clone.files))(collection.breakOut): Set[Result])
+  }
 
+  private def filterDuplicationClones(duplicationClones: List[api.DuplicationClone],
+                                      filesTarget: FilesTarget,
+                                      minCloneLines: Int) = {
+    duplicationClones.collect {
+      case clone if clone.nrLines >= minCloneLines =>
+        val commitFileNames = filesTarget.readableFiles.map(_.toString)
+        val filteredFiles = filterUnignoredFilesFromDuplication(clone.files, commitFileNames)
+        (clone.copy(files = filteredFiles), filteredFiles.length)
+    }.collect { case (clone, nrCloneFiles) if nrCloneFiles > 1 => clone }
   }
 
   private def filterUnignoredFilesFromDuplication(duplicated: Seq[DuplicationCloneFile], expectedFiles: Set[String]) = {
