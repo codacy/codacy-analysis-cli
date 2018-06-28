@@ -37,9 +37,8 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, priva
             val commitFileNames = filesTarget.readableFiles.map(_.toString)
             val filteredFiles = filterUnignoredFilesFromDuplication(clone.files, commitFileNames)
             (clone.copy(files = filteredFiles), filteredFiles.length)
-        }.collect { case (clone, nrCloneFiles) if nrCloneFiles > 1 => clone }
-          .map(clone => DuplicationClone(clone.nrTokens, clone.nrLines, clone.files))(
-            collection.breakOut): Set[Result])
+        }.collect { case (clone, nrCloneFiles) if nrCloneFiles > 1 => clone }.map(clone =>
+          DuplicationClone(clone.nrTokens, clone.nrLines, clone.files))(collection.breakOut): Set[Result])
 
   }
 
