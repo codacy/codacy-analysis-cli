@@ -107,12 +107,14 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
 
   private def groupResultsByFile(files: Set[Path], results: Set[Result]): Set[FileResults] = {
 
+    def addResult(acc: Map[Path, Set[Result]], key: Path, value: Result) = {
+      acc + (key -> (acc.getOrElse(key, Set.empty[Result]) + value))
+    }
+
     val resultsByFile: Map[Path, Set[Result]] = results.foldLeft(Map.empty[Path, Set[Result]]) {
-      case (acc, result: Issue) =>
-        acc + (result.filename -> (acc.getOrElse(result.filename, Set.empty[Result]) + result))
-      case (acc, result: FileError) =>
-        acc + (result.filename -> (acc.getOrElse(result.filename, Set.empty[Result]) + result))
-      case (acc, _) => acc
+      case (acc, result: Issue)     => addResult(acc, result.filename, result)
+      case (acc, result: FileError) => addResult(acc, result.filename, result)
+      case (acc, _)                 => acc
     }
 
     files.map(filename => FileResults(filename, resultsByFile.getOrElse(filename, Set.empty[Result])))(
