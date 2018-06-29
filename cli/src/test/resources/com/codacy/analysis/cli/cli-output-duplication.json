@@ -1,0 +1,38 @@
+[
+  {
+    "DuplicationClone": {
+      "nrTokens": 165,
+      "nrLines": 18,
+      "files": [
+        {
+          "filePath": "test2.js",
+          "startLine": 13,
+          "endLine": 30
+        },
+        {
+          "filePath": "test.js",
+          "startLine": 54,
+          "endLine": 71
+        }
+      ]
+    }
+  },
+  {
+    "DuplicationClone": {
+      "nrTokens": 69,
+      "nrLines": 22,
+      "files": [
+        {
+          "filePath": "test.js",
+          "startLine": 1,
+          "endLine": 22
+        },
+        {
+          "filePath": "test.js",
+          "startLine": 33,
+          "endLine": 54
+        }
+      ]
+    }
+  }
+]

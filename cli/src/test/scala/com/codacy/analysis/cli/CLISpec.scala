@@ -164,7 +164,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
     }
 
     "output duplication clones for clones with a minimum of 10 lines" in {
-      withClonedRepo("git://github.com/qamine-test/Monogatari.git", "9232dbdcae98b19412c8dd98c49da8c391612bfa") {
+      withClonedRepo("git://github.com/qamine-test/duplication-delta.git", "000fe1b225860926d234a63bef3df4f208ace7ce") {
         (file, directory) =>
           cli.main(
             Array(
@@ -173,20 +173,20 @@ class CLISpec extends Specification with NoLanguageFeatures {
               directory.pathAsString,
               "--max-allowed-issues",
               "1000",
-              "--verbose",
-              "--force-file-permissions",
               "--format",
               "json",
               "--output",
               file.pathAsString,
               "--min-cloned-lines",
-              "10"))
+              "10",
+              "--verbose",
+              "--force-file-permissions"))
 
           val result = for {
             responseJson <- parser.parse(file.contentAsString)
             response <- responseJson.as[Set[Result]]
             expectedJson <- parser.parse(
-              File.resource("com/codacy/analysis/cli/cli-output-with-duplication.json").contentAsString)
+              File.resource("com/codacy/analysis/cli/cli-output-duplication.json").contentAsString)
             expected <- expectedJson.as[Set[Result]]
           } yield (response, expected)
 
