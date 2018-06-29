@@ -208,7 +208,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       }
     }
 
-    "analyse duplication on a project, ignoring the files listed on the configuration file" in {
+    "analyse duplication on a project, ignoring the files listed in the configuration file" in {
       val commitUuid = "625e19cd9be4898939a7c40dbeb2b17e40df9d54"
       withClonedRepo("git://github.com/qamine-test/jquery.git", commitUuid) { (file, directory) =>
         File
@@ -242,18 +242,6 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
             }
 
             clones must containTheSameElementsAs(Seq(
-              DuplicationClone(
-                69,
-                29,
-                List(
-                  DuplicationCloneFile("src/core/ready.js", 23, 51),
-                  DuplicationCloneFile("src/core/ready-no-deferred.js", 23, 49))),
-              DuplicationClone(
-                89,
-                29,
-                List(
-                  DuplicationCloneFile("src/core/ready.js", 58, 86),
-                  DuplicationCloneFile("src/core/ready-no-deferred.js", 67, 97))),
               DuplicationClone(
                 50,
                 5,

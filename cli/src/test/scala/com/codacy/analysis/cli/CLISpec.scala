@@ -173,6 +173,8 @@ class CLISpec extends Specification with NoLanguageFeatures {
               directory.pathAsString,
               "--max-allowed-issues",
               "1000",
+              "--verbose",
+              "--force-file-permissions",
               "--format",
               "json",
               "--output",

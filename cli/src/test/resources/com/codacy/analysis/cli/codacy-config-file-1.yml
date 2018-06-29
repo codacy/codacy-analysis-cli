@@ -4,6 +4,7 @@ engines:
    enabled: true
    exclude_paths:
      - test/**
+     - src/core/**
 exclude_paths:
   - 'external/**'
   - 'src/attributes/**'
