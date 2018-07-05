@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 import scala.util.Try
 
 class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val language: Language) extends ITool {
-  
+
   override def name: String = "duplication"
   override def supportedLanguages: Set[Language] = duplicationTool.languages.to[Set]
 
