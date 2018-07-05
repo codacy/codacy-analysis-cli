@@ -160,6 +160,36 @@ class CLISpec extends Specification with NoLanguageFeatures {
       }
     }
 
+    "output correct duplication clones" in {
+      withClonedRepo("git://github.com/qamine-test/duplication-delta.git", "000fe1b225860926d234a63bef3df4f208ace7ce") {
+        (file, directory) =>
+          cli.main(
+            Array(
+              "analyse",
+              "--directory",
+              directory.pathAsString,
+              "--max-allowed-issues",
+              "1000",
+              "--format",
+              "json",
+              "--output",
+              file.pathAsString,
+              "--verbose",
+              "--force-file-permissions"))
+
+          val result = for {
+            responseJson <- parser.parse(file.contentAsString)
+            response <- responseJson.as[Set[Result]]
+            expectedJson <- parser.parse(
+              File.resource("com/codacy/analysis/cli/cli-output-duplication.json").contentAsString)
+            expected <- expectedJson.as[Set[Result]]
+          } yield (response, expected)
+
+          result must beRight
+          result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+      }
+    }
+
   }
 
   private def errorMsg(message: String)

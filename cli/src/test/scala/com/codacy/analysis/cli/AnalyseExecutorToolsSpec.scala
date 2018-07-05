@@ -166,4 +166,41 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       }
     }
   }
+
+  "AnalyseExecutor.duplicationTools" should {
+    "detect the duplication tools to be used from the project files" in {
+
+      val filesTarget = FilesTarget(File(""), Set(File("Test.java").path, File("SomeClazz.rb").path), Set.empty)
+
+      val toolEither = AnalyseExecutor.duplicationTools(Right(CodacyConfigurationFile(None, None, None)), filesTarget)
+
+      toolEither must beRight
+      toolEither must beLike {
+        case Right(toolSet) =>
+          toolSet.map(_.name) mustEqual Set("duplication")
+          toolSet.map(_.language) mustEqual Set(Languages.Java, Languages.Ruby)
+      }
+    }
+
+    "detect the duplication tools to be used from the project files, considering custom extensions" in {
+
+      val filesTarget =
+        FilesTarget(File(""), Set(File("test-rb.resource").path), Set.empty)
+
+      val toolEither = AnalyseExecutor.duplicationTools(
+        Right(
+          CodacyConfigurationFile(
+            None,
+            None,
+            Some(Map(Languages.Ruby -> LanguageConfiguration(Some(Set("-rb.resource"))))))),
+        filesTarget)
+
+      toolEither must beRight
+      toolEither must beLike {
+        case Right(toolSet) =>
+          toolSet.map(_.name) mustEqual Set("duplication")
+          toolSet.map(_.language) mustEqual Set(Languages.Ruby)
+      }
+    }
+  }
 }
