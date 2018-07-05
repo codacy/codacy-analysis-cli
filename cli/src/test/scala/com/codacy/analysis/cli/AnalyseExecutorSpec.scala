@@ -1,7 +1,6 @@
 package com.codacy.analysis.cli
 
 import better.files.File
-import caseapp.Tag
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
@@ -10,8 +9,7 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
 import com.codacy.analysis.core.files.FileCollector
-import com.codacy.analysis.core.model.{DuplicationClone, Issue, Result}
-import com.codacy.plugins.duplication.api.DuplicationCloneFile
+import com.codacy.analysis.core.model.{Issue, Result}
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
@@ -42,8 +40,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid),
-          skipDuplication = Tag.of(1))
+          commitUuid = Option(commitUuid))
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
@@ -106,8 +103,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid),
-          skipDuplication = Tag.of(1))
+          commitUuid = Option(commitUuid))
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
@@ -164,8 +160,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid),
-          skipDuplication = Tag.of(1))
+          commitUuid = Option(commitUuid))
 
         val remoteConfiguration: Either[String, ProjectConfiguration] =
           Right(
@@ -230,33 +225,13 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
           response <- responseJson.as[Set[Result]]
-        } yield response
+          expectedJson <- parser.parse(
+            File.resource("com/codacy/analysis/cli/cli-output-duplication-2.json").contentAsString)
+          expected <- expectedJson.as[Set[Result]]
+        } yield (response, expected)
 
         result must beRight
-        result must beLike {
-          case Right(response: Set[Result]) =>
-            response.size must beGreaterThan(0)
-
-            val clones = response.collect {
-              case clone: DuplicationClone => clone
-            }
-
-            clones must containTheSameElementsAs(Seq(
-              DuplicationClone(
-                50,
-                5,
-                List(
-                  DuplicationCloneFile("src/manipulation.js", 339, 343),
-                  DuplicationCloneFile("src/manipulation.js", 348, 352))),
-              DuplicationClone(
-                81,
-                13,
-                List(DuplicationCloneFile("src/event.js", 149, 161), DuplicationCloneFile("src/event.js", 231, 243))),
-              DuplicationClone(
-                62,
-                6,
-                List(DuplicationCloneFile("src/event.js", 153, 158), DuplicationCloneFile("src/event.js", 235, 240)))))
-        }
+        result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
       }
     }
   }
@@ -275,9 +250,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       remoteProjectConfiguration,
       None,
       false,
-      true,
-      analyse.skipDuplicationValue,
-      analyse.minClonedLines).run() must beRight
+      true).run() must beRight
   }
 
 }

@@ -29,9 +29,7 @@ class AnalyseExecutor(toolInput: Option[String],
                       remoteProjectConfiguration: Either[String, ProjectConfiguration],
                       nrParallelTools: Option[Int],
                       allowNetwork: Boolean,
-                      forceFilePermissions: Boolean,
-                      skipDuplication: Boolean,
-                      minCloneLines: Int) {
+                      forceFilePermissions: Boolean) {
 
   private val logger: Logger = getLogger
 
@@ -54,7 +52,7 @@ class AnalyseExecutor(toolInput: Option[String],
         .list(baseDirectory, localConfigurationFile, remoteProjectConfiguration)
         .toRight("Could not access project files")
       tools <- tools(toolInput, localConfigurationFile, remoteProjectConfiguration, filesTarget, allowNetwork)
-      duplicationTools <- if (!skipDuplication) duplicationTools(localConfigurationFile, filesTarget)
+      duplicationTools <- if (toolInput.isEmpty) duplicationTools(localConfigurationFile, filesTarget)
       else Right(Set.empty)
     } yield (filesTarget, tools ++ duplicationTools)
 
@@ -69,7 +67,7 @@ class AnalyseExecutor(toolInput: Option[String],
             ExecutorResult(tool.name, filesTarget.readableFiles, analysisResults)
           case duplicationTool: DuplicationTool =>
             val analysisResults: Try[Set[Result]] =
-              analyseDuplicationOnFiles(duplicationTool, filesTarget, minCloneLines, localConfigurationFile)
+              analyseDuplicationOnFiles(duplicationTool, filesTarget, localConfigurationFile)
 
             analysisResults.foreach(results => formatter.addAll(results.to[List]))
 
@@ -85,10 +83,9 @@ class AnalyseExecutor(toolInput: Option[String],
   private def analyseDuplicationOnFiles(
     tool: DuplicationTool,
     fileTarget: FilesTarget,
-    minCloneLines: Int,
     localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[Result]] = {
     val filteredFileTarget = fileCollector.filter(tool, fileTarget, localConfigurationFile, remoteProjectConfiguration)
-    tool.run(filteredFileTarget.directory, filteredFileTarget, minCloneLines)
+    tool.run(filteredFileTarget.directory, filteredFileTarget)
   }
 
   private def analyseFiles(tool: Tool,

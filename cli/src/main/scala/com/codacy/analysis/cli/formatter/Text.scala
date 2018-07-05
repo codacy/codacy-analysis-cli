@@ -33,7 +33,7 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
       case FileError(filename, message) =>
         stream.println(s"Found $message in $filename")
         stream.flush()
-      case DuplicationClone(nrTokens, nrLines, files) =>
+      case DuplicationClone(_, nrTokens, nrLines, files) =>
         stream.println(prettyMessage(nrTokens, nrLines, files))
         stream.flush()
     }
