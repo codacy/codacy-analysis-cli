@@ -160,7 +160,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
       }
     }
 
-    "output duplication clones for clones with a minimum of 10 lines" in {
+    "output correct duplication clones" in {
       withClonedRepo("git://github.com/qamine-test/duplication-delta.git", "000fe1b225860926d234a63bef3df4f208ace7ce") {
         (file, directory) =>
           cli.main(

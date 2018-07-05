@@ -25,7 +25,8 @@ final case class Issue(patternId: results.Pattern.Id,
                        location: Location)
     extends Result
 
-final case class DuplicationClone(cloneLines : String, nrTokens: Int, nrLines: Int, files: Seq[DuplicationCloneFile]) extends Result
+final case class DuplicationClone(cloneLines: String, nrTokens: Int, nrLines: Int, files: Seq[DuplicationCloneFile])
+    extends Result
 
 object Issue {
 
