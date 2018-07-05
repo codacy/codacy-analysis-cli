@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 import scala.util.Try
 
 class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val language: Language) extends ITool {
-
+  
   override def name: String = "duplication"
   override def supportedLanguages: Set[Language] = duplicationTool.languages.to[Set]
 
@@ -69,10 +69,10 @@ object DuplicationToolCollector {
     })(collection.breakOut)
 
     if (collectedTools.isEmpty) {
-      Left(s"No duplication tools found for the language $languageName")
-    } else {
-      Right(collectedTools)
+      logger.info(s"No duplication tools found for the language $languageName")
     }
+
+    Right(collectedTools)
   }
 
   def fromFileTarget(filesTarget: FilesTarget,
@@ -91,11 +91,10 @@ object DuplicationToolCollector {
     }
 
     if (duplicationTools.isEmpty) {
-      logger.info("No tools found for the provided files.")
+      logger.info("No duplication tools found for the provided files.")
     }
 
     Right(duplicationTools)
-
   }
 
 }
