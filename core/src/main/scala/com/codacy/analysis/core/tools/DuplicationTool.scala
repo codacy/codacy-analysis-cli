@@ -22,20 +22,22 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
 
     val request = DuplicationRequest(directory.pathAsString)
 
-    // The duplication files should be more than 1. If it is one, then it means
-    // that the other clone was in an ignored file. This is based on the assumption
-    // that the duplication results will contain more than one entry for files
-    // with duplicated clones with themselves.
     DuplicationRunner(duplicationTool)
       .run(request, DuplicationConfiguration(language, Map.empty), Some(timeout), None)
-      .map(clones =>
-        filterDuplicationClones(clones, filesTarget).map(clone =>
-          DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files))(collection.breakOut): Set[Result])
+      .map(
+        clones =>
+          filterDuplicationClones(clones, filesTarget).map(
+            clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files))(
+            collection.breakOut): Set[Result])
   }
 
   private def filterDuplicationClones(duplicationClones: List[api.DuplicationClone],
                                       filesTarget: FilesTarget,
                                       minCloneLines: Int = 5) = {
+    // The duplication files should be more than 1. If it is one, then it means
+    // that the other clone was in an ignored file. This is based on the assumption
+    // that the duplication results will contain more than one entry for files
+    // with duplicated clones with themselves.
     duplicationClones.collect {
       case clone if clone.nrLines >= minCloneLines =>
         val commitFileNames = filesTarget.readableFiles.map(_.toString)
