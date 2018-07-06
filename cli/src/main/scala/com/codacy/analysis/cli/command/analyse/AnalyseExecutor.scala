@@ -95,7 +95,7 @@ class AnalyseExecutor(toolInput: Option[String],
       projectConfig <- remoteConfiguration
       toolConfiguration <- projectConfig.toolConfiguration
         .find(_.uuid.equalsIgnoreCase(tool.uuid))
-        .toRight[String]("Could not find tool")
+        .toRight[String](s"Could not find configuration for tool ${tool.name}")
     } yield {
       val shouldUseConfigFile = toolConfiguration.notEdited && hasConfigFiles
       val shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile && tool.allowsUIConfiguration && toolConfiguration.patterns.nonEmpty
