@@ -23,7 +23,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
             "",
             165,
             18,
-            List(DuplicationCloneFile("test.js", 54, 71), DuplicationCloneFile("test2.js", 13, 30))),
+            List(DuplicationCloneFile("test2.js", 13, 30), DuplicationCloneFile("test.js", 54, 71))),
           DuplicationClone(
             "",
             69,
