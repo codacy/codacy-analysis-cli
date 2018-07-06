@@ -3,7 +3,7 @@ package com.codacy.analysis.cli.formatter
 import java.io.PrintStream
 import java.nio.file.Path
 
-import com.codacy.analysis.core.model.ToolResult
+import com.codacy.analysis.core.model.Result
 import com.codacy.plugins.api.results
 import io.circe.Encoder
 import io.circe.generic.auto._
@@ -34,7 +34,7 @@ private[formatter] class Json(val stream: PrintStream) extends Formatter {
     stream.flush()
   }
 
-  def add(element: ToolResult): Unit = {
+  def add(element: Result): Unit = {
     if (alreadyPrinted) stream.print(",") else alreadyPrinted = true
     stream.print(element.asJson.noSpaces)
   }

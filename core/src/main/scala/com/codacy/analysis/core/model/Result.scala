@@ -15,7 +15,9 @@ final case class LineLocation(line: Int) extends Location {
   override def toString: String = line.toString
 }
 
-sealed trait ToolResult
+sealed trait Result
+
+sealed trait ToolResult extends Result
 
 final case class Issue(patternId: results.Pattern.Id,
                        filename: Path,
@@ -26,6 +28,7 @@ final case class Issue(patternId: results.Pattern.Id,
     extends ToolResult
 
 final case class DuplicationClone(cloneLines: String, nrTokens: Int, nrLines: Int, files: Seq[DuplicationCloneFile])
+    extends Result
 
 object Issue {
 

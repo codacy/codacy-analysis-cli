@@ -85,7 +85,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
       toolEither must beLike {
         case Right(toolSet) =>
           toolSet.map(_.name) mustEqual Set("duplication")
-          toolSet.map(_.language) mustEqual Set(Languages.Java, Languages.Ruby)
+          toolSet.map(_.languageToRun) mustEqual Set(Languages.Java, Languages.Ruby)
       }
     }
 
@@ -101,7 +101,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
       toolEither must beLike {
         case Right(toolSet) =>
           toolSet.map(_.name) mustEqual Set("duplication")
-          toolSet.map(_.language) mustEqual Set(Languages.Ruby)
+          toolSet.map(_.languageToRun) mustEqual Set(Languages.Ruby)
       }
     }
 
@@ -113,7 +113,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
       toolEither must beLike {
         case Right(toolSet) =>
           toolSet.map(_.name) mustEqual Set("duplication")
-          toolSet.map(_.language) mustEqual Set(Languages.Ruby)
+          toolSet.map(_.languageToRun) mustEqual Set(Languages.Ruby)
       }
     }
   }

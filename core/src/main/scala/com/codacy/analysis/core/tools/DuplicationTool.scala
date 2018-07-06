@@ -13,7 +13,7 @@ import org.log4s.getLogger
 import scala.concurrent.duration._
 import scala.util.Try
 
-class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val language: Language) extends ITool {
+class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val languageToRun: Language) extends ITool {
 
   override def name: String = "duplication"
   override def supportedLanguages: Set[Language] = duplicationTool.languages.to[Set]
@@ -22,13 +22,14 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
 
     val request = DuplicationRequest(directory.pathAsString)
 
-    DuplicationRunner(duplicationTool)
-      .run(request, DuplicationConfiguration(language, Map.empty), Some(timeout), None)
-      .map(
-        clones =>
-          filterDuplicationClones(clones, filesTarget).map(
-            clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files))(
-            collection.breakOut): Set[DuplicationClone])
+    for {
+      duplicationClones <- DuplicationRunner(duplicationTool)
+        .run(request, DuplicationConfiguration(languageToRun, Map.empty), Some(timeout), None)
+      clones = filterDuplicationClones(duplicationClones, filesTarget)
+    } yield {
+      clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files))(
+        collection.breakOut): Set[DuplicationClone]
+    }
   }
 
   private def filterDuplicationClones(duplicationClones: List[api.DuplicationClone],
