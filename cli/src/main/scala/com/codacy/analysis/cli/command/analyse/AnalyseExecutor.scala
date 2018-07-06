@@ -11,8 +11,8 @@ import com.codacy.analysis.core.clients.api.ProjectConfiguration
 import com.codacy.analysis.core.configuration.CodacyConfigurationFile
 import com.codacy.analysis.core.converters.ConfigurationHelper
 import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
-import com.codacy.analysis.core.model.{CodacyCfg, Configuration, FileCfg, Result}
-import com.codacy.analysis.core.tools.{Tool, ToolCollector}
+import com.codacy.analysis.core.model._
+import com.codacy.analysis.core.tools._
 import com.codacy.analysis.core.utils.SetOps
 import com.codacy.analysis.core.utils.TryOps._
 import org.log4s.{Logger, getLogger}
@@ -56,8 +56,8 @@ class AnalyseExecutor(toolInput: Option[String],
 
     val analysisResult: Either[String, Seq[ExecutorResult]] = filesTargetAndTool.map {
       case (filesTarget, tools) =>
-        SetOps.mapInParallel(tools, nrParallelTools) { tool =>
-          val analysisResults: Try[Set[Result]] = analyseFiles(tool, filesTarget, localConfigurationFile)
+        SetOps.mapInParallel(tools, nrParallelTools) { tool: Tool =>
+          val analysisResults: Try[Set[ToolResult]] = analyseFiles(tool, filesTarget, localConfigurationFile)
 
           analysisResults.foreach(results => formatter.addAll(results.to[List]))
 
@@ -72,7 +72,7 @@ class AnalyseExecutor(toolInput: Option[String],
 
   private def analyseFiles(tool: Tool,
                            filesTarget: FilesTarget,
-                           localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[Result]] = {
+                           localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[ToolResult]] = {
     val fileTarget = fileCollector.filter(tool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
     val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, filesTarget)
 
@@ -153,7 +153,7 @@ class AnalyseExecutor(toolInput: Option[String],
 
 object AnalyseExecutor {
 
-  final case class ExecutorResult(toolName: String, files: Set[Path], analysisResults: Try[Set[Result]])
+  final case class ExecutorResult(toolName: String, files: Set[Path], analysisResults: Try[Set[ToolResult]])
 
   def tools(toolInput: Option[String],
             localConfiguration: Either[String, CodacyConfigurationFile],

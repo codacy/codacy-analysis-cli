@@ -1,6 +1,5 @@
 package com.codacy.analysis.cli
 
-import better.files.File
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
@@ -8,10 +7,8 @@ import com.codacy.analysis.cli.utils.TestUtils._
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
-import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, LanguageConfiguration}
-import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
-import com.codacy.analysis.core.model.{Issue, Result}
-import com.codacy.plugins.api.languages.Languages
+import com.codacy.analysis.core.files.FileCollector
+import com.codacy.analysis.core.model.{Issue, ToolResult}
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
@@ -63,12 +60,12 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
-          response <- responseJson.as[Set[Result]]
+          response <- responseJson.as[Set[ToolResult]]
         } yield response
 
         result must beRight
         result must beLike {
-          case Right(response: Set[Result]) =>
+          case Right(response: Set[ToolResult]) =>
             response.size must beGreaterThan(0)
 
             response.forall {
@@ -126,12 +123,12 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
-          response <- responseJson.as[Set[Result]]
+          response <- responseJson.as[Set[ToolResult]]
         } yield response
 
         result must beRight
         result must beLike {
-          case Right(response: Set[Result]) =>
+          case Right(response: Set[ToolResult]) =>
             response.size must beGreaterThan(0)
 
             response.forall {
@@ -144,7 +141,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
     val cssLintPatternsInternalIds = Set("CSSLint_important")
 
-    "analyse a javascript and css project " in {
+    "analyse a javascript and css project" in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
         val apiTokenStr = "RandomApiToken"
@@ -190,12 +187,12 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
-          response <- responseJson.as[Set[Result]]
+          response <- responseJson.as[Set[ToolResult]]
         } yield response
 
         result must beRight
         result must beLike {
-          case Right(response: Set[Result]) =>
+          case Right(response: Set[ToolResult]) =>
             response.size must beGreaterThan(0)
 
             response.collect {
@@ -221,119 +218,6 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       None,
       false,
       true).run() must beRight
-  }
-
-  "AnalyseExecutor.tools" should {
-    val emptyFilesTarget = FilesTarget(File(""), Set.empty, Set.empty)
-    val noLocalConfiguration = Left("no config")
-
-    "use input over remote configuration" in {
-
-      val expectedToolName = "pylint"
-
-      val userInput = Some(expectedToolName)
-      val remoteProjectConfiguration = Right(
-        ProjectConfiguration(
-          Set.empty,
-          Some(Set.empty),
-          Set.empty,
-          Set(ToolConfiguration("InvalidToolName", isEnabled = true, notEdited = false, Set.empty))))
-
-      val toolEither =
-        AnalyseExecutor
-          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget, allowNetwork = false)
-      toolEither must beRight
-      toolEither must beLike {
-        case Right(toolSet) =>
-          toolSet.size mustEqual 1
-          toolSet.head.name mustEqual expectedToolName
-      }
-    }
-
-    "fail on incorrect input (even if remote configuration is valid)" in {
-
-      val expectedToolName = "SomeInvalidTool"
-
-      val userInput = Some(expectedToolName)
-      val remoteProjectConfiguration = Right(
-        ProjectConfiguration(
-          Set.empty,
-          None,
-          Set.empty,
-          Set(
-            ToolConfiguration("34225275-f79e-4b85-8126-c7512c987c0d", isEnabled = true, notEdited = false, Set.empty))))
-
-      val toolEither =
-        AnalyseExecutor
-          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget, allowNetwork = false)
-      toolEither must beLeft
-    }
-
-    "fallback to remote configuration" in {
-
-      val expectedToolUuid1 = "34225275-f79e-4b85-8126-c7512c987c0d"
-      val expectedToolUuid2 = "cf05f3aa-fd23-4586-8cce-5368917ec3e5"
-
-      val userInput = None
-      val remoteProjectConfiguration = Right(
-        ProjectConfiguration(
-          Set.empty,
-          None,
-          Set.empty,
-          Set(
-            ToolConfiguration(expectedToolUuid1, isEnabled = true, notEdited = false, Set.empty),
-            ToolConfiguration(expectedToolUuid2, isEnabled = true, notEdited = false, Set.empty),
-            ToolConfiguration("someRandomTool", isEnabled = false, notEdited = false, Set.empty),
-            ToolConfiguration("anotherRandomTool", isEnabled = false, notEdited = false, Set.empty))))
-
-      val toolEither =
-        AnalyseExecutor
-          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget, allowNetwork = false)
-      toolEither must beRight
-      toolEither must beLike {
-        case Right(toolSet) =>
-          toolSet.size mustEqual 2
-          toolSet.map(_.uuid) mustEqual Set(expectedToolUuid1, expectedToolUuid2)
-      }
-    }
-
-    "fallback to finding tools if remote configuration is not present" in {
-      val userInput = None
-      val remoteProjectConfiguration = Left("some error")
-
-      val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rb").path), Set.empty)
-
-      val toolEither =
-        AnalyseExecutor
-          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = false)
-      toolEither must beRight
-      toolEither must beLike {
-        case Right(toolSet) =>
-          toolSet.map(_.name) mustEqual Set("brakeman", "rubocop", "bundleraudit")
-      }
-    }
-
-    "fallback to finding tools (with custom extensions) if remote configuration is not present" in {
-      val userInput = None
-      val remoteProjectConfiguration = Left("some error")
-
-      val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rawr").path), Set.empty)
-
-      val localConfiguration = Right(
-        CodacyConfigurationFile(
-          Option.empty,
-          Option.empty,
-          Option(Map(Languages.Java -> LanguageConfiguration(Option(Set("rawr")))))))
-
-      val toolEither =
-        AnalyseExecutor
-          .tools(userInput, localConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = true)
-      toolEither must beRight
-      toolEither must beLike {
-        case Right(toolSet) =>
-          toolSet.map(_.name) mustEqual Set("checkstyle", "findbugs", "findbugssec", "pmd")
-      }
-    }
   }
 
 }

@@ -6,7 +6,7 @@ import better.files.File
 import cats.implicits._
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api.{ProjectConfiguration, ToolConfiguration, ToolPattern}
-import com.codacy.analysis.core.model.{FileError, FileResults, Issue, Result}
+import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
@@ -52,7 +52,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
     val exampleResultsEither = for {
       resultsJson <- parser.parse(
         File.resource("com/codacy/analysis/core/upload/cli-output-monogatari-eslint-1.json").contentAsString)
-      exampleResults <- resultsJson.as[Set[Result]]
+      exampleResults <- resultsJson.as[Set[ToolResult]]
     } yield exampleResults
 
     val exampleResults = exampleResultsEither.right.get
@@ -67,7 +67,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
   }
 
   private def testBatchSize(
-    exampleResults: Set[Result])(batchSize: Int, message: String, expectedNrOfBatches: Int): Fragment = {
+    exampleResults: Set[ToolResult])(batchSize: Int, message: String, expectedNrOfBatches: Int): Fragment = {
     val esLintPatternsInternalIds = Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
 
     s"analyse a javascript project with eslint, $message".stripMargin in {
@@ -106,7 +106,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       uploader.sendResults(
         Seq(
           ResultsUploader.ToolResults(tool, filenames, exampleResults),
-          ResultsUploader.ToolResults(otherTool, otherFilenames, Set.empty[Result]))) must beRight.awaitFor(10.minutes)
+          ResultsUploader.ToolResults(otherTool, otherFilenames, Set.empty[ToolResult]))) must beRight.awaitFor(
+        10.minutes)
       // scalafix:on NoInfer.any
 
       verifyNumberOfCalls(codacyClient, tool, commitUuid, expectedNrOfBatches)

@@ -3,7 +3,7 @@ package com.codacy.analysis.core.analysis
 import java.nio.file.Path
 
 import better.files.File
-import com.codacy.analysis.core.model.{Configuration, Result}
+import com.codacy.analysis.core.model.{Configuration, ToolResult}
 import com.codacy.analysis.core.tools.Tool
 import org.log4s.{Logger, getLogger}
 
@@ -16,7 +16,7 @@ trait AnalyserCompanion[T[_]] {
 
 trait Analyser[T[_]] {
 
-  def analyse(tool: Tool, directory: File, files: Set[Path], config: Configuration): T[Set[Result]]
+  def analyse(tool: Tool, directory: File, files: Set[Path], config: Configuration): T[Set[ToolResult]]
 
 }
 

@@ -5,7 +5,7 @@ import java.nio.file.{Path, Paths}
 import better.files.File
 import com.codacy.analysis.core.analysis.CodacyPluginsAnalyser
 import com.codacy.analysis.core.files.FilesTarget
-import com.codacy.analysis.core.model.{Configuration, Issue, Result, _}
+import com.codacy.analysis.core.model.{Configuration, Issue, _}
 import com.codacy.analysis.core.utils.FileHelper
 import com.codacy.plugins.api
 import com.codacy.plugins.api.languages.{Language, Languages}
@@ -35,17 +35,17 @@ final case class SubDirectory(sourceDirectory: String, protected val subDirector
   def removePrefix(filename: String): String = filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(private val plugin: DockerTool) {
+class Tool(private val plugin: DockerTool) extends ITool {
 
   private val logger: Logger = getLogger
 
-  def name: String = plugin.shortName
+  override def name: String = plugin.shortName
   def uuid: String = plugin.uuid
 
   def needsPatternsToRun: Boolean = plugin.needsPatternsToRun
   def allowsUIConfiguration: Boolean = plugin.hasUIConfiguration
 
-  def languages: Set[Language] = plugin.languages
+  override def supportedLanguages: Set[Language] = plugin.languages
 
   def configFilenames: Set[String] = plugin match {
     case plugin: DockerToolWithConfig =>
@@ -57,7 +57,7 @@ class Tool(private val plugin: DockerTool) {
   def run(directory: File,
           files: Set[Path],
           config: Configuration,
-          timeout: Duration = 10.minutes): Try[Set[Result]] = {
+          timeout: Duration = 10.minutes): Try[Set[ToolResult]] = {
     val pluginConfiguration = config match {
       case CodacyCfg(patterns, _, extraValues) =>
         val pts: List[PatternRequest] = patterns.map { pt =>
@@ -85,7 +85,7 @@ class Tool(private val plugin: DockerTool) {
           Issue.Message(r.message),
           r.level,
           r.category,
-          LineLocation(r.line)))(collection.breakOut): Set[Result]) ++
+          LineLocation(r.line)))(collection.breakOut): Set[ToolResult]) ++
         res.failedFiles.map(fe => FileError(FileHelper.relativePath(fe), "Failed to analyse file."))
     }
   }

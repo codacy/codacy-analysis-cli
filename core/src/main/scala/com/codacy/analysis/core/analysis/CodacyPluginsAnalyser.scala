@@ -14,7 +14,7 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
 
   private val logger: Logger = getLogger
 
-  override def analyse(tool: Tool, directory: File, files: Set[Path], config: Configuration): Try[Set[Result]] = {
+  override def analyse(tool: Tool, directory: File, files: Set[Path], config: Configuration): Try[Set[ToolResult]] = {
     val result = tool.run(directory, files, config, 10.minutes)
 
     result match {
