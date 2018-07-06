@@ -1,5 +1,6 @@
 package com.codacy.analysis.cli.utils
 
+import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{Path, Paths}
 
 import better.files.File
@@ -20,6 +21,13 @@ object TestUtils {
       directory <- File.temporaryDirectory()
       file <- File.temporaryFile()
     } yield {
+      directory
+        .addPermission(PosixFilePermission.OWNER_READ)
+        .addPermission(PosixFilePermission.GROUP_READ)
+        .addPermission(PosixFilePermission.OTHERS_READ)
+        .addPermission(PosixFilePermission.OWNER_EXECUTE)
+        .addPermission(PosixFilePermission.GROUP_EXECUTE)
+        .addPermission(PosixFilePermission.OTHERS_EXECUTE)
       Process(Seq("git", "clone", gitUrl, directory.pathAsString)).!
       Process(Seq("git", "reset", "--hard", commitUUid), directory.toJava).!
       block(file, directory)
