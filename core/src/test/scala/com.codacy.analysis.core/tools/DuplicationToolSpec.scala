@@ -1,10 +1,9 @@
 package com.codacy.analysis.core.tools
 
-import better.files.File
-import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
+import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.model.DuplicationClone
 import com.codacy.analysis.core.utils.TestUtils._
-import com.codacy.plugins.api.languages.Languages
+import com.codacy.plugins.api.languages.{Language, Languages}
 import com.codacy.plugins.duplication.api.DuplicationCloneFile
 import com.codacy.plugins.duplication.docker.pmdcpd.PmdCpd
 import org.specs2.control.NoLanguageFeatures
@@ -75,46 +74,22 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
   }
 
   "DuplicationToolCollector" should {
-    "detect the duplication tools to be used from the project files" in {
+    val languagesWithTools: Set[Language] = Set(Languages.Java, Languages.Python, Languages.Ruby)
+    s"detect the duplication tools for the given languages: ${languagesWithTools.mkString(", ")}" in {
 
-      val filesTarget = FilesTarget(File(""), Set(File("Test.java").path, File("SomeClazz.rb").path), Set.empty)
+      val tools = DuplicationToolCollector.fromLanguages(languagesWithTools)
 
-      val toolEither = DuplicationToolCollector.fromFileTarget(filesTarget, List.empty)
-
-      toolEither must beRight
-      toolEither must beLike {
-        case Right(toolSet) =>
-          toolSet.map(_.name) mustEqual Set("duplication")
-          toolSet.map(_.languageToRun) mustEqual Set(Languages.Java, Languages.Ruby)
-      }
+      tools must haveSize(3)
+      tools.map(_.languageToRun) must containTheSameElementsAs(languagesWithTools.to[Seq])
     }
 
-    "detect the duplication tools to be used from the project files, considering custom extensions" in {
+    val languagesWithoutTools: Set[Language] = Set(Languages.R, Languages.Elixir, Languages.Elm)
 
-      val filesTarget =
-        FilesTarget(File(""), Set(File("test-rb.resource").path), Set.empty)
+    s"return no duplication tools for the given languages: ${languagesWithoutTools}" in {
 
-      val toolEither =
-        DuplicationToolCollector.fromFileTarget(filesTarget, List(Languages.Ruby -> List("-rb.resource")))
+      val tools = DuplicationToolCollector.fromLanguages(languagesWithoutTools)
 
-      toolEither must beRight
-      toolEither must beLike {
-        case Right(toolSet) =>
-          toolSet.map(_.name) mustEqual Set("duplication")
-          toolSet.map(_.languageToRun) mustEqual Set(Languages.Ruby)
-      }
-    }
-
-    "detect the duplication tool from a given language" in {
-
-      val toolEither = DuplicationToolCollector.fromLanguage(Languages.Ruby.name)
-
-      toolEither must beRight
-      toolEither must beLike {
-        case Right(toolSet) =>
-          toolSet.map(_.name) mustEqual Set("duplication")
-          toolSet.map(_.languageToRun) mustEqual Set(Languages.Ruby)
-      }
+      tools should beEmpty
     }
   }
 }

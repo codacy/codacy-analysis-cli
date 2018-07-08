@@ -2,8 +2,8 @@ package com.codacy.analysis.core.tools
 
 import better.files.File
 import com.codacy.analysis.core.files.FilesTarget
-import com.codacy.analysis.core.model.{DuplicationClone}
-import com.codacy.plugins.api.languages.{Language, Languages}
+import com.codacy.analysis.core.model.DuplicationClone
+import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.duplication._
 import com.codacy.plugins.duplication.api.{DuplicationCloneFile, DuplicationConfiguration, DuplicationRequest}
 import com.codacy.plugins.duplication.traits.DuplicationRunner
@@ -61,41 +61,17 @@ object DuplicationToolCollector {
 
   private val availableTools = PluginHelper.dockerDuplicationPlugins
 
-  def fromLanguage(languageName: String): Either[String, Set[DuplicationTool]] = {
-    val collectedTools: Set[DuplicationTool] = (for {
-      tool <- availableTools.find(p => p.languages.exists(_.name.equalsIgnoreCase(languageName))).to[List]
-      language <- tool.languages
-    } yield {
-      new DuplicationTool(tool, language)
-    })(collection.breakOut)
-
-    if (collectedTools.isEmpty) {
-      logger.info(s"No duplication tools found for the language $languageName")
-    }
-
-    Right(collectedTools)
-  }
-
-  def fromFileTarget(filesTarget: FilesTarget,
-                     languageCustomExtensions: List[(Language, Seq[String])]): Either[String, Set[DuplicationTool]] = {
-
-    val languages = for {
-      path <- filesTarget.readableFiles
-      language <- Languages.forPath(path.toString, languageCustomExtensions)
-    } yield language
-
-    val duplicationTools = languages.flatMap { lang =>
-      availableTools.collect {
+  def fromLanguages(languages: Set[Language]): Set[DuplicationTool] = {
+    languages.flatMap { lang =>
+      val collectedTools = availableTools.collect {
         case tool if tool.languages.contains(lang) =>
           new DuplicationTool(tool, lang)
       }
+      if (collectedTools.isEmpty) {
+        logger.info(s"No duplication tools found for language ${lang.name}")
+      }
+      collectedTools
     }
-
-    if (duplicationTools.isEmpty) {
-      logger.info("No duplication tools found for the provided files.")
-    }
-
-    Right(duplicationTools)
   }
 
 }

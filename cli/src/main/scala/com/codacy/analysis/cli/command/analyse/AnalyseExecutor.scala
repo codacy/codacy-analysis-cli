@@ -13,7 +13,7 @@ import com.codacy.analysis.core.converters.ConfigurationHelper
 import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.tools._
-import com.codacy.analysis.core.utils.SetOps
+import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
 import com.codacy.analysis.core.utils.TryOps._
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
@@ -169,9 +169,10 @@ object AnalyseExecutor {
     }
 
     def fromLocalConfig: Either[String, Set[Tool]] = {
-      toolCollector.fromFileTarget(
+      val languages = LanguagesHelper.fromFileTarget(
         filesTarget,
         localConfiguration.map(_.languageCustomExtensions.mapValues(_.toList).toList).getOrElse(List.empty))
+      toolCollector.fromLanguages(languages)
     }
 
     toolInput.map { toolStr =>
