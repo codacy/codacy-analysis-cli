@@ -4,11 +4,10 @@ import java.nio.file.{Path, Paths}
 
 import better.files.File
 import com.codacy.analysis.core.analysis.CodacyPluginsAnalyser
-import com.codacy.analysis.core.files.FilesTarget
 import com.codacy.analysis.core.model.{Configuration, Issue, _}
 import com.codacy.analysis.core.utils.FileHelper
 import com.codacy.plugins.api
-import com.codacy.plugins.api.languages.{Language, Languages}
+import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.results
 import com.codacy.plugins.results.traits.{DockerTool, DockerToolWithConfig, ToolRunner}
 import com.codacy.plugins.results.{PatternRequest, PluginConfiguration, PluginRequest}
@@ -165,13 +164,9 @@ class ToolCollector(allowNetwork: Boolean) {
     }
   }
 
-  def fromFileTarget(filesTarget: FilesTarget,
-                     languageCustomExtensions: List[(Language, Seq[String])]): Either[String, Set[Tool]] = {
-    val fileLanguages =
-      filesTarget.readableFiles.flatMap(path => Languages.forPath(path.toString, languageCustomExtensions))
-
+  def fromLanguages(languages: Set[Language]): Either[String, Set[Tool]] = {
     val collectedTools: Set[Tool] = availableTools.collect {
-      case tool if fileLanguages.exists(tool.languages.contains) =>
+      case tool if languages.exists(tool.languages.contains) =>
         new Tool(tool)
     }(collection.breakOut)
 
