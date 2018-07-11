@@ -9,8 +9,10 @@ import com.codacy.analysis.core.utils.FileHelper
 import com.codacy.plugins.api
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.results
-import com.codacy.plugins.results.traits.{DockerTool, DockerToolWithConfig, ToolRunner}
+import com.codacy.plugins.api.results.Result
+import com.codacy.plugins.results.traits.{DockerTool, DockerToolDocumentation, DockerToolWithConfig, ToolRunner}
 import com.codacy.plugins.results.{PatternRequest, PluginConfiguration, PluginRequest}
+import com.codacy.plugins.traits.BinaryDockerRunner
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
@@ -56,7 +58,7 @@ class Tool(private val plugin: DockerTool) extends ITool {
   def run(directory: File,
           files: Set[Path],
           config: Configuration,
-          timeout: Duration = 10.minutes): Try[Set[ToolResult]] = {
+          timeout: Option[Duration] = Option.empty[Duration]): Try[Set[ToolResult]] = {
     val pluginConfiguration = config match {
       case CodacyCfg(patterns, _, extraValues) =>
         val pts: List[PatternRequest] = patterns.map { pt =>
@@ -76,7 +78,9 @@ class Tool(private val plugin: DockerTool) extends ITool {
         files.to[List].map(f => sourceDirectory.removePrefix(f.toString)),
         pluginConfiguration)
 
-    ToolRunner(plugin).run(request, Option(timeout)).map { res =>
+    val dockerRunner = new BinaryDockerRunner[Result](plugin)
+    val runner = new ToolRunner(plugin, new DockerToolDocumentation(plugin), dockerRunner)
+    runner.run(request, timeout.getOrElse(dockerRunner.defaultRunTimeout)).map { res =>
       (res.results.map(r =>
         Issue(
           results.Pattern.Id(r.patternIdentifier),

@@ -4,9 +4,10 @@ import better.files.File
 import com.codacy.analysis.core.files.FilesTarget
 import com.codacy.analysis.core.model.DuplicationClone
 import com.codacy.plugins.api.languages.Language
-import com.codacy.plugins.duplication._
 import com.codacy.plugins.duplication.api.{DuplicationCloneFile, DuplicationConfiguration, DuplicationRequest}
 import com.codacy.plugins.duplication.traits.DuplicationRunner
+import com.codacy.plugins.duplication.{api, _}
+import com.codacy.plugins.traits.BinaryDockerRunner
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.getLogger
 
@@ -18,13 +19,21 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
   override def name: String = "duplication"
   override def supportedLanguages: Set[Language] = duplicationTool.languages.to[Set]
 
-  def run(directory: File, filesTarget: FilesTarget, timeout: Duration = 10.minutes): Try[Set[DuplicationClone]] = {
+  def run(directory: File,
+          filesTarget: FilesTarget,
+          timeout: Option[Duration] = Option.empty[Duration]): Try[Set[DuplicationClone]] = {
 
     val request = DuplicationRequest(directory.pathAsString)
 
+    val dockerRunner = new BinaryDockerRunner[api.DuplicationClone](duplicationTool)
+    val runner = new DuplicationRunner(duplicationTool, dockerRunner)
+
     for {
-      duplicationClones <- DuplicationRunner(duplicationTool)
-        .run(request, DuplicationConfiguration(languageToRun, Map.empty), Some(timeout), None)
+      duplicationClones <- runner.run(
+        request,
+        DuplicationConfiguration(languageToRun, Map.empty),
+        timeout.getOrElse(dockerRunner.defaultRunTimeout),
+        None)
       clones = filterDuplicationClones(duplicationClones, filesTarget)
     } yield {
       clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files))(
