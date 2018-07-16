@@ -1,7 +1,6 @@
 package com.codacy.analysis.cli
 
 import better.files.File
-import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command.{Command, DefaultCommand}
 import com.codacy.analysis.cli.utils.TestUtils._
 import com.codacy.analysis.core.model.{FileError, ToolResult}
@@ -159,36 +158,6 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
           result must beRight
           result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
-      }
-    }
-
-    "timeout analysis after 1 second" in {
-      class CliWithTimeout extends MainImpl {
-        private var exitCode: Option[Int] = Option.empty
-        override def exit(code: Int): Unit = exitCode = Option(code)
-        def getExitCode: Option[Int] = exitCode
-      }
-      val cliWithExitCode = new CliWithTimeout()
-
-      withClonedRepo("git://github.com/qamine-test/codacy-brakeman", "266c56a61d236ed6ee5efa58c0e621125498dd5f") {
-        (file, directory) =>
-          cliWithExitCode.main(
-            Array(
-              "analyse",
-              "--directory",
-              directory.pathAsString,
-              "--tool",
-              "brakeman",
-              "--format",
-              "json",
-              "--output",
-              file.pathAsString,
-              "--tool-timeout",
-              "1second",
-              "--verbose",
-              "--fail-if-incomplete"))
-
-          cliWithExitCode.getExitCode must beEqualTo(Option(ExitStatus.ExitCodes.partiallyFailedAnalysis))
       }
     }
 

@@ -28,7 +28,11 @@ class MainImpl extends CLIApp {
 
   private val logger: org.log4s.Logger = getLogger
 
-  def run(command: Command): Unit = {
+  override def run(command: Command): Unit = {
+    exit(runCommand(command))
+  }
+
+  def runCommand(command: Command): Int = {
     command match {
       case analyse: Analyse =>
         cleanup(analyse.directory)
@@ -72,12 +76,8 @@ class MainImpl extends CLIApp {
           }
         } else Right(())
 
-        exit(
-          new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
-            .exitCode(analysisResults, uploadResult))
+        new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult)
     }
-
-    ()
   }
 
   private def uploadResults(codacyClientOpt: Option[CodacyClient])(
