@@ -113,7 +113,7 @@ docker run \
 
 ### Environment Variables
 
-* `CODACY_ANALYSIS_CLI_VERSION` - Set an alternative version of the CLI to run. (e.g. latest, 0.1.0-alpha3.1350, ...)
+* `CODACY_ANALYSIS_CLI_VERSION` [default: stable] - Set an alternative version of the CLI to run. (e.g. latest, 0.1.0-alpha3.1350, ...)
 
 ### Local configuration
 
