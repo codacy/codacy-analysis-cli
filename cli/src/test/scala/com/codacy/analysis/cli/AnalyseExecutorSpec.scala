@@ -16,6 +16,7 @@ import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
+import scala.concurrent.duration._
 import scala.util.Try
 
 class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
@@ -39,7 +40,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid))
+          commitUuid = Option(commitUuid),
+          toolTimeout = Option(15.minutes))
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
@@ -102,7 +104,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid))
+          commitUuid = Option(commitUuid),
+          toolTimeout = Option(15.minutes))
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
         }
@@ -159,7 +162,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid))
+          commitUuid = Option(commitUuid),
+          toolTimeout = Option(15.minutes))
 
         val remoteConfiguration: Either[String, ProjectConfiguration] =
           Right(

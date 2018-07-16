@@ -30,6 +30,8 @@ class CLISpec extends Specification with NoLanguageFeatures {
         Right(errorMsg("Command not found: bad-command")))
       cli.parse(Array("analyse", "--bad-parameter", "/tmp", "--tool", "pylint")) must beEqualTo(
         Right(errorMsg("Unrecognized argument: --bad-parameter")))
+      cli.parse(Array("analyse", "analyse", "--tool-timeout", "1semilha")) must beEqualTo(
+        Right(errorMsg("Invalid duration 1semilha (e.g. 20minutes, 10seconds, ...)")))
     }
 
     "output text to file" in {

@@ -13,11 +13,12 @@ import com.codacy.analysis.core.converters.ConfigurationHelper
 import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.tools._
-import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
 import com.codacy.analysis.core.utils.TryOps._
+import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
+import scala.concurrent.duration.Duration
 import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
 
@@ -29,7 +30,8 @@ class AnalyseExecutor(toolInput: Option[String],
                       remoteProjectConfiguration: Either[String, ProjectConfiguration],
                       nrParallelTools: Option[Int],
                       allowNetwork: Boolean,
-                      forceFilePermissions: Boolean) {
+                      forceFilePermissions: Boolean,
+                      toolTimeout: Option[Duration] = Option.empty[Duration]) {
 
   private val logger: Logger = getLogger
 
@@ -82,7 +84,7 @@ class AnalyseExecutor(toolInput: Option[String],
         toolHasConfigFiles,
         localConfigurationFile,
         remoteProjectConfiguration)
-      results <- analyser.analyse(tool, fileTarget.directory, fileTarget.readableFiles, toolConfiguration)
+      results <- analyser.analyse(tool, fileTarget.directory, fileTarget.readableFiles, toolConfiguration, toolTimeout)
     } yield results
   }
 

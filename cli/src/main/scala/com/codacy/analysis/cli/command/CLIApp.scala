@@ -9,6 +9,9 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
 import com.codacy.analysis.core.tools.Tool
 
+import scala.concurrent.duration.Duration
+import scala.util.{Failure, Success, Try}
+
 abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command] {
   def run(command: Command): Unit
 
@@ -41,6 +44,15 @@ object ArgumentParsers {
   implicit val projectNameParser: ArgParser[ProjectName] = {
     ArgParser.instance[ProjectName]("project") { path: String =>
       Right(ProjectName(path))
+    }
+  }
+
+  implicit val durationParser: ArgParser[Duration] = {
+    ArgParser.instance[Duration]("duration") { duration: String =>
+      Try(Duration(duration)) match {
+        case Success(d) => Right(d)
+        case Failure(_) => Left(s"Invalid duration $duration (e.g. 20minutes, 10seconds, ...)")
+      }
     }
   }
 }
@@ -123,6 +135,8 @@ final case class Analyse(
   failIfIncomplete: Int @@ Counter = Tag.of(0),
   @ValueDescription("Force files to be readable by changing the permissions before running the analysis")
   forceFilePermissions: Int @@ Counter = Tag.of(0),
+  @ValueDescription("Maximum time each tool has to execute")
+  toolTimeout: Option[Duration],
   @Recurse
   extras: ExtraOptions)
     extends Command {
