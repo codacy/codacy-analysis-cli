@@ -2,6 +2,7 @@ package com.codacy.analysis.core.model
 
 import java.nio.file.Path
 
+import com.codacy.plugins.api.metrics.LineComplexity
 import com.codacy.plugins.api.results
 import com.codacy.plugins.duplication.api.DuplicationCloneFile
 
@@ -28,6 +29,15 @@ final case class Issue(patternId: results.Pattern.Id,
     extends ToolResult
 
 final case class DuplicationClone(cloneLines: String, nrTokens: Int, nrLines: Int, files: Seq[DuplicationCloneFile])
+    extends Result
+
+final case class FileMetrics(filename: String,
+                             complexity: Option[Int],
+                             loc: Option[Int],
+                             cloc: Option[Int],
+                             nrMethods: Option[Int],
+                             nrClasses: Option[Int],
+                             lineComplexities: Set[LineComplexity])
     extends Result
 
 object Issue {
