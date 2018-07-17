@@ -24,7 +24,7 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
 
     for {
       duplicationClones <- DuplicationRunner(duplicationTool)
-        .run(request, DuplicationConfiguration(languageToRun, Map.empty), Some(timeout), None)
+        .run(request, DuplicationConfiguration(languageToRun, Map.empty), timeout, None)
       clones = filterDuplicationClones(duplicationClones, filesTarget)
     } yield {
       clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files))(

@@ -76,7 +76,7 @@ class Tool(private val plugin: DockerTool) extends ITool {
         files.to[List].map(f => sourceDirectory.removePrefix(f.toString)),
         pluginConfiguration)
 
-    ToolRunner(plugin).run(request, Option(timeout)).map { res =>
+    ToolRunner(plugin).run(request, timeout).map { res =>
       (res.results.map(r =>
         Issue(
           results.Pattern.Id(r.patternIdentifier),
