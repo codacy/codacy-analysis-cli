@@ -61,7 +61,7 @@ object MetricsToolCollector {
           new MetricsTool(tool, Some(lang))
       }
       if (collectedTools.isEmpty) {
-        logger.info(s"No duplication tools found for language ${lang.name}")
+        logger.info(s"No metrics tools found for language ${lang.name}")
       }
       collectedTools
     }

@@ -37,12 +37,12 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
         stream.println(prettyMessage(nrTokens, nrLines, files))
         stream.flush()
       case fileMetrics: FileMetrics =>
-        stream.println(fileMetricsMessage(fileMetrics))
+        fileMetricsMessage(fileMetrics).map(stream.println)
         stream.flush()
     }
   }
 
-  private def fileMetricsMessage(fileMetrics: FileMetrics): String = {
+  private def fileMetricsMessage(fileMetrics: FileMetrics): List[String] = {
     def prettyNamedValue(name: String, value: Int): String =
       s"$name = $value"
 
@@ -58,9 +58,12 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
     }
 
     if (fileMetricsValues.isEmpty) {
-      s"No file metrics found on file ${fileMetrics.filename}"
+      List(s"No metrics found on file ${fileMetrics.filename}")
     } else {
-      s"Found ${fileMetricsValues.mkString(",")} on file ${fileMetrics.filename}"
+      fileMetricsValues.map { fileMetricValue =>
+        s"Found $fileMetricValue on file ${fileMetrics.filename}"
+      }
+
     }
   }
 
