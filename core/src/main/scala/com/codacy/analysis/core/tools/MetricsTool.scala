@@ -33,17 +33,22 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
     val toolFileMetrics = runner.run(request, configuration, timeout.getOrElse(dockerRunner.defaultRunTimeout), None)
 
     toolFileMetrics.map {
-      _.map { fileMetrics =>
-        FileMetrics(
-          filename = fileMetrics.filename,
-          complexity = fileMetrics.complexity,
-          loc = fileMetrics.loc,
-          cloc = fileMetrics.cloc,
-          nrMethods = fileMetrics.nrMethods,
-          nrClasses = fileMetrics.nrClasses,
-          lineComplexities = fileMetrics.lineComplexities)
+      _.collect {
+        case fileMetrics if unignoredFile(fileMetrics, files) =>
+          FileMetrics(
+            filename = fileMetrics.filename,
+            complexity = fileMetrics.complexity,
+            loc = fileMetrics.loc,
+            cloc = fileMetrics.cloc,
+            nrMethods = fileMetrics.nrMethods,
+            nrClasses = fileMetrics.nrClasses,
+            lineComplexities = fileMetrics.lineComplexities)
       }
     }
+  }
+
+  def unignoredFile(metrics: api.metrics.FileMetrics, files: Option[Set[Source.File]]): Boolean = {
+    files.forall(_.exists(_.path == metrics.filename))
   }
 }
 
