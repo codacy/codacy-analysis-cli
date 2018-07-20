@@ -36,6 +36,34 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
       case DuplicationClone(_, nrTokens, nrLines, files) =>
         stream.println(prettyMessage(nrTokens, nrLines, files))
         stream.flush()
+      case fileMetrics: FileMetrics =>
+        fileMetricsMessage(fileMetrics).map(stream.println)
+        stream.flush()
+    }
+  }
+
+  private def fileMetricsMessage(fileMetrics: FileMetrics): List[String] = {
+    def prettyNamedValue(name: String, value: Int): String =
+      s"$name = $value"
+
+    val fileMetricsList = List(
+      fileMetrics.complexity.map(prettyNamedValue("cyclomatic complexity", _)),
+      fileMetrics.loc.map(prettyNamedValue("lines of code", _)),
+      fileMetrics.cloc.map(prettyNamedValue("commented lines of code", _)),
+      fileMetrics.nrMethods.map(prettyNamedValue("number of methods", _)),
+      fileMetrics.nrClasses.map(prettyNamedValue("number of classes", _)))
+
+    val fileMetricsValues = fileMetricsList.collect {
+      case Some(namedValue) => namedValue
+    }
+
+    if (fileMetricsValues.isEmpty) {
+      List(s"No metrics found on file ${fileMetrics.filename}")
+    } else {
+      fileMetricsValues.map { fileMetricValue =>
+        s"Found $fileMetricValue on file ${fileMetrics.filename}"
+      }
+
     }
   }
 
