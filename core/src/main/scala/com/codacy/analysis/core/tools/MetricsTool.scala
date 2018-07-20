@@ -23,7 +23,6 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
   def run(directory: File,
           files: Option[Set[Source.File]],
           timeout: Option[Duration] = Option.empty[Duration]): Try[List[FileMetrics]] = {
-
     val request = MetricsRequest(directory.pathAsString)
 
     val dockerRunner = new BinaryDockerRunner[api.metrics.FileMetrics](metricsTool)
