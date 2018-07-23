@@ -4,7 +4,8 @@ import java.nio.file.Path
 
 import better.files.File
 import com.codacy.analysis.core.model._
-import com.codacy.analysis.core.tools.Tool
+import com.codacy.analysis.core.tools.{MetricsTool, Tool}
+import com.codacy.plugins.api.Source
 import org.log4s.{Logger, getLogger}
 
 import scala.concurrent.duration._
@@ -29,6 +30,25 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
     }
 
     result
+  }
+
+  override def metrics(metricsTool: MetricsTool,
+                       directory: File,
+                       files: Option[Set[Path]],
+                       timeout: Option[Duration] = Option.empty[Duration]): Try[Set[FileMetrics]] = {
+
+    val srcFiles = files.map(_.map(filePath => Source.File(filePath.toString)))
+
+    val result = metricsTool.run(directory, srcFiles, timeout)
+
+    result match {
+      case Success(res) =>
+        logger.info(s"Completed metrics for ${metricsTool.name} with ${res.size} results")
+      case Failure(e) =>
+        logger.error(e)(s"Failed metrics for ${metricsTool.name}")
+    }
+
+    result.map(_.to[Set])
   }
 
 }

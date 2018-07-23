@@ -6,19 +6,14 @@ import com.codacy.plugins.api.metrics.LineComplexity
 import com.codacy.plugins.api.results
 import com.codacy.plugins.duplication.api.DuplicationCloneFile
 
-sealed trait Location
-
-final case class FullLocation(line: Int, column: Int) extends Location {
-  override def toString: String = s"$line:$column"
-}
-
-final case class LineLocation(line: Int) extends Location {
-  override def toString: String = line.toString
-}
-
 sealed trait Result
 
+final case class DuplicationClone(cloneLines: String, nrTokens: Int, nrLines: Int, files: Seq[DuplicationCloneFile])
+    extends Result
+
 sealed trait ToolResult extends Result
+
+final case class FileError(filename: Path, message: String) extends ToolResult
 
 final case class Issue(patternId: results.Pattern.Id,
                        filename: Path,
@@ -28,30 +23,17 @@ final case class Issue(patternId: results.Pattern.Id,
                        location: Location)
     extends ToolResult
 
-final case class DuplicationClone(cloneLines: String, nrTokens: Int, nrLines: Int, files: Seq[DuplicationCloneFile])
-    extends Result
+object Issue {
+  final case class Message(text: String) extends AnyVal {
+    override def toString: String = text
+  }
+}
 
-final case class FileMetrics(filename: String,
+final case class FileMetrics(filename: Path,
                              complexity: Option[Int],
                              loc: Option[Int],
                              cloc: Option[Int],
                              nrMethods: Option[Int],
                              nrClasses: Option[Int],
                              lineComplexities: Set[LineComplexity])
-    extends Result
-
-object Issue {
-
-  final case class Message(text: String) extends AnyVal {
-    override def toString: String = text
-  }
-
-}
-
-final case class FileError(filename: Path, message: String) extends ToolResult
-
-final case class FileResults(filename: Path, results: Set[ToolResult])
-
-sealed trait ResultsSet
-
-final case class ToolResults(tool: String, fileResults: Set[FileResults]) extends ResultsSet
+    extends ToolResult

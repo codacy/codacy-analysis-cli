@@ -108,8 +108,9 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
   private def groupResultsByFile(files: Set[Path], results: Set[ToolResult]): Set[FileResults] = {
 
     val resultsByFile: Map[Path, Set[ToolResult]] = results.groupBy {
-      case i: Issue      => i.filename
-      case fe: FileError => fe.filename
+      case i: Issue        => i.filename
+      case fe: FileError   => fe.filename
+      case fm: FileMetrics => fm.filename
     }
     files.map(filename => FileResults(filename, resultsByFile.getOrElse(filename, Set.empty[ToolResult])))(
       collection.breakOut)

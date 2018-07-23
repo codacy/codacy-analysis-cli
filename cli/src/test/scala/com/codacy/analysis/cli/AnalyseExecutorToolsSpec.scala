@@ -82,7 +82,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       toolEither must beLike {
         case Right(toolSet) =>
           toolSet.size mustEqual 2
-          toolSet.map(_.uuid) mustEqual Set(expectedToolUuid1, expectedToolUuid2)
+          toolSet.collect { case tool: Tool => tool.uuid } mustEqual Set(expectedToolUuid1, expectedToolUuid2)
       }
     }
 

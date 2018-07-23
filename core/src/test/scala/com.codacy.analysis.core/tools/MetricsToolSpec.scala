@@ -1,5 +1,7 @@
 package com.codacy.analysis.core.tools
 
+import java.nio.file.Paths
+
 import com.codacy.analysis.core.model.FileMetrics
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.plugins.api.Source
@@ -12,9 +14,9 @@ import scala.util.Success
 
 class MetricsToolSpec extends Specification with NoLanguageFeatures {
 
-  val jsTest2Metrics = FileMetrics("test2.js", None, Some(25), Some(0), None, None, Set())
-  val jsTestMetrics = FileMetrics("test.js", None, Some(60), Some(0), None, None, Set())
-  val codacyJsonMetrics = FileMetrics(".codacy.json", None, Some(1), Some(0), None, None, Set())
+  val jsTest2Metrics = FileMetrics(Paths.get("test2.js"), None, Some(25), Some(0), None, None, Set())
+  val jsTestMetrics = FileMetrics(Paths.get("test.js"), None, Some(60), Some(0), None, None, Set())
+  val codacyJsonMetrics = FileMetrics(Paths.get(".codacy.json"), None, Some(1), Some(0), None, None, Set())
 
   "MetricsTool" should {
     "analyse metrics on a project" in {

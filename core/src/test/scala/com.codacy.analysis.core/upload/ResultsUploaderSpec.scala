@@ -98,8 +98,9 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
 
       val filenames: Set[Path] = exampleResults.map {
-        case i: Issue      => i.filename
-        case fe: FileError => fe.filename
+        case i: Issue        => i.filename
+        case fe: FileError   => fe.filename
+        case fm: FileMetrics => fm.filename
       }(collection.breakOut)
 
       // scalafix:off NoInfer.any
