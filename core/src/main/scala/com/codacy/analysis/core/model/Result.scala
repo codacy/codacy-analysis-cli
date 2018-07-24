@@ -36,4 +36,4 @@ final case class FileMetrics(filename: Path,
                              nrMethods: Option[Int],
                              nrClasses: Option[Int],
                              lineComplexities: Set[LineComplexity])
-    extends ToolResult
+    extends Result
