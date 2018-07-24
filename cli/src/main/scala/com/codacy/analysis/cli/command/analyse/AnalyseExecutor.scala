@@ -13,6 +13,7 @@ import com.codacy.analysis.core.converters.ConfigurationHelper
 import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.tools._
+import com.codacy.analysis.core.utils.InheritanceOps.InheritanceOps
 import com.codacy.analysis.core.utils.TryOps._
 import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
 import org.log4s.{Logger, getLogger}
@@ -173,10 +174,6 @@ class AnalyseExecutor(toolInput: Option[String],
 }
 
 object AnalyseExecutor {
-
-  implicit class InheritanceOps[T](t: T) {
-    def to[Super](implicit ev: T <:< Super): Super = t
-  }
 
   final case class ExecutorResult(toolName: String, files: Set[Path], analysisResults: Try[Set[Result]])
 
