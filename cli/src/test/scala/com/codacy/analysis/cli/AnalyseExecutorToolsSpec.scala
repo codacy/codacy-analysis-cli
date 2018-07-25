@@ -15,6 +15,19 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
   val emptyFilesTarget = FilesTarget(File(""), Set.empty, Set.empty)
   val noLocalConfiguration = Left("no config")
 
+  "AnalyseExecutor.allTools" should {
+    "find python tools" in {
+      val pythonTools = AnalyseExecutor.allTools(None, Left("no remote config"), Set(Languages.Ruby), false)
+
+      pythonTools should beRight
+      pythonTools must beLike {
+        case Right(tools) =>
+          tools.map(_.name) must containTheSameElementsAs(Seq("brakeman", "rubocop", "bundleraudit", "metrics"))
+          tools.flatMap(_.supportedLanguages) must containAllOf(Seq(Languages.Ruby))
+      }
+    }
+  }
+
   "AnalyseExecutor.tools" should {
     "use input over remote configuration" in {
 
