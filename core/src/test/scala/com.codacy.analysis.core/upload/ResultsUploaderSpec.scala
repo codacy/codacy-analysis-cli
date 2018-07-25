@@ -58,7 +58,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
     val exampleResults = exampleResultsEither.right.get
     testBatchSize(exampleResults)(-10, "sending batches of -10 results in each payload - should use default", 1)
     testBatchSize(exampleResults)(0, "sending batches of 0 results in each payload - should use default", 1)
-    testBatchSize(exampleResults)(5, "sending batches of 5 results in each payload - should use 5", 13)
+    testBatchSize(exampleResults)(5, "sending batches of 5 results in each payload - should use 5", 14)
     testBatchSize(exampleResults)(
       5000,
       "sending batches of 5000 (> results.length) results in each payload - should use results.length",
