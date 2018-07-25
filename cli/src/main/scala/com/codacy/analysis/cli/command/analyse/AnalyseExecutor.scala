@@ -16,6 +16,7 @@ import com.codacy.analysis.core.tools._
 import com.codacy.analysis.core.utils.InheritanceOps.InheritanceOps
 import com.codacy.analysis.core.utils.TryOps._
 import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
+import com.codacy.plugins.api.languages.Language
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
@@ -54,7 +55,11 @@ class AnalyseExecutor(toolInput: Option[String],
       filesTarget <- fileCollector
         .list(baseDirectory, localConfigurationFile, remoteProjectConfiguration)
         .toRight("Could not access project files")
-      tools <- tools(toolInput, localConfigurationFile, remoteProjectConfiguration, filesTarget, allowNetwork)
+      tools <- allTools(
+        toolInput,
+        remoteProjectConfiguration,
+        languages(localConfigurationFile, filesTarget),
+        allowNetwork)
     } yield (filesTarget, tools)
 
     val analysisResult: Either[String, Seq[ExecutorResult]] = filesTargetAndTool.map {
@@ -177,17 +182,29 @@ object AnalyseExecutor {
 
   final case class ExecutorResult(toolName: String, files: Set[Path], analysisResults: Try[Set[Result]])
 
-  def tools(toolInput: Option[String],
-            localConfiguration: Either[String, CodacyConfigurationFile],
-            remoteProjectConfiguration: Either[String, ProjectConfiguration],
-            filesTarget: FilesTarget,
-            allowNetwork: Boolean): Either[String, Set[ITool]] = {
-
-    val languages = LanguagesHelper.fromFileTarget(
+  def languages(localConfiguration: Either[String, CodacyConfigurationFile],
+                filesTarget: FilesTarget): Set[Language] = {
+    LanguagesHelper.fromFileTarget(
       filesTarget,
       localConfiguration.map(_.languageCustomExtensions.mapValues(_.toList).toList).getOrElse(List.empty))
+  }
+
+  def allTools(toolInput: Option[String],
+               remoteProjectConfiguration: Either[String, ProjectConfiguration],
+               languages: Set[Language],
+               allowNetwork: Boolean) = {
 
     val metricsTools = MetricsToolCollector.fromLanguages(languages)
+
+    val toolsEither = tools(toolInput, remoteProjectConfiguration, allowNetwork, languages)
+
+    toolsEither.map(_ ++ metricsTools)
+  }
+
+  def tools(toolInput: Option[String],
+            remoteProjectConfiguration: Either[String, ProjectConfiguration],
+            allowNetwork: Boolean,
+            languages: Set[Language]): Either[String, Set[Tool]] = {
 
     val toolCollector = new ToolCollector(allowNetwork)
 
@@ -207,7 +224,6 @@ object AnalyseExecutor {
         e1 <- fromRemoteConfig.left
         e2 <- fromLocalConfig.left
       } yield s"$e1 and $e2"
-    }.map(_.map(_.to[ITool]) ++ metricsTools)
-
+    }
   }
 }

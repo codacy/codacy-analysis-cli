@@ -28,9 +28,11 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
           Set.empty,
           Set(ToolConfiguration("InvalidToolName", isEnabled = true, notEdited = false, Set.empty))))
 
+      val languages = AnalyseExecutor.languages(noLocalConfiguration, emptyFilesTarget)
+
       val toolEither =
         AnalyseExecutor
-          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget, allowNetwork = false)
+          .tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -52,9 +54,11 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
           Set(
             ToolConfiguration("34225275-f79e-4b85-8126-c7512c987c0d", isEnabled = true, notEdited = false, Set.empty))))
 
+      val languages = AnalyseExecutor.languages(noLocalConfiguration, emptyFilesTarget)
+
       val toolEither =
         AnalyseExecutor
-          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget, allowNetwork = false)
+          .tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
       toolEither must beLeft
     }
 
@@ -75,9 +79,11 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
             ToolConfiguration("someRandomTool", isEnabled = false, notEdited = false, Set.empty),
             ToolConfiguration("anotherRandomTool", isEnabled = false, notEdited = false, Set.empty))))
 
+      val languages = AnalyseExecutor.languages(noLocalConfiguration, emptyFilesTarget)
+
       val toolEither =
         AnalyseExecutor
-          .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, emptyFilesTarget, allowNetwork = false)
+          .tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -92,8 +98,10 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
       val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rb").path), Set.empty)
 
+      val languages = AnalyseExecutor.languages(noLocalConfiguration, filesTarget)
+
       val toolEither = AnalyseExecutor
-        .tools(userInput, noLocalConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = false)
+        .tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -113,8 +121,10 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
           Option.empty,
           Option(Map(Languages.Java -> LanguageConfiguration(Option(Set("rawr")))))))
 
+      val languages = AnalyseExecutor.languages(localConfiguration, filesTarget)
+
       val toolEither = AnalyseExecutor
-        .tools(userInput, localConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = true)
+        .tools(userInput, remoteProjectConfiguration, allowNetwork = true, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -129,8 +139,10 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path), Set.empty)
       val localConfiguration = Right(CodacyConfigurationFile(Option.empty, Option.empty, Option.empty))
 
+      val languages = AnalyseExecutor.languages(localConfiguration, filesTarget)
+
       val toolEither = AnalyseExecutor
-        .tools(Some(toolName), localConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = false)
+        .tools(Some(toolName), remoteProjectConfiguration, allowNetwork = false, languages)
 
       toolEither must beLeft(
         s"The tool $toolName needs network access to execute. Run with the parameter 'allow-network'.")
@@ -141,8 +153,10 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
       val localConfiguration = Right(CodacyConfigurationFile(Option.empty, Option.empty, Option.empty))
 
+      val languages = AnalyseExecutor.languages(localConfiguration, filesTarget)
+
       val toolEither =
-        AnalyseExecutor.tools(None, localConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = true)
+        AnalyseExecutor.tools(None, remoteProjectConfiguration, allowNetwork = true, languages)
 
       toolEither must beRight
       toolEither must beLike {
@@ -156,8 +170,10 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
       val localConfiguration = Right(CodacyConfigurationFile(Option.empty, Option.empty, Option.empty))
 
+      val languages = AnalyseExecutor.languages(localConfiguration, filesTarget)
+
       val toolEither =
-        AnalyseExecutor.tools(None, localConfiguration, remoteProjectConfiguration, filesTarget, allowNetwork = false)
+        AnalyseExecutor.tools(None, remoteProjectConfiguration, allowNetwork = false, languages)
 
       toolEither must beRight
       toolEither must beLike {
