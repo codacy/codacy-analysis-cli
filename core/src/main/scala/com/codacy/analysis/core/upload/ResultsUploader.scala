@@ -11,7 +11,7 @@ import scala.util.{Failure, Success}
 
 object ResultsUploader {
 
-  final case class ToolResults(tool: String, files: Set[Path], results: Set[ToolResult])
+  final case class ToolResults(tool: String, files: Set[Path], results: Set[ToolResult], fileMetrics: Set[FileMetrics])
 
   //TODO: Make this a config
   val defaultBatchSize = 50000
@@ -49,7 +49,7 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
 
   def sendResults(toolResults: Seq[ResultsUploader.ToolResults]): Future[Either[String, Unit]] = {
     val uploadResultsBatches = toolResults.map { toolResult =>
-      val fileResults = groupResultsByFile(toolResult.files, toolResult.results)
+      val fileResults = groupResultsByFile(toolResult.files, toolResult.results, toolResult.fileMetrics)
       uploadResultsBatch(toolResult.tool, batchSize, fileResults)
     }
 
@@ -105,14 +105,21 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
     fileResultBatches :+ remainingFileResults
   }
 
-  private def groupResultsByFile(files: Set[Path], results: Set[ToolResult]): Set[FileResults] = {
+  private def groupResultsByFile(files: Set[Path],
+                                 results: Set[ToolResult],
+                                 fileMetrics: Set[FileMetrics]): Set[FileResults] = {
 
     val resultsByFile: Map[Path, Set[ToolResult]] = results.groupBy {
       case i: Issue      => i.filename
       case fe: FileError => fe.filename
     }
-    files.map(filename => FileResults(filename, resultsByFile.getOrElse(filename, Set.empty[ToolResult])))(
-      collection.breakOut)
+
+    files.map(
+      filename =>
+        FileResults(
+          filename = filename,
+          results = resultsByFile.getOrElse(filename, Set.empty[ToolResult]),
+          metrics = fileMetrics.find(_.filename == filename)))(collection.breakOut)
   }
 
   private def sequenceUploads(uploads: Seq[Future[Either[String, Unit]]]): Future[Either[String, Unit]] = {

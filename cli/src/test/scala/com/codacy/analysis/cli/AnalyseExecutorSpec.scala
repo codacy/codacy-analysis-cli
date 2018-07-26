@@ -8,7 +8,7 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
 import com.codacy.analysis.core.files.FileCollector
-import com.codacy.analysis.core.model.{Issue, ToolResult}
+import com.codacy.analysis.core.model.{Issue, Result, ToolResult}
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
@@ -126,12 +126,12 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
-          response <- responseJson.as[Set[ToolResult]]
+          response <- responseJson.as[Set[Result]]
         } yield response
 
         result must beRight
         result must beLike {
-          case Right(response: Set[ToolResult]) =>
+          case Right(response: Set[Result]) =>
             response.size must beGreaterThan(0)
 
             response.forall {
@@ -191,12 +191,12 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
-          response <- responseJson.as[Set[ToolResult]]
+          response <- responseJson.as[Set[Result]]
         } yield response
 
         result must beRight
         result must beLike {
-          case Right(response: Set[ToolResult]) =>
+          case Right(response: Set[Result]) =>
             response.size must beGreaterThan(0)
 
             response.collect {

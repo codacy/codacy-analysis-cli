@@ -39,8 +39,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
         result must beLike {
           case Success(duplicationResults) =>
             duplicationResults must haveSize(2)
-            //ignore the clone lines field for assertion
-            duplicationResults.map(_.copy(cloneLines = "")) must containTheSameElementsAs(expectedClones)
+            assertDuplication(duplicationResults, expectedClones)
         }
       }
     }
@@ -66,8 +65,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
         result must beLike {
           case Success(duplicationResults) =>
             duplicationResults must haveSize(1)
-            //ignore the clone lines field for assertion
-            duplicationResults.map(_.copy(cloneLines = "")) must containTheSameElementsAs(expectedClones)
+            assertDuplication(duplicationResults, expectedClones)
         }
       }
     }
@@ -91,5 +89,11 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
 
       tools should beEmpty
     }
+  }
+
+  def assertDuplication(duplicationResults: Set[DuplicationClone], expectedClones: Seq[DuplicationClone]) = {
+    //ignore the clone lines field for assertion
+    duplicationResults.map(_.files.to[Set]) must containTheSameElementsAs(expectedClones.map(_.files.to[Set]))
+    duplicationResults.map(_.copy(cloneLines = "", files = Seq.empty)) must containTheSameElementsAs(expectedClones.map(_.copy(files = Seq.empty)))
   }
 }

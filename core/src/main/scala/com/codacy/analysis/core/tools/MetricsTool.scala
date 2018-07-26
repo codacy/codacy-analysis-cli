@@ -1,5 +1,7 @@
 package com.codacy.analysis.core.tools
 
+import java.nio.file.Paths
+
 import better.files.File
 import com.codacy.analysis.core.model.FileMetrics
 import com.codacy.plugins.api
@@ -36,7 +38,7 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
       _.collect {
         case fileMetrics if unignoredFile(fileMetrics, files) =>
           FileMetrics(
-            filename = fileMetrics.filename,
+            filename = Paths.get(fileMetrics.filename),
             complexity = fileMetrics.complexity,
             loc = fileMetrics.loc,
             cloc = fileMetrics.cloc,

@@ -58,7 +58,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
     val exampleResults = exampleResultsEither.right.get
     testBatchSize(exampleResults)(-10, "sending batches of -10 results in each payload - should use default", 1)
     testBatchSize(exampleResults)(0, "sending batches of 0 results in each payload - should use default", 1)
-    testBatchSize(exampleResults)(5, "sending batches of 5 results in each payload - should use 5", 13)
+    testBatchSize(exampleResults)(5, "sending batches of 5 results in each payload - should use 5", 14)
     testBatchSize(exampleResults)(
       5000,
       "sending batches of 5000 (> results.length) results in each payload - should use results.length",
@@ -98,15 +98,15 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
 
       val filenames: Set[Path] = exampleResults.map {
-        case i: Issue      => i.filename
-        case fe: FileError => fe.filename
+        case i: Issue        => i.filename
+        case fe: FileError   => fe.filename
       }(collection.breakOut)
 
       // scalafix:off NoInfer.any
       uploader.sendResults(
         Seq(
-          ResultsUploader.ToolResults(tool, filenames, exampleResults),
-          ResultsUploader.ToolResults(otherTool, otherFilenames, Set.empty[ToolResult]))) must beRight.awaitFor(
+          ResultsUploader.ToolResults(tool, filenames, exampleResults, Set.empty[FileMetrics]),
+          ResultsUploader.ToolResults(otherTool, otherFilenames, Set.empty[ToolResult], Set.empty[FileMetrics]))) must beRight.awaitFor(
         10.minutes)
       // scalafix:on NoInfer.any
 

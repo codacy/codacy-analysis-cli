@@ -13,8 +13,10 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api.ProjectConfiguration
 import com.codacy.analysis.core.files.FileCollector
+import com.codacy.analysis.core.model.{FileMetrics, ToolResult}
 import com.codacy.analysis.core.upload.ResultsUploader
 import com.codacy.analysis.core.utils.Logger
+import com.codacy.analysis.core.utils.SetOps.SetOps
 import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -92,7 +94,10 @@ class MainImpl extends CLIApp {
         val resultsToUpload = executorResults.flatMap {
           case ExecutorResult(toolName, files, Success(results)) =>
             logger.info(s"Going to upload ${results.size} results for $toolName")
-            Option(ResultsUploader.ToolResults(toolName, files, results))
+
+            val (toolResults, metricsResults) = results.partitionSubtypes[ToolResult, FileMetrics]
+
+            Option(ResultsUploader.ToolResults(toolName, files, toolResults, metricsResults))
 
           case ExecutorResult(toolName, _, Failure(err)) =>
             logger.warn(s"Skipping upload for $toolName since analysis failed: ${err.getMessage}")

@@ -3,8 +3,8 @@ package com.codacy.analysis.core.analysis
 import java.nio.file.Path
 
 import better.files.File
-import com.codacy.analysis.core.model.{Configuration, ToolResult}
-import com.codacy.analysis.core.tools.Tool
+import com.codacy.analysis.core.model.{Configuration, FileMetrics, ToolResult}
+import com.codacy.analysis.core.tools.{MetricsTool, Tool}
 import org.log4s.{Logger, getLogger}
 
 import scala.concurrent.duration.Duration
@@ -22,6 +22,11 @@ trait Analyser[T[_]] {
               files: Set[Path],
               config: Configuration,
               timeout: Option[Duration] = Option.empty[Duration]): T[Set[ToolResult]]
+
+  def metrics(metricsTool: MetricsTool,
+              directory: File,
+              files: Option[Set[Path]],
+              timeout: Option[Duration] = Option.empty[Duration]): Try[Set[FileMetrics]]
 
 }
 
