@@ -27,8 +27,8 @@ test_docker_socket() {
 
 run() {
   local output_volume="";
-  if [ -n "${OUTPUT}" ]; then
-    output_volume="--volume ${OUTPUT}:${OUTPUT}";
+  if [ -n "${OUTPUT_DIRECTORY}" ]; then
+    output_volume="--volume ${OUTPUT_DIRECTORY}:${OUTPUT_DIRECTORY}";
   fi
   local CODACY_ANALYSIS_CLI_VERSION="${CODACY_ANALYSIS_CLI_VERSION:-stable}"
   docker run \
@@ -78,41 +78,45 @@ analysis_file() {
   fi
 }
 
-output_file() {
-  local filename="";
+change_output_file() {
   local is_filename=0;
+  local new_command="";
   for arg; do
     case "$arg" in
       -*)
         case ${arg} in
           --output)
             is_filename=1 # next argument will be the file
+            new_command="${new_command} ${arg}"
             ;;
         esac
         ;;
       *)
         if [ ${is_filename} -eq 1 ]; then
-          if [ -n "$filename" ]; then
+          if [ -n "$OUTPUT" ]; then
             echo "Please provide only one output file" >&2
             exit 1
           else
             is_filename=0
-            filename="$arg"
+            OUTPUT_DIRECTORY=$(cd $(dirname "${arg}") && pwd -P)
+            OUTPUT_FILENAME=$(basename "${arg}")
+            OUTPUT="${OUTPUT_DIRECTORY}/${OUTPUT_FILENAME}"
+            new_command="${new_command} ${OUTPUT}"
           fi
+        else
+          new_command="${new_command} ${arg}"
         fi
         ;;
     esac
   done
 
-  if [ -n "$filename" ]; then
-    OUTPUT="$filename"
-  fi
+  COMMAND_WITH_NEW_OUTPUT=$new_command
 }
 
 test_docker_socket
 
 analysis_file "$@"
 
-output_file "$@"
+change_output_file "$@"
 
-run "$@"
+run $COMMAND_WITH_NEW_OUTPUT
