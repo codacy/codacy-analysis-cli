@@ -27,7 +27,7 @@ test_docker_socket() {
 
 run() {
   local output_volume="";
-  if [ "${OUTPUT}" != "" ]; then
+  if [ -n "${OUTPUT}" ]; then
     output_volume="--volume ${OUTPUT}:${OUTPUT}";
   fi
   local CODACY_ANALYSIS_CLI_VERSION="${CODACY_ANALYSIS_CLI_VERSION:-stable}"
@@ -93,7 +93,7 @@ output_file() {
       *)
         if [ ${is_filename} -eq 1 ]; then
           if [ -n "$filename" ]; then
-            echo "Please provide only one file or directory to analyse" >&2
+            echo "Please provide only one output file" >&2
             exit 1
           else
             is_filename=0
