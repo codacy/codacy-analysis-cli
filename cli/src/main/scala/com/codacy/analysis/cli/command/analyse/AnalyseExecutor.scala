@@ -58,7 +58,7 @@ class AnalyseExecutor(toolInput: Option[String],
       tools <- allTools(
         toolInput,
         remoteProjectConfiguration,
-        languages(localConfigurationFile, filesTarget),
+        LanguagesHelper.fromFileTarget(filesTarget, localConfigurationFile),
         allowNetwork)
     } yield (filesTarget, tools)
 
@@ -67,7 +67,7 @@ class AnalyseExecutor(toolInput: Option[String],
         SetOps.mapInParallel(tools, nrParallelTools) { tool: ITool =>
           val analysisResults: Try[Set[Result]] = tool match {
             case tool: Tool =>
-              analyseFiles(tool, filesTarget, localConfigurationFile).map(_.map(_.to[Result]))
+              issues(tool, filesTarget, localConfigurationFile).map(_.map(_.to[Result]))
             case metricsTool: MetricsTool =>
               metrics(metricsTool, filesTarget, localConfigurationFile).map(_.map(_.to[Result]))
             case _: DuplicationTool =>
@@ -85,9 +85,9 @@ class AnalyseExecutor(toolInput: Option[String],
     analysisResult
   }
 
-  private def analyseFiles(tool: Tool,
-                           filesTarget: FilesTarget,
-                           localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[ToolResult]] = {
+  private def issues(tool: Tool,
+                     filesTarget: FilesTarget,
+                     localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[ToolResult]] = {
     val analysisFilesTarget =
       fileCollector.filter(tool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
 
@@ -181,13 +181,6 @@ class AnalyseExecutor(toolInput: Option[String],
 object AnalyseExecutor {
 
   final case class ExecutorResult(toolName: String, files: Set[Path], analysisResults: Try[Set[Result]])
-
-  def languages(localConfiguration: Either[String, CodacyConfigurationFile],
-                filesTarget: FilesTarget): Set[Language] = {
-    LanguagesHelper.fromFileTarget(
-      filesTarget,
-      localConfiguration.map(_.languageCustomExtensions.mapValues(_.toList).toList).getOrElse(List.empty))
-  }
 
   def allTools(toolInput: Option[String],
                remoteProjectConfiguration: Either[String, ProjectConfiguration],
