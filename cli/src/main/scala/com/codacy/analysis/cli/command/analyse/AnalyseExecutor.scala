@@ -185,13 +185,24 @@ object AnalyseExecutor {
   def allTools(toolInput: Option[String],
                remoteProjectConfiguration: Either[String, ProjectConfiguration],
                languages: Set[Language],
-               allowNetwork: Boolean) = {
+               allowNetwork: Boolean): Either[String, Set[ITool]] = {
 
-    val metricsTools = MetricsToolCollector.fromLanguages(languages)
+    toolInput match {
+      case None =>
+        val metricsTools = MetricsToolCollector.fromLanguages(languages)
 
-    val toolsEither = tools(toolInput, remoteProjectConfiguration, allowNetwork, languages)
+        val toolsEither = tools(toolInput, remoteProjectConfiguration, allowNetwork, languages)
 
-    toolsEither.map(_ ++ metricsTools)
+        toolsEither.map(_ ++ metricsTools)
+
+      case Some("metrics") =>
+        val metricsTools = MetricsToolCollector.fromLanguages(languages)
+        Right(metricsTools.map(_.to[ITool]))
+
+      case Some(_) =>
+        val toolsEither = tools(toolInput, remoteProjectConfiguration, allowNetwork, languages)
+        toolsEither.map(_.map(_.to[ITool]))
+    }
   }
 
   def tools(toolInput: Option[String],

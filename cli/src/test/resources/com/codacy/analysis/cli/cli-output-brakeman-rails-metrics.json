@@ -1,0 +1,3698 @@
+[
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/unit/helpers/other_helper_test.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/account.rb",
+      "complexity" : null,
+      "loc" : 15,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/nested_controller.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/another_controller.rb",
+      "complexity" : null,
+      "loc" : 43,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environment.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/lib/tasks/some_task.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/helpers/application_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/notifier.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/initializers/session_store.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/db/seeds.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 7,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/effects.js",
+      "complexity" : null,
+      "loc" : 1014,
+      "cloc" : 25,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/application_controller.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 3,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/assets/javascripts/application.js",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 16,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/application.js",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/routes.rb",
+      "complexity" : null,
+      "loc" : 26,
+      "cloc" : 45,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/noticia.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/unit/helpers/home_helper_test.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/functional/other_controller_test.rb",
+      "complexity" : null,
+      "loc" : 23,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/boot.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/description/description.json",
+      "complexity" : null,
+      "loc" : 344,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/child_controller.rb",
+      "complexity" : null,
+      "loc" : 4,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environments/production.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 26,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/lib/controller_filter.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/routes.rb",
+      "complexity" : null,
+      "loc" : 6,
+      "cloc" : 41,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/external_checks/check_external_check_test.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/boot.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/test/test_helper.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/helpers/other_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/base_thing.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/application.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 22,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/before_controller.rb",
+      "complexity" : null,
+      "loc" : 32,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/secret_token.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/bill.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/friendly_controller.rb",
+      "complexity" : null,
+      "loc" : 58,
+      "cloc" : 16,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/application_controller.rb",
+      "complexity" : null,
+      "loc" : 23,
+      "cloc" : 6,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/i18n.rb",
+      "complexity" : null,
+      "loc" : 16,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/api/api.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environments/development.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 9,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/home_controller.rb",
+      "complexity" : null,
+      "loc" : 126,
+      "cloc" : 23,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/mime_types.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 4,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/recursive/stack_level.rb",
+      "complexity" : null,
+      "loc" : 8,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/filter_parameter_logging.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/lib/sweet_lib.rb",
+      "complexity" : null,
+      "loc" : 11,
+      "cloc" : 4,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/application.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/dragdrop.js",
+      "complexity" : null,
+      "loc" : 786,
+      "cloc" : 26,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/other_controller.rb",
+      "complexity" : null,
+      "loc" : 55,
+      "cloc" : 4,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environments/test.rb",
+      "complexity" : null,
+      "loc" : 12,
+      "cloc" : 16,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/helpers/home_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/db/seeds.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 7,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/assets/stylesheets/application.css",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 13,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/user.rb",
+      "complexity" : null,
+      "loc" : 28,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/initializers/inflections.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 9,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/prototype.js",
+      "complexity" : null,
+      "loc" : 4913,
+      "cloc" : 35,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/performance/browsing_test.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/user.rb",
+      "complexity" : null,
+      "loc" : 35,
+      "cloc" : 3,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/products_controller.rb",
+      "complexity" : null,
+      "loc" : 61,
+      "cloc" : 13,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/session_store.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environments/production.rb",
+      "complexity" : null,
+      "loc" : 15,
+      "cloc" : 45,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/purchase.rb",
+      "complexity" : null,
+      "loc" : 4,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/helpers/products_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/controls.js",
+      "complexity" : null,
+      "loc" : 804,
+      "cloc" : 87,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/account.rb",
+      "complexity" : null,
+      "loc" : 34,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/users_controller.rb",
+      "complexity" : null,
+      "loc" : 71,
+      "cloc" : 14,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environments/test.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 17,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/underline_model.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/patterns.json",
+      "complexity" : null,
+      "loc" : 290,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/wrap_parameters.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 8,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/initializers/disable_xml_parsing.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/rails.js",
+      "complexity" : null,
+      "loc" : 153,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/product.rb",
+      "complexity" : null,
+      "loc" : 4,
+      "cloc" : 3,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/inflections.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 14,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/backtrace_silencers.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/test_helper.rb",
+      "complexity" : null,
+      "loc" : 6,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environments/development.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/functional/home_controller_test.rb",
+      "complexity" : null,
+      "loc" : 55,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/email.rb",
+      "complexity" : null,
+      "loc" : 14,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environment.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/unit/helpers/other_helper_test.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/account.rb",
+      "complexity" : null,
+      "loc" : 15,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/nested_controller.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/another_controller.rb",
+      "complexity" : null,
+      "loc" : 43,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environment.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/lib/tasks/some_task.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/helpers/application_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/notifier.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/initializers/session_store.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/db/seeds.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 7,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/effects.js",
+      "complexity" : null,
+      "loc" : 1014,
+      "cloc" : 25,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/application_controller.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 3,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/assets/javascripts/application.js",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 16,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/application.js",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/routes.rb",
+      "complexity" : null,
+      "loc" : 26,
+      "cloc" : 45,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/noticia.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/unit/helpers/home_helper_test.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/functional/other_controller_test.rb",
+      "complexity" : null,
+      "loc" : 23,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/boot.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/description/description.json",
+      "complexity" : null,
+      "loc" : 344,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/child_controller.rb",
+      "complexity" : null,
+      "loc" : 4,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environments/production.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 26,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/lib/controller_filter.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/routes.rb",
+      "complexity" : null,
+      "loc" : 6,
+      "cloc" : 41,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/external_checks/check_external_check_test.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/boot.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/test/test_helper.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/helpers/other_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/base_thing.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/application.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 22,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/before_controller.rb",
+      "complexity" : null,
+      "loc" : 32,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/secret_token.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/bill.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/friendly_controller.rb",
+      "complexity" : null,
+      "loc" : 58,
+      "cloc" : 16,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/application_controller.rb",
+      "complexity" : null,
+      "loc" : 23,
+      "cloc" : 6,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/i18n.rb",
+      "complexity" : null,
+      "loc" : 16,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/api/api.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environments/development.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 9,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/home_controller.rb",
+      "complexity" : null,
+      "loc" : 126,
+      "cloc" : 23,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/mime_types.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 4,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/recursive/stack_level.rb",
+      "complexity" : null,
+      "loc" : 8,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/filter_parameter_logging.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/lib/sweet_lib.rb",
+      "complexity" : null,
+      "loc" : 11,
+      "cloc" : 4,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/application.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/dragdrop.js",
+      "complexity" : null,
+      "loc" : 786,
+      "cloc" : 26,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/other_controller.rb",
+      "complexity" : null,
+      "loc" : 55,
+      "cloc" : 4,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environments/test.rb",
+      "complexity" : null,
+      "loc" : 12,
+      "cloc" : 16,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/helpers/home_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/db/seeds.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 7,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/assets/stylesheets/application.css",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 13,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/user.rb",
+      "complexity" : null,
+      "loc" : 28,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/initializers/inflections.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 9,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/prototype.js",
+      "complexity" : null,
+      "loc" : 4913,
+      "cloc" : 35,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/performance/browsing_test.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/user.rb",
+      "complexity" : null,
+      "loc" : 35,
+      "cloc" : 3,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/products_controller.rb",
+      "complexity" : null,
+      "loc" : 61,
+      "cloc" : 13,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/session_store.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environments/production.rb",
+      "complexity" : null,
+      "loc" : 15,
+      "cloc" : 45,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/purchase.rb",
+      "complexity" : null,
+      "loc" : 4,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/helpers/products_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/controls.js",
+      "complexity" : null,
+      "loc" : 804,
+      "cloc" : 87,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/account.rb",
+      "complexity" : null,
+      "loc" : 34,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/users_controller.rb",
+      "complexity" : null,
+      "loc" : 71,
+      "cloc" : 14,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environments/test.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 17,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/underline_model.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/patterns.json",
+      "complexity" : null,
+      "loc" : 290,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/wrap_parameters.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 8,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/initializers/disable_xml_parsing.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/rails.js",
+      "complexity" : null,
+      "loc" : 153,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/product.rb",
+      "complexity" : null,
+      "loc" : 4,
+      "cloc" : 3,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/inflections.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 14,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/backtrace_silencers.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/test_helper.rb",
+      "complexity" : null,
+      "loc" : 6,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environments/development.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/functional/home_controller_test.rb",
+      "complexity" : null,
+      "loc" : 55,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/email.rb",
+      "complexity" : null,
+      "loc" : 14,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environment.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/unit/helpers/other_helper_test.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/account.rb",
+      "complexity" : null,
+      "loc" : 15,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/nested_controller.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/another_controller.rb",
+      "complexity" : null,
+      "loc" : 43,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environment.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/lib/tasks/some_task.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/helpers/application_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/notifier.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/initializers/session_store.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/db/seeds.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 7,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/effects.js",
+      "complexity" : null,
+      "loc" : 1014,
+      "cloc" : 25,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/application_controller.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 3,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/assets/javascripts/application.js",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 16,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/application.js",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/routes.rb",
+      "complexity" : null,
+      "loc" : 26,
+      "cloc" : 45,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/noticia.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/unit/helpers/home_helper_test.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/functional/other_controller_test.rb",
+      "complexity" : null,
+      "loc" : 23,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/boot.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/description/description.json",
+      "complexity" : null,
+      "loc" : 344,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/child_controller.rb",
+      "complexity" : null,
+      "loc" : 4,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environments/production.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 26,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/lib/controller_filter.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/routes.rb",
+      "complexity" : null,
+      "loc" : 6,
+      "cloc" : 41,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/external_checks/check_external_check_test.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/boot.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/test/test_helper.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/helpers/other_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/base_thing.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/application.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 22,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/before_controller.rb",
+      "complexity" : null,
+      "loc" : 32,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/secret_token.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/bill.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/friendly_controller.rb",
+      "complexity" : null,
+      "loc" : 58,
+      "cloc" : 16,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/application_controller.rb",
+      "complexity" : null,
+      "loc" : 23,
+      "cloc" : 6,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/i18n.rb",
+      "complexity" : null,
+      "loc" : 16,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/api/api.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environments/development.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 9,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/home_controller.rb",
+      "complexity" : null,
+      "loc" : 126,
+      "cloc" : 23,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/mime_types.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 4,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/recursive/stack_level.rb",
+      "complexity" : null,
+      "loc" : 8,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/filter_parameter_logging.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/lib/sweet_lib.rb",
+      "complexity" : null,
+      "loc" : 11,
+      "cloc" : 4,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/application.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/dragdrop.js",
+      "complexity" : null,
+      "loc" : 786,
+      "cloc" : 26,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/other_controller.rb",
+      "complexity" : null,
+      "loc" : 55,
+      "cloc" : 4,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environments/test.rb",
+      "complexity" : null,
+      "loc" : 12,
+      "cloc" : 16,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/helpers/home_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/db/seeds.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 7,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/assets/stylesheets/application.css",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 13,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/user.rb",
+      "complexity" : null,
+      "loc" : 28,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/initializers/inflections.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 9,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/prototype.js",
+      "complexity" : null,
+      "loc" : 4913,
+      "cloc" : 35,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/performance/browsing_test.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/user.rb",
+      "complexity" : null,
+      "loc" : 35,
+      "cloc" : 3,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/products_controller.rb",
+      "complexity" : null,
+      "loc" : 61,
+      "cloc" : 13,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/session_store.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environments/production.rb",
+      "complexity" : null,
+      "loc" : 15,
+      "cloc" : 45,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/purchase.rb",
+      "complexity" : null,
+      "loc" : 4,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/helpers/products_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/controls.js",
+      "complexity" : null,
+      "loc" : 804,
+      "cloc" : 87,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/account.rb",
+      "complexity" : null,
+      "loc" : 34,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/users_controller.rb",
+      "complexity" : null,
+      "loc" : 71,
+      "cloc" : 14,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environments/test.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 17,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/underline_model.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/patterns.json",
+      "complexity" : null,
+      "loc" : 290,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/wrap_parameters.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 8,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/initializers/disable_xml_parsing.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/rails.js",
+      "complexity" : null,
+      "loc" : 153,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/product.rb",
+      "complexity" : null,
+      "loc" : 4,
+      "cloc" : 3,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/inflections.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 14,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/backtrace_silencers.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/test_helper.rb",
+      "complexity" : null,
+      "loc" : 6,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environments/development.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/functional/home_controller_test.rb",
+      "complexity" : null,
+      "loc" : 55,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/email.rb",
+      "complexity" : null,
+      "loc" : 14,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environment.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/unit/helpers/other_helper_test.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/account.rb",
+      "complexity" : null,
+      "loc" : 15,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/nested_controller.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/another_controller.rb",
+      "complexity" : null,
+      "loc" : 43,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environment.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/lib/tasks/some_task.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/helpers/application_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/notifier.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/initializers/session_store.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/db/seeds.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 7,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/effects.js",
+      "complexity" : null,
+      "loc" : 1014,
+      "cloc" : 25,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/application_controller.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 3,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/assets/javascripts/application.js",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 16,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/application.js",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/routes.rb",
+      "complexity" : null,
+      "loc" : 26,
+      "cloc" : 45,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/noticia.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/unit/helpers/home_helper_test.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/functional/other_controller_test.rb",
+      "complexity" : null,
+      "loc" : 23,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/boot.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/description/description.json",
+      "complexity" : null,
+      "loc" : 344,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/child_controller.rb",
+      "complexity" : null,
+      "loc" : 4,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environments/production.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 26,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/lib/controller_filter.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/routes.rb",
+      "complexity" : null,
+      "loc" : 6,
+      "cloc" : 41,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/external_checks/check_external_check_test.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/boot.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/test/test_helper.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/helpers/other_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/base_thing.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/application.rb",
+      "complexity" : null,
+      "loc" : 9,
+      "cloc" : 22,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/before_controller.rb",
+      "complexity" : null,
+      "loc" : 32,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/secret_token.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/bill.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/friendly_controller.rb",
+      "complexity" : null,
+      "loc" : 58,
+      "cloc" : 16,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/application_controller.rb",
+      "complexity" : null,
+      "loc" : 23,
+      "cloc" : 6,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/i18n.rb",
+      "complexity" : null,
+      "loc" : 16,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/api/api.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environments/development.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 9,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/home_controller.rb",
+      "complexity" : null,
+      "loc" : 126,
+      "cloc" : 23,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/mime_types.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 4,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/recursive/stack_level.rb",
+      "complexity" : null,
+      "loc" : 8,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/filter_parameter_logging.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/lib/sweet_lib.rb",
+      "complexity" : null,
+      "loc" : 11,
+      "cloc" : 4,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/application.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/dragdrop.js",
+      "complexity" : null,
+      "loc" : 786,
+      "cloc" : 26,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/other_controller.rb",
+      "complexity" : null,
+      "loc" : 55,
+      "cloc" : 4,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environments/test.rb",
+      "complexity" : null,
+      "loc" : 12,
+      "cloc" : 16,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/helpers/home_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/db/seeds.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 7,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/assets/stylesheets/application.css",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 13,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/user.rb",
+      "complexity" : null,
+      "loc" : 28,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/initializers/inflections.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 9,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/prototype.js",
+      "complexity" : null,
+      "loc" : 4913,
+      "cloc" : 35,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/performance/browsing_test.rb",
+      "complexity" : null,
+      "loc" : 7,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/user.rb",
+      "complexity" : null,
+      "loc" : 35,
+      "cloc" : 3,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/controllers/products_controller.rb",
+      "complexity" : null,
+      "loc" : 61,
+      "cloc" : 13,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/session_store.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 1,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environments/production.rb",
+      "complexity" : null,
+      "loc" : 15,
+      "cloc" : 45,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/purchase.rb",
+      "complexity" : null,
+      "loc" : 4,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/helpers/products_helper.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/controls.js",
+      "complexity" : null,
+      "loc" : 804,
+      "cloc" : 87,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/account.rb",
+      "complexity" : null,
+      "loc" : 34,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/controllers/users_controller.rb",
+      "complexity" : null,
+      "loc" : 71,
+      "cloc" : 14,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environments/test.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 17,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/underline_model.rb",
+      "complexity" : null,
+      "loc" : 5,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/patterns.json",
+      "complexity" : null,
+      "loc" : 290,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/wrap_parameters.rb",
+      "complexity" : null,
+      "loc" : 3,
+      "cloc" : 8,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/initializers/disable_xml_parsing.rb",
+      "complexity" : null,
+      "loc" : 1,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/public/javascripts/rails.js",
+      "complexity" : null,
+      "loc" : 153,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/app/models/product.rb",
+      "complexity" : null,
+      "loc" : 4,
+      "cloc" : 3,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/inflections.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 14,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/initializers/backtrace_silencers.rb",
+      "complexity" : null,
+      "loc" : 0,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/test_helper.rb",
+      "complexity" : null,
+      "loc" : 6,
+      "cloc" : 5,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/config/environments/development.rb",
+      "complexity" : null,
+      "loc" : 10,
+      "cloc" : 10,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/test/functional/home_controller_test.rb",
+      "complexity" : null,
+      "loc" : 55,
+      "cloc" : 0,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails4/app/models/email.rb",
+      "complexity" : null,
+      "loc" : 14,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  },
+  {
+    "FileMetrics" : {
+      "filename" : "src/main/resources/docs/directory-tests/rails3/config/environment.rb",
+      "complexity" : null,
+      "loc" : 2,
+      "cloc" : 2,
+      "nrMethods" : null,
+      "nrClasses" : null,
+      "lineComplexities" : [
+      ]
+    }
+  }
+]
