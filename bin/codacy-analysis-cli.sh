@@ -26,6 +26,10 @@ test_docker_socket() {
 }
 
 run() {
+  local output_volume="";
+  if [ "${OUTPUT}" != "" ]; then
+    output_volume="--volume ${OUTPUT}:${OUTPUT}";
+  fi
   local CODACY_ANALYSIS_CLI_VERSION="${CODACY_ANALYSIS_CLI_VERSION:-stable}"
   docker run \
     --rm \
@@ -35,6 +39,7 @@ run() {
     --env CODACY_API_BASE_URL="$CODACY_API_BASE_URL" \
     --volume /var/run/docker.sock:/var/run/docker.sock \
     --volume "$CODACY_CODE":"$CODACY_CODE" \
+    ${output_volume} \
     --volume /tmp:/tmp \
     codacy/codacy-analysis-cli:${CODACY_ANALYSIS_CLI_VERSION} -- \
     "$@"
@@ -73,8 +78,41 @@ analysis_file() {
   fi
 }
 
+output_file() {
+  local filename="";
+  local is_filename=0;
+  for arg; do
+    case "$arg" in
+      -*)
+        case ${arg} in
+          --output)
+            is_filename=1 # next argument will be the file
+            ;;
+        esac
+        ;;
+      *)
+        if [ ${is_filename} -eq 1 ]; then
+          if [ -n "$filename" ]; then
+            echo "Please provide only one file or directory to analyse" >&2
+            exit 1
+          else
+            is_filename=0
+            filename="$arg"
+          fi
+        fi
+        ;;
+    esac
+  done
+
+  if [ -n "$filename" ]; then
+    OUTPUT="$filename"
+  fi
+}
+
 test_docker_socket
 
 analysis_file "$@"
+
+output_file "$@"
 
 run "$@"
