@@ -78,7 +78,7 @@ analysis_file() {
   fi
 }
 
-change_output_file() {
+prep_args_with_output_absolute_path() {
   local is_filename=0;
   local new_command="";
   for arg; do
@@ -110,13 +110,13 @@ change_output_file() {
     esac
   done
 
-  COMMAND_WITH_NEW_OUTPUT=$new_command
+  ARGUMENTS_WITH_ABSOLUTE_PATH_OUTPUT=$new_command
 }
 
 test_docker_socket
 
 analysis_file "$@"
 
-change_output_file "$@"
+prep_args_with_output_absolute_path "$@"
 
-run $COMMAND_WITH_NEW_OUTPUT
+run $ARGUMENTS_WITH_ABSOLUTE_PATH_OUTPUT
