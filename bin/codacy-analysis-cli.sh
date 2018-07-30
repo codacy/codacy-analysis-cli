@@ -80,14 +80,14 @@ analysis_file() {
 
 prep_args_with_output_absolute_path() {
   local is_filename=0;
-  local new_command="";
+  local new_args="";
   for arg; do
     case "$arg" in
       -*)
         case ${arg} in
           --output)
             is_filename=1 # next argument will be the file
-            new_command="${new_command} ${arg}"
+            new_args="${new_args} ${arg}"
             ;;
         esac
         ;;
@@ -98,19 +98,19 @@ prep_args_with_output_absolute_path() {
             exit 1
           else
             is_filename=0
-            OUTPUT_DIRECTORY=$(cd $(dirname "${arg}") && pwd -P)
-            OUTPUT_FILENAME=$(basename "${arg}")
+            OUTPUT_DIRECTORY="$(cd $(dirname "${arg}") && pwd -P)"
+            OUTPUT_FILENAME="$(basename "${arg}")"
             OUTPUT="${OUTPUT_DIRECTORY}/${OUTPUT_FILENAME}"
-            new_command="${new_command} ${OUTPUT}"
+            new_args="${new_args} ${OUTPUT}"
           fi
         else
-          new_command="${new_command} ${arg}"
+          new_args="${new_args} ${arg}"
         fi
         ;;
     esac
   done
 
-  ARGUMENTS_WITH_ABSOLUTE_PATH_OUTPUT=$new_command
+  ARGUMENTS_WITH_ABSOLUTE_PATH_OUTPUT="$new_args"
 }
 
 test_docker_socket
