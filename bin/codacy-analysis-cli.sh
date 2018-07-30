@@ -27,8 +27,8 @@ test_docker_socket() {
 
 run() {
   local output_volume="";
-  if [ -n "${OUTPUT}" ]; then
-    output_volume="--volume ${OUTPUT}:${OUTPUT}";
+  if [ -n "${OUTPUT_DIRECTORY}" ]; then
+    output_volume="--volume ${OUTPUT_DIRECTORY}:${OUTPUT_DIRECTORY}";
   fi
   local CODACY_ANALYSIS_CLI_VERSION="${CODACY_ANALYSIS_CLI_VERSION:-stable}"
   docker run \
@@ -78,41 +78,45 @@ analysis_file() {
   fi
 }
 
-output_file() {
-  local filename="";
+prep_args_with_output_absolute_path() {
   local is_filename=0;
+  local new_args="";
   for arg; do
     case "$arg" in
       -*)
         case ${arg} in
           --output)
             is_filename=1 # next argument will be the file
+            new_args="${new_args} ${arg}"
             ;;
         esac
         ;;
       *)
         if [ ${is_filename} -eq 1 ]; then
-          if [ -n "$filename" ]; then
+          if [ -n "$OUTPUT" ]; then
             echo "Please provide only one output file" >&2
             exit 1
           else
             is_filename=0
-            filename="$arg"
+            OUTPUT_DIRECTORY="$(cd $(dirname "${arg}") && pwd -P)"
+            OUTPUT_FILENAME="$(basename "${arg}")"
+            OUTPUT="${OUTPUT_DIRECTORY}/${OUTPUT_FILENAME}"
+            new_args="${new_args} ${OUTPUT}"
           fi
+        else
+          new_args="${new_args} ${arg}"
         fi
         ;;
     esac
   done
 
-  if [ -n "$filename" ]; then
-    OUTPUT="$filename"
-  fi
+  ARGUMENTS_WITH_ABSOLUTE_PATH_OUTPUT="$new_args"
 }
 
 test_docker_socket
 
 analysis_file "$@"
 
-output_file "$@"
+prep_args_with_output_absolute_path "$@"
 
-run "$@"
+run $ARGUMENTS_WITH_ABSOLUTE_PATH_OUTPUT
