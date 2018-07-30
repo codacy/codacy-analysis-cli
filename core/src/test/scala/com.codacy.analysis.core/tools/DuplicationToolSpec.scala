@@ -32,7 +32,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
         val result = for {
           fileTarget <- FileCollector.defaultCollector().list(directory, Left("not needed"), Left("not needed"))
           duplicationTool = new DuplicationTool(PmdCpd, Languages.Javascript)
-          duplicationToolResult <- duplicationTool.run(directory, fileTarget)
+          duplicationToolResult <- duplicationTool.run(directory, fileTarget.readableFiles)
         } yield duplicationToolResult
 
         result must beSuccessfulTry
@@ -58,7 +58,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
           fileTarget <- FileCollector.defaultCollector().list(directory, Left("not needed"), Left("not needed"))
           duplicationTool = new DuplicationTool(PmdCpd, Languages.Javascript)
           filteredFileTarget = fileTarget.readableFiles.filterNot(_.endsWith("test2.js"))
-          duplicationToolResult <- duplicationTool.run(directory, fileTarget.copy(readableFiles = filteredFileTarget))
+          duplicationToolResult <- duplicationTool.run(directory, filteredFileTarget)
         } yield duplicationToolResult
 
         result must beSuccessfulTry

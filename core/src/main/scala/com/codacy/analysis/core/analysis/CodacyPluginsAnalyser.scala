@@ -3,7 +3,6 @@ package com.codacy.analysis.core.analysis
 import java.nio.file.Path
 
 import better.files.File
-import com.codacy.analysis.core.files.FilesTarget
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.tools.{DuplicationTool, MetricsTool, Tool}
 import com.codacy.plugins.api.Source
@@ -57,15 +56,13 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
                            files: Set[Path],
                            timeout: Option[Duration] = Option.empty[Duration]): Try[Set[DuplicationClone]] = {
 
-    val srcFiles = FilesTarget(directory, files, Set.empty[Path])
-
-    val result = duplicationTool.run(directory, srcFiles, timeout)
+    val result = duplicationTool.run(directory, files, timeout)
 
     result match {
       case Success(res) =>
-        logger.info(s"Completed metrics for ${duplicationTool.name} with ${res.size} results")
+        logger.info(s"Completed duplication for ${duplicationTool.name} with ${res.size} results")
       case Failure(e) =>
-        logger.error(e)(s"Failed metrics for ${duplicationTool.name}")
+        logger.error(e)(s"Failed duplication for ${duplicationTool.name}")
     }
 
     result.map(_.to[Set])

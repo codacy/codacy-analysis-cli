@@ -117,10 +117,11 @@ class AnalyseExecutor(toolInput: Option[String],
     duplicationTool: DuplicationTool,
     filesTarget: FilesTarget,
     localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[DuplicationClone]] = {
-    val metricsFilesTarget =
+
+    val duplicationFilesTarget =
       fileCollector.filter(duplicationTool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
 
-    analyser.duplication(duplicationTool, metricsFilesTarget.directory, metricsFilesTarget.readableFiles)
+    analyser.duplication(duplicationTool, duplicationFilesTarget.directory, duplicationFilesTarget.readableFiles)
   }
 
   private def getToolConfiguration(tool: Tool,
