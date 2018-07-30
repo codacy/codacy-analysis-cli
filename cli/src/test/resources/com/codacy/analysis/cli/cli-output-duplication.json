@@ -1,0 +1,40 @@
+[
+  {
+    "DuplicationClone" : {
+      "cloneLines" : "function initialize() {\n        for (var i = 0; i < values.count; i++) {\n                var offset = new paper.Point(20 + 10 * i, 0);\n                var path = new paper.Path();\n                path.fillColor = i % 2 ? 'red' : 'black';\n                path.closed = true;\n\n                var l = offset.length;\n                for (var j = 0; j < values.points * 2; j++) {\n                        offset.angle += 360 / values.points;\n                        var vector = offset.normalize(l * (j % 2 ? 0.1 : -0.1));\n                        path.add(offset.add(vector));\n                }\n                path.smooth();\n                layer.insertChild(0, path);\n        }\n        layer.fitBounds(paper.view.bounds);\n}",
+      "nrTokens" : 165,
+      "nrLines" : 18,
+      "files" : [
+        {
+          "filePath" : "test.js",
+          "startLine" : 54,
+          "endLine" : 71
+        },
+        {
+          "filePath" : "test2.js",
+          "startLine" : 13,
+          "endLine" : 30
+        }
+      ]
+    }
+  },
+  {
+    "DuplicationClone" : {
+      "cloneLines" : "function secondMain(meaning) {\n  var day = true;\n\n  if (meaning == 42) {\n     if(1 === 2) return\n     \n    while (day) {\n      shuffle();\n\n      if (tired) { // JSHint: Blocks are nested too deeply (3).\n          sleep();\n      }\n      else {\n         if(true) return false;\n         console.log(123);\n      }\n      eval(23)\n    }\n  }\n}\n\nfunction updateManifestVersion(filename, version) {",
+      "nrTokens" : 69,
+      "nrLines" : 22,
+      "files" : [
+        {
+          "filePath" : "test.js",
+          "startLine" : 1,
+          "endLine" : 22
+        },
+        {
+          "filePath" : "test.js",
+          "startLine" : 33,
+          "endLine" : 54
+        }
+      ]
+    }
+  }
+]

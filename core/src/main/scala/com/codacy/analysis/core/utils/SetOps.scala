@@ -16,13 +16,14 @@ object SetOps {
 
   implicit class SetOps[T](set: Set[T]) {
 
-    def partitionSubtypes[A <: T: ClassTag, B <: T: ClassTag]: (Set[A], Set[B]) = {
-      set.foldLeft((Set.empty[A], Set.empty[B])) {
-        case ((aSet, bSet), t) =>
+    def partitionSubtypes[A <: T: ClassTag, B <: T: ClassTag, C <: T: ClassTag]: (Set[A], Set[B], Set[C]) = {
+      set.foldLeft((Set.empty[A], Set.empty[B], Set.empty[C])) {
+        case ((aSet, bSet, cSet), t) =>
           t match {
-            case a: A => (aSet + a, bSet)
-            case b: B => (aSet, bSet + b)
-            case _    => (aSet, bSet)
+            case a: A => (aSet + a, bSet, cSet)
+            case b: B => (aSet, bSet + b, cSet)
+            case c: C => (aSet, bSet, cSet + c)
+            case _    => (aSet, bSet, cSet)
           }
       }
     }
