@@ -11,7 +11,11 @@ import scala.util.{Failure, Success}
 
 object ResultsUploader {
 
-  final case class ToolResults(tool: String, files: Set[Path], results: Set[ToolResult], fileMetrics: Set[FileMetrics])
+  final case class ToolResults(tool: String,
+                               files: Set[Path],
+                               results: Set[ToolResult],
+                               fileMetrics: Set[FileMetrics],
+                               duplicationClones: Set[DuplicationClone])
 
   //TODO: Make this a config
   val defaultBatchSize = 50000

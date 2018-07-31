@@ -4,7 +4,7 @@ import java.nio.file.Path
 
 import better.files.File
 import com.codacy.analysis.core.model._
-import com.codacy.analysis.core.tools.{MetricsTool, Tool}
+import com.codacy.analysis.core.tools.{DuplicationTool, MetricsTool, Tool}
 import com.codacy.plugins.api.Source
 import org.log4s.{Logger, getLogger}
 
@@ -46,6 +46,23 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
         logger.info(s"Completed metrics for ${metricsTool.name} with ${res.size} results")
       case Failure(e) =>
         logger.error(e)(s"Failed metrics for ${metricsTool.name}")
+    }
+
+    result.map(_.to[Set])
+  }
+
+  override def duplication(duplicationTool: DuplicationTool,
+                           directory: File,
+                           files: Set[Path],
+                           timeout: Option[Duration] = Option.empty[Duration]): Try[Set[DuplicationClone]] = {
+
+    val result = duplicationTool.run(directory, files, timeout)
+
+    result match {
+      case Success(res) =>
+        logger.info(s"Completed duplication for ${duplicationTool.name} with ${res.size} results")
+      case Failure(e) =>
+        logger.error(e)(s"Failed duplication for ${duplicationTool.name}")
     }
 
     result.map(_.to[Set])

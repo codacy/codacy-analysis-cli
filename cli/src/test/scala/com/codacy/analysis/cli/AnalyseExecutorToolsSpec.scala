@@ -23,7 +23,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       pythonTools should beRight
       pythonTools must beLike {
         case Right(tools) =>
-          tools.map(_.name) must containTheSameElementsAs(Seq("brakeman", "rubocop", "bundleraudit", "metrics"))
+          tools.map(_.name) must containTheSameElementsAs(Seq("brakeman", "rubocop", "bundleraudit", "metrics", "duplication"))
           tools.flatMap(_.supportedLanguages) must containAllOf(Seq(Languages.Ruby))
       }
     }

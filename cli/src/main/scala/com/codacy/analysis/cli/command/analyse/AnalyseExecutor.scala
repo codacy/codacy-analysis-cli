@@ -70,8 +70,8 @@ class AnalyseExecutor(toolInput: Option[String],
               issues(tool, filesTarget, localConfigurationFile).map(_.map(_.to[Result]))
             case metricsTool: MetricsTool =>
               metrics(metricsTool, filesTarget, localConfigurationFile).map(_.map(_.to[Result]))
-            case _: DuplicationTool =>
-              Try(Set.empty)
+            case duplicationTool: DuplicationTool =>
+              duplication(duplicationTool, filesTarget, localConfigurationFile).map(_.map(_.to[Result]))
           }
           analysisResults.foreach(results => formatter.addAll(results.to[List]))
 
@@ -111,6 +111,17 @@ class AnalyseExecutor(toolInput: Option[String],
       fileCollector.filter(metricsTool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
 
     analyser.metrics(metricsTool, metricsFilesTarget.directory, Some(metricsFilesTarget.readableFiles))
+  }
+
+  private def duplication(
+    duplicationTool: DuplicationTool,
+    filesTarget: FilesTarget,
+    localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[DuplicationClone]] = {
+
+    val duplicationFilesTarget =
+      fileCollector.filter(duplicationTool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
+
+    analyser.duplication(duplicationTool, duplicationFilesTarget.directory, duplicationFilesTarget.readableFiles)
   }
 
   private def getToolConfiguration(tool: Tool,
@@ -187,17 +198,20 @@ object AnalyseExecutor {
                languages: Set[Language],
                allowNetwork: Boolean): Either[String, Set[ITool]] = {
 
+    def metricsTools = MetricsToolCollector.fromLanguages(languages)
+    def duplicationTools = DuplicationToolCollector.fromLanguages(languages)
+
     toolInput match {
       case None =>
-        val metricsTools = MetricsToolCollector.fromLanguages(languages)
-
         val toolsEither = tools(toolInput, remoteProjectConfiguration, allowNetwork, languages)
 
-        toolsEither.map(_ ++ metricsTools)
+        toolsEither.map(_ ++ metricsTools ++ duplicationTools)
 
       case Some("metrics") =>
-        val metricsTools = MetricsToolCollector.fromLanguages(languages)
         Right(metricsTools.map(_.to[ITool]))
+
+      case Some("duplication") =>
+        Right(duplicationTools.map(_.to[ITool]))
 
       case Some(_) =>
         val toolsEither = tools(toolInput, remoteProjectConfiguration, allowNetwork, languages)

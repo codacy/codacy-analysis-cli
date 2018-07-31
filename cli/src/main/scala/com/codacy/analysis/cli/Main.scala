@@ -13,7 +13,7 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api.ProjectConfiguration
 import com.codacy.analysis.core.files.FileCollector
-import com.codacy.analysis.core.model.{FileMetrics, ToolResult}
+import com.codacy.analysis.core.model.{DuplicationClone, FileMetrics, ToolResult}
 import com.codacy.analysis.core.upload.ResultsUploader
 import com.codacy.analysis.core.utils.Logger
 import com.codacy.analysis.core.utils.SetOps.SetOps
@@ -95,9 +95,10 @@ class MainImpl extends CLIApp {
           case ExecutorResult(toolName, files, Success(results)) =>
             logger.info(s"Going to upload ${results.size} results for $toolName")
 
-            val (toolResults, metricsResults) = results.partitionSubtypes[ToolResult, FileMetrics]
+            val (toolResults, metricsResults, duplicationClones) =
+              results.partitionSubtypes[ToolResult, FileMetrics, DuplicationClone]
 
-            Option(ResultsUploader.ToolResults(toolName, files, toolResults, metricsResults))
+            Option(ResultsUploader.ToolResults(toolName, files, toolResults, metricsResults, duplicationClones))
 
           case ExecutorResult(toolName, _, Failure(err)) =>
             logger.warn(s"Skipping upload for $toolName since analysis failed: ${err.getMessage}")

@@ -3,7 +3,7 @@ package com.codacy.analysis.cli
 import better.files.File
 import com.codacy.analysis.cli.command.{Command, DefaultCommand}
 import com.codacy.analysis.cli.utils.TestUtils._
-import com.codacy.analysis.core.model.{FileError, Result, ToolResult}
+import com.codacy.analysis.core.model.{DuplicationClone, FileError, Result, ToolResult}
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
@@ -161,7 +161,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
       }
     }
 
-    "output correct issues for metrics" in {
+    "output correct metrics" in {
       withClonedRepo("git://github.com/qamine-test/codacy-brakeman", "266c56a61d236ed6ee5efa58c0e621125498dd5f") {
         (file, directory) =>
           cli.main(
@@ -190,6 +190,44 @@ class CLISpec extends Specification with NoLanguageFeatures {
       }
     }
 
+    "output correct duplication" in {
+      withClonedRepo("git://github.com/qamine-test/duplication-delta.git", "625e19cd9be4898939a7c40dbeb2b17e40df9d54") {
+        (file, directory) =>
+          cli.main(
+            Array(
+              "analyse",
+              "--directory",
+              directory.pathAsString,
+              "--tool",
+              "duplication",
+              "--format",
+              "json",
+              "--output",
+              file.pathAsString,
+              "--verbose"))
+
+          val result = for {
+            responseJson <- parser.parse(file.contentAsString)
+            response <- responseJson.as[Set[Result]]
+            expectedJson <- parser.parse(
+              File.resource("com/codacy/analysis/cli/cli-output-duplication.json").contentAsString)
+            expected <- expectedJson.as[Set[Result]]
+          } yield (response, expected)
+
+          result must beRight
+          result must beLike { case Right((response, expected)) =>
+            removeCloneLines(response) must beEqualTo(removeCloneLines(expected))
+          }
+      }
+    }
+
+  }
+
+  private def removeCloneLines(resultSet: Set[Result]): Set[DuplicationClone] = {
+    resultSet.collect {
+      case clone: DuplicationClone =>
+        clone.copy(cloneLines = "")
+    }
   }
 
   private def errorMsg(message: String)

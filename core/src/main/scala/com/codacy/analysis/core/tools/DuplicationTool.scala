@@ -1,7 +1,8 @@
 package com.codacy.analysis.core.tools
 
+import java.nio.file.Path
+
 import better.files.File
-import com.codacy.analysis.core.files.FilesTarget
 import com.codacy.analysis.core.model.DuplicationClone
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.duplication.api.{DuplicationCloneFile, DuplicationConfiguration, DuplicationRequest}
@@ -20,7 +21,7 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
   override def supportedLanguages: Set[Language] = duplicationTool.languages.to[Set]
 
   def run(directory: File,
-          filesTarget: FilesTarget,
+          files: Set[Path],
           timeout: Option[Duration] = Option.empty[Duration]): Try[Set[DuplicationClone]] = {
 
     val request = DuplicationRequest(directory.pathAsString)
@@ -34,15 +35,15 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
         DuplicationConfiguration(languageToRun, Map.empty),
         timeout.getOrElse(dockerRunner.defaultRunTimeout),
         None)
-      clones = filterDuplicationClones(duplicationClones, filesTarget)
+      clones = filterDuplicationClones(duplicationClones, files)
     } yield {
-      clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files))(
+      clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files.to[Set]))(
         collection.breakOut): Set[DuplicationClone]
     }
   }
 
   private def filterDuplicationClones(duplicationClones: List[api.DuplicationClone],
-                                      filesTarget: FilesTarget,
+                                      files: Set[Path],
                                       minCloneLines: Int = 5) = {
     // The duplication files should be more than 1. If it is one, then it means
     // that the other clone was in an ignored file. This is based on the assumption
@@ -50,7 +51,7 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
     // with duplicated clones with themselves.
     duplicationClones.collect {
       case clone if clone.nrLines >= minCloneLines =>
-        val commitFileNames = filesTarget.readableFiles.map(_.toString)
+        val commitFileNames = files.map(_.toString)
         val filteredFiles = filterUnignoredFiles(clone.files, commitFileNames)
         (clone.copy(files = filteredFiles), filteredFiles.length)
     }.collect { case (clone, nrCloneFiles) if nrCloneFiles > 1 => clone }
