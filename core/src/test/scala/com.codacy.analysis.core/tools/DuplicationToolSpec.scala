@@ -22,12 +22,12 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
             "",
             165,
             18,
-            List(DuplicationCloneFile("test2.js", 13, 30), DuplicationCloneFile("test.js", 54, 71))),
+            Set(DuplicationCloneFile("test2.js", 13, 30), DuplicationCloneFile("test.js", 54, 71))),
           DuplicationClone(
             "",
             69,
             22,
-            List(DuplicationCloneFile("test.js", 1, 22), DuplicationCloneFile("test.js", 33, 54))))
+            Set(DuplicationCloneFile("test.js", 1, 22), DuplicationCloneFile("test.js", 33, 54))))
 
         val result = for {
           fileTarget <- FileCollector.defaultCollector().list(directory, Left("not needed"), Left("not needed"))
@@ -52,7 +52,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
             "",
             69,
             22,
-            List(DuplicationCloneFile("test.js", 1, 22), DuplicationCloneFile("test.js", 33, 54))))
+            Set(DuplicationCloneFile("test.js", 1, 22), DuplicationCloneFile("test.js", 33, 54))))
 
         val result = for {
           fileTarget <- FileCollector.defaultCollector().list(directory, Left("not needed"), Left("not needed"))
@@ -94,6 +94,6 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
   def assertDuplication(duplicationResults: Set[DuplicationClone], expectedClones: Seq[DuplicationClone]) = {
     //ignore the clone lines field for assertion
     duplicationResults.map(_.files.to[Set]) must containTheSameElementsAs(expectedClones.map(_.files.to[Set]))
-    duplicationResults.map(_.copy(cloneLines = "", files = Seq.empty)) must containTheSameElementsAs(expectedClones.map(_.copy(files = Seq.empty)))
+    duplicationResults.map(_.copy(cloneLines = "", files = Set.empty)) must containTheSameElementsAs(expectedClones.map(_.copy(files = Set.empty)))
   }
 }

@@ -3,7 +3,7 @@ package com.codacy.analysis.cli
 import better.files.File
 import com.codacy.analysis.cli.command.{Command, DefaultCommand}
 import com.codacy.analysis.cli.utils.TestUtils._
-import com.codacy.analysis.core.model.{FileError, Result, ToolResult}
+import com.codacy.analysis.core.model.{DuplicationClone, FileError, Result, ToolResult}
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
@@ -215,10 +215,19 @@ class CLISpec extends Specification with NoLanguageFeatures {
           } yield (response, expected)
 
           result must beRight
-          result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+          result must beLike { case Right((response, expected)) =>
+            toCloneSet(response) must beEqualTo(toCloneSet(expected))
+          }
       }
     }
 
+  }
+
+  private def toCloneSet(resultSet: Set[Result]): Set[DuplicationClone] = {
+    resultSet.collect {
+      case clone: DuplicationClone =>
+        clone.copy(cloneLines = "")
+    }
   }
 
   private def errorMsg(message: String)

@@ -79,7 +79,7 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
     s"Found [$levelColored$categoryColored] `$message` in $filename:$location ($patternColored)"
   }
 
-  private def prettyMessage(nrTokens: Int, nrLines: Int, files: Seq[DuplicationCloneFile]): String = {
+  private def prettyMessage(nrTokens: Int, nrLines: Int, files: Set[DuplicationCloneFile]): String = {
     val cloneFoundColored = Console.MAGENTA + "Clone" + Console.RESET
     val duplicatedFilesMsg = files.map { file =>
       s"${file.filePath}, from line ${file.startLine} to ${file.endLine}"

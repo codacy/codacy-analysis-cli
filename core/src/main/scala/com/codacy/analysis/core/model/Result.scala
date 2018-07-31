@@ -8,7 +8,7 @@ import com.codacy.plugins.duplication.api.DuplicationCloneFile
 
 sealed trait Result
 
-final case class DuplicationClone(cloneLines: String, nrTokens: Int, nrLines: Int, files: Seq[DuplicationCloneFile])
+final case class DuplicationClone(cloneLines: String, nrTokens: Int, nrLines: Int, files: Set[DuplicationCloneFile])
     extends Result
 
 sealed trait ToolResult extends Result

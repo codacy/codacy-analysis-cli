@@ -37,7 +37,7 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
         None)
       clones = filterDuplicationClones(duplicationClones, files)
     } yield {
-      clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files))(
+      clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files.to[Set]))(
         collection.breakOut): Set[DuplicationClone]
     }
   }
