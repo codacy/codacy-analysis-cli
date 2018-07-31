@@ -21,19 +21,22 @@ lazy val root = project
           "Sonatype Nexus Repository Manager",
           "oss.sonatype.org",
           sys.env.getOrElse("SONATYPE_USER", "username"),
-          sys.env.getOrElse("SONATYPE_PASSWORD", "password")),
+          sys.env.getOrElse("SONATYPE_PASSWORD", "password")
+        ),
         scalaVersion := scalaVersionNumber,
         version := "0.1.0-SNAPSHOT",
         organization := "com.codacy",
         scalacOptions ++= Common.compilerFlags,
-        scalacOptions.in(Test) ++= Seq("-Yrangepos"),
-        scalacOptions.in(Compile, console) --= Seq("-Ywarn-unused:imports", "-Xfatal-warnings"))))
+        scalacOptions.in(Test) ++= Seq("-Yrangepos")
+      )))
+  .settings(Common.genericSettings: _*)
   .aggregate(aggregatedProjects: _*)
   .settings(publish := {}, publishLocal := {}, publishArtifact := false)
 
 lazy val codacyAnalysisCore = project
   .in(file("core"))
   .settings(name := "codacy-analysis-core")
+  .settings(Common.genericSettings: _*)
   .settings(
     // App Dependencies
     libraryDependencies ++= Seq(
@@ -49,7 +52,8 @@ lazy val codacyAnalysisCore = project
       Dependencies.log4s ++
       Dependencies.codacyPlugins,
     // Test Dependencies
-    libraryDependencies ++= testDependencies)
+    libraryDependencies ++= testDependencies
+  )
   .settings(
     // Sonatype repository settings
     publishMavenStyle := true,
@@ -59,7 +63,8 @@ lazy val codacyAnalysisCore = project
     pomIncludeRepository := { _ =>
       false
     },
-    publishTo := sonatypePublishTo.value)
+    publishTo := sonatypePublishTo.value
+  )
   .settings(
     organizationName := "Codacy",
     organizationHomepage := Some(new URL("https://www.codacy.com")),
@@ -97,7 +102,8 @@ lazy val codacyAnalysisCore = project
           <email>pamaral [at] codacy.com</email>
           <url>https://github.com/pedrocodacy</url>
         </developer>
-      </developers>)
+      </developers>
+  )
 
 lazy val codacyAnalysisCli = project
   .in(file("cli"))
