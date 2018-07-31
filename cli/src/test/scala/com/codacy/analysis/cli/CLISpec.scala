@@ -216,14 +216,14 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
           result must beRight
           result must beLike { case Right((response, expected)) =>
-            toCloneSet(response) must beEqualTo(toCloneSet(expected))
+            removeCloneLines(response) must beEqualTo(removeCloneLines(expected))
           }
       }
     }
 
   }
 
-  private def toCloneSet(resultSet: Set[Result]): Set[DuplicationClone] = {
+  private def removeCloneLines(resultSet: Set[Result]): Set[DuplicationClone] = {
     resultSet.collect {
       case clone: DuplicationClone =>
         clone.copy(cloneLines = "")
