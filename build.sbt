@@ -117,7 +117,7 @@ lazy val codacyAnalysisCli = project
     publishLocal := publishLocal.in(Docker).value,
     publishArtifact := false)
   .settings(libraryDependencies ++= testDependencies)
-  .dependsOn(codacyAnalysisCore)
+  .dependsOn(codacyAnalysisCore % "compile->compile;test->test")
   .aggregate(codacyAnalysisCore)
 
 // sbt-dependency-check

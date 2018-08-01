@@ -2,7 +2,7 @@ package com.codacy.analysis.cli
 
 import better.files.File
 import com.codacy.analysis.cli.command.{Command, DefaultCommand}
-import com.codacy.analysis.cli.utils.TestUtils._
+import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.analysis.core.model.{DuplicationClone, FileError, Result, ToolResult}
 import io.circe.generic.auto._
 import io.circe.parser
