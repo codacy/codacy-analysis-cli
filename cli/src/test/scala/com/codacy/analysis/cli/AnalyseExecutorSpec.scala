@@ -3,7 +3,7 @@ package com.codacy.analysis.cli
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
-import com.codacy.analysis.cli.utils.TestUtils._
+import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.clients.{ProjectName, UserName}

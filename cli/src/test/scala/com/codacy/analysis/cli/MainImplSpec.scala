@@ -3,7 +3,7 @@ package com.codacy.analysis.cli
 import caseapp.Tag
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command._
-import com.codacy.analysis.cli.utils.TestUtils._
+import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
