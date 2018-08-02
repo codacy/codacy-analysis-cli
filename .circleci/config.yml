@@ -332,6 +332,9 @@ jobs:
       - *restore_source_code
       - checkout
       - *restore_integration_tests_source_code
+      - add_ssh_keys:
+          fingerprints:
+            - "92:a5:bf:4c:21:1b:23:1f:b3:49:3c:34:fe:38:43:5f"
       - run:
           name: Checkout integration tests
           command: |
