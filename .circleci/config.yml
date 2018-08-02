@@ -432,26 +432,26 @@ workflows:
       - publish_dockerhub_stable:
           requires:
             - publish_dockerhub_stable_hold
-      - checkout_integration_tests_source_code:
-          filters:
-            branches:
-              only:
-                - master
+      - checkout_integration_tests_source_code
+          #filters:
+          #  branches:
+          #    only:
+          #      - master
       - maven_dependencies:
           requires:
             - checkout_integration_tests_source_code
-          filters:
-            branches:
-              only:
-                - master
+          #filters:
+          #  branches:
+          #    only:
+          #      - master
       - test_integration:
           requires:
             - maven_dependencies
             - publish_docker_locally
-          filters:
-            branches:
-              only:
-                - master
+          #filters:
+          #  branches:
+          #    only:
+          #      - master
 
   nightly:
     triggers:

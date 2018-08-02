@@ -28,5 +28,6 @@ else
   git clone -b $BRANCH "$REPO_URL" .
 fi
 
-git fetch --force origin "$BRANCH:remotes/origin/$BRANCH"
+git fetch --all
+# git fetch --force origin "$BRANCH:remotes/origin/$BRANCH"
 git reset --hard "origin/$BRANCH"
