@@ -87,9 +87,9 @@ prep_args_with_output_absolute_path() {
         case ${arg} in
           --output)
             is_filename=1 # next argument will be the file
-            new_args="${new_args} ${arg}"
             ;;
         esac
+        new_args="${new_args} ${arg}"
         ;;
       *)
         if [ ${is_filename} -eq 1 ]; then
