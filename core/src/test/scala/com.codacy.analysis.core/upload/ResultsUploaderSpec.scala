@@ -105,8 +105,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       // scalafix:off NoInfer.any
       uploader.sendResults(
         Seq(
-          ResultsUploader.ToolResults(tool, filenames, exampleResults, Set.empty[FileMetrics], Set.empty[DuplicationClone]),
-          ResultsUploader.ToolResults(otherTool, otherFilenames, Set.empty[ToolResult], Set.empty[FileMetrics], Set.empty[DuplicationClone]))) must beRight.awaitFor(
+          ResultsUploader.ToolResults(tool, filenames, exampleResults),
+          ResultsUploader.ToolResults(otherTool, otherFilenames, Set.empty[ToolResult])), Seq.empty) must beRight.awaitFor(
         10.minutes)
       // scalafix:on NoInfer.any
 

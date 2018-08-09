@@ -2,7 +2,7 @@ package com.codacy.analysis.cli.analysis
 
 import java.nio.file.Paths
 
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.ExecutorResult
+import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.IssuesToolExecutorResult
 import com.codacy.analysis.core.model.{FullLocation, Issue}
 import com.codacy.plugins.api.results.{Pattern, Result}
 import org.specs2.control.NoLanguageFeatures
@@ -24,7 +24,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
     "send success code when issues do not exceed max issues number" in {
       new ExitStatus(10).exitCode(
         Right(
-          Seq(ExecutorResult(
+          Seq(IssuesToolExecutorResult(
             "MyTool",
             Set(Paths.get("Test.scala")),
             // scalafmt: { binPack.defnSite = true }
@@ -56,7 +56,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
     "send exceed max issues number code when issues do not exceed max issues number" in {
       new ExitStatus(2).exitCode(
         Right(
-          Seq(ExecutorResult(
+          Seq(IssuesToolExecutorResult(
             "MyTool",
             Set(Paths.get("Test.scala")),
             // scalafmt: { binPack.defnSite = true }
@@ -87,7 +87,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
 
     "send success code when no issues" in {
       new ExitStatus(10).exitCode(
-        Right(Seq(ExecutorResult("MyTool", Set(Paths.get("Test.scala")), Success(Set())))),
+        Right(Seq(IssuesToolExecutorResult("MyTool", Set(Paths.get("Test.scala")), Success(Set())))),
         Right(())) should beEqualTo(ExitStatus.ExitCodes.success)
     }
 
@@ -95,8 +95,8 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
       new ExitStatus(10, failIfIncomplete = true).exitCode(
         Right(
           Seq(
-            ExecutorResult("MyTool", Set(), Success(Set())),
-            ExecutorResult("MyTool", Set(Paths.get("Test.scala")), Failure(new Exception("Failed"))))),
+            IssuesToolExecutorResult("MyTool", Set(), Success(Set())),
+            IssuesToolExecutorResult("MyTool", Set(Paths.get("Test.scala")), Failure(new Exception("Failed"))))),
         Right(())) should beEqualTo(ExitStatus.ExitCodes.partiallyFailedAnalysis)
     }
 
@@ -104,8 +104,8 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
       new ExitStatus(10, failIfIncomplete = false).exitCode(
         Right(
           Seq(
-            ExecutorResult("MyTool", Set(), Success(Set())),
-            ExecutorResult("MyTool", Set(Paths.get("Test.scala")), Failure(new Exception("Failed"))))),
+            IssuesToolExecutorResult("MyTool", Set(), Success(Set())),
+            IssuesToolExecutorResult("MyTool", Set(Paths.get("Test.scala")), Failure(new Exception("Failed"))))),
         Right(())) should beEqualTo(ExitStatus.ExitCodes.success)
     }
 

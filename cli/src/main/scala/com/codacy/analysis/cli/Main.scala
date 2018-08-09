@@ -5,7 +5,12 @@ import cats.implicits._
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.ExecutorResult
+import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.{
+  DuplicationToolExecutorResult,
+  ExecutorResult,
+  IssuesToolExecutorResult,
+  MetricsToolExecutorResult
+}
 import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
 import com.codacy.analysis.cli.configuration.Environment
 import com.codacy.analysis.cli.formatter.Formatter
@@ -13,10 +18,9 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api.ProjectConfiguration
 import com.codacy.analysis.core.files.FileCollector
-import com.codacy.analysis.core.model.{DuplicationClone, FileMetrics, ToolResult}
+import com.codacy.analysis.core.model.{FileMetrics, MetricsResult}
 import com.codacy.analysis.core.upload.ResultsUploader
 import com.codacy.analysis.core.utils.Logger
-import com.codacy.analysis.core.utils.SetOps.SetOps
 import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -91,21 +95,43 @@ class MainImpl extends CLIApp {
       executorResults <- executorResultsEither
     } yield {
       uploaderOpt.map { uploader =>
-        val resultsToUpload = executorResults.flatMap {
-          case ExecutorResult(toolName, files, Success(results)) =>
-            logger.info(s"Going to upload ${results.size} results for $toolName")
+        import com.codacy.analysis.core.utils.SeqOps._
 
-            val (toolResults, metricsResults, duplicationClones) =
-              results.partitionSubtypes[ToolResult, FileMetrics, DuplicationClone]
+        val (issuesToolExecutorResult, metricsToolExecutorResult, _) =
+          executorResults
+            .partitionSubtypes[IssuesToolExecutorResult, MetricsToolExecutorResult, DuplicationToolExecutorResult]
 
-            Option(ResultsUploader.ToolResults(toolName, files, toolResults, metricsResults, duplicationClones))
-
-          case ExecutorResult(toolName, _, Failure(err)) =>
+        val toolResults: Seq[ResultsUploader.ToolResults] = issuesToolExecutorResult.flatMap {
+          case IssuesToolExecutorResult(toolName, files, Success(results)) =>
+            Option(ResultsUploader.ToolResults(toolName, files, results))
+          case IssuesToolExecutorResult(toolName, _, Failure(err)) =>
             logger.warn(s"Skipping upload for $toolName since analysis failed: ${err.getMessage}")
             Option.empty[ResultsUploader.ToolResults]
         }
 
-        uploader.sendResults(resultsToUpload)
+        val languageAndToolResults: Seq[(String, Either[Throwable, Set[FileMetrics]])] =
+          metricsToolExecutorResult.flatMap {
+            case MetricsToolExecutorResult(language, Success(fileMetrics)) =>
+              Option((language, Right(fileMetrics)))
+            case MetricsToolExecutorResult(language, Failure(err)) =>
+              Option((language, Left(err)))
+          }
+
+        val metricsResults: Seq[ResultsUploader.MetricsResults] = languageAndToolResults.groupBy {
+          case (language, _) => language
+        }.toSeq.map {
+          case (language, languageAndFileMetricsSeq) =>
+            val results: Set[MetricsResult] = languageAndFileMetricsSeq.map {
+              case (_, Right(fileMetrics)) =>
+                MetricsResult(fileMetrics, None)
+              case (_, Left(err)) =>
+                MetricsResult(Set.empty, Some(err.getMessage))
+            }(collection.breakOut)
+
+            ResultsUploader.MetricsResults(language, results)
+        }
+
+        uploader.sendResults(toolResults, metricsResults)
       }.getOrElse(Future.successful(().asRight[String]))
     }).fold(err => Future.successful(err.asLeft[Unit]), identity)
   }

@@ -22,4 +22,17 @@ object EitherOps {
       .map(_ => left)
   }
 
+  def sequenceFoldingLeft[A](eithers: Seq[Either[A, Unit]])(op: (A, A) => A): Either[A, Unit] = {
+    eithers.fold(Right[A, Unit](())) {
+      case (Left(error1), Left(error2)) =>
+        Left(op(error1, error2))
+      case (Right(_), Left(error2)) =>
+        Left(error2)
+      case (Left(error1), Right(_)) =>
+        Left(error1)
+      case (Right(_), Right(_)) =>
+        Right(())
+    }
+  }
+
 }

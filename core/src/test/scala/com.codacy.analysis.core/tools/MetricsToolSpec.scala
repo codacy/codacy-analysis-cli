@@ -24,7 +24,7 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
       withClonedRepo("git://github.com/qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
         val testProjectFileMetrics = List(jsTest2Metrics, jsTestMetrics, codacyJsonMetrics)
 
-        val metricsTool = new MetricsTool(Cloc, Some(Languages.Javascript))
+        val metricsTool = new MetricsTool(Cloc, Languages.Javascript)
 
         val result = metricsTool.run(directory, None)
 
@@ -42,7 +42,7 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
       withClonedRepo("git://github.com/qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
         val testProjectFileMetrics = List(jsTestMetrics, codacyJsonMetrics)
 
-        val metricsTool = new MetricsTool(Cloc, Some(Languages.Javascript))
+        val metricsTool = new MetricsTool(Cloc, Languages.Javascript)
 
         val result = metricsTool.run(directory, Some(Set(Source.File("test.js"), Source.File(".codacy.json"))))
 
@@ -64,7 +64,7 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
 
       tools must haveSize(4)
 
-      tools.flatMap(_.languageToRun) must containTheSameElementsAs(languagesWithTools.to[Seq])
+      tools.map(_.languageToRun) must containTheSameElementsAs(languagesWithTools.to[Seq])
     }
 
     val languagesWithoutTools: Set[Language] = Set(Languages.Dart, Languages.OCaml, Languages.Julia)

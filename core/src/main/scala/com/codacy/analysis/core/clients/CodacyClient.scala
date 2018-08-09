@@ -4,7 +4,8 @@ import java.nio.file.Path
 
 import cats.implicits._
 import com.codacy.analysis.core.clients.api.{CodacyError, ProjectConfiguration, RemoteResultResponse}
-import com.codacy.analysis.core.model.{FileResults, ToolResults}
+import com.codacy.analysis.core.model._
+import com.codacy.analysis.core.upload.ResultsUploader.MetricsResults
 import com.codacy.analysis.core.utils.HttpHelper
 import com.codacy.plugins.api.languages.{Language, Languages}
 import io.circe.generic.auto._
@@ -37,8 +38,24 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
   def sendRemoteResults(tool: String, commitUuid: String, results: Set[FileResults]): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
-        sendRemoteResultsTo(s"/${token.userName}/${token.projectName}/commit/$commitUuid/remoteResults", tool, results)
-      case _: ProjectToken => sendRemoteResultsTo(s"/commit/$commitUuid/remoteResults", tool, results)
+        sendRemoteResultsTo(
+          s"/${token.userName}/${token.projectName}/commit/$commitUuid/issuesRemoteResults",
+          tool,
+          results)
+      case _: ProjectToken => sendRemoteResultsTo(s"/commit/$commitUuid/issuesRemoteResults", tool, results)
+    }
+  }
+
+  def sendRemoteMetrics(language: String,
+                        commitUuid: String,
+                        results: Set[MetricsResult]): Future[Either[String, Unit]] = {
+    credentials match {
+      case token: APIToken =>
+        sendRemoteMetricsTo(
+          s"/${token.userName}/${token.projectName}/commit/$commitUuid/metricsRemoteResults",
+          language,
+          results)
+      case _: ProjectToken => sendRemoteMetricsTo(s"/commit/$commitUuid/metricsRemoteResults", language, results)
     }
   }
 
@@ -58,6 +75,20 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
                                       projectName: ProjectName): Either[String, ProjectConfiguration] = {
     getProjectConfigurationFrom(s"/project/$username/$projectName/analysis/configuration")
   }
+
+  private def sendRemoteMetricsTo(endpoint: String,
+                                  language: String,
+                                  metrics: Set[MetricsResult]): Future[Either[String, Unit]] =
+    Future {
+      http.post(endpoint, Some(Seq(MetricsResults(language, metrics)).asJson)) match {
+        case Left(error) =>
+          logger.error(error)(s"Error posting data to endpoint $endpoint")
+          Left(error.message)
+        case Right(json) =>
+          logger.info(s"""Success posting batch of ${metrics.size} files metrics to endpoint "$endpoint" """)
+          validateRemoteResultsResponse(json)
+      }
+    }
 
   private def sendRemoteResultsTo(endpoint: String,
                                   tool: String,

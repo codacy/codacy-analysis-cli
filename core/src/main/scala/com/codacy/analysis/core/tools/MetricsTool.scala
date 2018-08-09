@@ -17,7 +17,7 @@ import org.log4s.getLogger
 import scala.concurrent.duration.Duration
 import scala.util.Try
 
-class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun: Option[Language]) extends ITool {
+class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun: Language) extends ITool {
   override def name: String = "metrics"
 
   override def supportedLanguages: Set[Language] = metricsTool.languages.to[Set]
@@ -30,7 +30,7 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
     val dockerRunner = new BinaryDockerRunner[api.metrics.FileMetrics](metricsTool)
     val runner = new MetricsRunner(metricsTool, dockerRunner)
 
-    val configuration = CodacyConfiguration(files, languageToRun, None)
+    val configuration = CodacyConfiguration(files, Some(languageToRun), None)
 
     val toolFileMetrics = runner.run(request, configuration, timeout.getOrElse(dockerRunner.defaultRunTimeout), None)
 
@@ -64,7 +64,7 @@ object MetricsToolCollector {
     languages.flatMap { lang =>
       val collectedTools = availableTools.collect {
         case tool if tool.languages.contains(lang) =>
-          new MetricsTool(tool, Some(lang))
+          new MetricsTool(tool, lang)
       }
       if (collectedTools.isEmpty) {
         logger.info(s"No metrics tools found for language ${lang.name}")

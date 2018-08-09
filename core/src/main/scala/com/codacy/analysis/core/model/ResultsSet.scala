@@ -2,8 +2,7 @@ package com.codacy.analysis.core.model
 
 import java.nio.file.Path
 
-sealed trait ResultsSet
+final case class ToolResults(tool: String, fileResults: Set[FileResults])
+final case class FileResults(filename: Path, results: Set[ToolResult])
 
-final case class ToolResults(tool: String, fileResults: Set[FileResults]) extends ResultsSet
-
-final case class FileResults(filename: Path, results: Set[ToolResult], metrics: Option[FileMetrics])
+final case class MetricsResult(results: Set[FileMetrics], analysisError: Option[String])
