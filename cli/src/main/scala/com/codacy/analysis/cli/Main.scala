@@ -21,6 +21,7 @@ import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.model.{FileMetrics, MetricsResult}
 import com.codacy.analysis.core.upload.ResultsUploader
 import com.codacy.analysis.core.utils.Logger
+import com.codacy.analysis.core.utils.SeqOps._
 import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -95,8 +96,6 @@ class MainImpl extends CLIApp {
       executorResults <- executorResultsEither
     } yield {
       uploaderOpt.map { uploader =>
-        import com.codacy.analysis.core.utils.SeqOps._
-
         val (issuesToolExecutorResult, metricsToolExecutorResult, _) =
           executorResults
             .partitionSubtypes[IssuesToolExecutorResult, MetricsToolExecutorResult, DuplicationToolExecutorResult]
