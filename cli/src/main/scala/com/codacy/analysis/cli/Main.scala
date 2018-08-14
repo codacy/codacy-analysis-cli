@@ -44,49 +44,68 @@ class MainImpl extends CLIApp {
   def runCommand(command: Command): Int = {
     command match {
       case analyse: Analyse =>
-        cleanup(analyse.directory)
-        Logger.setLevel(analyse.options.verboseValue)
-
-        val formatter: Formatter = Formatter(analyse.format, analyse.output)
-        val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
-        val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
-        val environment = new Environment(sys.env)
-        val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
-
-        val remoteProjectConfiguration: Either[String, ProjectConfiguration] = codacyClientOpt.fold {
-          "No credentials found.".asLeft[ProjectConfiguration]
-        } { _.getRemoteConfiguration }
-
-        val analysisResults = new AnalyseExecutor(
-          analyse.tool,
-          analyse.directory,
-          formatter,
-          analyser,
-          fileCollector,
-          remoteProjectConfiguration,
-          analyse.parallel,
-          analyse.allowNetworkValue,
-          analyse.forceFilePermissionsValue,
-          analyse.toolTimeout).run()
-
-        val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
-
-        val uploadResult = if (analyse.uploadValue) {
-          Try(Await.result(uploadResultFut, Duration.Inf)) match {
-            case Failure(err) =>
-              logger.error(err.getMessage)
-              Left(err.getMessage)
-            case Success(Left(err)) =>
-              logger.warn(err)
-              Left(err)
-            case Success(Right(_)) =>
-              logger.info("Completed upload of results to API")
-              Right(())
-          }
-        } else Right(())
-
-        new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult)
+        if (isValidTool(analyse.tool)) {
+          cleanup(analyse.directory)
+          Logger.setLevel(analyse.options.verboseValue)
+          runAnalysis(analyse)
+        } else {
+          analyse.tool.foreach(tool =>
+            logger.error(
+              s"""Error: The selected tool "$tool" is not supported or does not exist. Use the --help option to get more information about available tools"""))
+          new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).nonExistentTool()
+        }
     }
+  }
+
+  private def isValidTool(toolInput: Option[String]): Boolean = {
+    toolInput match {
+      case Some(tool) => AnalyseExecutor.isValidTool(tool)
+      case None       => false
+    }
+  }
+
+  private def runAnalysis(analyse: Analyse): Int = {
+    val formatter: Formatter = Formatter(analyse.format, analyse.output)
+    val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
+    val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
+    val environment = new Environment(sys.env)
+    val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
+
+    val remoteProjectConfiguration: Either[String, ProjectConfiguration] = codacyClientOpt.fold {
+      "No credentials found.".asLeft[ProjectConfiguration]
+    } {
+      _.getRemoteConfiguration
+    }
+
+    val analysisResults = new AnalyseExecutor(
+      analyse.tool,
+      analyse.directory,
+      formatter,
+      analyser,
+      fileCollector,
+      remoteProjectConfiguration,
+      analyse.parallel,
+      analyse.allowNetworkValue,
+      analyse.forceFilePermissionsValue,
+      analyse.toolTimeout).run()
+
+    val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
+
+    val uploadResult = if (analyse.uploadValue) {
+      Try(Await.result(uploadResultFut, Duration.Inf)) match {
+        case Failure(err) =>
+          logger.error(err.getMessage)
+          Left(err.getMessage)
+        case Success(Left(err)) =>
+          logger.warn(err)
+          Left(err)
+        case Success(Right(_)) =>
+          logger.info("Completed upload of results to API")
+          Right(())
+      }
+    } else Right(())
+
+    new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult)
   }
 
   private def uploadResults(codacyClientOpt: Option[CodacyClient])(

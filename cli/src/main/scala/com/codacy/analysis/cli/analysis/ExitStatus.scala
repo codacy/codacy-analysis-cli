@@ -13,12 +13,17 @@ object ExitStatus {
     val success = 0
     val failedAnalysis = 1
     val partiallyFailedAnalysis = 2
+    val nonExistentTool = 3
     val failedUpload = 101
     val maxAllowedIssuesExceeded = 201
   }
 }
 
 class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
+
+  def nonExistentTool(): Int = {
+    ExitStatus.ExitCodes.nonExistentTool
+  }
 
   def exitCode(executorResultsEither: Either[String, Seq[ExecutorResult]], uploadResult: Either[String, Unit]): Int = {
     val resultsCount = countResults(executorResultsEither)

@@ -232,6 +232,13 @@ object AnalyseExecutor {
     }
   }
 
+  def isValidTool(tool: String): Boolean = {
+    tool match {
+      case "duplication" | "metrics" => true
+      case _                         => new ToolCollector(allowNetwork = true).fromNameOrUUID(tool).isRight
+    }
+  }
+
   def tools(toolInput: Option[String],
             remoteProjectConfiguration: Either[String, ProjectConfiguration],
             allowNetwork: Boolean,
