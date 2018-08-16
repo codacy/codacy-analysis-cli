@@ -92,20 +92,20 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         ResultsUploader(Option(codacyClient), upload = true, Some(commitUuid), None).right.get.get
 
       def testFileMetrics(i: Int) = {
-        FileMetrics(
-          filename = Paths.get(s"some/path/file$i"),
-          complexity = Some(10),
+        FileWithMetrics(
+          Paths.get(s"some/path/file$i"),
+          Some(Metrics(complexity = Some(10),
           loc = Some(11),
           cloc = Some(12),
           nrMethods = Some(14),
           nrClasses = Some(15),
-          lineComplexities = Set(LineComplexity(1, 2), LineComplexity(3, 4), LineComplexity(5, 6)))
+          lineComplexities = Set(LineComplexity(1, 2), LineComplexity(3, 4), LineComplexity(5, 6)))))
       }
 
       val testMetrics = Seq(
         ResultsUploader.MetricsResults(
           language,
-          Set(MetricsResult(Set(testFileMetrics(1), testFileMetrics(2), testFileMetrics(3)), None))))
+          Set(MetricsResult(Right(Set(testFileMetrics(1), testFileMetrics(2), testFileMetrics(3)))))))
 
       uploader.sendResults(Seq.empty, testMetrics) must beRight.awaitFor(10.seconds)
 

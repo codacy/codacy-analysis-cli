@@ -1,5 +1,7 @@
 package com.codacy.analysis.cli
 
+import java.nio.file.Path
+
 import better.files._
 import cats.implicits._
 import com.codacy.analysis.cli.analysis.ExitStatus
@@ -18,7 +20,7 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api.ProjectConfiguration
 import com.codacy.analysis.core.files.FileCollector
-import com.codacy.analysis.core.model.{FileMetrics, MetricsResult}
+import com.codacy.analysis.core.model.{FileMetrics, FileWithMetrics, Metrics, MetricsResult}
 import com.codacy.analysis.core.upload.ResultsUploader
 import com.codacy.analysis.core.utils.Logger
 import com.codacy.analysis.core.utils.SeqOps._
@@ -100,39 +102,68 @@ class MainImpl extends CLIApp {
           executorResults
             .partitionSubtypes[IssuesToolExecutorResult, MetricsToolExecutorResult, DuplicationToolExecutorResult]
 
-        val toolResults: Seq[ResultsUploader.ToolResults] = issuesToolExecutorResult.flatMap {
-          case IssuesToolExecutorResult(toolName, files, Success(results)) =>
-            Option(ResultsUploader.ToolResults(toolName, files, results))
-          case IssuesToolExecutorResult(toolName, _, Failure(err)) =>
-            logger.warn(s"Skipping upload for $toolName since analysis failed: ${err.getMessage}")
-            Option.empty[ResultsUploader.ToolResults]
-        }
+        val toolResultSeq: Seq[ResultsUploader.ToolResults] = toolResults(issuesToolExecutorResult)
 
-        val languageAndToolResults: Seq[(String, Either[Throwable, Set[FileMetrics]])] =
-          metricsToolExecutorResult.flatMap {
-            case MetricsToolExecutorResult(language, Success(fileMetrics)) =>
-              Option((language, Right(fileMetrics)))
-            case MetricsToolExecutorResult(language, Failure(err)) =>
-              Option((language, Left(err)))
-          }
+        val metricsPerLanguageSeq =
+          metricsPerLanguage(metricsToolExecutorResult)
 
-        val metricsResults: Seq[ResultsUploader.MetricsResults] = languageAndToolResults.groupBy {
-          case (language, _) => language
-        }.toSeq.map {
-          case (language, languageAndFileMetricsSeq) =>
-            val results: Set[MetricsResult] = languageAndFileMetricsSeq.map {
-              case (_, Right(fileMetrics)) =>
-                MetricsResult(fileMetrics, None)
-              case (_, Left(err)) =>
-                MetricsResult(Set.empty, Some(err.getMessage))
-            }(collection.breakOut)
+        val metricsResultsSeq: Seq[ResultsUploader.MetricsResults] = metricsResults(metricsPerLanguageSeq)
 
-            ResultsUploader.MetricsResults(language, results)
-        }
-
-        uploader.sendResults(toolResults, metricsResults)
+        uploader.sendResults(toolResultSeq, metricsResultsSeq)
       }.getOrElse(Future.successful(().asRight[String]))
     }).fold(err => Future.successful(err.asLeft[Unit]), identity)
+  }
+
+  private def metricsResults(languageAndToolResultSeq: Seq[(String, (Set[Path], Either[Throwable, Set[FileMetrics]]))])
+    : Seq[ResultsUploader.MetricsResults] = {
+    languageAndToolResultSeq.groupBy {
+      case (language, _) => language
+    }.map {
+      case (language, languageAndFileMetricsSeq) =>
+        val results: Set[MetricsResult] = languageAndFileMetricsSeq.map {
+          case (_, (files, Right(fileMetrics))) =>
+            MetricsResult(Right(fileWithMetrics(files, fileMetrics)))
+          case (_, (_, Left(err))) =>
+            MetricsResult(Left(err.getMessage))
+        }(collection.breakOut)
+
+        ResultsUploader.MetricsResults(language, results)
+    }(collection.breakOut)
+  }
+
+  private def fileWithMetrics(allFiles: Set[Path], fileMetrics: Set[FileMetrics]): Set[FileWithMetrics] = {
+    allFiles.map { file =>
+      val metrics = fileMetrics.find(_.filename == file).map { metrics =>
+        Metrics(
+          metrics.complexity,
+          metrics.loc,
+          metrics.cloc,
+          metrics.nrMethods,
+          metrics.nrClasses,
+          metrics.lineComplexities)
+      }
+      FileWithMetrics(file, metrics)
+    }
+  }
+
+  private def metricsPerLanguage(metricsToolExecutorResult: Seq[MetricsToolExecutorResult])
+    : Seq[(String, (Set[Path], Either[Throwable, Set[FileMetrics]]))] = {
+    metricsToolExecutorResult.flatMap {
+      case MetricsToolExecutorResult(language, files, Success(fileMetrics)) =>
+        Option((language, (files, Right(fileMetrics))))
+      case MetricsToolExecutorResult(language, files, Failure(err)) =>
+        Option((language, (files, Left(err))))
+    }
+  }
+
+  private def toolResults(issuesToolExecutorResult: Seq[IssuesToolExecutorResult]) = {
+    issuesToolExecutorResult.flatMap {
+      case IssuesToolExecutorResult(toolName, files, Success(results)) =>
+        Option(ResultsUploader.ToolResults(toolName, files, results))
+      case IssuesToolExecutorResult(toolName, _, Failure(err)) =>
+        logger.warn(s"Skipping upload for $toolName since analysis failed: ${err.getMessage}")
+        Option.empty[ResultsUploader.ToolResults]
+    }
   }
 
   private def cleanup(directoryOpt: Option[File]): Unit = {

@@ -42,9 +42,7 @@ class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
       .map {
         case executorResult: IssuesToolExecutorResult =>
           executorResult.analysisResults.map(_.size).getOrElse(0)
-        case executorResult: MetricsToolExecutorResult =>
-          executorResult.analysisResults.map(_.size).getOrElse(0)
-        case _: DuplicationToolExecutorResult =>
+        case _ =>
           0
       }
       .sum
@@ -57,6 +55,7 @@ class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
       case executorResult: MetricsToolExecutorResult =>
         executorResult.analysisResults.isFailure
       case _: DuplicationToolExecutorResult =>
+        //TODO
         false
     })
   }

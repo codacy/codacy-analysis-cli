@@ -84,10 +84,8 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
   }
 
   private def sendMetrics(metricsResults: Seq[ResultsUploader.MetricsResults]): Future[Either[String, Unit]] = {
-
     sequenceUploads(metricsResults.map { metricsResult =>
       codacyClient.sendRemoteMetrics(metricsResult.language, commitUuid, metricsResult.fileMetrics)
-
     })
   }
 

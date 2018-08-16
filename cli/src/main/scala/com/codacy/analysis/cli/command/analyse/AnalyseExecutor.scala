@@ -73,7 +73,7 @@ class AnalyseExecutor(toolInput: Option[String],
             case metricsTool: MetricsTool =>
               val analysisResults = metrics(metricsTool, filesTarget, localConfigurationFile)
               analysisResults.foreach(results => formatter.addAll(results.to[List]))
-              MetricsToolExecutorResult(metricsTool.languageToRun.name, analysisResults)
+              MetricsToolExecutorResult(metricsTool.languageToRun.name, filesTarget.readableFiles, analysisResults)
             case duplicationTool: DuplicationTool =>
               val analysisResults = duplication(duplicationTool, filesTarget, localConfigurationFile)
               analysisResults.foreach(results => formatter.addAll(results.to[List]))
@@ -196,7 +196,7 @@ object AnalyseExecutor {
   sealed trait ExecutorResult
   final case class IssuesToolExecutorResult(toolName: String, files: Set[Path], analysisResults: Try[Set[ToolResult]])
       extends ExecutorResult
-  final case class MetricsToolExecutorResult(language: String, analysisResults: Try[Set[FileMetrics]])
+  final case class MetricsToolExecutorResult(language: String, files: Set[Path], analysisResults: Try[Set[FileMetrics]])
       extends ExecutorResult
   final case class DuplicationToolExecutorResult() extends ExecutorResult
 
