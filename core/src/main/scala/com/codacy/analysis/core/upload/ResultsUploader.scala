@@ -5,17 +5,16 @@ import java.nio.file.Path
 import cats.implicits._
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.model._
+import com.codacy.analysis.core.utils.EitherOps
 import org.log4s.{Logger, getLogger}
+import shapeless.syntax.std.TupleOps
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 object ResultsUploader {
 
-  final case class ToolResults(tool: String,
-                               files: Set[Path],
-                               results: Set[ToolResult],
-                               fileMetrics: Set[FileMetrics],
-                               duplicationClones: Set[DuplicationClone])
+  final case class ToolResults(tool: String, files: Set[Path], results: Set[ToolResult])
 
   //TODO: Make this a config
   val defaultBatchSize = 50000
@@ -51,15 +50,16 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
       ResultsUploader.defaultBatchSize
   }.getOrElse(ResultsUploader.defaultBatchSize)
 
-  def sendResults(toolResults: Seq[ResultsUploader.ToolResults]): Future[Either[String, Unit]] = {
-    val uploadResultsBatches = toolResults.map { toolResult =>
-      val fileResults = groupResultsByFile(toolResult.files, toolResult.results, toolResult.fileMetrics)
-      uploadResultsBatch(toolResult.tool, batchSize, fileResults)
-    }
+  def sendResults(toolResults: Seq[ResultsUploader.ToolResults],
+                  metricsResults: Seq[MetricsResult]): Future[Either[String, Unit]] = {
+    val sendIssuesFut = sendIssues(toolResults)
+    val sendMetricsFut = codacyClient.sendRemoteMetrics(commitUuid, metricsResults)
 
-    val res = sequenceUploads(uploadResultsBatches).flatMap {
-      case Right(_)        => endUpload()
-      case error @ Left(_) => Future.successful(error)
+    val res: Future[Either[String, Unit]] = (sendIssuesFut, sendMetricsFut).mapN {
+      case eithers =>
+        EitherOps.sequenceFoldingLeft(new TupleOps(eithers).toList)(_ + '\n' + _)
+    }.flatMap { _ =>
+      endUpload()
     }
 
     res.onComplete {
@@ -70,6 +70,15 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
     }
 
     res
+  }
+
+  private def sendIssues(toolResults: Seq[ResultsUploader.ToolResults]): Future[Either[String, Unit]] = {
+    val uploadResultsBatches = toolResults.map { toolResult =>
+      val fileResults = groupResultsByFile(toolResult.files, toolResult.results)
+      uploadResultsBatch(toolResult.tool, batchSize, fileResults)
+    }
+
+    sequenceUploads(uploadResultsBatches)
   }
 
   private def endUpload(): Future[Either[String, Unit]] = {
@@ -109,21 +118,16 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
     fileResultBatches :+ remainingFileResults
   }
 
-  private def groupResultsByFile(files: Set[Path],
-                                 results: Set[ToolResult],
-                                 fileMetrics: Set[FileMetrics]): Set[FileResults] = {
+  private def groupResultsByFile(files: Set[Path], results: Set[ToolResult]): Set[FileResults] = {
 
     val resultsByFile: Map[Path, Set[ToolResult]] = results.groupBy {
       case i: Issue      => i.filename
       case fe: FileError => fe.filename
     }
 
-    files.map(
-      filename =>
-        FileResults(
-          filename = filename,
-          results = resultsByFile.getOrElse(filename, Set.empty[ToolResult]),
-          metrics = fileMetrics.find(_.filename == filename)))(collection.breakOut)
+    files.map(filename =>
+      FileResults(filename = filename, results = resultsByFile.getOrElse(filename, Set.empty[ToolResult])))(
+      collection.breakOut)
   }
 
   private def sequenceUploads(uploads: Seq[Future[Either[String, Unit]]]): Future[Either[String, Unit]] = {

@@ -1,6 +1,11 @@
 package com.codacy.analysis.cli.analysis
 
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.ExecutorResult
+import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.{
+  DuplicationToolExecutorResult,
+  ExecutorResult,
+  IssuesToolExecutorResult,
+  MetricsToolExecutorResult
+}
 
 object ExitStatus {
 
@@ -16,16 +21,11 @@ object ExitStatus {
 class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
 
   def exitCode(executorResultsEither: Either[String, Seq[ExecutorResult]], uploadResult: Either[String, Unit]): Int = {
-    val resultsCount = executorResultsEither
-      .getOrElse(Seq.empty[ExecutorResult])
-      .map { executorResult =>
-        executorResult.analysisResults.map(_.size).getOrElse(0)
-      }
-      .sum
+    val resultsCount = countResults(executorResultsEither)
 
     if (executorResultsEither.isLeft) {
       ExitStatus.ExitCodes.failedAnalysis
-    } else if (failIfIncomplete && executorResultsEither.exists(_.exists(_.analysisResults.isFailure))) {
+    } else if (failIfIncomplete && existsFailure(executorResultsEither)) {
       ExitStatus.ExitCodes.partiallyFailedAnalysis
     } else if (resultsCount > maxAllowedIssues) {
       ExitStatus.ExitCodes.maxAllowedIssuesExceeded
@@ -34,6 +34,30 @@ class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
     } else {
       ExitStatus.ExitCodes.success
     }
+  }
+
+  private def countResults(executorResultsEither: Either[String, Seq[ExecutorResult]]): Int = {
+    executorResultsEither
+      .getOrElse(Seq.empty[ExecutorResult])
+      .map {
+        case executorResult: IssuesToolExecutorResult =>
+          executorResult.analysisResults.map(_.size).getOrElse(0)
+        case _ =>
+          0
+      }
+      .sum
+  }
+
+  private def existsFailure(executorResultsEither: Either[String, Seq[ExecutorResult]]): Boolean = {
+    executorResultsEither.exists(_.exists {
+      case executorResult: IssuesToolExecutorResult =>
+        executorResult.analysisResults.isFailure
+      case executorResult: MetricsToolExecutorResult =>
+        executorResult.analysisResults.isFailure
+      case _: DuplicationToolExecutorResult =>
+        //TODO
+        false
+    })
   }
 
 }
