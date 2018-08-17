@@ -17,6 +17,8 @@ object ResultsUploader {
 
   final case class ToolResults(tool: String, files: Set[Path], results: Either[String, Set[ToolResult]])
 
+  final case class DuplicationResults(language: String, dupication: Set[DuplicationResult])
+
   //TODO: Make this a config
   val defaultBatchSize = 50000
 
@@ -52,7 +54,8 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
   }.getOrElse(ResultsUploader.defaultBatchSize)
 
   def sendResults(toolResults: Seq[ResultsUploader.ToolResults],
-                  metricsResults: Seq[MetricsResult]): Future[Either[String, Unit]] = {
+                  metricsResults: Seq[MetricsResult],
+                  duplicationResults: Seq[ResultsUploader.DuplicationResults]): Future[Either[String, Unit]] = {
 
     val sendIssuesFut = if (toolResults.nonEmpty) {
       sendIssues(toolResults)
@@ -66,8 +69,14 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
       logger.info("There are no metrics to upload.")
       Future.successful(().asRight[String])
     }
+    val sendDuplicationFut = if (duplicationResults.nonEmpty) {
+      sendDuplication(duplicationResults)
+    } else {
+      logger.info("There are no metrics to upload.")
+      Future.successful(().asRight[String])
+    }
 
-    val res: Future[Either[String, Unit]] = (sendIssuesFut, sendMetricsFut).mapN {
+    val res: Future[Either[String, Unit]] = (sendIssuesFut, sendMetricsFut, sendDuplicationFut).mapN {
       case eithers =>
         EitherOps.sequenceFoldingLeft(new TupleOps(eithers).toList)(_ + '\n' + _)
     }.flatMap { _ =>
@@ -91,6 +100,13 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
     }
 
     sequenceUploads(uploadResultsBatches)
+  }
+
+  private def sendDuplication(
+    duplicationResults: Seq[ResultsUploader.DuplicationResults]): Future[Either[String, Unit]] = {
+    sequenceUploads(duplicationResults.map { duplicationResult =>
+      codacyClient.sendRemoteDuplication(duplicationResult.language, commitUuid, duplicationResult.dupication)
+    })
   }
 
   private def endUpload(): Future[Either[String, Unit]] = {

@@ -98,7 +98,7 @@ class MainImpl extends CLIApp {
       executorResults <- executorResultsEither
     } yield {
       uploaderOpt.map { uploader =>
-        val (issuesToolExecutorResult, metricsToolExecutorResult, _) =
+        val (issuesToolExecutorResult, metricsToolExecutorResult, duplicationToolExecutorResult) =
           executorResults
             .partitionSubtypes[IssuesToolExecutorResult, MetricsToolExecutorResult, DuplicationToolExecutorResult]
 
@@ -110,9 +110,42 @@ class MainImpl extends CLIApp {
 
         val metricsResultsSeq: Seq[MetricsResult] = metricsResults(metricsPerLanguageSeq)
 
-        uploader.sendResults(issuesResultsSeq, metricsResultsSeq)
+        val duplicationPerLanguageSeq = duplicationPerLanguage(duplicationToolExecutorResult)
+
+        val duplicationResultsSeq: Seq[ResultsUploader.DuplicationResults] =
+          duplicationResults(duplicationPerLanguageSeq)
+
+        uploader.sendResults(issuesResultsSeq, metricsResultsSeq, duplicationResultsSeq)
       }.getOrElse(Future.successful(().asRight[String]))
     }).fold(err => Future.successful(err.asLeft[Unit]), identity)
+  }
+
+  def duplicationResults(languageAndToolResultSeq: Seq[(String, (Set[Path], Either[Throwable, Set[DuplicationClone]]))])
+    : Seq[ResultsUploader.DuplicationResults] = {
+    languageAndToolResultSeq.groupBy {
+      case (language, _) => language
+    }.map {
+      case (language, languageAndFileMetricsSeq) =>
+        val results: Set[DuplicationResult] = languageAndFileMetricsSeq.map {
+          case (_, (files, Right(duplicationClones))) =>
+            val duplication = Duplication(files, duplicationClones)
+            DuplicationResult(Right(duplication))
+          case (_, (_, Left(err))) =>
+            DuplicationResult(Left(err.getMessage))
+        }(collection.breakOut)
+
+        ResultsUploader.DuplicationResults(language, results)
+    }(collection.breakOut)
+  }
+
+  private def duplicationPerLanguage(duplicationExecutorToolResults: Seq[DuplicationToolExecutorResult])
+    : Seq[(String, (Set[Path], Either[Throwable, Set[DuplicationClone]]))] = {
+    duplicationExecutorToolResults.flatMap {
+      case DuplicationToolExecutorResult(language, files, Success(duplicationClones)) =>
+        Option((language, (files, Right(duplicationClones))))
+      case DuplicationToolExecutorResult(language, files, Failure(err)) =>
+        Option((language, (files, Left(err))))
+    }
   }
 
   private def metricsResults(

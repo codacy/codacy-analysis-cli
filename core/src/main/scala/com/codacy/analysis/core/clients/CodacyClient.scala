@@ -6,6 +6,7 @@ import cats.implicits._
 import com.codacy.analysis.core.clients.api.{CodacyError, ProjectConfiguration, RemoteResultResponse}
 import com.codacy.analysis.core.model.IssuesAnalysis.FileResults
 import com.codacy.analysis.core.model._
+import com.codacy.analysis.core.upload.ResultsUploader.DuplicationResults
 import com.codacy.analysis.core.utils.HttpHelper
 import com.codacy.plugins.api.languages.{Language, Languages}
 import io.circe.generic.auto._
@@ -56,6 +57,20 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
+  def sendRemoteDuplication(language: String,
+                            commitUuid: String,
+                            results: Set[DuplicationResult]): Future[Either[String, Unit]] = {
+    credentials match {
+      case token: APIToken =>
+        sendRemoteDuplicationTo(
+          s"/${token.userName}/${token.projectName}/commit/$commitUuid/duplicationRemoteResults",
+          language,
+          results)
+      case _: ProjectToken =>
+        sendRemoteDuplicationTo(s"/commit/$commitUuid/duplicationRemoteResults", language, results)
+    }
+  }
+
   def sendEndOfResults(commitUuid: String): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
@@ -81,6 +96,20 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
           Left(error.message)
         case Right(json) =>
           logger.info(s"""Success posting batch of ${metrics.size} files metrics to endpoint "$endpoint" """)
+          validateRemoteResultsResponse(json)
+      }
+    }
+
+  private def sendRemoteDuplicationTo(endpoint: String,
+                                      language: String,
+                                      duplication: Set[DuplicationResult]): Future[Either[String, Unit]] =
+    Future {
+      http.post(endpoint, Some(Seq(DuplicationResults(language, duplication)).asJson)) match {
+        case Left(error) =>
+          logger.error(error)(s"Error posting data to endpoint $endpoint")
+          Left(error.message)
+        case Right(json) =>
+          logger.info(s"""Success posting batch of ${duplication.size} duplication clones to endpoint "$endpoint" """)
           validateRemoteResultsResponse(json)
       }
     }
