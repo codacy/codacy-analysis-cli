@@ -37,14 +37,14 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
           "with successful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsTest(success = true, apiCredentials)
             // scalafix:off NoInfer.any
-            codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beRight.awaitFor(Int.MaxValue.seconds)
+            codacyClient.sendRemoteIssues(tool, commitUuid, Right(Set())) must beRight.awaitFor(Int.MaxValue.seconds)
             // scalafix:on NoInfer.any NoInfer.any
             there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
           "with unsuccessful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsTest(success = false, apiCredentials)
             // scalafix:off NoInfer.any
-            val remoteResults = codacyClient.sendRemoteResults(tool, commitUuid, Set())
+            val remoteResults = codacyClient.sendRemoteIssues(tool, commitUuid, Right(Set()))
             remoteResults must beLeft.awaitFor(Int.MaxValue.seconds)
             // scalafix:on NoInfer.any
             remoteResults must beLike[Either[String, Unit]] {
@@ -57,7 +57,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         "with Project Token with successful return" in {
           val (codacyClient, httpHelper) = setupRemoteResultsTest(success = true, projectCredentials)
           // scalafix:off NoInfer.any
-          codacyClient.sendRemoteResults(tool, commitUuid, Set()) must beRight.awaitFor(Int.MaxValue.seconds)
+          codacyClient.sendRemoteIssues(tool, commitUuid, Right(Set())) must beRight.awaitFor(Int.MaxValue.seconds)
           // scalafix:on NoInfer.any
           there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
         }

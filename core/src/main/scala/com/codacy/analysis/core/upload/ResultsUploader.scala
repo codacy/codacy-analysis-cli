@@ -14,7 +14,7 @@ import scala.util.{Failure, Success}
 
 object ResultsUploader {
 
-  final case class ToolResults(tool: String, files: Set[Path], results: Set[ToolResult])
+  final case class ToolResults(tool: String, files: Set[Path], results: Either[String, Set[ToolResult]])
 
   //TODO: Make this a config
   val defaultBatchSize = 50000
@@ -87,47 +87,55 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
 
   private def uploadResultsBatch(tool: String,
                                  batchSize: Int,
-                                 results: Set[FileResults]): Future[Either[String, Unit]] = {
+                                 results: Either[String, Set[FileResults]]): Future[Either[String, Unit]] = {
     val fileResultBatches = splitInBatches(batchSize, results)
     uploadResultBatches(tool, fileResultBatches)
   }
 
-  private def uploadResultBatches(tool: String,
-                                  fileResultBatches: Seq[Set[FileResults]]): Future[Either[String, Unit]] = {
-    val responses = fileResultBatches.map { fileResultBatch =>
-      codacyClient.sendRemoteResults(tool, commitUuid, fileResultBatch)
-    }
+  private def uploadResultBatches(
+    tool: String,
+    fileResultBatches: Either[String, Seq[Set[FileResults]]]): Future[Either[String, Unit]] = {
+
+    val responses: Seq[Future[Either[String, Unit]]] = fileResultBatches.fold(
+      error => Seq(codacyClient.sendRemoteIssues(tool, commitUuid, Left(error))),
+      _.map(fileResultBatch => codacyClient.sendRemoteIssues(tool, commitUuid, Right(fileResultBatch))))
+
     sequenceUploads(responses)
   }
 
-  private def splitInBatches(batchSize: Int, results: Set[FileResults]): List[Set[FileResults]] = {
+  private def splitInBatches(
+    batchSize: Int,
+    resultsEither: Either[String, Set[FileResults]]): Either[String, List[Set[FileResults]]] = {
 
     def exceedsBatch(accumulatedFileResults: Set[FileResults], fileResults: FileResults): Boolean = {
       (accumulatedFileResults.map(_.results.size).sum + fileResults.results.size) >= batchSize
     }
 
-    val (remainingFileResults, fileResultBatches) =
-      results.foldLeft((Set.empty[FileResults], List.empty[Set[FileResults]])) {
-        case ((accumulatedFileResults, resultBatches), fileResults)
-            if exceedsBatch(accumulatedFileResults, fileResults) =>
-          (Set(fileResults), resultBatches :+ accumulatedFileResults)
+    resultsEither.map { results =>
+      val (remainingFileResults, fileResultBatches) =
+        results.foldLeft((Set.empty[FileResults], List.empty[Set[FileResults]])) {
+          case ((accumulatedFileResults, resultBatches), fileResults)
+              if exceedsBatch(accumulatedFileResults, fileResults) =>
+            (Set(fileResults), resultBatches :+ accumulatedFileResults)
 
-        case ((accumulatedFileResults, resultBatches), fileResults) =>
-          (accumulatedFileResults + fileResults, resultBatches)
-      }
-    fileResultBatches :+ remainingFileResults
+          case ((accumulatedFileResults, resultBatches), fileResults) =>
+            (accumulatedFileResults + fileResults, resultBatches)
+        }
+      fileResultBatches :+ remainingFileResults
+    }
   }
 
-  private def groupResultsByFile(files: Set[Path], results: Set[ToolResult]): Set[FileResults] = {
+  private def groupResultsByFile(files: Set[Path],
+                                 results: Either[String, Set[ToolResult]]): Either[String, Set[FileResults]] = {
 
-    val resultsByFile: Map[Path, Set[ToolResult]] = results.groupBy {
+    val resultsByFileEither: Either[String, Map[Path, Set[ToolResult]]] = results.map(_.groupBy {
       case i: Issue      => i.filename
       case fe: FileError => fe.filename
-    }
+    })
 
-    files.map(filename =>
-      FileResults(filename = filename, results = resultsByFile.getOrElse(filename, Set.empty[ToolResult])))(
-      collection.breakOut)
+    resultsByFileEither.map(resultsByFile =>
+      files.map(filename =>
+        FileResults(filename = filename, results = resultsByFile.getOrElse(filename, Set.empty[ToolResult]))))
   }
 
   private def sequenceUploads(uploads: Seq[Future[Either[String, Unit]]]): Future[Either[String, Unit]] = {

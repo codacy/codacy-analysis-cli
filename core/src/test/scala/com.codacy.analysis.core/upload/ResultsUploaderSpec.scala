@@ -78,12 +78,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         Future.successful(().asRight[String])
       })
 
-      when(codacyClient.getRemoteConfiguration).thenReturn(ProjectConfiguration(
-        Set.empty,
-        Some(Set.empty),
-        Set.empty,
-        Set.empty)
-        .asRight[String])
+      when(codacyClient.getRemoteConfiguration)
+        .thenReturn(ProjectConfiguration(Set.empty, Some(Set.empty), Set.empty, Set.empty).asRight[String])
 
       when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
 
@@ -93,12 +89,14 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       def testFileMetrics(i: Int) = {
         FileWithMetrics(
           Paths.get(s"some/path/file$i"),
-          Some(Metrics(complexity = Some(10),
-          loc = Some(11),
-          cloc = Some(12),
-          nrMethods = Some(14),
-          nrClasses = Some(15),
-          lineComplexities = Set(LineComplexity(1, 2), LineComplexity(3, 4), LineComplexity(5, 6)))))
+          Some(
+            Metrics(
+              complexity = Some(10),
+              loc = Some(11),
+              cloc = Some(12),
+              nrMethods = Some(14),
+              nrClasses = Some(15),
+              lineComplexities = Set(LineComplexity(1, 2), LineComplexity(3, 4), LineComplexity(5, 6)))))
       }
 
       val testMetrics = Seq(
@@ -107,7 +105,10 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
       uploader.sendResults(Seq.empty, testMetrics) must beRight.awaitFor(10.seconds)
 
-      there were no(codacyClient).sendRemoteResults(ArgumentMatchers.any[String], ArgumentMatchers.any[String], ArgumentMatchers.any[Set[FileResults]])
+      there were no(codacyClient).sendRemoteIssues(
+        ArgumentMatchers.any[String],
+        ArgumentMatchers.any[String],
+        ArgumentMatchers.any[Either[String, Set[FileResults]]])
 
       there was one(codacyClient).sendRemoteMetrics(ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Seq[MetricsResult]])
 
@@ -129,17 +130,17 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         ResultsUploader(Option(codacyClient), upload = true, Option(commitUuid), Option(batchSize)).right.get.get
 
       when(
-        codacyClient.sendRemoteResults(
+        codacyClient.sendRemoteIssues(
           ArgumentMatchers.eq(tool),
           ArgumentMatchers.eq(commitUuid),
-          ArgumentMatchers.any[Set[FileResults]])).thenAnswer((invocation: InvocationOnMock) => {
+          ArgumentMatchers.any[Either[String, Set[FileResults]]])).thenAnswer((invocation: InvocationOnMock) => {
         Future.successful(().asRight[String])
       })
       when(
-        codacyClient.sendRemoteResults(
+        codacyClient.sendRemoteIssues(
           ArgumentMatchers.eq(otherTool),
           ArgumentMatchers.eq(commitUuid),
-          ArgumentMatchers.any[Set[FileResults]])).thenAnswer((invocation: InvocationOnMock) => {
+          ArgumentMatchers.any[Either[String, Set[FileResults]]])).thenAnswer((invocation: InvocationOnMock) => {
         Future.successful(().asRight[String])
       })
 
@@ -155,8 +156,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       // scalafix:off NoInfer.any
       uploader.sendResults(
         Seq(
-          ResultsUploader.ToolResults(tool, filenames, exampleResults),
-          ResultsUploader.ToolResults(otherTool, otherFilenames, Set.empty[ToolResult])),
+          ResultsUploader.ToolResults(tool, filenames, Right(exampleResults)),
+          ResultsUploader.ToolResults(otherTool, otherFilenames, Right(Set.empty[ToolResult]))),
         Seq.empty) must beRight.awaitFor(10.minutes)
       // scalafix:on NoInfer.any
 
@@ -179,10 +180,10 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
                                   expectedNrOfBatches: Int): MatchResult[Future[Either[String, Unit]]] = {
     there was expectedNrOfBatches
       .times(codacyClient)
-      .sendRemoteResults(
+      .sendRemoteIssues(
         ArgumentMatchers.eq(tool),
         ArgumentMatchers.eq(commitUuid),
-        ArgumentMatchers.any[Set[FileResults]])
+        ArgumentMatchers.any[Either[String, Set[FileResults]]])
 
     there were no(codacyClient).sendRemoteMetrics(
       ArgumentMatchers.any[String],
