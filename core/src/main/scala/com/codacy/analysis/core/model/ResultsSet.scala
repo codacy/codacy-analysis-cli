@@ -24,5 +24,4 @@ final case class Metrics(complexity: Option[Int],
                          nrClasses: Option[Int],
                          lineComplexities: Set[LineComplexity])
 
-final case class DuplicationResult(results: Either[String, Duplication])
-final case class Duplication(files: Set[Path], clones: Set[DuplicationClone])
+final case class DuplicationResult(language: String, duplication: Either[String, Set[DuplicationClone]])

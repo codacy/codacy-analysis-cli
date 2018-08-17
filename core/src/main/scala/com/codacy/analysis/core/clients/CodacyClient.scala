@@ -6,7 +6,6 @@ import cats.implicits._
 import com.codacy.analysis.core.clients.api.{CodacyError, ProjectConfiguration, RemoteResultResponse}
 import com.codacy.analysis.core.model.IssuesAnalysis.FileResults
 import com.codacy.analysis.core.model._
-import com.codacy.analysis.core.upload.ResultsUploader.DuplicationResults
 import com.codacy.analysis.core.utils.HttpHelper
 import com.codacy.plugins.api.languages.{Language, Languages}
 import io.circe.generic.auto._
@@ -57,17 +56,14 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
-  def sendRemoteDuplication(language: String,
-                            commitUuid: String,
-                            results: Set[DuplicationResult]): Future[Either[String, Unit]] = {
+  def sendRemoteDuplication(commitUuid: String, results: Seq[DuplicationResult]): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
         sendRemoteDuplicationTo(
           s"/${token.userName}/${token.projectName}/commit/$commitUuid/duplicationRemoteResults",
-          language,
           results)
       case _: ProjectToken =>
-        sendRemoteDuplicationTo(s"/commit/$commitUuid/duplicationRemoteResults", language, results)
+        sendRemoteDuplicationTo(s"/commit/$commitUuid/duplicationRemoteResults", results)
     }
   }
 
@@ -101,10 +97,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
 
   private def sendRemoteDuplicationTo(endpoint: String,
-                                      language: String,
-                                      duplication: Set[DuplicationResult]): Future[Either[String, Unit]] =
+                                      duplication: Seq[DuplicationResult]): Future[Either[String, Unit]] =
     Future {
-      http.post(endpoint, Some(Seq(DuplicationResults(language, duplication)).asJson)) match {
+      http.post(endpoint, Some(duplication.asJson)) match {
         case Left(error) =>
           logger.error(error)(s"Error posting data to endpoint $endpoint")
           Left(error.message)

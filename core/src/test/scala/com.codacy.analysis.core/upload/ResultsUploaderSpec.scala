@@ -122,12 +122,6 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       val language = "klingon"
       val commitUuid = "12345678900987654321"
 
-      val files: Set[Path] = Set(
-        Paths.get("some/path/1"),
-        Paths.get("some/path/2"),
-        Paths.get("some/path/3")
-      )
-
       when(
         codacyClient.sendRemoteMetrics(
           ArgumentMatchers.eq(commitUuid),
@@ -157,15 +151,15 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       }
 
       val testDuplication = Seq(
-        ResultsUploader.DuplicationResults(
+        DuplicationResult(
           language,
-          Set(DuplicationResult(Right(Duplication(files, Set(testClone(1), testClone(2))))))))
+          Right(Set(testClone(1), testClone(2)))))
 
       uploader.sendResults(Seq.empty, Seq.empty, testDuplication) must beRight.awaitFor(10.seconds)
 
       there were no(codacyClient).sendRemoteIssues(ArgumentMatchers.any[String], ArgumentMatchers.any[String], ArgumentMatchers.any[Either[String, Set[FileResults]]])
 
-      there were one(codacyClient).sendRemoteDuplication(ArgumentMatchers.eq(language), ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Set[DuplicationResult]])
+      there were one(codacyClient).sendRemoteDuplication(ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Seq[DuplicationResult]])
 
       there was no(codacyClient).sendRemoteMetrics(ArgumentMatchers.any[String], ArgumentMatchers.any[Seq[MetricsResult]])
 
