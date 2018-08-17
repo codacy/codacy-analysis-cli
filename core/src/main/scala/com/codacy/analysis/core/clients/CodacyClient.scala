@@ -5,7 +5,6 @@ import java.nio.file.Path
 import cats.implicits._
 import com.codacy.analysis.core.clients.api.{CodacyError, ProjectConfiguration, RemoteResultResponse}
 import com.codacy.analysis.core.model._
-import com.codacy.analysis.core.upload.ResultsUploader.MetricsResults
 import com.codacy.analysis.core.utils.HttpHelper
 import com.codacy.plugins.api.languages.{Language, Languages}
 import io.circe.generic.auto._
@@ -46,16 +45,11 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
-  def sendRemoteMetrics(language: String,
-                        commitUuid: String,
-                        results: Set[MetricsResult]): Future[Either[String, Unit]] = {
+  def sendRemoteMetrics(commitUuid: String, results: Seq[MetricsResult]): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
-        sendRemoteMetricsTo(
-          s"/${token.userName}/${token.projectName}/commit/$commitUuid/metricsRemoteResults",
-          language,
-          results)
-      case _: ProjectToken => sendRemoteMetricsTo(s"/commit/$commitUuid/metricsRemoteResults", language, results)
+        sendRemoteMetricsTo(s"/${token.userName}/${token.projectName}/commit/$commitUuid/metricsRemoteResults", results)
+      case _: ProjectToken => sendRemoteMetricsTo(s"/commit/$commitUuid/metricsRemoteResults", results)
     }
   }
 
@@ -76,11 +70,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     getProjectConfigurationFrom(s"/project/$username/$projectName/analysis/configuration")
   }
 
-  private def sendRemoteMetricsTo(endpoint: String,
-                                  language: String,
-                                  metrics: Set[MetricsResult]): Future[Either[String, Unit]] =
+  private def sendRemoteMetricsTo(endpoint: String, metrics: Seq[MetricsResult]): Future[Either[String, Unit]] =
     Future {
-      http.post(endpoint, Some(Seq(MetricsResults(language, metrics)).asJson)) match {
+      http.post(endpoint, Some(metrics.asJson)) match {
         case Left(error) =>
           logger.error(error)(s"Error posting data to endpoint $endpoint")
           Left(error.message)

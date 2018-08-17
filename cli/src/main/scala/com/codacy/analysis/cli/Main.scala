@@ -107,27 +107,25 @@ class MainImpl extends CLIApp {
         val metricsPerLanguageSeq =
           metricsPerLanguage(metricsToolExecutorResult)
 
-        val metricsResultsSeq: Seq[ResultsUploader.MetricsResults] = metricsResults(metricsPerLanguageSeq)
+        val metricsResultsSeq: Seq[MetricsResult] = metricsResults(metricsPerLanguageSeq)
 
         uploader.sendResults(toolResultSeq, metricsResultsSeq)
       }.getOrElse(Future.successful(().asRight[String]))
     }).fold(err => Future.successful(err.asLeft[Unit]), identity)
   }
 
-  private def metricsResults(languageAndToolResultSeq: Seq[(String, (Set[Path], Either[Throwable, Set[FileMetrics]]))])
-    : Seq[ResultsUploader.MetricsResults] = {
+  private def metricsResults(
+    languageAndToolResultSeq: Seq[(String, (Set[Path], Either[Throwable, Set[FileMetrics]]))]): Seq[MetricsResult] = {
     languageAndToolResultSeq.groupBy {
       case (language, _) => language
-    }.map {
+    }.flatMap {
       case (language, languageAndFileMetricsSeq) =>
-        val results: Set[MetricsResult] = languageAndFileMetricsSeq.map {
+        languageAndFileMetricsSeq.map {
           case (_, (files, Right(fileMetrics))) =>
-            MetricsResult(Right(fileWithMetrics(files, fileMetrics)))
+            MetricsResult(language, Right(fileWithMetrics(files, fileMetrics)))
           case (_, (_, Left(err))) =>
-            MetricsResult(Left(err.getMessage))
+            MetricsResult(language, Left(err.getMessage))
         }(collection.breakOut)
-
-        ResultsUploader.MetricsResults(language, results)
     }(collection.breakOut)
   }
 

@@ -16,8 +16,6 @@ object ResultsUploader {
 
   final case class ToolResults(tool: String, files: Set[Path], results: Set[ToolResult])
 
-  final case class MetricsResults(language: String, fileMetrics: Set[MetricsResult])
-
   //TODO: Make this a config
   val defaultBatchSize = 50000
 
@@ -53,9 +51,9 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
   }.getOrElse(ResultsUploader.defaultBatchSize)
 
   def sendResults(toolResults: Seq[ResultsUploader.ToolResults],
-                  metricsResults: Seq[ResultsUploader.MetricsResults]): Future[Either[String, Unit]] = {
+                  metricsResults: Seq[MetricsResult]): Future[Either[String, Unit]] = {
     val sendIssuesFut = sendIssues(toolResults)
-    val sendMetricsFut = sendMetrics(metricsResults)
+    val sendMetricsFut = codacyClient.sendRemoteMetrics(commitUuid, metricsResults)
 
     val res: Future[Either[String, Unit]] = (sendIssuesFut, sendMetricsFut).mapN {
       case eithers =>
@@ -81,12 +79,6 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
     }
 
     sequenceUploads(uploadResultsBatches)
-  }
-
-  private def sendMetrics(metricsResults: Seq[ResultsUploader.MetricsResults]): Future[Either[String, Unit]] = {
-    sequenceUploads(metricsResults.map { metricsResult =>
-      codacyClient.sendRemoteMetrics(metricsResult.language, commitUuid, metricsResult.fileMetrics)
-    })
   }
 
   private def endUpload(): Future[Either[String, Unit]] = {

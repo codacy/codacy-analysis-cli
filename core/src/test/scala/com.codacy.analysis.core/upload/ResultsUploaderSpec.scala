@@ -73,9 +73,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
       when(
         codacyClient.sendRemoteMetrics(
-          ArgumentMatchers.eq(language),
           ArgumentMatchers.eq(commitUuid),
-          ArgumentMatchers.any[Set[MetricsResult]])).thenAnswer((invocation: InvocationOnMock) => {
+          ArgumentMatchers.any[Seq[MetricsResult]])).thenAnswer((invocation: InvocationOnMock) => {
         Future.successful(().asRight[String])
       })
 
@@ -103,15 +102,14 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       }
 
       val testMetrics = Seq(
-        ResultsUploader.MetricsResults(
-          language,
-          Set(MetricsResult(Right(Set(testFileMetrics(1), testFileMetrics(2), testFileMetrics(3)))))))
+        MetricsResult(language, Right(Set(testFileMetrics(1), testFileMetrics(2), testFileMetrics(3))))
+      )
 
       uploader.sendResults(Seq.empty, testMetrics) must beRight.awaitFor(10.seconds)
 
       there were no(codacyClient).sendRemoteResults(ArgumentMatchers.any[String], ArgumentMatchers.any[String], ArgumentMatchers.any[Set[FileResults]])
 
-      there was one(codacyClient).sendRemoteMetrics(ArgumentMatchers.eq(language), ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Set[MetricsResult]])
+      there was one(codacyClient).sendRemoteMetrics(ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Seq[MetricsResult]])
 
       there was one(codacyClient).sendEndOfResults(commitUuid)
     }
@@ -188,8 +186,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
     there were no(codacyClient).sendRemoteMetrics(
       ArgumentMatchers.any[String],
-      ArgumentMatchers.any[String],
-      ArgumentMatchers.any[Set[MetricsResult]])
+      ArgumentMatchers.any[Seq[MetricsResult]])
 
     there was one(codacyClient).sendEndOfResults(ArgumentMatchers.eq(commitUuid))
   }
