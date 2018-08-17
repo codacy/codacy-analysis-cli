@@ -2,6 +2,7 @@ package com.codacy.analysis.cli
 
 import better.files.File
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
+import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.NonExistingToolInput
 import com.codacy.analysis.core.clients.api.{ProjectConfiguration, ToolConfiguration}
 import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, LanguageConfiguration}
 import com.codacy.analysis.core.files.FilesTarget
@@ -158,8 +159,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val toolEither = AnalyseExecutor
         .tools(Some(toolName), remoteProjectConfiguration, allowNetwork = false, languages)
 
-      toolEither must beLeft(
-        s"The tool $toolName needs network access to execute. Run with the parameter 'allow-network'.")
+      toolEither must beLeft(NonExistingToolInput(toolName))
     }
 
     "list tools that need access to the network if this argument is provided" in {
