@@ -52,8 +52,19 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
 
   def sendResults(toolResults: Seq[ResultsUploader.ToolResults],
                   metricsResults: Seq[MetricsResult]): Future[Either[String, Unit]] = {
-    val sendIssuesFut = sendIssues(toolResults)
-    val sendMetricsFut = codacyClient.sendRemoteMetrics(commitUuid, metricsResults)
+
+    val sendIssuesFut = if (toolResults.nonEmpty) {
+      sendIssues(toolResults)
+    } else {
+      logger.info("There are no issues to upload.")
+      Future(().asRight[String])
+    }
+    val sendMetricsFut = if (metricsResults.nonEmpty) {
+      codacyClient.sendRemoteMetrics(commitUuid, metricsResults)
+    } else {
+      logger.info("There are no metrics to upload.")
+      Future(().asRight[String])
+    }
 
     val res: Future[Either[String, Unit]] = (sendIssuesFut, sendMetricsFut).mapN {
       case eithers =>
