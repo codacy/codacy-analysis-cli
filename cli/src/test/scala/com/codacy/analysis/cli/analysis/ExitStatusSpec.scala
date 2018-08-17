@@ -3,6 +3,7 @@ package com.codacy.analysis.cli.analysis
 import java.nio.file.Paths
 
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.IssuesToolExecutorResult
+import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.core.model.{FullLocation, Issue}
 import com.codacy.plugins.api.results.{Pattern, Result}
 import org.specs2.control.NoLanguageFeatures
@@ -17,7 +18,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
   "ExitStatus" should {
 
     "send failed analysis code" in {
-      new ExitStatus(3).exitCode(Left("Failed analysis"), Right(())) should beEqualTo(
+      new ExitStatus(3).exitCode(Left(AnalyseExecutor.FilesAccessError), Right(())) should beEqualTo(
         ExitStatus.ExitCodes.failedAnalysis)
     }
 

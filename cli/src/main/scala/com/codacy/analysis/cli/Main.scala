@@ -7,12 +7,7 @@ import cats.implicits._
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.{
-  DuplicationToolExecutorResult,
-  ExecutorResult,
-  IssuesToolExecutorResult,
-  MetricsToolExecutorResult
-}
+import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
 import com.codacy.analysis.cli.configuration.Environment
 import com.codacy.analysis.cli.formatter.Formatter
@@ -49,31 +44,21 @@ class MainImpl extends CLIApp {
   }
 
   private def runAnalysis(analyse: Analyse): Int = {
-    if (isValidTool(analyse.tool)) {
-      cleanup(analyse.directory)
-      Logger.setLevel(analyse.options.verboseValue)
+    cleanup(analyse.directory)
+    Logger.setLevel(analyse.options.verboseValue)
 
-      val environment = new Environment(sys.env)
-      val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
+    val environment = new Environment(sys.env)
+    val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
 
-      val analysisResults = analysis(analyse, codacyClientOpt)
+    val analysisResults = analysis(analyse, codacyClientOpt)
 
-      val uploadResult = upload(analyse, codacyClientOpt, analysisResults)
+    val uploadResult = upload(analyse, codacyClientOpt, analysisResults)
 
-      new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult)
-    } else {
-      analyse.tool.foreach(tool =>
-        logger.error(
-          s"""Error: The selected tool "$tool" is not supported or does not exist. Use the --help option to get more information about available tools"""))
-      new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).nonExistentTool()
-    }
+    new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult)
   }
 
-  private def isValidTool(toolInput: Option[String]): Boolean = {
-    toolInput.fold(true)(AnalyseExecutor.isValidTool)
-  }
-
-  private def analysis(analyse: Analyse, codacyClientOpt: Option[CodacyClient]): Either[String, Seq[ExecutorResult]] = {
+  private def analysis(analyse: Analyse,
+                       codacyClientOpt: Option[CodacyClient]): Either[ExecutorErrorMessage, Seq[ExecutorResult]] = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
@@ -97,7 +82,10 @@ class MainImpl extends CLIApp {
       analyse.toolTimeout).run()
   }
 
-  private def upload(analyse: Analyse, codacyClientOpt: Option[CodacyClient], analysisResults: Either[String, Seq[AnalyseExecutor.ExecutorResult]]) = {
+  private def upload(
+    analyse: Analyse,
+    codacyClientOpt: Option[CodacyClient],
+    analysisResults: Either[AnalyseExecutor.ExecutorErrorMessage, Seq[AnalyseExecutor.ExecutorResult]]) = {
     val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
 
     if (analyse.uploadValue) {
@@ -118,10 +106,10 @@ class MainImpl extends CLIApp {
   private def uploadResults(codacyClientOpt: Option[CodacyClient])(
     upload: Boolean,
     commitUuid: Option[String],
-    executorResultsEither: Either[String, Seq[ExecutorResult]]): Future[Either[String, Unit]] = {
+    executorResultsEither: Either[ExecutorErrorMessage, Seq[ExecutorResult]]): Future[Either[String, Unit]] = {
     (for {
       uploaderOpt <- ResultsUploader(codacyClientOpt, upload, commitUuid)
-      executorResults <- executorResultsEither
+      executorResults <- executorResultsEither.left.map(AnalyseExecutor.message)
     } yield {
       uploaderOpt.map { uploader =>
         val (issuesToolExecutorResult, metricsToolExecutorResult, duplicationToolExecutorResult) =
