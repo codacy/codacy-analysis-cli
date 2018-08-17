@@ -44,32 +44,39 @@ class MainImpl extends CLIApp {
   def runCommand(command: Command): Int = {
     command match {
       case analyse: Analyse =>
-        if (isValidTool(analyse.tool)) {
-          cleanup(analyse.directory)
-          Logger.setLevel(analyse.options.verboseValue)
-          runAnalysis(analyse)
-        } else {
-          analyse.tool.foreach(tool =>
-            logger.error(
-              s"""Error: The selected tool "$tool" is not supported or does not exist. Use the --help option to get more information about available tools"""))
-          new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).nonExistentTool()
-        }
-    }
-  }
-
-  private def isValidTool(toolInput: Option[String]): Boolean = {
-    toolInput match {
-      case Some(tool) => AnalyseExecutor.isValidTool(tool)
-      case None       => false
+        runAnalysis(analyse)
     }
   }
 
   private def runAnalysis(analyse: Analyse): Int = {
+    if (isValidTool(analyse.tool)) {
+      cleanup(analyse.directory)
+      Logger.setLevel(analyse.options.verboseValue)
+
+      val environment = new Environment(sys.env)
+      val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
+
+      val analysisResults = analysis(analyse, codacyClientOpt)
+
+      val uploadResult = upload(analyse, codacyClientOpt, analysisResults)
+
+      new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult)
+    } else {
+      analyse.tool.foreach(tool =>
+        logger.error(
+          s"""Error: The selected tool "$tool" is not supported or does not exist. Use the --help option to get more information about available tools"""))
+      new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).nonExistentTool()
+    }
+  }
+
+  private def isValidTool(toolInput: Option[String]): Boolean = {
+    toolInput.fold(true)(AnalyseExecutor.isValidTool)
+  }
+
+  private def analysis(analyse: Analyse, codacyClientOpt: Option[CodacyClient]): Either[String, Seq[ExecutorResult]] = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
-    val environment = new Environment(sys.env)
-    val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
 
     val remoteProjectConfiguration: Either[String, ProjectConfiguration] = codacyClientOpt.fold {
       "No credentials found.".asLeft[ProjectConfiguration]
@@ -77,7 +84,7 @@ class MainImpl extends CLIApp {
       _.getRemoteConfiguration
     }
 
-    val analysisResults = new AnalyseExecutor(
+    new AnalyseExecutor(
       analyse.tool,
       analyse.directory,
       formatter,
@@ -88,10 +95,12 @@ class MainImpl extends CLIApp {
       analyse.allowNetworkValue,
       analyse.forceFilePermissionsValue,
       analyse.toolTimeout).run()
+  }
 
+  private def upload(analyse: Analyse, codacyClientOpt: Option[CodacyClient], analysisResults: Either[String, Seq[AnalyseExecutor.ExecutorResult]]) = {
     val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
 
-    val uploadResult = if (analyse.uploadValue) {
+    if (analyse.uploadValue) {
       Try(Await.result(uploadResultFut, Duration.Inf)) match {
         case Failure(err) =>
           logger.error(err.getMessage)
@@ -104,8 +113,6 @@ class MainImpl extends CLIApp {
           Right(())
       }
     } else Right(())
-
-    new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult)
   }
 
   private def uploadResults(codacyClientOpt: Option[CodacyClient])(

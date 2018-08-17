@@ -91,6 +91,7 @@ docker run \
 * :tada: 0: Success
 * :cold_sweat: 1: Failed Analysis
 * :frowning: 2: Partially Failed Analysis
+* :angry: 3: Non-existent tool provided as input
 * :weary: 101: Failed Upload
 * :cop: 201: Max Allowed Issues Exceeded
 
