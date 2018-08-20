@@ -108,10 +108,9 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         ArgumentMatchers.any[String],
         ArgumentMatchers.any[Either[String, Set[FileResults]]])
 
-      there was one(codacyClient)
-        .sendRemoteMetrics(ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Seq[MetricsResult]])
+      there was no(codacyClient).sendRemoteDuplication(ArgumentMatchers.any[String], ArgumentMatchers.any[Seq[DuplicationResult]])
 
-      there was one(codacyClient).sendRemoteMetrics(ArgumentMatchers.eq(language), ArgumentMatchers.any[Seq[MetricsResult]])
+      there was one(codacyClient).sendRemoteMetrics(ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Seq[MetricsResult]])
 
       there was one(codacyClient).sendEndOfResults(commitUuid)
     }
@@ -123,9 +122,9 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       val commitUuid = "12345678900987654321"
 
       when(
-        codacyClient.sendRemoteMetrics(
+        codacyClient.sendRemoteDuplication(
           ArgumentMatchers.eq(commitUuid),
-          ArgumentMatchers.any[Seq[MetricsResult]])).thenAnswer((invocation: InvocationOnMock) => {
+          ArgumentMatchers.any[Seq[DuplicationResult]])).thenAnswer((invocation: InvocationOnMock) => {
         Future.successful(().asRight[String])
       })
 
@@ -237,6 +236,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
     there were no(codacyClient)
       .sendRemoteMetrics(ArgumentMatchers.any[String], ArgumentMatchers.any[Seq[MetricsResult]])
+
+    there were no(codacyClient).sendRemoteDuplication(ArgumentMatchers.any[String], ArgumentMatchers.any[Seq[DuplicationResult]])
 
     there was one(codacyClient).sendEndOfResults(ArgumentMatchers.eq(commitUuid))
   }

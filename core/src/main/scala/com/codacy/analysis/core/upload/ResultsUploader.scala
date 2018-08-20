@@ -68,7 +68,7 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
       Future.successful(().asRight[String])
     }
     val sendDuplicationFut = if (duplicationResults.nonEmpty) {
-      sendDuplication(duplicationResults)
+      codacyClient.sendRemoteDuplication(commitUuid, duplicationResults)
     } else {
       logger.info("There are no metrics to upload.")
       Future.successful(().asRight[String])
@@ -98,10 +98,6 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
     }
 
     sequenceUploads(uploadResultsBatches)
-  }
-
-  private def sendDuplication(duplicationResults: Seq[DuplicationResult]): Future[Either[String, Unit]] = {
-    codacyClient.sendRemoteDuplication(commitUuid, duplicationResults)
   }
 
   private def endUpload(): Future[Either[String, Unit]] = {
