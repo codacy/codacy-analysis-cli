@@ -4,6 +4,7 @@ import java.nio.file.Path
 
 import cats.implicits._
 import com.codacy.analysis.core.clients.api.{CodacyError, ProjectConfiguration, RemoteResultResponse}
+import com.codacy.analysis.core.model.IssuesAnalysis.FileResults
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.utils.HttpHelper
 import com.codacy.plugins.api.languages.{Language, Languages}
@@ -34,7 +35,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
-  def sendRemoteResults(tool: String, commitUuid: String, results: Set[FileResults]): Future[Either[String, Unit]] = {
+  def sendRemoteIssues(tool: String,
+                       commitUuid: String,
+                       results: Either[String, Set[FileResults]]): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
         sendRemoteResultsTo(
@@ -84,16 +87,22 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   private def sendRemoteResultsTo(endpoint: String,
                                   tool: String,
-                                  results: Set[FileResults]): Future[Either[String, Unit]] =
+                                  results: Either[String, Set[FileResults]]): Future[Either[String, Unit]] =
     Future {
-      http.post(endpoint, Some(Seq(ToolResults(tool, results)).asJson)) match {
+      http.post(
+        endpoint,
+        Some(Seq(ToolResults(tool, results.fold(IssuesAnalysis.Failure, IssuesAnalysis.Success))).asJson)) match {
         case Left(error) =>
           logger.error(error)(s"Error posting data to endpoint $endpoint")
           Left(error.message)
         case Right(json) =>
-          logger.info(s"""Success posting batch of ${results.size} files with ${results
-            .map(_.results.size)
-            .sum} results to endpoint "$endpoint" """)
+          results.fold(
+            error => logger.info(s"Success posting analysis error $error"),
+            results =>
+              logger.info(s"""Success posting batch of ${results.size} files with ${results
+                .map(_.results.size)
+                .sum} results to endpoint "$endpoint" """))
+
           validateRemoteResultsResponse(json)
       }
     }
