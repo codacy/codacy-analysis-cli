@@ -88,7 +88,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
                                   tool: String,
                                   results: Either[String, Set[FileResults]]): Future[Either[String, Unit]] =
     Future {
-      http.post(endpoint, Some(Seq(ToolResults(tool, results)).asJson)) match {
+      http
+        .post(endpoint, Some(Seq(ToolResults(tool, results.fold(IssuesAnalysisFailure, IssuesResults))).asJson)) match {
         case Left(error) =>
           logger.error(error)(s"Error posting data to endpoint $endpoint")
           Left(error.message)
