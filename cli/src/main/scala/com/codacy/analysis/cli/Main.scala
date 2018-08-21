@@ -134,14 +134,14 @@ class MainImpl extends CLIApp {
       case (language, languageAndFileMetricsSeq) =>
         languageAndFileMetricsSeq.map {
           case (_, (files, Right(fileMetrics))) =>
-            MetricsResult(language, Right(fileWithMetrics(files, fileMetrics)))
+            MetricsResult(language, MetricsAnalysis.Success(fileWithMetrics(files, fileMetrics)))
           case (_, (_, Left(err))) =>
-            MetricsResult(language, Left(err.getMessage))
+            MetricsResult(language, MetricsAnalysis.Failure(err.getMessage))
         }(collection.breakOut)
     }(collection.breakOut)
   }
 
-  private def fileWithMetrics(allFiles: Set[Path], fileMetrics: Set[FileMetrics]): Set[FileWithMetrics] = {
+  private def fileWithMetrics(allFiles: Set[Path], fileMetrics: Set[FileMetrics]): Set[MetricsAnalysis.FileResults] = {
     allFiles.map { file =>
       val metrics = fileMetrics.find(_.filename == file).map { metrics =>
         Metrics(
@@ -152,7 +152,7 @@ class MainImpl extends CLIApp {
           metrics.nrClasses,
           metrics.lineComplexities)
       }
-      FileWithMetrics(file, metrics)
+      MetricsAnalysis.FileResults(file, metrics)
     }
   }
 

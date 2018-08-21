@@ -86,7 +86,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         ResultsUploader(Option(codacyClient), upload = true, Some(commitUuid), None).right.get.get
 
       def testFileMetrics(i: Int) = {
-        FileWithMetrics(
+        MetricsAnalysis.FileResults(
           Paths.get(s"some/path/file$i"),
           Some(
             Metrics(
@@ -99,7 +99,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       }
 
       val testMetrics =
-        Seq(MetricsResult(language, Right(Set(testFileMetrics(1), testFileMetrics(2), testFileMetrics(3)))))
+        Seq(MetricsResult(language, MetricsAnalysis.Success(Set(testFileMetrics(1), testFileMetrics(2), testFileMetrics(3)))))
 
       uploader.sendResults(Seq.empty, testMetrics, Seq.empty) must beRight.awaitFor(10.seconds)
 

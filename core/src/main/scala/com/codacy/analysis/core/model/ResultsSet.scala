@@ -15,8 +15,17 @@ object IssuesAnalysis {
   final case class FileResults(filename: Path, results: Set[ToolResult])
 }
 
-final case class MetricsResult(language: String, metrics: Either[String, Set[FileWithMetrics]])
-final case class FileWithMetrics(file: Path, metrics: Option[Metrics])
+final case class MetricsResult(language: String, metrics: MetricsAnalysis)
+
+sealed trait MetricsAnalysis
+
+object MetricsAnalysis {
+  final case class Success(results: Set[FileResults]) extends MetricsAnalysis
+  final case class Failure(message: String) extends MetricsAnalysis
+
+  final case class FileResults(file: Path, metrics: Option[Metrics])
+}
+
 final case class Metrics(complexity: Option[Int],
                          loc: Option[Int],
                          cloc: Option[Int],
