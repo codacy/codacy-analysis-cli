@@ -86,7 +86,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         ResultsUploader(Option(codacyClient), upload = true, Some(commitUuid), None).right.get.get
 
       def testFileMetrics(i: Int) = {
-        FileWithMetrics(
+        MetricsAnalysis.FileResults(
           Paths.get(s"some/path/file$i"),
           Some(
             Metrics(
@@ -99,17 +99,68 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       }
 
       val testMetrics =
-        Seq(MetricsResult(language, Right(Set(testFileMetrics(1), testFileMetrics(2), testFileMetrics(3)))))
+        Seq(MetricsResult(language, MetricsAnalysis.Success(Set(testFileMetrics(1), testFileMetrics(2), testFileMetrics(3)))))
 
-      uploader.sendResults(Seq.empty, testMetrics) must beRight.awaitFor(10.seconds)
+      uploader.sendResults(Seq.empty, testMetrics, Seq.empty) must beRight.awaitFor(10.seconds)
 
       there were no(codacyClient).sendRemoteIssues(
         ArgumentMatchers.any[String],
         ArgumentMatchers.any[String],
         ArgumentMatchers.any[Either[String, Set[FileResults]]])
 
-      there was one(codacyClient)
-        .sendRemoteMetrics(ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Seq[MetricsResult]])
+      there was no(codacyClient).sendRemoteDuplication(ArgumentMatchers.any[String], ArgumentMatchers.any[Seq[DuplicationResult]])
+
+      there was one(codacyClient).sendRemoteMetrics(ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Seq[MetricsResult]])
+
+      there was one(codacyClient).sendEndOfResults(commitUuid)
+    }
+
+    "send duplication" in {
+      val codacyClient = mock[CodacyClient]
+
+      val language = "klingon"
+      val commitUuid = "12345678900987654321"
+
+      when(
+        codacyClient.sendRemoteDuplication(
+          ArgumentMatchers.eq(commitUuid),
+          ArgumentMatchers.any[Seq[DuplicationResult]])).thenAnswer((invocation: InvocationOnMock) => {
+        Future.successful(().asRight[String])
+      })
+
+      when(codacyClient.getRemoteConfiguration).thenReturn(ProjectConfiguration(
+        Set.empty,
+        Some(Set.empty),
+        Set.empty,
+        Set.empty)
+        .asRight[String])
+
+      when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
+
+      val uploader: ResultsUploader =
+        ResultsUploader(Option(codacyClient), upload = true, Some(commitUuid), None).right.get.get
+
+      def testClone(i: Int) = {
+        DuplicationClone(
+          "",
+          i,
+          i,
+          Set.empty
+        )
+      }
+
+      val testDuplication = Seq(
+        DuplicationResult(
+          language,
+          DuplicationAnalysis.Success(Set(testClone(1), testClone(2)))))
+
+      uploader.sendResults(Seq.empty, Seq.empty, testDuplication) must beRight.awaitFor(10.seconds)
+
+      there were no(codacyClient).sendRemoteIssues(ArgumentMatchers.any[String], ArgumentMatchers.any[String], ArgumentMatchers.any[Either[String, Set[FileResults]]])
+
+      there were one(codacyClient).sendRemoteDuplication(ArgumentMatchers.eq(commitUuid), ArgumentMatchers.any[Seq[DuplicationResult]])
+
+      there was no(codacyClient).sendRemoteMetrics(ArgumentMatchers.any[String], ArgumentMatchers.any[Seq[MetricsResult]])
 
       there was one(codacyClient).sendEndOfResults(commitUuid)
     }
@@ -156,7 +207,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         Seq(
           ResultsUploader.ToolResults(tool, filenames, Right(exampleResults)),
           ResultsUploader.ToolResults(otherTool, otherFilenames, Right(Set.empty[ToolResult]))),
-        Seq.empty) must beRight.awaitFor(10.minutes)
+        Seq.empty, Seq.empty) must beRight.awaitFor(10.minutes)
       // scalafix:on NoInfer.any
 
       verifyNumberOfCalls(codacyClient, tool, commitUuid, expectedNrOfBatches)
@@ -185,6 +236,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
     there were no(codacyClient)
       .sendRemoteMetrics(ArgumentMatchers.any[String], ArgumentMatchers.any[Seq[MetricsResult]])
+
+    there were no(codacyClient).sendRemoteDuplication(ArgumentMatchers.any[String], ArgumentMatchers.any[Seq[DuplicationResult]])
 
     there was one(codacyClient).sendEndOfResults(ArgumentMatchers.eq(commitUuid))
   }

@@ -98,7 +98,7 @@ class MainImpl extends CLIApp {
       executorResults <- executorResultsEither
     } yield {
       uploaderOpt.map { uploader =>
-        val (issuesToolExecutorResult, metricsToolExecutorResult, _) =
+        val (issuesToolExecutorResult, metricsToolExecutorResult, duplicationToolExecutorResult) =
           executorResults
             .partitionSubtypes[IssuesToolExecutorResult, MetricsToolExecutorResult, DuplicationToolExecutorResult]
 
@@ -110,9 +110,20 @@ class MainImpl extends CLIApp {
 
         val metricsResultsSeq: Seq[MetricsResult] = metricsResults(metricsPerLanguageSeq)
 
-        uploader.sendResults(issuesResultsSeq, metricsResultsSeq)
+        val duplicationResultsSeq: Seq[DuplicationResult] = duplicationResults(duplicationToolExecutorResult)
+
+        uploader.sendResults(issuesResultsSeq, metricsResultsSeq, duplicationResultsSeq)
       }.getOrElse(Future.successful(().asRight[String]))
     }).fold(err => Future.successful(err.asLeft[Unit]), identity)
+  }
+
+  def duplicationResults(duplicationExecutorToolResults: Seq[DuplicationToolExecutorResult]): Seq[DuplicationResult] = {
+    duplicationExecutorToolResults.map {
+      case DuplicationToolExecutorResult(language, _, Success(duplicationClones)) =>
+        DuplicationResult(language, DuplicationAnalysis.Success(duplicationClones))
+      case DuplicationToolExecutorResult(language, _, Failure(err)) =>
+        DuplicationResult(language, DuplicationAnalysis.Failure(err.getMessage))
+    }
   }
 
   private def metricsResults(
@@ -123,14 +134,14 @@ class MainImpl extends CLIApp {
       case (language, languageAndFileMetricsSeq) =>
         languageAndFileMetricsSeq.map {
           case (_, (files, Right(fileMetrics))) =>
-            MetricsResult(language, Right(fileWithMetrics(files, fileMetrics)))
+            MetricsResult(language, MetricsAnalysis.Success(fileWithMetrics(files, fileMetrics)))
           case (_, (_, Left(err))) =>
-            MetricsResult(language, Left(err.getMessage))
+            MetricsResult(language, MetricsAnalysis.Failure(err.getMessage))
         }(collection.breakOut)
     }(collection.breakOut)
   }
 
-  private def fileWithMetrics(allFiles: Set[Path], fileMetrics: Set[FileMetrics]): Set[FileWithMetrics] = {
+  private def fileWithMetrics(allFiles: Set[Path], fileMetrics: Set[FileMetrics]): Set[MetricsAnalysis.FileResults] = {
     allFiles.map { file =>
       val metrics = fileMetrics.find(_.filename == file).map { metrics =>
         Metrics(
@@ -141,7 +152,7 @@ class MainImpl extends CLIApp {
           metrics.nrClasses,
           metrics.lineComplexities)
       }
-      FileWithMetrics(file, metrics)
+      MetricsAnalysis.FileResults(file, metrics)
     }
   }
 
