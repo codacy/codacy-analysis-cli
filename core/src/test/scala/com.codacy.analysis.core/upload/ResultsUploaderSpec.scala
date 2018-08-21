@@ -152,7 +152,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       val testDuplication = Seq(
         DuplicationResult(
           language,
-          Right(Set(testClone(1), testClone(2)))))
+          DuplicationAnalysis.Success(Set(testClone(1), testClone(2)))))
 
       uploader.sendResults(Seq.empty, Seq.empty, testDuplication) must beRight.awaitFor(10.seconds)
 

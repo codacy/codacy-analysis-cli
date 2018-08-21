@@ -33,4 +33,11 @@ final case class Metrics(complexity: Option[Int],
                          nrClasses: Option[Int],
                          lineComplexities: Set[LineComplexity])
 
-final case class DuplicationResult(language: String, duplication: Either[String, Set[DuplicationClone]])
+final case class DuplicationResult(language: String, duplication: DuplicationAnalysis)
+
+sealed trait DuplicationAnalysis
+
+object DuplicationAnalysis {
+  final case class Success(results: Set[DuplicationClone]) extends DuplicationAnalysis
+  final case class Failure(message: String) extends DuplicationAnalysis
+}
