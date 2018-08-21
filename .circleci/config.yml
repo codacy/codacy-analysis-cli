@@ -20,10 +20,6 @@ references:
       <<: *host_environment_defaults
     working_directory: ~/workdir
 
-  restore_source_code: &restore_source_code
-    restore_cache:
-      keys:
-        - source-code-1.0.5-{{ .Environment.CIRCLE_WORKFLOW_ID }}
   restore_dependencies: &restore_dependencies
     restore_cache:
       keys:
@@ -50,10 +46,6 @@ references:
           project/Common.scala \
           project/Dependencies.scala > /tmp/dependencies.cache.tmp
 
-  restore_integration_tests_source_code: &restore_integration_tests_source_code
-    restore_cache:
-      keys:
-        - integration-tests-source-code-1.0.5-{{ .Environment.CIRCLE_WORKFLOW_ID }}
   restore_maven_dependencies: &restore_maven_dependencies
     restore_cache:
       keys:
@@ -64,7 +56,14 @@ references:
     machine: true
     working_directory: ~/integration-tests
     steps:
-      - *restore_integration_tests_source_code
+      - add_ssh_keys:
+          fingerprints:
+            - "92:a5:bf:4c:21:1b:23:1f:b3:49:3c:34:fe:38:43:5f"
+      - run:
+          name: Checkout integration tests
+          command: |
+            ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+            ~/workdir/scripts/checkout.sh git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
       - *restore_maven_dependencies
       - attach_workspace:
           at: /tmp/workspace
@@ -136,20 +135,10 @@ references:
 
 
 jobs:
-  checkout_code:
-    <<: *default_java_job
-    steps:
-      - *restore_source_code
-      - checkout
-      - save_cache:
-          key: source-code-1.0.5-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-          paths:
-            - ~/workdir
-
   sbt_dependencies:
     <<: *default_java_job
     steps:
-      - *restore_source_code
+      - checkout
       - *setup_dependencies_key
       - *restore_dependencies
       - run:
@@ -165,7 +154,7 @@ jobs:
   compile:
     <<: *default_java_job
     steps:
-      - *restore_source_code
+      - checkout
       - *setup_dependencies_key
       - *restore_dependencies
       - *restore_build
@@ -185,7 +174,7 @@ jobs:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
-      - *restore_source_code
+      - checkout
       - *setup_dependencies_key
       - *restore_dependencies
       - *restore_build
@@ -218,7 +207,7 @@ jobs:
   lint:
     <<: *default_java_job
     steps:
-      - *restore_source_code
+      - checkout
       - *setup_dependencies_key
       - *restore_dependencies
       - *restore_build
@@ -229,7 +218,7 @@ jobs:
   publish_lib:
     <<: *default_java_job
     steps:
-      - *restore_source_code
+      - checkout
       - *setup_dependencies_key
       - *restore_dependencies
       - *restore_build
@@ -258,7 +247,7 @@ jobs:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
-      - *restore_source_code
+      - checkout
       - *setup_dependencies_key
       - *restore_dependencies
       - *restore_build
@@ -324,12 +313,10 @@ jobs:
           command: echo 'export DOCKER_TAG="stable"' >> $BASH_ENV
       - *dockerhub_tag
 
-  checkout_integration_tests_source_code:
+  maven_dependencies:
     <<: *default_java_job
+    working_directory: ~/integration-tests
     steps:
-      - *restore_source_code
-      - checkout
-      - *restore_integration_tests_source_code
       - add_ssh_keys:
           fingerprints:
             - "92:a5:bf:4c:21:1b:23:1f:b3:49:3c:34:fe:38:43:5f"
@@ -338,16 +325,6 @@ jobs:
           command: |
             ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
             ~/workdir/scripts/checkout.sh git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
-      - save_cache:
-          key: integration-tests-source-code-1.0.5-{{ .Environment.CIRCLE_WORKFLOW_ID }}
-          paths:
-            - ~/integration-tests
-
-  maven_dependencies:
-    <<: *default_java_job
-    working_directory: ~/integration-tests
-    steps:
-      - *restore_integration_tests_source_code
       - *restore_maven_dependencies
       - run: mvn dependency:go-offline
       - run:
@@ -373,10 +350,7 @@ workflows:
   version: 2
   test-and-publish:
     jobs:
-      - checkout_code
-      - sbt_dependencies:
-          requires:
-            - checkout_code
+      - sbt_dependencies
       - compile:
           requires:
             - sbt_dependencies
@@ -433,14 +407,7 @@ workflows:
       - publish_dockerhub_stable:
           requires:
             - publish_dockerhub_stable_hold
-      - checkout_integration_tests_source_code:
-          filters:
-            branches:
-              only:
-                - master
       - maven_dependencies:
-          requires:
-            - checkout_integration_tests_source_code
           filters:
             branches:
               only:
@@ -463,10 +430,7 @@ workflows:
               only:
                 - master
     jobs:
-      - checkout_integration_tests_source_code
-      - maven_dependencies:
-          requires:
-            - checkout_integration_tests_source_code
+      - maven_dependencies
       - test_production:
           requires:
             - maven_dependencies
