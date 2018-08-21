@@ -56,6 +56,17 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
+  def sendRemoteDuplication(commitUuid: String, results: Seq[DuplicationResult]): Future[Either[String, Unit]] = {
+    credentials match {
+      case token: APIToken =>
+        sendRemoteDuplicationTo(
+          s"/${token.userName}/${token.projectName}/commit/$commitUuid/duplicationRemoteResults",
+          results)
+      case _: ProjectToken =>
+        sendRemoteDuplicationTo(s"/commit/$commitUuid/duplicationRemoteResults", results)
+    }
+  }
+
   def sendEndOfResults(commitUuid: String): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
@@ -81,6 +92,19 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
           Left(error.message)
         case Right(json) =>
           logger.info(s"""Success posting batch of ${metrics.size} files metrics to endpoint "$endpoint" """)
+          validateRemoteResultsResponse(json)
+      }
+    }
+
+  private def sendRemoteDuplicationTo(endpoint: String,
+                                      duplication: Seq[DuplicationResult]): Future[Either[String, Unit]] =
+    Future {
+      http.post(endpoint, Some(duplication.asJson)) match {
+        case Left(error) =>
+          logger.error(error)(s"Error posting data to endpoint $endpoint")
+          Left(error.message)
+        case Right(json) =>
+          logger.info(s"""Success posting batch of ${duplication.size} duplication clones to endpoint "$endpoint" """)
           validateRemoteResultsResponse(json)
       }
     }

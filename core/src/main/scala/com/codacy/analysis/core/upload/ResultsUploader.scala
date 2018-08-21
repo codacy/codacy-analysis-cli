@@ -52,7 +52,8 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
   }.getOrElse(ResultsUploader.defaultBatchSize)
 
   def sendResults(toolResults: Seq[ResultsUploader.ToolResults],
-                  metricsResults: Seq[MetricsResult]): Future[Either[String, Unit]] = {
+                  metricsResults: Seq[MetricsResult],
+                  duplicationResults: Seq[DuplicationResult]): Future[Either[String, Unit]] = {
 
     val sendIssuesFut = if (toolResults.nonEmpty) {
       sendIssues(toolResults)
@@ -66,8 +67,14 @@ class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, b
       logger.info("There are no metrics to upload.")
       Future.successful(().asRight[String])
     }
+    val sendDuplicationFut = if (duplicationResults.nonEmpty) {
+      codacyClient.sendRemoteDuplication(commitUuid, duplicationResults)
+    } else {
+      logger.info("There are no metrics to upload.")
+      Future.successful(().asRight[String])
+    }
 
-    val res: Future[Either[String, Unit]] = (sendIssuesFut, sendMetricsFut).mapN {
+    val res: Future[Either[String, Unit]] = (sendIssuesFut, sendMetricsFut, sendDuplicationFut).mapN {
       case eithers =>
         EitherOps.sequenceFoldingLeft(new TupleOps(eithers).toList)(_ + '\n' + _)
     }.flatMap { _ =>

@@ -77,7 +77,10 @@ class AnalyseExecutor(toolInput: Option[String],
             case duplicationTool: DuplicationTool =>
               val analysisResults = duplication(duplicationTool, filesTarget, localConfigurationFile)
               analysisResults.foreach(results => formatter.addAll(results.to[List]))
-              DuplicationToolExecutorResult()
+              DuplicationToolExecutorResult(
+                duplicationTool.languageToRun.name,
+                filesTarget.readableFiles,
+                analysisResults)
           }
         }
     }
@@ -198,7 +201,10 @@ object AnalyseExecutor {
       extends ExecutorResult
   final case class MetricsToolExecutorResult(language: String, files: Set[Path], analysisResults: Try[Set[FileMetrics]])
       extends ExecutorResult
-  final case class DuplicationToolExecutorResult() extends ExecutorResult
+  final case class DuplicationToolExecutorResult(language: String,
+                                                 files: Set[Path],
+                                                 analysisResults: Try[Set[DuplicationClone]])
+      extends ExecutorResult
 
   def allTools(toolInput: Option[String],
                remoteProjectConfiguration: Either[String, ProjectConfiguration],

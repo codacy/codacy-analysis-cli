@@ -54,9 +54,8 @@ class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
         executorResult.analysisResults.isFailure
       case executorResult: MetricsToolExecutorResult =>
         executorResult.analysisResults.isFailure
-      case _: DuplicationToolExecutorResult =>
-        //TODO
-        false
+      case executorResult: DuplicationToolExecutorResult =>
+        executorResult.analysisResults.isFailure
     })
   }
 
