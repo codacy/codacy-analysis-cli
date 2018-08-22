@@ -3,8 +3,8 @@ package com.codacy.analysis.cli
 import caseapp.Tag
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command._
-import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
+import com.codacy.analysis.core.utils.TestUtils._
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 
@@ -35,6 +35,7 @@ class MainImplSpec extends Specification with NoLanguageFeatures {
               output = Option(file),
               failIfIncomplete = Tag.of(1),
               toolTimeout = Option(1.nanosecond),
+              maxAllowedIssues = Int.MaxValue,
               extras = ExtraOptions())) must beEqualTo(ExitStatus.ExitCodes.partiallyFailedAnalysis)
       }
     }
