@@ -129,4 +129,4 @@ dependencyCheckBundleAuditEnabled := Option(false)
 scalaVersion in ThisBuild := scalaVersionNumber
 scalaBinaryVersion in ThisBuild := scalaBinaryVersionNumber
 scapegoatDisabledInspections in ThisBuild := Seq()
-scapegoatVersion in ThisBuild := "1.3.4"
+scapegoatVersion in ThisBuild := "1.3.7"
