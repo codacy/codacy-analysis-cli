@@ -18,7 +18,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
   "ExitStatus" should {
 
     "send failed analysis code" in {
-      new ExitStatus(3).exitCode(Left(AnalyseExecutor.FilesAccessError), Right(())) should beEqualTo(
+      new ExitStatus(3).exitCode(Left(AnalyseExecutor.ErrorMessage.FilesAccessError), Right(())) should beEqualTo(
         ExitStatus.ExitCodes.failedAnalysis)
     }
 
@@ -113,6 +113,12 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
     "send failedUpload when uploader has an error" in {
       new ExitStatus(10, failIfIncomplete = true)
         .exitCode(Right(Seq()), Left("Failed to get uploader")) should beEqualTo(ExitStatus.ExitCodes.failedUpload)
+    }
+
+    "send nonExistentTool when analysis fails because of non-existent tool argument value" in {
+      new ExitStatus(10, failIfIncomplete = true)
+        .exitCode(Left(AnalyseExecutor.ErrorMessage.NonExistingToolInput("tool")), Right(())) should beEqualTo(
+        ExitStatus.ExitCodes.nonExistentTool)
     }
   }
 

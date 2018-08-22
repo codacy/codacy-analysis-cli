@@ -10,6 +10,8 @@ lazy val aggregatedProjects: Seq[ProjectReference] = Seq(codacyAnalysisCore, cod
 
 lazy val testDependencies = Dependencies.specs2.map(_ % Test)
 
+
+
 lazy val root = project
   .in(file("."))
   .settings(name := "root")
@@ -36,6 +38,7 @@ lazy val root = project
 lazy val codacyAnalysisCore = project
   .in(file("core"))
   .settings(name := "codacy-analysis-core")
+  .settings(coverageExcludedPackages := "<empty>;com\\.codacy\\..*ErrorMessage.*")
   .settings(Common.genericSettings: _*)
   .settings(
     // App Dependencies
@@ -110,6 +113,7 @@ lazy val codacyAnalysisCli = project
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
   .settings(name := "codacy-analysis-cli")
+  .settings(coverageExcludedPackages := "<empty>;com\\.codacy\\..*ErrorMessage.*")
   .settings(Common.dockerSettings: _*)
   .settings(Common.genericSettings: _*)
   .settings(

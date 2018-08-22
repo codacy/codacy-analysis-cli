@@ -26,7 +26,7 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
       case Success(res) =>
         logger.info(s"Completed analysis for ${tool.name} with ${res.size} results")
       case Failure(e) =>
-        logger.error(e)(s"Failed analysis for ${tool.name}")
+        logger.error(e)(Analyser.ErrorMessage.ToolExecutionFailure("analysis", tool.name).message)
     }
 
     result
@@ -45,7 +45,7 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
       case Success(res) =>
         logger.info(s"Completed metrics for ${metricsTool.name} with ${res.size} results")
       case Failure(e) =>
-        logger.error(e)(s"Failed metrics for ${metricsTool.name}")
+        logger.error(e)(Analyser.ErrorMessage.ToolExecutionFailure("metrics", metricsTool.name).message)
     }
 
     result.map(_.to[Set])
@@ -62,7 +62,7 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
       case Success(res) =>
         logger.info(s"Completed duplication for ${duplicationTool.name} with ${res.size} results")
       case Failure(e) =>
-        logger.error(e)(s"Failed duplication for ${duplicationTool.name}")
+        logger.error(e)(Analyser.ErrorMessage.ToolExecutionFailure("duplication", duplicationTool.name).message)
     }
 
     result.map(_.to[Set])
@@ -82,11 +82,11 @@ object CodacyPluginsAnalyser extends AnalyserCompanion[Try] {
 
   object errors {
 
-    def missingTool(tool: String): String = {
+    def missingTool(tool: String): Analyser.ErrorMessage = {
       if (internetToolShortNames.contains(tool)) {
-        s"The tool $tool needs network access to execute. Run with the parameter 'allow-network'."
+        Analyser.ErrorMessage.ToolNeedsNetwork(tool)
       } else {
-        s"Could not find tool $tool in (${allToolShortNames.mkString(", ")})"
+        Analyser.ErrorMessage.NonExistingToolInput(tool, allToolShortNames)
       }
     }
   }

@@ -3,7 +3,6 @@ package com.codacy.analysis.cli.analysis
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.{
   DuplicationToolExecutorResult,
   ExecutorResult,
-  ExecutorErrorMessage,
   IssuesToolExecutorResult,
   MetricsToolExecutorResult
 }
@@ -15,7 +14,7 @@ object ExitStatus {
     val success = 0
     val failedAnalysis = 1
     val partiallyFailedAnalysis = 2
-    val nonExistentTool = 3
+    val nonExistentTool = 301
     val failedUpload = 101
     val maxAllowedIssuesExceeded = 201
   }
@@ -23,12 +22,12 @@ object ExitStatus {
 
 class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
 
-  def exitCode(executorResultsEither: Either[ExecutorErrorMessage, Seq[ExecutorResult]],
+  def exitCode(executorResultsEither: Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]],
                uploadResult: Either[String, Unit]): Int = {
     val resultsCount = countResults(executorResultsEither)
 
     executorResultsEither match {
-      case Left(_: AnalyseExecutor.NonExistingToolInput) =>
+      case Left(_: AnalyseExecutor.ErrorMessage.NonExistingToolInput) =>
         ExitStatus.ExitCodes.nonExistentTool
       case Left(_) =>
         ExitStatus.ExitCodes.failedAnalysis
@@ -43,7 +42,7 @@ class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
     }
   }
 
-  private def countResults(executorResultsEither: Either[ExecutorErrorMessage, Seq[ExecutorResult]]): Int = {
+  private def countResults(executorResultsEither: Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]]): Int = {
     executorResultsEither
       .getOrElse(Seq.empty[ExecutorResult])
       .map {

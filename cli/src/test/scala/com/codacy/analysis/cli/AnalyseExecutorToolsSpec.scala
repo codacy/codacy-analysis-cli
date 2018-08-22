@@ -2,7 +2,6 @@ package com.codacy.analysis.cli
 
 import better.files.File
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.NonExistingToolInput
 import com.codacy.analysis.core.clients.api.{ProjectConfiguration, ToolConfiguration}
 import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, LanguageConfiguration}
 import com.codacy.analysis.core.files.FilesTarget
@@ -24,7 +23,8 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       pythonTools should beRight
       pythonTools must beLike {
         case Right(tools) =>
-          tools.map(_.name) must containTheSameElementsAs(Seq("brakeman", "rubocop", "bundleraudit", "metrics", "duplication"))
+          tools.map(_.name) must containTheSameElementsAs(
+            Seq("brakeman", "rubocop", "bundleraudit", "metrics", "duplication"))
           tools.flatMap(_.supportedLanguages) must containAllOf(Seq(Languages.Ruby))
       }
     }
@@ -46,8 +46,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val languages = LanguagesHelper.fromFileTarget(emptyFilesTarget, noLocalConfiguration)
 
       val toolEither =
-        AnalyseExecutor
-          .tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
+        AnalyseExecutor.tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -72,9 +71,8 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val languages = LanguagesHelper.fromFileTarget(emptyFilesTarget, noLocalConfiguration)
 
       val toolEither =
-        AnalyseExecutor
-          .tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
-      toolEither must beLeft
+        AnalyseExecutor.tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
+      toolEither must beLeft(AnalyseExecutor.ErrorMessage.NonExistingToolInput(expectedToolName))
     }
 
     "fallback to remote configuration" in {
@@ -97,8 +95,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val languages = LanguagesHelper.fromFileTarget(emptyFilesTarget, noLocalConfiguration)
 
       val toolEither =
-        AnalyseExecutor
-          .tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
+        AnalyseExecutor.tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -115,8 +112,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
       val languages = LanguagesHelper.fromFileTarget(filesTarget, noLocalConfiguration)
 
-      val toolEither = AnalyseExecutor
-        .tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
+      val toolEither = AnalyseExecutor.tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -138,8 +134,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
       val languages = LanguagesHelper.fromFileTarget(filesTarget, localConfiguration)
 
-      val toolEither = AnalyseExecutor
-        .tools(userInput, remoteProjectConfiguration, allowNetwork = true, languages)
+      val toolEither = AnalyseExecutor.tools(userInput, remoteProjectConfiguration, allowNetwork = true, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -156,10 +151,10 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
       val languages = LanguagesHelper.fromFileTarget(filesTarget, localConfiguration)
 
-      val toolEither = AnalyseExecutor
-        .tools(Some(toolName), remoteProjectConfiguration, allowNetwork = false, languages)
+      val toolEither =
+        AnalyseExecutor.tools(Some(toolName), remoteProjectConfiguration, allowNetwork = false, languages)
 
-      toolEither must beLeft(NonExistingToolInput(toolName))
+      toolEither must beLeft(AnalyseExecutor.ErrorMessage.ToolNeedsNetwork(toolName))
     }
 
     "list tools that need access to the network if this argument is provided" in {
@@ -195,5 +190,6 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
           Tool.internetToolShortNames must not contain toolSet.map(_.name)
       }
     }
+
   }
 }

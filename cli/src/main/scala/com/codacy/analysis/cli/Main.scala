@@ -39,26 +39,23 @@ class MainImpl extends CLIApp {
   def runCommand(command: Command): Int = {
     command match {
       case analyse: Analyse =>
-        runAnalysis(analyse)
+        cleanup(analyse.directory)
+        Logger.setLevel(analyse.options.verboseValue)
+
+        val environment = new Environment(sys.env)
+        val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
+
+        val analysisResults = analysis(analyse, codacyClientOpt)
+
+        val uploadResult = upload(analyse, codacyClientOpt, analysisResults)
+
+        new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult)
     }
   }
 
-  private def runAnalysis(analyse: Analyse): Int = {
-    cleanup(analyse.directory)
-    Logger.setLevel(analyse.options.verboseValue)
-
-    val environment = new Environment(sys.env)
-    val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
-
-    val analysisResults = analysis(analyse, codacyClientOpt)
-
-    val uploadResult = upload(analyse, codacyClientOpt, analysisResults)
-
-    new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult)
-  }
-
-  private def analysis(analyse: Analyse,
-                       codacyClientOpt: Option[CodacyClient]): Either[ExecutorErrorMessage, Seq[ExecutorResult]] = {
+  private def analysis(
+    analyse: Analyse,
+    codacyClientOpt: Option[CodacyClient]): Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]] = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
@@ -82,10 +79,9 @@ class MainImpl extends CLIApp {
       analyse.toolTimeout).run()
   }
 
-  private def upload(
-    analyse: Analyse,
-    codacyClientOpt: Option[CodacyClient],
-    analysisResults: Either[AnalyseExecutor.ExecutorErrorMessage, Seq[AnalyseExecutor.ExecutorResult]]) = {
+  private def upload(analyse: Analyse,
+                     codacyClientOpt: Option[CodacyClient],
+                     analysisResults: Either[AnalyseExecutor.ErrorMessage, Seq[AnalyseExecutor.ExecutorResult]]) = {
     val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
 
     if (analyse.uploadValue) {
@@ -106,10 +102,10 @@ class MainImpl extends CLIApp {
   private def uploadResults(codacyClientOpt: Option[CodacyClient])(
     upload: Boolean,
     commitUuid: Option[String],
-    executorResultsEither: Either[ExecutorErrorMessage, Seq[ExecutorResult]]): Future[Either[String, Unit]] = {
+    executorResultsEither: Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]]): Future[Either[String, Unit]] = {
     (for {
       uploaderOpt <- ResultsUploader(codacyClientOpt, upload, commitUuid)
-      executorResults <- executorResultsEither.left.map(AnalyseExecutor.message)
+      executorResults <- executorResultsEither.left.map(_.message)
     } yield {
       uploaderOpt.map { uploader =>
         val (issuesToolExecutorResult, metricsToolExecutorResult, duplicationToolExecutorResult) =

@@ -3,7 +3,7 @@ package com.codacy.analysis.core.tools
 import java.nio.file.{Path, Paths}
 
 import better.files.File
-import com.codacy.analysis.core.analysis.CodacyPluginsAnalyser
+import com.codacy.analysis.core.analysis.{Analyser, CodacyPluginsAnalyser}
 import com.codacy.analysis.core.model.{Configuration, Issue, _}
 import com.codacy.analysis.core.utils.FileHelper
 import com.codacy.plugins.api
@@ -145,13 +145,13 @@ class ToolCollector(allowNetwork: Boolean) {
 
   private val availableTools = Tool.availableTools ++ availableInternetTools
 
-  def fromNameOrUUID(toolInput: String): Either[String, Set[Tool]] = {
+  def fromNameOrUUID(toolInput: String): Either[Analyser.ErrorMessage, Set[Tool]] = {
     from(toolInput).map(Set(_))
   }
 
-  def fromToolUUIDs(toolUuids: Set[String]): Either[String, Set[Tool]] = {
+  def fromToolUUIDs(toolUuids: Set[String]): Either[Analyser.ErrorMessage, Set[Tool]] = {
     if (toolUuids.isEmpty) {
-      Left("No active tool found on the remote configuration")
+      Left(Analyser.ErrorMessage.NoActiveToolInConfiguration)
     } else {
       val toolsIdentified = toolUuids.flatMap { toolUuid =>
         from(toolUuid).fold({ _ =>
@@ -168,22 +168,22 @@ class ToolCollector(allowNetwork: Boolean) {
     }
   }
 
-  def fromLanguages(languages: Set[Language]): Either[String, Set[Tool]] = {
+  def fromLanguages(languages: Set[Language]): Either[Analyser.ErrorMessage, Set[Tool]] = {
     val collectedTools: Set[Tool] = availableTools.collect {
       case tool if languages.exists(tool.languages.contains) =>
         new Tool(tool)
     }(collection.breakOut)
 
     if (collectedTools.isEmpty) {
-      Left("No tools found for files provided")
+      Left(Analyser.ErrorMessage.NoToolsFoundForFiles)
     } else {
       Right(collectedTools)
     }
   }
 
-  def from(value: String): Either[String, Tool] = find(value).map(new Tool(_))
+  def from(value: String): Either[Analyser.ErrorMessage, Tool] = find(value).map(new Tool(_))
 
-  private def find(value: String): Either[String, DockerTool] = {
+  private def find(value: String): Either[Analyser.ErrorMessage, DockerTool] = {
     availableTools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
       .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
