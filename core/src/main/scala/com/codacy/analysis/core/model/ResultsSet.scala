@@ -38,6 +38,6 @@ final case class DuplicationResult(language: String, duplication: DuplicationAna
 sealed trait DuplicationAnalysis
 
 object DuplicationAnalysis {
-  final case class Success(results: Set[DuplicationClone]) extends DuplicationAnalysis
+  final case class Success(analysedFiles: Set[Path], results: Set[DuplicationClone]) extends DuplicationAnalysis
   final case class Failure(message: String) extends DuplicationAnalysis
 }

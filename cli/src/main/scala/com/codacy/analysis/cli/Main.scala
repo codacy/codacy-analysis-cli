@@ -119,8 +119,8 @@ class MainImpl extends CLIApp {
 
   def duplicationResults(duplicationExecutorToolResults: Seq[DuplicationToolExecutorResult]): Seq[DuplicationResult] = {
     duplicationExecutorToolResults.map {
-      case DuplicationToolExecutorResult(language, _, Success(duplicationClones)) =>
-        DuplicationResult(language, DuplicationAnalysis.Success(duplicationClones))
+      case DuplicationToolExecutorResult(language, files, Success(duplicationClones)) =>
+        DuplicationResult(language, DuplicationAnalysis.Success(files, duplicationClones))
       case DuplicationToolExecutorResult(language, _, Failure(err)) =>
         DuplicationResult(language, DuplicationAnalysis.Failure(err.getMessage))
     }
