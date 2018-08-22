@@ -13,7 +13,7 @@ object Common {
 
   val genericSettings: Seq[Def.Setting[_]] = Seq(
     resolvers in ThisBuild += "Codacy Public Mvn bucket" at "https://s3-eu-west-1.amazonaws.com/public.mvn.codacy.com",
-    addCompilerPlugin("org.scalameta" % "semanticdb-scalac" % "4.0.0-M4" cross CrossVersion.full),
+    //addCompilerPlugin("org.scalameta" % "semanticdb-scalac" % "4.0.0-M8" cross CrossVersion.full),
     scalacOptions.in(Compile, console) --= Seq("-Ywarn-unused", "-Ywarn-unused:imports", "-Xfatal-warnings")
   )
 

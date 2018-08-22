@@ -1,6 +1,6 @@
 package com.codacy.analysis.core.configuration
 
-import better.files.File
+import better.files.Resource
 import com.codacy.analysis.core.files.Glob
 import com.codacy.plugins.api.languages.Languages
 import org.specs2.control.NoLanguageFeatures
@@ -24,17 +24,18 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
         Option(Set(Glob(".bundle/"), Glob("spec/**/*"), Glob("benchmarks/**/*"))),
         None)
 
-      val resource = File.resource("com/codacy/analysis/core/configuration/codacy.yaml")
-      val codacyConfigurationFile = CodacyConfigurationFile.load(resource)
+      val resource = Resource.getAsString("com/codacy/analysis/core/configuration/codacy.yaml")
+      val codacyConfigurationFile = CodacyConfigurationFile.parse(resource)
 
       codacyConfigurationFile must beEqualTo(Right(expected))
     }
 
     "be parseable" in {
       val moreFileContents = List(
-        File.resource("com/codacy/analysis/core/configuration/codacy-test-1.yaml"),
-        File.resource("com/codacy/analysis/core/configuration/codacy-test-2.yaml"),
-        File.resource("com/codacy/analysis/core/configuration/codacy-test-3.yaml")).map(CodacyConfigurationFile.load)
+        Resource.getAsString("com/codacy/analysis/core/configuration/codacy-test-1.yaml"),
+        Resource.getAsString("com/codacy/analysis/core/configuration/codacy-test-2.yaml"),
+        Resource.getAsString("com/codacy/analysis/core/configuration/codacy-test-3.yaml"))
+        .map(CodacyConfigurationFile.parse)
 
       foreach(moreFileContents)(_ must beRight)
     }
@@ -53,8 +54,8 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
         Option(Set(Glob(".bundle/"), Glob("spec/**/*"), Glob("benchmarks/**/*"))),
         Some(Map((Languages.CSS, LanguageConfiguration(Some(Set("-css.resource")))))))
 
-      val resource = File.resource("com/codacy/analysis/core/configuration/codacy-langs.yaml")
-      val codacyConfigurationFile = CodacyConfigurationFile.load(resource)
+      val resource = Resource.getAsString("com/codacy/analysis/core/configuration/codacy-langs.yaml")
+      val codacyConfigurationFile = CodacyConfigurationFile.parse(resource)
 
       codacyConfigurationFile must beEqualTo(Right(expected))
     }
