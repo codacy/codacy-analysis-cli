@@ -120,11 +120,6 @@ lazy val codacyAnalysisCli = project
   .dependsOn(codacyAnalysisCore % "compile->compile;test->test")
   .aggregate(codacyAnalysisCore)
 
-// sbt-dependency-check
-dependencyCheckFailBuildOnCVSS := 11 // Never fail
-dependencyCheckEnableExperimental := Option(true)
-dependencyCheckBundleAuditEnabled := Option(false)
-
 // Scapegoat
 scalaVersion in ThisBuild := scalaVersionNumber
 scalaBinaryVersion in ThisBuild := scalaBinaryVersionNumber

@@ -23,39 +23,16 @@ references:
   restore_dependencies: &restore_dependencies
     restore_cache:
       keys:
-        - sbt-ivy2-dependencies-1.0.6-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
-        - sbt-ivy2-dependencies-1.0.6-{{ checksum "/tmp/dependencies.cache.tmp" }}
-        - sbt-ivy2-dependencies-1.0.6
+        - sbt-ivy2-dependencies-1.0.9-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
+        - sbt-ivy2-dependencies-1.0.9-{{ checksum "/tmp/dependencies.cache.tmp" }}
+        - sbt-ivy2-dependencies-1.0.9
 
-  pack_sbt_cache: &pack_sbt_cache
+  clean_sbt_dependencies_cache: &clean_sbt_dependencies_cache
     run:
-      name: Packing sbt cache
+      name: Clean sbt dependencies cache
       command: |
         find ~/.sbt -name "*.lock" -delete
         find ~/.ivy2 -name "ivydata-*.properties" -delete
-        tar czf ~/resolution-cache.tar.gz $(find . -type d -name resolution-cache)
-        tar czf ~/stream.tar.gz $(find . -type d -path "*/target/streams")
-        find ~ -maxdepth 1 -name "*.tar.gz"
-
-  unpack_sbt_cache: &unpack_sbt_cache
-    run:
-      name: Unpacking sbt cache
-      command: |
-        find ~ -maxdepth 1 -name "*.tar.gz"
-        if [ -f ~/resolution-cache.tar.gz ]; then tar xzf ~/resolution-cache.tar.gz; fi
-        if [ -f ~/stream.tar.gz ]; then tar xzf ~/stream.tar.gz; fi
-
-  restore_build: &restore_build
-    restore_cache:
-      keys:
-        - sbt-build-1.0.6-{{ .Branch }}-{{ .Revision }}
-        - sbt-build-1.0.6-{{ .Branch }}
-        - sbt-build-1.0.6
-
-  export_docker_publish_version: &export_docker_publish_version
-    run:
-      name: Export publish version
-      command: echo 'export PUBLISH_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"' >> $BASH_ENV
 
   setup_dependencies_key: &setup_dependencies_key
     run:
@@ -70,8 +47,8 @@ references:
   restore_maven_dependencies: &restore_maven_dependencies
     restore_cache:
       keys:
-        - maven-dependencies-1.0.6-{{ checksum "pom.xml" }}
-        - maven-dependencies-1.0.6
+        - maven-dependencies-1.0.9-{{ checksum "pom.xml" }}
+        - maven-dependencies-1.0.9
 
   run_integration_tests: &run_integration_tests
     machine: true
@@ -131,7 +108,6 @@ references:
       name: Export publish version
       command: echo 'export PUBLISH_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"' >> $BASH_ENV
 
-
   load_docker_file: &load_docker_file
     run:
       name: Load docker from file
@@ -155,56 +131,33 @@ references:
         fi
 
 jobs:
-  checkout_code:
-    <<: *default_java_job
-    steps:
-      - checkout
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - workdir
-
-  sbt_dependencies:
+  checkout_compile:
     <<: *default_java_job
     steps:
       - attach_workspace:
           at: ~/
+      - checkout
       - *setup_dependencies_key
       - *restore_dependencies
-      - *unpack_sbt_cache
       - run:
           name: Resolve dependencies
           command: |
             sbt update
-      - *pack_sbt_cache
-      - save_cache:
-          paths:
-            - ~/.ivy2
-            - ~/.sbt
-            - ~/.m2
-            - ~/.coursier
-            - ~/resolution-cache.tar.gz
-            - ~/stream.tar.gz
-          key: sbt-ivy2-dependencies-1.0.6-{{ checksum "/tmp/dependencies.cache.tmp" }}
-
-  compile:
-    <<: *default_java_job
-    steps:
-      - attach_workspace:
-          at: ~/
-      - *setup_dependencies_key
-      - *restore_dependencies
-      - *restore_build
-      - *unpack_sbt_cache
       - run:
           name: Compile
           command: ./scripts/compile.sh
+      - *clean_sbt_dependencies_cache
       - save_cache:
           paths:
-            - ~/workdir/target
-            - ~/workdir/project/target
-            - ~/workdir/project/project
-          key: sbt-build-1.0.6-{{ .Branch }}-{{ .Revision }}
+          - ~/.ivy2
+          - ~/.sbt
+          - ~/.m2
+          - ~/.coursier
+          key: sbt-ivy2-dependencies-1.0.9-{{ checksum "/tmp/dependencies.cache.tmp" }}
+      - persist_to_workspace:
+          root: ~/
+          paths:
+          - workdir
 
   test:
     machine: true
@@ -216,8 +169,6 @@ jobs:
           at: ~/
       - *setup_dependencies_key
       - *restore_dependencies
-      - *restore_build
-      - *unpack_sbt_cache
       - run:
           name: Configure git
           command: |
@@ -251,21 +202,17 @@ jobs:
           at: ~/
       - *setup_dependencies_key
       - *restore_dependencies
-      - *restore_build
-      - *unpack_sbt_cache
       - run:
           name: Lint
           command: ./scripts/lint.sh
-      - *pack_sbt_cache
+      - *clean_sbt_dependencies_cache
       - save_cache:
           paths:
-            - ~/.ivy2
-            - ~/.sbt
-            - ~/.m2
-            - ~/.coursier
-            - ~/resolution-cache.tar.gz
-            - ~/stream.tar.gz
-          key: sbt-ivy2-dependencies-1.0.6-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
+          - ~/.ivy2
+          - ~/.sbt
+          - ~/.m2
+          - ~/.coursier
+          key: sbt-ivy2-dependencies-1.0.9-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
 
   publish_lib:
     <<: *default_java_job
@@ -274,8 +221,6 @@ jobs:
           at: ~/
       - *setup_dependencies_key
       - *restore_dependencies
-      - *restore_build
-      - *unpack_sbt_cache
       - *export_docker_publish_version
       - run:
           name: Install AWS CLI
@@ -305,8 +250,6 @@ jobs:
           at: ~/
       - *setup_dependencies_key
       - *restore_dependencies
-      - *restore_build
-      - *unpack_sbt_cache
       - run:
           name: Publish local docker
           command: ./scripts/publish_docker.sh dev-snapshot
@@ -387,7 +330,7 @@ jobs:
           name: Compile tests
           command: mvn test-compile
       - save_cache:
-          key: maven-dependencies-1.0.6-{{ checksum "pom.xml" }}
+          key: maven-dependencies-1.0.9-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
 
@@ -406,22 +349,16 @@ workflows:
   version: 2
   test-and-publish:
     jobs:
-      - checkout_code
-      - sbt_dependencies:
-          requires:
-            - checkout_code
-      - compile:
-          requires:
-            - sbt_dependencies
+      - checkout_compile
       - test:
           requires:
-            - compile
+            - checkout_compile
       - lint:
           requires:
-            - compile
+            - checkout_compile
       - publish_docker_locally:
           requires:
-            - compile
+            - checkout_compile
       - publish_lib:
           context: CodacyAWS
           requires:
