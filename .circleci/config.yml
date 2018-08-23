@@ -23,18 +23,16 @@ references:
   restore_dependencies: &restore_dependencies
     restore_cache:
       keys:
-        - sbt-ivy2-dependencies-1.0.5-{{ checksum "/tmp/dependencies.cache.tmp" }}
-        - sbt-ivy2-dependencies-1.0.5
-  restore_build: &restore_build
-    restore_cache:
-      keys:
-        - sbt-build-1.0.5-{{ .Branch }}-{{ .Revision }}
-        - sbt-build-1.0.5
+        - sbt-ivy2-dependencies-1.0.9-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
+        - sbt-ivy2-dependencies-1.0.9-{{ checksum "/tmp/dependencies.cache.tmp" }}
+        - sbt-ivy2-dependencies-1.0.9
 
-  export_docker_publish_version: &export_docker_publish_version
-      run:
-        name: Export publish version
-        command: echo 'export PUBLISH_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"' >> $BASH_ENV
+  clean_sbt_dependencies_cache: &clean_sbt_dependencies_cache
+    run:
+      name: Clean sbt dependencies cache
+      command: |
+        find ~/.sbt -name "*.lock" -delete
+        find ~/.ivy2 -name "ivydata-*.properties" -delete
 
   setup_dependencies_key: &setup_dependencies_key
     run:
@@ -49,8 +47,8 @@ references:
   restore_maven_dependencies: &restore_maven_dependencies
     restore_cache:
       keys:
-        - maven-dependencies-1.0.5-{{ checksum "pom.xml" }}
-        - maven-dependencies-1.0.5
+        - maven-dependencies-1.0.9-{{ checksum "pom.xml" }}
+        - maven-dependencies-1.0.9
 
   run_integration_tests: &run_integration_tests
     machine: true
@@ -110,7 +108,6 @@ references:
       name: Export publish version
       command: echo 'export PUBLISH_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"' >> $BASH_ENV
 
-
   load_docker_file: &load_docker_file
     run:
       name: Load docker from file
@@ -133,11 +130,12 @@ references:
           exit 1
         fi
 
-
 jobs:
-  sbt_dependencies:
+  checkout_compile:
     <<: *default_java_job
     steps:
+      - attach_workspace:
+          at: ~/
       - checkout
       - *setup_dependencies_key
       - *restore_dependencies
@@ -145,28 +143,21 @@ jobs:
           name: Resolve dependencies
           command: |
             sbt update
-      - save_cache:
-          paths:
-            - ~/.ivy2
-            - ~/.sbt
-          key: sbt-ivy2-dependencies-1.0.5-{{ checksum "/tmp/dependencies.cache.tmp" }}
-
-  compile:
-    <<: *default_java_job
-    steps:
-      - checkout
-      - *setup_dependencies_key
-      - *restore_dependencies
-      - *restore_build
       - run:
           name: Compile
           command: ./scripts/compile.sh
+      - *clean_sbt_dependencies_cache
       - save_cache:
           paths:
-            - ~/workdir/target
-            - ~/workdir/project/target
-            - ~/workdir/project/project
-          key: sbt-build-1.0.5-{{ .Branch }}-{{ .Revision }}
+          - ~/.ivy2
+          - ~/.sbt
+          - ~/.m2
+          - ~/.coursier
+          key: sbt-ivy2-dependencies-1.0.9-{{ checksum "/tmp/dependencies.cache.tmp" }}
+      - persist_to_workspace:
+          root: ~/
+          paths:
+          - workdir
 
   test:
     machine: true
@@ -174,10 +165,10 @@ jobs:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
-      - checkout
+      - attach_workspace:
+          at: ~/
       - *setup_dependencies_key
       - *restore_dependencies
-      - *restore_build
       - run:
           name: Configure git
           command: |
@@ -207,21 +198,29 @@ jobs:
   lint:
     <<: *default_java_job
     steps:
-      - checkout
+      - attach_workspace:
+          at: ~/
       - *setup_dependencies_key
       - *restore_dependencies
-      - *restore_build
       - run:
           name: Lint
           command: ./scripts/lint.sh
+      - *clean_sbt_dependencies_cache
+      - save_cache:
+          paths:
+          - ~/.ivy2
+          - ~/.sbt
+          - ~/.m2
+          - ~/.coursier
+          key: sbt-ivy2-dependencies-1.0.9-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
 
   publish_lib:
     <<: *default_java_job
     steps:
-      - checkout
+      - attach_workspace:
+          at: ~/
       - *setup_dependencies_key
       - *restore_dependencies
-      - *restore_build
       - *export_docker_publish_version
       - run:
           name: Install AWS CLI
@@ -247,10 +246,10 @@ jobs:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
-      - checkout
+      - attach_workspace:
+          at: ~/
       - *setup_dependencies_key
       - *restore_dependencies
-      - *restore_build
       - run:
           name: Publish local docker
           command: ./scripts/publish_docker.sh dev-snapshot
@@ -331,7 +330,7 @@ jobs:
           name: Compile tests
           command: mvn test-compile
       - save_cache:
-          key: maven-dependencies-1.0.5-{{ checksum "pom.xml" }}
+          key: maven-dependencies-1.0.9-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
 
@@ -350,19 +349,16 @@ workflows:
   version: 2
   test-and-publish:
     jobs:
-      - sbt_dependencies
-      - compile:
-          requires:
-            - sbt_dependencies
+      - checkout_compile
       - test:
           requires:
-            - compile
+            - checkout_compile
       - lint:
           requires:
-            - compile
+            - checkout_compile
       - publish_docker_locally:
           requires:
-            - compile
+            - checkout_compile
       - publish_lib:
           context: CodacyAWS
           requires:

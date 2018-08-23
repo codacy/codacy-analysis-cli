@@ -8,16 +8,16 @@ object Dependencies {
     "io.circe" %% "circe-generic" % circeVersion,
     "io.circe" %% "circe-parser" % circeVersion)
 
-  val jacksonVersion = "2.8.4"
+  val jacksonVersion = "2.9.6"
   lazy val jackson = Seq(
     "com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion,
     "com.fasterxml.jackson.core" % "jackson-annotations" % jacksonVersion,
     "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % jacksonVersion)
 
-  lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.4.0"
+  lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.6.0"
 
-  lazy val jodaTime = "joda-time" % "joda-time" % "2.9.9"
+  lazy val jodaTime = "joda-time" % "joda-time" % "2.10"
 
   lazy val log4s = Seq("ch.qos.logback" % "logback-classic" % "1.2.3", "org.log4s" %% "log4s" % "1.5.0")
 
@@ -26,8 +26,7 @@ object Dependencies {
 
   lazy val caseApp = "com.github.alexarchambault" %% "case-app" % "1.2.0"
 
-  lazy val codacyPlugins =
-    Seq("com.codacy" %% "codacy-plugins-api" % "3.0.96", "codacy" %% "codacy-plugins" % "5.0.117")
+  lazy val codacyPlugins = Seq("codacy" %% "codacy-plugins" % "5.0.150")
 
   lazy val fansi = "com.lihaoyi" %% "fansi" % "0.2.5"
 

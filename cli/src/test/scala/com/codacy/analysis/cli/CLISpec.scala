@@ -1,6 +1,6 @@
 package com.codacy.analysis.cli
 
-import better.files.File
+import better.files.{File, Resource}
 import com.codacy.analysis.cli.command.{Command, DefaultCommand}
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.analysis.core.model.{DuplicationClone, FileError, Result, ToolResult}
@@ -90,7 +90,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
             responseJson <- parser.parse(file.contentAsString)
             response <- responseJson.as[Set[ToolResult]]
             expectedJson <- parser.parse(
-              File.resource("com/codacy/analysis/cli/cli-output-brakeman-1.json").contentAsString)
+              Resource.getAsString("com/codacy/analysis/cli/cli-output-brakeman-1.json"))
             expected <- expectedJson.as[Set[ToolResult]]
           } yield (response, expected)
 
@@ -120,7 +120,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
           responseJson <- parser.parse(file.contentAsString)
           response <- responseJson.as[Set[ToolResult]]
           expectedJson <- parser.parse(
-            File.resource("com/codacy/analysis/cli/cli-output-pylint-1.json").contentAsString)
+            Resource.getAsString("com/codacy/analysis/cli/cli-output-pylint-1.json"))
           expected <- expectedJson.as[Set[ToolResult]]
         } yield (response, expected)
 
@@ -152,7 +152,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
             responseJson <- parser.parse(file.contentAsString)
             response <- responseJson.as[Set[ToolResult]]
             expectedJson <- parser.parse(
-              File.resource("com/codacy/analysis/cli/cli-output-brakeman-rails4.json").contentAsString)
+              Resource.getAsString("com/codacy/analysis/cli/cli-output-brakeman-rails4.json"))
             expected <- expectedJson.as[Set[ToolResult]]
           } yield (response, expected)
 
@@ -181,7 +181,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
             responseJson <- parser.parse(file.contentAsString)
             response <- responseJson.as[Set[Result]]
             expectedJson <- parser.parse(
-              File.resource("com/codacy/analysis/cli/cli-output-brakeman-rails-metrics.json").contentAsString)
+              Resource.getAsString("com/codacy/analysis/cli/cli-output-brakeman-rails-metrics.json"))
             expected <- expectedJson.as[Set[Result]]
           } yield (response, expected)
 
@@ -210,7 +210,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
             responseJson <- parser.parse(file.contentAsString)
             response <- responseJson.as[Set[Result]]
             expectedJson <- parser.parse(
-              File.resource("com/codacy/analysis/cli/cli-output-duplication.json").contentAsString)
+              Resource.getAsString("com/codacy/analysis/cli/cli-output-duplication.json"))
             expected <- expectedJson.as[Set[Result]]
           } yield (response, expected)
 
