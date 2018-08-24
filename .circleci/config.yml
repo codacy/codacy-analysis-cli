@@ -13,9 +13,9 @@ references:
 
   default_java_job: &default_java_job
     docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          <<: *docker_environment_defaults
+    - image: circleci/openjdk:8-jdk
+      environment:
+        <<: *docker_environment_defaults
     environment:
       <<: *host_environment_defaults
     working_directory: ~/workdir
@@ -23,9 +23,9 @@ references:
   restore_dependencies: &restore_dependencies
     restore_cache:
       keys:
-        - sbt-ivy2-dependencies-1.0.9-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
-        - sbt-ivy2-dependencies-1.0.9-{{ checksum "/tmp/dependencies.cache.tmp" }}
-        - sbt-ivy2-dependencies-1.0.9
+      - sbt-ivy2-dependencies-1.0.11-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
+      - sbt-ivy2-dependencies-1.0.11-{{ checksum "/tmp/dependencies.cache.tmp" }}
+      - sbt-ivy2-dependencies-1.0.11
 
   clean_sbt_dependencies_cache: &clean_sbt_dependencies_cache
     run:
@@ -47,62 +47,62 @@ references:
   restore_maven_dependencies: &restore_maven_dependencies
     restore_cache:
       keys:
-        - maven-dependencies-1.0.9-{{ checksum "pom.xml" }}
-        - maven-dependencies-1.0.9
+      - maven-dependencies-1.0.11-{{ checksum "pom.xml" }}
+      - maven-dependencies-1.0.11
 
   run_integration_tests: &run_integration_tests
     machine: true
     working_directory: ~/integration-tests
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "92:a5:bf:4c:21:1b:23:1f:b3:49:3c:34:fe:38:43:5f"
-      - run:
-          name: Checkout integration tests
-          working_directory: ~/
-          command: |
-            ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-            bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
-      - *restore_maven_dependencies
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Load docker from file
-          command: |
-            if [[ "$CODACY_ANALYSIS_CLI_VERSION" != "latest" ]]
-            then
-              docker load --input /tmp/workspace/codacy-analysis-cli.tar
-            else
-              echo "Skipping load of docker when testing latest"
-            fi
-      - run:
-          name: Setup codacy-analysis-cli version for integration tests
-          command: |
-            if [[ -z "$CODACY_ANALYSIS_CLI_VERSION" ]]
-            then
-              echo 'export CODACY_ANALYSIS_CLI_VERSION="dev-snapshot"' >> $BASH_ENV
-            fi
-      - run:
-          name: Install codacy-analysis-cli
-          command: |
-            curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
-            cd codacy-analysis-cli-* && sudo make install
-            rm -rf codacy-analysis-cli-*
-      - run:
-          name: Run tests
-          command: mvn test -Dsurefire.suiteXmlFiles=$TEST_PATH
-      - run:
-          name: Save test results
-          command: |
-            mkdir -p ~/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
-          when: always
-      - store_test_results:
-          path: ~/junit
-      - store_artifacts:
-          path: ~/junit
-      - store_artifacts:
-          path: ExtentReports/
+    - add_ssh_keys:
+        fingerprints:
+        - "92:a5:bf:4c:21:1b:23:1f:b3:49:3c:34:fe:38:43:5f"
+    - run:
+        name: Checkout integration tests
+        working_directory: ~/
+        command: |
+          ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
+    - *restore_maven_dependencies
+    - attach_workspace:
+        at: /tmp/workspace
+    - run:
+        name: Load docker from file
+        command: |
+          if [[ "$CODACY_ANALYSIS_CLI_VERSION" != "latest" ]]
+          then
+            docker load --input /tmp/workspace/codacy-analysis-cli.tar
+          else
+            echo "Skipping load of docker when testing latest"
+          fi
+    - run:
+        name: Setup codacy-analysis-cli version for integration tests
+        command: |
+          if [[ -z "$CODACY_ANALYSIS_CLI_VERSION" ]]
+          then
+            echo 'export CODACY_ANALYSIS_CLI_VERSION="dev-snapshot"' >> $BASH_ENV
+          fi
+    - run:
+        name: Install codacy-analysis-cli
+        command: |
+          curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
+          cd codacy-analysis-cli-* && sudo make install
+          rm -rf codacy-analysis-cli-*
+    - run:
+        name: Run tests
+        command: mvn test -Dsurefire.suiteXmlFiles=$TEST_PATH
+    - run:
+        name: Save test results
+        command: |
+          mkdir -p ~/junit/
+          find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+        when: always
+    - store_test_results:
+        path: ~/junit
+    - store_artifacts:
+        path: ~/junit
+    - store_artifacts:
+        path: ExtentReports/
 
   export_docker_publish_version: &export_docker_publish_version
     run:
@@ -135,30 +135,34 @@ jobs:
   checkout_compile:
     <<: *default_java_job
     steps:
-      - attach_workspace:
-          at: ~/
-      - checkout
-      - *setup_dependencies_key
-      - *restore_dependencies
-      - run:
-          name: Resolve dependencies
-          command: |
-            sbt update
-      - run:
-          name: Compile
-          command: ./scripts/compile.sh
-      - *clean_sbt_dependencies_cache
-      - save_cache:
-          paths:
-          - ~/.ivy2
-          - ~/.sbt
-          - ~/.m2
-          - ~/.coursier
-          key: sbt-ivy2-dependencies-1.0.9-{{ checksum "/tmp/dependencies.cache.tmp" }}
-      - persist_to_workspace:
-          root: ~/
-          paths:
-          - workdir
+    - checkout
+    - attach_workspace:
+        at: ~/workdir
+    - *setup_dependencies_key
+    - *restore_dependencies
+    - run:
+        name: Resolve dependencies
+        command: |
+          sbt update
+    - run:
+        name: Compile
+        command: ./scripts/compile.sh
+    - *clean_sbt_dependencies_cache
+    - save_cache:
+        paths:
+        - ~/.ivy2
+        - ~/.sbt
+        - ~/.m2
+        - ~/.coursier
+        key: sbt-ivy2-dependencies-1.0.11-{{ checksum "/tmp/dependencies.cache.tmp" }}
+    - persist_to_workspace:
+        root: ~/workdir
+        paths:
+        - target
+        - cli/target
+        - core/target
+        - project/target
+        - project/project/target
 
   test:
     machine: true
@@ -166,80 +170,83 @@ jobs:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
-      - attach_workspace:
-          at: ~/
-      - *setup_dependencies_key
-      - *restore_dependencies
-      - run:
-          name: Configure git
-          command: |
-            git config --global user.email "team@codacy.com"
-            git config --global user.name "Codacy Team"
-      - run:
-          name: Test
-          command: ./scripts/test.sh
-      - run:
-          name: Store test reports
-          working_directory: ~/
-          command: |
-            mkdir -p ~/coverage-reports/junit
-            cp -rf ~/workdir/cli/target/test-reports ~/coverage-reports/junit/cli
-            cp -rf ~/workdir/core/target/test-reports ~/coverage-reports/junit/core
-      - store_test_results:
-          path: ~/coverage-reports
-      - store_artifacts:
-          path: ~/workdir/target/scala-2.12/coverage-report
-      - store_artifacts:
-          path: ~/workdir/target/scala-2.12/scoverage-report
-      - store_artifacts:
-          path: ~/workdir/target/scala-2.12/scoverage-data
-      - store_artifacts:
-          path: ~/workdir/target/test-reports
+    - checkout
+    - attach_workspace:
+        at: ~/workdir
+    - *setup_dependencies_key
+    - *restore_dependencies
+    - run:
+        name: Configure git
+        command: |
+          git config --global user.email "team@codacy.com"
+          git config --global user.name "Codacy Team"
+    - run:
+        name: Test
+        command: ./scripts/test.sh
+    - run:
+        name: Store test reports
+        working_directory: ~/
+        command: |
+          mkdir -p ~/coverage-reports/junit
+          cp -rf ~/workdir/cli/target/test-reports ~/coverage-reports/junit/cli
+          cp -rf ~/workdir/core/target/test-reports ~/coverage-reports/junit/core
+    - store_test_results:
+        path: ~/coverage-reports
+    - store_artifacts:
+        path: ~/workdir/target/scala-2.12/coverage-report
+    - store_artifacts:
+        path: ~/workdir/target/scala-2.12/scoverage-report
+    - store_artifacts:
+        path: ~/workdir/target/scala-2.12/scoverage-data
+    - store_artifacts:
+        path: ~/workdir/target/test-reports
 
   lint:
     <<: *default_java_job
     steps:
-      - attach_workspace:
-          at: ~/
-      - *setup_dependencies_key
-      - *restore_dependencies
-      - run:
-          name: Lint
-          command: ./scripts/lint.sh
-      - *clean_sbt_dependencies_cache
-      - save_cache:
-          paths:
-          - ~/.ivy2
-          - ~/.sbt
-          - ~/.m2
-          - ~/.coursier
-          key: sbt-ivy2-dependencies-1.0.9-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
+    - checkout
+    - attach_workspace:
+        at: ~/workdir
+    - *setup_dependencies_key
+    - *restore_dependencies
+    - run:
+        name: Lint
+        command: ./scripts/lint.sh
+    - *clean_sbt_dependencies_cache
+    - save_cache:
+        paths:
+        - ~/.ivy2
+        - ~/.sbt
+        - ~/.m2
+        - ~/.coursier
+        key: sbt-ivy2-dependencies-1.0.11-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
 
   publish_lib:
     <<: *default_java_job
     steps:
-      - attach_workspace:
-          at: ~/
-      - *setup_dependencies_key
-      - *restore_dependencies
-      - *export_docker_publish_version
-      - run:
-          name: Install AWS CLI
-          command: |
-            sudo apt -y update
-            sudo apt -y install python3-pip
-            sudo python3 -m pip install awscli
-      - run:
-          name: Setup AWS Credentials
-          command: ./scripts/setup-aws-credentials.sh
-      - run:
-          name: Retrieve GPG Keys
-          command: |
-            mkdir -p ~/.gnupg
-            aws s3 sync --profile shared-services --include '*.gpg' s3://$AWS_CREDENTIALS_BUCKET/gnupg/ ~/.gnupg
-      - run:
-          name: Publish to Sonatype
-          command: ./scripts/publish_lib.sh $PUBLISH_VERSION
+    - checkout
+    - attach_workspace:
+        at: ~/workdir
+    - *setup_dependencies_key
+    - *restore_dependencies
+    - *export_docker_publish_version
+    - run:
+        name: Install AWS CLI
+        command: |
+          sudo apt -y update
+          sudo apt -y install python3-pip
+          sudo python3 -m pip install awscli
+    - run:
+        name: Setup AWS Credentials
+        command: ./scripts/setup-aws-credentials.sh
+    - run:
+        name: Retrieve GPG Keys
+        command: |
+          mkdir -p ~/.gnupg
+          aws s3 sync --profile shared-services --include '*.gpg' s3://$AWS_CREDENTIALS_BUCKET/gnupg/ ~/.gnupg
+    - run:
+        name: Publish to Sonatype
+        command: ./scripts/publish_lib.sh $PUBLISH_VERSION
 
   publish_docker_locally:
     machine: true
@@ -247,22 +254,23 @@ jobs:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
-      - attach_workspace:
-          at: ~/
-      - *setup_dependencies_key
-      - *restore_dependencies
-      - run:
-          name: Publish local docker
-          command: ./scripts/publish_docker.sh dev-snapshot
-      - run:
-          name: Save docker to file
-          command: |
-            mkdir workspace
-            docker save --output workspace/codacy-analysis-cli.tar codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot
-      - persist_to_workspace:
-          root: workspace
-          paths:
-            - codacy-analysis-cli.tar
+    - checkout
+    - attach_workspace:
+        at: ~/workdir
+    - *setup_dependencies_key
+    - *restore_dependencies
+    - run:
+        name: Publish local docker
+        command: ./scripts/publish_docker.sh dev-snapshot
+    - run:
+        name: Save docker to file
+        command: |
+          mkdir workspace
+          docker save --output workspace/codacy-analysis-cli.tar codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot
+    - persist_to_workspace:
+        root: workspace
+        paths:
+        - codacy-analysis-cli.tar
 
   publish_dockerhub:
     machine: true
@@ -270,16 +278,16 @@ jobs:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
-      - *export_docker_publish_version
-      - attach_workspace:
-          at: /tmp/workspace
-      - *load_docker_file
-      - *export_docker_publish_version
-      - *dockerhub_login
-      - run:
-          name: Publish tag
-          command: echo 'export DOCKER_TAG=$PUBLISH_VERSION' >> $BASH_ENV
-      - *dockerhub_tag
+    - *export_docker_publish_version
+    - attach_workspace:
+        at: /tmp/workspace
+    - *load_docker_file
+    - *export_docker_publish_version
+    - *dockerhub_login
+    - run:
+        name: Publish tag
+        command: echo 'export DOCKER_TAG=$PUBLISH_VERSION' >> $BASH_ENV
+    - *dockerhub_tag
 
   publish_dockerhub_latest:
     machine: true
@@ -287,15 +295,15 @@ jobs:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - *load_docker_file
-      - *export_docker_publish_version
-      - *dockerhub_login
-      - run:
-          name: Publish tag
-          command: echo 'export DOCKER_TAG="latest"' >> $BASH_ENV
-      - *dockerhub_tag
+    - attach_workspace:
+        at: /tmp/workspace
+    - *load_docker_file
+    - *export_docker_publish_version
+    - *dockerhub_login
+    - run:
+        name: Publish tag
+        command: echo 'export DOCKER_TAG="latest"' >> $BASH_ENV
+    - *dockerhub_tag
 
   publish_dockerhub_stable:
     machine: true
@@ -303,37 +311,37 @@ jobs:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - *load_docker_file
-      - *export_docker_publish_version
-      - *dockerhub_login
-      - run:
-          name: Publish tag
-          command: echo 'export DOCKER_TAG="stable"' >> $BASH_ENV
-      - *dockerhub_tag
+    - attach_workspace:
+        at: /tmp/workspace
+    - *load_docker_file
+    - *export_docker_publish_version
+    - *dockerhub_login
+    - run:
+        name: Publish tag
+        command: echo 'export DOCKER_TAG="stable"' >> $BASH_ENV
+    - *dockerhub_tag
 
   maven_dependencies:
     <<: *default_java_job
     working_directory: ~/integration-tests
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "92:a5:bf:4c:21:1b:23:1f:b3:49:3c:34:fe:38:43:5f"
-      - run:
-          name: Checkout integration tests
-          command: |
-            ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-            bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
-      - *restore_maven_dependencies
-      - run: mvn dependency:go-offline
-      - run:
-          name: Compile tests
-          command: mvn test-compile
-      - save_cache:
-          key: maven-dependencies-1.0.9-{{ checksum "pom.xml" }}
-          paths:
-            - ~/.m2
+    - add_ssh_keys:
+        fingerprints:
+        - "92:a5:bf:4c:21:1b:23:1f:b3:49:3c:34:fe:38:43:5f"
+    - run:
+        name: Checkout integration tests
+        command: |
+          ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
+    - *restore_maven_dependencies
+    - run: mvn dependency:go-offline
+    - run:
+        name: Compile tests
+        command: mvn test-compile
+    - save_cache:
+        key: maven-dependencies-1.0.11-{{ checksum "pom.xml" }}
+        paths:
+        - ~/.m2
 
   test_integration:
     <<: *run_integration_tests
@@ -350,84 +358,84 @@ workflows:
   version: 2
   test-and-publish:
     jobs:
-      - checkout_compile
-      - test:
-          requires:
-            - checkout_compile
-      - lint:
-          requires:
-            - checkout_compile
-      - publish_docker_locally:
-          requires:
-            - checkout_compile
-      - publish_lib:
-          context: CodacyAWS
-          requires:
-            - test
-            - lint
-            - test_integration
-          filters:
-            branches:
-              only:
-                - master
-      - publish_dockerhub:
-          requires:
-            - test
-            - lint
-            - publish_docker_locally
-            - test_integration
-          filters:
-            branches:
-              only:
-                - master
-      - publish_dockerhub_latest:
-          requires:
-            - test
-            - lint
-            - publish_docker_locally
-            - test_integration
-          filters:
-            branches:
-              only:
-                - master
-      - publish_dockerhub_stable_hold:
-          type: approval
-          requires:
-            - test
-            - lint
-            - publish_docker_locally
-            - test_integration
-          filters:
-            branches:
-              only:
-                - master
-      - publish_dockerhub_stable:
-          requires:
-            - publish_dockerhub_stable_hold
-      - maven_dependencies:
-          filters:
-            branches:
-              only:
-                - master
-      - test_integration:
-          requires:
-            - maven_dependencies
-            - publish_docker_locally
-          filters:
-            branches:
-              only:
-                - master
+    - checkout_compile
+    - test:
+        requires:
+        - checkout_compile
+    - lint:
+        requires:
+        - checkout_compile
+    - publish_docker_locally:
+        requires:
+        - checkout_compile
+    - publish_lib:
+        context: CodacyAWS
+        requires:
+        - test
+        - lint
+        - test_integration
+        filters:
+          branches:
+            only:
+            - master
+    - publish_dockerhub:
+        requires:
+        - test
+        - lint
+        - publish_docker_locally
+        - test_integration
+        filters:
+          branches:
+            only:
+            - master
+    - publish_dockerhub_latest:
+        requires:
+        - test
+        - lint
+        - publish_docker_locally
+        - test_integration
+        filters:
+          branches:
+            only:
+            - master
+    - publish_dockerhub_stable_hold:
+        type: approval
+        requires:
+        - test
+        - lint
+        - publish_docker_locally
+        - test_integration
+        filters:
+          branches:
+            only:
+            - master
+    - publish_dockerhub_stable:
+        requires:
+        - publish_dockerhub_stable_hold
+    - maven_dependencies:
+        filters:
+          branches:
+            only:
+            - master
+    - test_integration:
+        requires:
+        - maven_dependencies
+        - publish_docker_locally
+        filters:
+          branches:
+            only:
+            - master
 
   nightly:
     triggers:
-      - schedule:
-          cron: "0 0 * * *" # Every day “At minute 00:00”
-          filters:
-            branches:
-              only:
-                - master
+    - schedule:
+        cron: "0 0 * * *" # Every day “At minute 00:00”
+        filters:
+          branches:
+            only:
+            - master
     jobs:
-      - maven_dependencies
-      - test_production:
-          requires:
-            - maven_dependencies
+    - maven_dependencies
+    - test_production:
+        requires:
+        - maven_dependencies
