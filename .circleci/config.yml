@@ -52,9 +52,8 @@ references:
 
   run_integration_tests: &run_integration_tests
     machine: true
-    working_directory: ~/workdir
+    working_directory: ~/integration-tests
     steps:
-      - checkout
       - add_ssh_keys:
           fingerprints:
             - "92:a5:bf:4c:21:1b:23:1f:b3:49:3c:34:fe:38:43:5f"
@@ -63,13 +62,12 @@ references:
           working_directory: ~/
           command: |
             ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-            ~/workdir/scripts/checkout.sh git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
+            bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
       - *restore_maven_dependencies
       - attach_workspace:
           at: /tmp/workspace
       - run:
           name: Load docker from file
-          working_directory: ~/
           command: |
             if [[ "$CODACY_ANALYSIS_CLI_VERSION" != "latest" ]]
             then
@@ -79,7 +77,6 @@ references:
             fi
       - run:
           name: Setup codacy-analysis-cli version for integration tests
-          working_directory: ~/
           command: |
             if [[ -z "$CODACY_ANALYSIS_CLI_VERSION" ]]
             then
@@ -87,18 +84,15 @@ references:
             fi
       - run:
           name: Install codacy-analysis-cli
-          working_directory: ~/
           command: |
             curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
             cd codacy-analysis-cli-* && sudo make install
             rm -rf codacy-analysis-cli-*
       - run:
           name: Run tests
-          working_directory: ~/integration-tests
           command: mvn test -Dsurefire.suiteXmlFiles=$TEST_PATH
       - run:
           name: Save test results
-          working_directory: ~/integration-tests
           command: |
             mkdir -p ~/junit/
             find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
