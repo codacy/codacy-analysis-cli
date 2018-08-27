@@ -9,12 +9,13 @@ import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
-import com.codacy.analysis.cli.configuration.Environment
+import com.codacy.analysis.cli.configuration.{Configuration, Environment}
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api.ProjectConfiguration
 import com.codacy.analysis.core.files.FileCollector
+import com.codacy.analysis.core.git.{Commit, Git}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.upload.ResultsUploader
 import com.codacy.analysis.core.utils.Logger
@@ -44,7 +45,6 @@ class MainImpl extends CLIApp {
 
         val environment = new Environment(sys.env)
         val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
-
         val analysisResults = analysis(analyse, codacyClientOpt)
 
         val uploadResult = upload(analyse, codacyClientOpt, analysisResults)
@@ -68,7 +68,7 @@ class MainImpl extends CLIApp {
 
     new AnalyseExecutor(
       analyse.tool,
-      analyse.directory,
+      Configuration.baseProjectDirectory(analyse.directory),
       formatter,
       analyser,
       fileCollector,
@@ -82,7 +82,12 @@ class MainImpl extends CLIApp {
   private def upload(analyse: Analyse,
                      codacyClientOpt: Option[CodacyClient],
                      analysisResults: Either[AnalyseExecutor.ErrorMessage, Seq[AnalyseExecutor.ExecutorResult]]) = {
-    val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
+
+    val commitUuid: Option[Commit.Uuid] = analyse.commitUuid match {
+      case None => Git.currentCommitUuid(Configuration.baseProjectDirectory(analyse.directory))
+      case some => some.map(Commit.Uuid)
+    }
+    val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, commitUuid, analysisResults)
 
     if (analyse.uploadValue) {
       Try(Await.result(uploadResultFut, Duration.Inf)) match {
@@ -101,7 +106,7 @@ class MainImpl extends CLIApp {
 
   private def uploadResults(codacyClientOpt: Option[CodacyClient])(
     upload: Boolean,
-    commitUuid: Option[String],
+    commitUuid: Option[Commit.Uuid],
     executorResultsEither: Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]]): Future[Either[String, Unit]] = {
     (for {
       uploaderOpt <- ResultsUploader(codacyClientOpt, upload, commitUuid)

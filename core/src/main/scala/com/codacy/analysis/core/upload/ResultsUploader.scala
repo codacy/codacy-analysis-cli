@@ -4,6 +4,7 @@ import java.nio.file.Path
 
 import cats.implicits._
 import com.codacy.analysis.core.clients.CodacyClient
+import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.IssuesAnalysis.FileResults
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.utils.EitherOps
@@ -24,7 +25,7 @@ object ResultsUploader {
 
   def apply(codacyClientOpt: Option[CodacyClient],
             upload: Boolean,
-            commitUuidOpt: Option[String],
+            commitUuidOpt: Option[Commit.Uuid],
             batchSize: Option[Int] = Option.empty[Int])(
     implicit context: ExecutionContext): Either[String, Option[ResultsUploader]] = {
     if (upload) {
@@ -39,7 +40,7 @@ object ResultsUploader {
   }
 }
 
-class ResultsUploader private (commitUuid: String, codacyClient: CodacyClient, batchSizeOpt: Option[Int])(
+class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClient, batchSizeOpt: Option[Int])(
   implicit context: ExecutionContext) {
 
   private val logger: Logger = getLogger

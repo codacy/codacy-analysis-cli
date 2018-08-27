@@ -4,6 +4,7 @@ import java.nio.file.Path
 
 import cats.implicits._
 import com.codacy.analysis.core.clients.api.{CodacyError, ProjectConfiguration, RemoteResultResponse}
+import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.IssuesAnalysis.FileResults
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.utils.HttpHelper
@@ -36,42 +37,44 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
   }
 
   def sendRemoteIssues(tool: String,
-                       commitUuid: String,
+                       commitUuid: Commit.Uuid,
                        results: Either[String, Set[FileResults]]): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
         sendRemoteResultsTo(
-          s"/${token.userName}/${token.projectName}/commit/$commitUuid/issuesRemoteResults",
+          s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/issuesRemoteResults",
           tool,
           results)
-      case _: ProjectToken => sendRemoteResultsTo(s"/commit/$commitUuid/issuesRemoteResults", tool, results)
+      case _: ProjectToken => sendRemoteResultsTo(s"/commit/${commitUuid.value}/issuesRemoteResults", tool, results)
     }
   }
 
-  def sendRemoteMetrics(commitUuid: String, results: Seq[MetricsResult]): Future[Either[String, Unit]] = {
+  def sendRemoteMetrics(commitUuid: Commit.Uuid, results: Seq[MetricsResult]): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
-        sendRemoteMetricsTo(s"/${token.userName}/${token.projectName}/commit/$commitUuid/metricsRemoteResults", results)
-      case _: ProjectToken => sendRemoteMetricsTo(s"/commit/$commitUuid/metricsRemoteResults", results)
+        sendRemoteMetricsTo(
+          s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/metricsRemoteResults",
+          results)
+      case _: ProjectToken => sendRemoteMetricsTo(s"/commit/${commitUuid.value}/metricsRemoteResults", results)
     }
   }
 
-  def sendRemoteDuplication(commitUuid: String, results: Seq[DuplicationResult]): Future[Either[String, Unit]] = {
+  def sendRemoteDuplication(commitUuid: Commit.Uuid, results: Seq[DuplicationResult]): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
         sendRemoteDuplicationTo(
-          s"/${token.userName}/${token.projectName}/commit/$commitUuid/duplicationRemoteResults",
+          s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/duplicationRemoteResults",
           results)
       case _: ProjectToken =>
-        sendRemoteDuplicationTo(s"/commit/$commitUuid/duplicationRemoteResults", results)
+        sendRemoteDuplicationTo(s"/commit/${commitUuid.value}/duplicationRemoteResults", results)
     }
   }
 
-  def sendEndOfResults(commitUuid: String): Future[Either[String, Unit]] = {
+  def sendEndOfResults(commitUuid: Commit.Uuid): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
-        sendEndOfResultsTo(s"/${token.userName}/${token.projectName}/commit/$commitUuid/resultsFinal")
-      case _: ProjectToken => sendEndOfResultsTo(s"/commit/$commitUuid/resultsFinal")
+        sendEndOfResultsTo(s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/resultsFinal")
+      case _: ProjectToken => sendEndOfResultsTo(s"/commit/${commitUuid.value}/resultsFinal")
     }
   }
 

@@ -68,5 +68,4 @@ class Environment(variables: Map[String, String]) {
         Option.empty[String]
     }
   }
-
 }
