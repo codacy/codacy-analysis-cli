@@ -81,7 +81,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       when(codacyClient.getRemoteConfiguration)
         .thenReturn(ProjectConfiguration(Set.empty, Some(Set.empty), Set.empty, Set.empty).asRight[String])
 
-      when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
+      when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future.successful(().asRight[String]))
 
       val uploader: ResultsUploader =
         ResultsUploader(Option(codacyClient), upload = true, Some(commitUuid), None).right.get.get
@@ -137,7 +137,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       when(codacyClient.getRemoteConfiguration)
         .thenReturn(ProjectConfiguration(Set.empty, Some(Set.empty), Set.empty, Set.empty).asRight[String])
 
-      when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
+      when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future.successful(().asRight[String]))
 
       val uploader: ResultsUploader =
         ResultsUploader(Option(codacyClient), upload = true, Some(commitUuid), None).right.get.get
@@ -195,7 +195,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       })
 
       when(codacyClient.getRemoteConfiguration).thenReturn(getMockedRemoteConfiguration(toolPatterns))
-      when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future(().asRight[String]))
+      when(codacyClient.sendEndOfResults(commitUuid)).thenReturn(Future.successful(().asRight[String]))
 
       val filenames: Set[Path] = exampleResults.map {
         case i: Issue      => i.filename
