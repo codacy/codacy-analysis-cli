@@ -7,12 +7,7 @@ import cats.implicits._
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.{
-  DuplicationToolExecutorResult,
-  ExecutorResult,
-  IssuesToolExecutorResult,
-  MetricsToolExecutorResult
-}
+import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
 import com.codacy.analysis.cli.configuration.Environment
 import com.codacy.analysis.cli.formatter.Formatter
@@ -47,55 +42,70 @@ class MainImpl extends CLIApp {
         cleanup(analyse.directory)
         Logger.setLevel(analyse.options.verboseValue)
 
-        val formatter: Formatter = Formatter(analyse.format, analyse.output)
-        val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
-        val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
         val environment = new Environment(sys.env)
         val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
 
-        val remoteProjectConfiguration: Either[String, ProjectConfiguration] = codacyClientOpt.fold {
-          "No credentials found.".asLeft[ProjectConfiguration]
-        } { _.getRemoteConfiguration }
+        val analysisResults = analysis(analyse, codacyClientOpt)
 
-        val analysisResults = new AnalyseExecutor(
-          analyse.tool,
-          analyse.directory,
-          formatter,
-          analyser,
-          fileCollector,
-          remoteProjectConfiguration,
-          analyse.parallel,
-          analyse.allowNetworkValue,
-          analyse.forceFilePermissionsValue,
-          analyse.toolTimeout).run()
-
-        val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
-
-        val uploadResult = if (analyse.uploadValue) {
-          Try(Await.result(uploadResultFut, Duration.Inf)) match {
-            case Failure(err) =>
-              logger.error(err.getMessage)
-              Left(err.getMessage)
-            case Success(Left(err)) =>
-              logger.warn(err)
-              Left(err)
-            case Success(Right(_)) =>
-              logger.info("Completed upload of results to API")
-              Right(())
-          }
-        } else Right(())
+        val uploadResult = upload(analyse, codacyClientOpt, analysisResults)
 
         new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult)
     }
   }
 
+  private def analysis(
+    analyse: Analyse,
+    codacyClientOpt: Option[CodacyClient]): Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]] = {
+    val formatter: Formatter = Formatter(analyse.format, analyse.output)
+    val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
+    val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
+
+    val remoteProjectConfiguration: Either[String, ProjectConfiguration] = codacyClientOpt.fold {
+      "No credentials found.".asLeft[ProjectConfiguration]
+    } {
+      _.getRemoteConfiguration
+    }
+
+    new AnalyseExecutor(
+      analyse.tool,
+      analyse.directory,
+      formatter,
+      analyser,
+      fileCollector,
+      remoteProjectConfiguration,
+      analyse.parallel,
+      analyse.allowNetworkValue,
+      analyse.forceFilePermissionsValue,
+      analyse.toolTimeout).run()
+  }
+
+  private def upload(analyse: Analyse,
+                     codacyClientOpt: Option[CodacyClient],
+                     analysisResults: Either[AnalyseExecutor.ErrorMessage, Seq[AnalyseExecutor.ExecutorResult]]) = {
+    val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, analyse.commitUuid, analysisResults)
+
+    if (analyse.uploadValue) {
+      Try(Await.result(uploadResultFut, Duration.Inf)) match {
+        case Failure(err) =>
+          logger.error(err.getMessage)
+          Left(err.getMessage)
+        case Success(Left(err)) =>
+          logger.warn(err)
+          Left(err)
+        case Success(Right(_)) =>
+          logger.info("Completed upload of results to API")
+          Right(())
+      }
+    } else Right(())
+  }
+
   private def uploadResults(codacyClientOpt: Option[CodacyClient])(
     upload: Boolean,
     commitUuid: Option[String],
-    executorResultsEither: Either[String, Seq[ExecutorResult]]): Future[Either[String, Unit]] = {
+    executorResultsEither: Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]]): Future[Either[String, Unit]] = {
     (for {
       uploaderOpt <- ResultsUploader(codacyClientOpt, upload, commitUuid)
-      executorResults <- executorResultsEither
+      executorResults <- executorResultsEither.left.map(_.message)
     } yield {
       uploaderOpt.map { uploader =>
         val (issuesToolExecutorResult, metricsToolExecutorResult, duplicationToolExecutorResult) =

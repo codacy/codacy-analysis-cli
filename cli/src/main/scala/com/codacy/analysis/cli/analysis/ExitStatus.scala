@@ -6,6 +6,7 @@ import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.{
   IssuesToolExecutorResult,
   MetricsToolExecutorResult
 }
+import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 
 object ExitStatus {
 
@@ -13,6 +14,7 @@ object ExitStatus {
     val success = 0
     val failedAnalysis = 1
     val partiallyFailedAnalysis = 2
+    val nonExistentTool = 301
     val failedUpload = 101
     val maxAllowedIssuesExceeded = 201
   }
@@ -20,23 +22,27 @@ object ExitStatus {
 
 class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
 
-  def exitCode(executorResultsEither: Either[String, Seq[ExecutorResult]], uploadResult: Either[String, Unit]): Int = {
+  def exitCode(executorResultsEither: Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]],
+               uploadResult: Either[String, Unit]): Int = {
     val resultsCount = countResults(executorResultsEither)
 
-    if (executorResultsEither.isLeft) {
-      ExitStatus.ExitCodes.failedAnalysis
-    } else if (failIfIncomplete && existsFailure(executorResultsEither)) {
-      ExitStatus.ExitCodes.partiallyFailedAnalysis
-    } else if (resultsCount > maxAllowedIssues) {
-      ExitStatus.ExitCodes.maxAllowedIssuesExceeded
-    } else if (uploadResult.isLeft) {
-      ExitStatus.ExitCodes.failedUpload
-    } else {
-      ExitStatus.ExitCodes.success
+    executorResultsEither match {
+      case Left(_: AnalyseExecutor.ErrorMessage.NonExistingToolInput) =>
+        ExitStatus.ExitCodes.nonExistentTool
+      case Left(_) =>
+        ExitStatus.ExitCodes.failedAnalysis
+      case Right(results) if failIfIncomplete && existsFailure(results) =>
+        ExitStatus.ExitCodes.partiallyFailedAnalysis
+      case Right(_) if resultsCount > maxAllowedIssues =>
+        ExitStatus.ExitCodes.maxAllowedIssuesExceeded
+      case _ if uploadResult.isLeft =>
+        ExitStatus.ExitCodes.failedUpload
+      case _ =>
+        ExitStatus.ExitCodes.success
     }
   }
 
-  private def countResults(executorResultsEither: Either[String, Seq[ExecutorResult]]): Int = {
+  private def countResults(executorResultsEither: Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]]): Int = {
     executorResultsEither
       .getOrElse(Seq.empty[ExecutorResult])
       .map {
@@ -48,15 +54,15 @@ class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
       .sum
   }
 
-  private def existsFailure(executorResultsEither: Either[String, Seq[ExecutorResult]]): Boolean = {
-    executorResultsEither.exists(_.exists {
+  private def existsFailure(executorResults: Seq[ExecutorResult]): Boolean = {
+    executorResults.exists {
       case executorResult: IssuesToolExecutorResult =>
         executorResult.analysisResults.isFailure
       case executorResult: MetricsToolExecutorResult =>
         executorResult.analysisResults.isFailure
       case executorResult: DuplicationToolExecutorResult =>
         executorResult.analysisResults.isFailure
-    })
+    }
   }
 
 }
