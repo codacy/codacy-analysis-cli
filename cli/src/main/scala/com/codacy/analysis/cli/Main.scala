@@ -9,7 +9,7 @@ import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
-import com.codacy.analysis.cli.configuration.{Configuration, Environment}
+import com.codacy.analysis.cli.configuration.Environment
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.CodacyClient
@@ -45,9 +45,13 @@ class MainImpl extends CLIApp {
 
         val environment = new Environment(sys.env)
         val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
-        val analysisResults = analysis(analyse, codacyClientOpt)
+        val projectDirectory: File = environment.baseProjectDirectory(analyse.directory)
+        val commitUuid: Option[Commit.Uuid] =
+          analyse.commitUuid.fold(Git.currentCommitUuid(projectDirectory))(uuid => Some(Commit.Uuid(uuid)))
 
-        val uploadResult = upload(analyse, codacyClientOpt, analysisResults)
+        val analysisResults = analysis(analyse, projectDirectory, codacyClientOpt)
+
+        val uploadResult = upload(analyse, commitUuid, codacyClientOpt, analysisResults)
 
         new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult)
     }
@@ -55,6 +59,7 @@ class MainImpl extends CLIApp {
 
   private def analysis(
     analyse: Analyse,
+    projectDirectory: File,
     codacyClientOpt: Option[CodacyClient]): Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]] = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
@@ -68,7 +73,7 @@ class MainImpl extends CLIApp {
 
     new AnalyseExecutor(
       analyse.tool,
-      Configuration.baseProjectDirectory(analyse.directory),
+      projectDirectory,
       formatter,
       analyser,
       fileCollector,
@@ -80,13 +85,10 @@ class MainImpl extends CLIApp {
   }
 
   private def upload(analyse: Analyse,
+                     commitUuid: Option[Commit.Uuid],
                      codacyClientOpt: Option[CodacyClient],
                      analysisResults: Either[AnalyseExecutor.ErrorMessage, Seq[AnalyseExecutor.ExecutorResult]]) = {
 
-    val commitUuid: Option[Commit.Uuid] = analyse.commitUuid match {
-      case None => Git.currentCommitUuid(Configuration.baseProjectDirectory(analyse.directory))
-      case some => some.map(Commit.Uuid)
-    }
     val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, commitUuid, analysisResults)
 
     if (analyse.uploadValue) {

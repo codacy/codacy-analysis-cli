@@ -21,7 +21,7 @@ class GitSpec extends Specification with NoLanguageFeatures {
     }
 
     "get the current commit uuid" in {
-      withTemporaryGitRepo((directory, _, _, _) => {
+      withTemporaryGitRepo(directory => {
         val expectedUuid = Process(Seq("git", "rev-parse", "HEAD"), directory.toJava).!!.trim
         Git.currentCommitUuid(directory) must beLike {
           case Some(commit) => commit.value must beEqualTo(expectedUuid)

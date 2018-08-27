@@ -2,7 +2,7 @@ package com.codacy.analysis.cli
 
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
-import com.codacy.analysis.cli.configuration.Configuration
+import com.codacy.analysis.cli.configuration.Environment
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.analysis.core.analysis.Analyser
@@ -211,18 +211,19 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
   private def runAnalyseExecutor(analyse: Analyse, remoteProjectConfiguration: Either[String, ProjectConfiguration]) = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
+    val environment: Environment = new Environment(Map.empty[String, String])
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
     new AnalyseExecutor(
       analyse.tool,
-      Configuration.baseProjectDirectory(analyse.directory),
+      environment.baseProjectDirectory(analyse.directory),
       formatter,
       analyser,
       fileCollector,
       remoteProjectConfiguration,
       None,
-      false,
-      true).run() must beRight
+      allowNetwork = false,
+      forceFilePermissions = true).run() must beRight
   }
 
 }
