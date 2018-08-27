@@ -2,6 +2,7 @@ package com.codacy.analysis.cli
 
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
+import com.codacy.analysis.cli.configuration.Configuration
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.analysis.core.analysis.Analyser
@@ -214,7 +215,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
     new AnalyseExecutor(
       analyse.tool,
-      analyse.directory,
+      Configuration.baseProjectDirectory(analyse.directory),
       formatter,
       analyser,
       fileCollector,

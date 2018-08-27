@@ -34,4 +34,26 @@ object TestUtils {
       block(file, directory)
     }).get()
 
+  def withTemporaryGitRepo[T](fn: (File, File, File, File) => MatchResult[T]): MatchResult[T] = {
+    (for {
+      temporaryDirectory <- File.temporaryDirectory()
+      temporaryFile1 <- File.temporaryFile(parent = Some(temporaryDirectory))
+      temporaryFile2 <- File.temporaryFile(parent = Some(temporaryDirectory))
+      temporaryFile3 <- File.temporaryFile(parent = Some(temporaryDirectory))
+    } yield {
+
+      def addFile(file: File) = {
+        Process(Seq("git", "add", temporaryDirectory.relativize(file).toString), temporaryDirectory.toJava).!
+      }
+
+      Process(Seq("git", "init"), temporaryDirectory.toJava).!
+      addFile(temporaryFile1)
+      addFile(temporaryFile2)
+      addFile(temporaryFile3)
+      Process(Seq("git", "commit", "-m", "tmp"), temporaryDirectory.toJava).!
+
+      fn(temporaryDirectory, temporaryFile1, temporaryFile2, temporaryFile3)
+    }).get
+
+  }
 }

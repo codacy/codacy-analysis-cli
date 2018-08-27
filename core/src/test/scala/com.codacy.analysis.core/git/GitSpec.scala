@@ -3,6 +3,7 @@ package com.codacy.analysis.core.git
 import better.files.File
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
+import com.codacy.analysis.core.utils.TestUtils._
 
 import scala.sys.process.Process
 
@@ -17,6 +18,15 @@ class GitSpec extends Specification with NoLanguageFeatures {
 
         Git.repository(temporaryDirectory) must beSuccessfulTry
       }).get
+    }
+
+    "get the current commit uuid" in {
+      withTemporaryGitRepo((directory, _, _, _) => {
+        val expectedUuid = Process(Seq("git", "rev-parse", "HEAD"), directory.toJava).!!.trim
+        Git.currentCommitUuid(directory) must beLike {
+          case Some(commit) => commit.value must beEqualTo(expectedUuid)
+        }
+      })
     }
 
     "fail to create a repository" in {

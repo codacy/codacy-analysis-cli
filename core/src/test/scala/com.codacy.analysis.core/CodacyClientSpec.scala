@@ -1,6 +1,7 @@
 package com.codacy.analysis.core
 
 import com.codacy.analysis.core.clients._
+import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.utils.HttpHelper
 import com.codacy.analysis.core.utils.TestUtils._
 import io.circe.parser.parse
@@ -21,7 +22,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
   private val projectTokenStr = "RandomProjectToken"
   private val username = "some_user"
   private val project = "some_project"
-  private val commitUuid = "some_commitUuid"
+  private val commitUuid = Commit.Uuid("some_commitUuid")
   private val remoteUrl = "codacy.com/2.0"
   private val tool = "eslint"
   private val apiCredentials: Credentials =
