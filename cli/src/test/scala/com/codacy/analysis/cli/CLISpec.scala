@@ -17,12 +17,25 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
   "CLIApp" should {
     "parse correctly" in {
-      cli.parse(Array()) must beRight
-      cli.parse(Array("--version")) must beRight
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint")) must beRight
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--output", "/tmp/test.txt")) must beRight
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--verbose")) must beRight
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--format", "json")) must beRight
+
+      cli.parse(Array()) must beLike {
+        case Right((DefaultCommand(_), _, parsed)) => parsed must beNone
+      }
+      cli.parse(Array("--version")) must beLike {
+        case Right((DefaultCommand(_), _, parsed)) => parsed must beNone
+      }
+      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint")) must beLike {
+        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
+      }
+      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--output", "/tmp/test.txt")) must beLike {
+        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
+      }
+      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--verbose")) must beLike {
+        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
+      }
+      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--format", "json")) must beLike {
+        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
+      }
       cli.parse(
         Array(
           "analyse",
@@ -31,11 +44,15 @@ class CLISpec extends Specification with NoLanguageFeatures {
           "--tool",
           "pylint",
           "--commit-uuid",
-          "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38")) must beRight
-
+          "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38")) must beLike {
+        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
+      }
     }
 
     "fail parse" in {
+      val x =
+        cli.parse(Array("bad-command", "--directory", "/tmp", "--tool", "pylint"))
+      println(x)
       cli.parse(Array("bad-command", "--directory", "/tmp", "--tool", "pylint")) must beEqualTo(
         Right(errorMsg("Command not found: bad-command")))
       cli.parse(Array("analyse", "--bad-parameter", "/tmp", "--tool", "pylint")) must beEqualTo(
