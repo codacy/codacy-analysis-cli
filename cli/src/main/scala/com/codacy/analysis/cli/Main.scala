@@ -47,7 +47,7 @@ class MainImpl extends CLIApp {
         val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
         val projectDirectory: File = environment.baseProjectDirectory(analyse.directory)
         val commitUuid: Option[Commit.Uuid] =
-          analyse.commitUuid.fold(Git.currentCommitUuid(projectDirectory))(uuid => Some(Commit.Uuid(uuid)))
+          analyse.commitUuid.orElse(Git.currentCommitUuid(projectDirectory))
 
         val analysisResults = analysis(analyse, projectDirectory, codacyClientOpt)
 

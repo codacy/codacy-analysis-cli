@@ -9,6 +9,7 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
 import com.codacy.analysis.core.files.FileCollector
+import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.{Issue, Result, ToolResult}
 import io.circe.generic.auto._
 import io.circe.parser
@@ -41,7 +42,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid),
+          commitUuid = Option(Commit.Uuid(commitUuid)),
           toolTimeout = Option(15.minutes))
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
@@ -105,7 +106,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid),
+          commitUuid = Option(Commit.Uuid(commitUuid)),
           toolTimeout = Option(15.minutes))
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
@@ -163,7 +164,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid),
+          commitUuid = Option(Commit.Uuid(commitUuid)),
           toolTimeout = Option(15.minutes))
 
         val remoteConfiguration: Either[String, ProjectConfiguration] =
