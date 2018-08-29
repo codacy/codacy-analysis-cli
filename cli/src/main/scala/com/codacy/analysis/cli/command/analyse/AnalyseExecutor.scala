@@ -3,7 +3,6 @@ package com.codacy.analysis.cli.command.analyse
 import java.nio.file.Path
 
 import better.files.File
-import com.codacy.analysis.cli.command.Properties
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.ErrorMessage._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.formatter.Formatter
@@ -26,7 +25,7 @@ import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
 
 class AnalyseExecutor(toolInput: Option[String],
-                      directory: Option[File],
+                      directory: File,
                       formatter: Formatter,
                       analyser: Analyser[Try],
                       fileCollector: FileCollector[Try],
@@ -41,20 +40,16 @@ class AnalyseExecutor(toolInput: Option[String],
   def run(): Either[ErrorMessage, Seq[ExecutorResult]] = {
     formatter.begin()
 
-    val baseDirectory =
-      directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
-        if (dir.isDirectory) dir else dir.parent)
-
     val localConfigurationFile: Either[String, CodacyConfigurationFile] =
-      CodacyConfigurationFile.search(baseDirectory).flatMap(CodacyConfigurationFile.load)
+      CodacyConfigurationFile.search(directory).flatMap(CodacyConfigurationFile.load)
 
     if (forceFilePermissions) {
-      overrideFilePermissions(baseDirectory)
+      overrideFilePermissions(directory)
     }
 
     val filesTargetAndTool: Either[ErrorMessage, (FilesTarget, Set[ITool])] = for {
       filesTarget <- fileCollector
-        .list(baseDirectory, localConfigurationFile, remoteProjectConfiguration)
+        .list(directory, localConfigurationFile, remoteProjectConfiguration)
         .toRight(FilesAccessError)
       tools <- allTools(
         toolInput,

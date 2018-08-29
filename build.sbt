@@ -10,8 +10,6 @@ lazy val aggregatedProjects: Seq[ProjectReference] = Seq(codacyAnalysisCore, cod
 
 lazy val testDependencies = Dependencies.specs2.map(_ % Test)
 
-
-
 lazy val root = project
   .in(file("."))
   .settings(name := "root")

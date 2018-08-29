@@ -1,6 +1,7 @@
 package com.codacy.analysis.core
 
 import com.codacy.analysis.core.clients._
+import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.utils.HttpHelper
 import com.codacy.analysis.core.utils.TestUtils._
 import io.circe.parser.parse
@@ -21,7 +22,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
   private val projectTokenStr = "RandomProjectToken"
   private val username = "some_user"
   private val project = "some_project"
-  private val commitUuid = "some_commitUuid"
+  private val commitUuid = Commit.Uuid("some_commitUuid")
   private val remoteUrl = "codacy.com/2.0"
   private val tool = "eslint"
   private val apiCredentials: Credentials =
@@ -134,8 +135,8 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         invocation.getArguments.toList match {
           case (endpoint: String) :: Nil =>
             val actualEndpoint = credentials match {
-              case _: ProjectToken => s"/commit/$commitUuid/remoteResults"
-              case _: APIToken     => s"/$username/$project/commit/$commitUuid/remoteResults"
+              case _: ProjectToken => s"/commit/${commitUuid.value}/remoteResults"
+              case _: APIToken     => s"/$username/$project/commit/${commitUuid.value}/remoteResults"
             }
             endpoint must beEqualTo(actualEndpoint)
           case _ =>
@@ -159,8 +160,8 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
         invocation.getArguments.toList match {
           case (endpoint: String) :: Nil =>
             val actualEndpoint = credentials match {
-              case _: ProjectToken => s"/commit/$commitUuid/resultsFinal"
-              case _: APIToken     => s"/$username/$project/commit/$commitUuid/resultsFinal"
+              case _: ProjectToken => s"/commit/${commitUuid.value}/resultsFinal"
+              case _: APIToken     => s"/$username/$project/commit/${commitUuid.value}/resultsFinal"
             }
             endpoint must beEqualTo(actualEndpoint)
           case _ =>

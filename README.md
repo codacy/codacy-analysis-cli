@@ -104,7 +104,7 @@ docker run \
 * `--codacy-api-base-url` or env.`CODACY_API_BASE_URL` - Change the Codacy installation API URL to retrieve the configuration (e.g. Enterprise installation)
 * `--output` - Send the output results to a file
 * `--format` [default: text] - Change the output format (e.g. json)
-* `--commit-uuid` - Set the commit UUID that will receive the results on Codacy
+* `--commit-uuid` [default: latest commit of current git branch] - Set the commit UUID that will receive the results on Codacy
 * ` --upload` [default: false] - Request to push results to Codacy
 * `--parallel` [default: 2] - Number of tools to run in parallel
 * `--max-allowed-issues` [default: 0] - Maximum number of issues allowed for the analysis to succeed

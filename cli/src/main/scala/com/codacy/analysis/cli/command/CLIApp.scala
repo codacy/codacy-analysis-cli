@@ -7,9 +7,11 @@ import com.codacy.analysis.cli.command.ArgumentParsers._
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
+import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.tools.Tool
 
 import scala.concurrent.duration.Duration
+import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
 abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command] {
@@ -29,6 +31,9 @@ abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command]
 }
 
 object ArgumentParsers {
+
+  private val commitUuidRegex: Regex = "^[a-fA-F0-9]{40}$".r
+
   implicit val fileParser: ArgParser[File] = {
     ArgParser.instance[File]("file") { path: String =>
       Right(File(path))
@@ -52,6 +57,15 @@ object ArgumentParsers {
       Try(Duration(duration)) match {
         case Success(d) => Right(d)
         case Failure(_) => Left(s"Invalid duration $duration (e.g. 20minutes, 10seconds, ...)")
+      }
+    }
+  }
+
+  implicit val commitUuidParser: ArgParser[Commit.Uuid] = {
+    ArgParser.instance[Commit.Uuid]("commitUuid") { commitUuid: String =>
+      commitUuidRegex.findFirstIn(commitUuid) match {
+        case Some(uuid) => Right(Commit.Uuid(uuid))
+        case None       => Left(s"Invalid commit uuid $commitUuid - it must be a valid SHA hash")
       }
     }
   }
@@ -121,7 +135,7 @@ final case class Analyse(
   @ExtraName("o") @ValueDescription("The output destination file.")
   output: Option[File] = Option.empty,
   @ExtraName("c") @ValueDescription("The commit UUID of the commit that will be analysed")
-  commitUuid: Option[String] = Option.empty,
+  commitUuid: Option[Commit.Uuid] = Option.empty,
   @ExtraName("u") @ValueDescription("If the results should be uploaded to the API")
   upload: Int @@ Counter = Tag.of(0),
   @ExtraName("p") @ValueDescription("The number of tools to run in parallel")

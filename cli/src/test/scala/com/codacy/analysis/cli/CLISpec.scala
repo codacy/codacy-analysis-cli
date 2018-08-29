@@ -17,21 +17,50 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
   "CLIApp" should {
     "parse correctly" in {
-      cli.parse(Array()) must beRight
-      cli.parse(Array("--version")) must beRight
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint")) must beRight
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--output", "/tmp/test.txt")) must beRight
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--verbose")) must beRight
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--format", "json")) must beRight
+
+      cli.parse(Array()) must beLike {
+        case Right((DefaultCommand(_), _, parsed)) => parsed must beNone
+      }
+      cli.parse(Array("--version")) must beLike {
+        case Right((DefaultCommand(_), _, parsed)) => parsed must beNone
+      }
+      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint")) must beLike {
+        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
+      }
+      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--output", "/tmp/test.txt")) must beLike {
+        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
+      }
+      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--verbose")) must beLike {
+        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
+      }
+      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--format", "json")) must beLike {
+        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
+      }
+      cli.parse(
+        Array(
+          "analyse",
+          "--directory",
+          "/tmp",
+          "--tool",
+          "pylint",
+          "--commit-uuid",
+          "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38")) must beLike {
+        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
+      }
     }
 
     "fail parse" in {
+      val x =
+        cli.parse(Array("bad-command", "--directory", "/tmp", "--tool", "pylint"))
+      println(x)
       cli.parse(Array("bad-command", "--directory", "/tmp", "--tool", "pylint")) must beEqualTo(
         Right(errorMsg("Command not found: bad-command")))
       cli.parse(Array("analyse", "--bad-parameter", "/tmp", "--tool", "pylint")) must beEqualTo(
         Right(errorMsg("Unrecognized argument: --bad-parameter")))
       cli.parse(Array("analyse", "analyse", "--tool-timeout", "1semilha")) must beEqualTo(
         Right(errorMsg("Invalid duration 1semilha (e.g. 20minutes, 10seconds, ...)")))
+      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--commit-uuid", "hold-my-flappy-folds")) must beEqualTo(
+        Right(errorMsg("Invalid commit uuid hold-my-flappy-folds - it must be a valid SHA hash")))
     }
 
     "output text to file" in {
@@ -89,8 +118,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
           val result = for {
             responseJson <- parser.parse(file.contentAsString)
             response <- responseJson.as[Set[ToolResult]]
-            expectedJson <- parser.parse(
-              Resource.getAsString("com/codacy/analysis/cli/cli-output-brakeman-1.json"))
+            expectedJson <- parser.parse(Resource.getAsString("com/codacy/analysis/cli/cli-output-brakeman-1.json"))
             expected <- expectedJson.as[Set[ToolResult]]
           } yield (response, expected)
 
@@ -119,8 +147,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
           response <- responseJson.as[Set[ToolResult]]
-          expectedJson <- parser.parse(
-            Resource.getAsString("com/codacy/analysis/cli/cli-output-pylint-1.json"))
+          expectedJson <- parser.parse(Resource.getAsString("com/codacy/analysis/cli/cli-output-pylint-1.json"))
           expected <- expectedJson.as[Set[ToolResult]]
         } yield (response, expected)
 
@@ -209,14 +236,14 @@ class CLISpec extends Specification with NoLanguageFeatures {
           val result = for {
             responseJson <- parser.parse(file.contentAsString)
             response <- responseJson.as[Set[Result]]
-            expectedJson <- parser.parse(
-              Resource.getAsString("com/codacy/analysis/cli/cli-output-duplication.json"))
+            expectedJson <- parser.parse(Resource.getAsString("com/codacy/analysis/cli/cli-output-duplication.json"))
             expected <- expectedJson.as[Set[Result]]
           } yield (response, expected)
 
           result must beRight
-          result must beLike { case Right((response, expected)) =>
-            removeCloneLines(response) must beEqualTo(removeCloneLines(expected))
+          result must beLike {
+            case Right((response, expected)) =>
+              removeCloneLines(response) must beEqualTo(removeCloneLines(expected))
           }
       }
     }

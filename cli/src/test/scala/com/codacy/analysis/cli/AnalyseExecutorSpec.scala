@@ -2,12 +2,14 @@ package com.codacy.analysis.cli
 
 import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
+import com.codacy.analysis.cli.configuration.Environment
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
 import com.codacy.analysis.core.files.FileCollector
+import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.{Issue, Result, ToolResult}
 import io.circe.generic.auto._
 import io.circe.parser
@@ -40,7 +42,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid),
+          commitUuid = Option(Commit.Uuid(commitUuid)),
           toolTimeout = Option(15.minutes))
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
@@ -104,7 +106,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid),
+          commitUuid = Option(Commit.Uuid(commitUuid)),
           toolTimeout = Option(15.minutes))
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
           ToolPattern(patternId, Set.empty)
@@ -162,7 +164,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           format = Json.name,
           output = Option(file),
           extras = ExtraOptions(),
-          commitUuid = Option(commitUuid),
+          commitUuid = Option(Commit.Uuid(commitUuid)),
           toolTimeout = Option(15.minutes))
 
         val remoteConfiguration: Either[String, ProjectConfiguration] =
@@ -210,18 +212,19 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
   private def runAnalyseExecutor(analyse: Analyse, remoteProjectConfiguration: Either[String, ProjectConfiguration]) = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
+    val environment: Environment = new Environment(Map.empty[String, String])
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
     new AnalyseExecutor(
       analyse.tool,
-      analyse.directory,
+      environment.baseProjectDirectory(analyse.directory),
       formatter,
       analyser,
       fileCollector,
       remoteProjectConfiguration,
       None,
-      false,
-      true).run() must beRight
+      allowNetwork = false,
+      forceFilePermissions = true).run() must beRight
   }
 
 }

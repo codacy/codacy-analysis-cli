@@ -34,4 +34,14 @@ object TestUtils {
       block(file, directory)
     }).get()
 
+  def withTemporaryGitRepo[T](fn: File => MatchResult[T]): MatchResult[T] = {
+    (for {
+      temporaryDirectory <- File.temporaryDirectory()
+    } yield {
+      Process(Seq("git", "init"), temporaryDirectory.toJava).!
+      Process(Seq("git", "commit", "--allow-empty", "-m", "initial commit"), temporaryDirectory.toJava).!
+      fn(temporaryDirectory)
+    }).get
+
+  }
 }

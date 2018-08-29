@@ -2,6 +2,8 @@ package com.codacy.analysis.cli.configuration
 
 import java.net.URL
 
+import better.files.File
+import com.codacy.analysis.cli.command.Properties
 import com.codacy.analysis.core.utils.Implicits._
 import org.log4s.{Logger, getLogger}
 
@@ -38,6 +40,10 @@ class Environment(variables: Map[String, String]) {
     validateApiBaseUrl(apiURL)
   }
 
+  def baseProjectDirectory(directory: Option[File]): File =
+    directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
+      if (dir.isDirectory) dir else dir.parent)
+
   private def validateApiBaseUrl(apiURL: Option[String]): Option[String] = {
     apiURL.flatMap { url =>
       Try(new URL(url)) match {
@@ -68,5 +74,4 @@ class Environment(variables: Map[String, String]) {
         Option.empty[String]
     }
   }
-
 }
