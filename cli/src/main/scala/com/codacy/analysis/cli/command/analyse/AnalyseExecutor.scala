@@ -19,10 +19,10 @@ import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
 import com.codacy.plugins.api.languages.Language
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
-
 import scala.concurrent.duration.Duration
 import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
+import com.codacy.analysis.core.utils.SeqOps._
 
 class AnalyseExecutor(toolInput: Option[String],
                       directory: File,
@@ -83,7 +83,11 @@ class AnalyseExecutor(toolInput: Option[String],
 
     formatter.end()
 
-    analysisResult
+    analysisResult.map { result =>
+      val (metricsResults, issuesResults, duplicationResults) =
+        result.partitionSubtypes[MetricsToolExecutorResult, IssuesToolExecutorResult, DuplicationToolExecutorResult]
+      MetricsToolExecutor.reduceMetricsToolResultsByLanguage(metricsResults) ++ issuesResults ++ duplicationResults
+    }
   }
 
   private def issues(tool: Tool,
