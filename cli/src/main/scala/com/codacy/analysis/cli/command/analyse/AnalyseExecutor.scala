@@ -86,7 +86,7 @@ class AnalyseExecutor(toolInput: Option[String],
     analysisResult.map { result =>
       val (metricsResults, issuesResults, duplicationResults) =
         result.partitionSubtypes[MetricsToolExecutorResult, IssuesToolExecutorResult, DuplicationToolExecutorResult]
-      MetricsToolExecutor.reduceMetricsToolResultsByLanguage(metricsResults) ++ issuesResults ++ duplicationResults
+      MetricsToolExecutor.reduceMetricsToolResultsByFile(metricsResults) ++ issuesResults ++ duplicationResults
     }
   }
 
