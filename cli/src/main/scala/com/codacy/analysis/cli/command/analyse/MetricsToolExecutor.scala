@@ -16,13 +16,13 @@ object MetricsToolExecutor {
       .flatMap {
         _.foldLeft(Option.empty[MetricsToolExecutorResult]) {
           case (
-              Some(metricsExecutorRes1 @ MetricsToolExecutorResult(_, _, Success(fileMetrics1))),
-              metricsExecutorRes2 @ MetricsToolExecutorResult(_, _, Success(fileMetrics2))) =>
+              Some(metricsExecutorResAcc @ MetricsToolExecutorResult(_, _, Success(fileMetricsAcc))),
+              metricsExecutorRes @ MetricsToolExecutorResult(_, _, Success(fileMetrics))) =>
             Some(
-              metricsExecutorRes1.copy(
-                files = metricsExecutorRes1.files ++ metricsExecutorRes2.files,
-                analysisResults = Success(reduceFileMetricsByFile(fileMetrics1 ++ fileMetrics2))))
-          //TODO: we need to find a way to return the failures to backend so we can manage to distinguish between PartialFailures and metrics that don't have complexity
+              metricsExecutorResAcc.copy(
+                files = metricsExecutorResAcc.files ++ metricsExecutorRes.files,
+                analysisResults = Success(reduceFileMetricsByFile(fileMetrics ++ fileMetricsAcc))))
+          //TODO (FT-5698): we need to find a way to return the failures to backend so we can manage to distinguish between PartialFailures and metrics that don't have complexity
           case (
               metricsToolExecutorRes @ Some(MetricsToolExecutorResult(_, _, Success(_))),
               MetricsToolExecutorResult(_, _, Failure(e))) =>
