@@ -14,24 +14,25 @@ object MetricsToolExecutor {
       .groupBy(_.language)
       .values
       .flatMap {
+        val errorLogMessage =
+          "While merging metrics results, found a success and a failure for the same file. Will assume the success."
         _.foldLeft(Option.empty[MetricsToolExecutorResult]) {
           case (
               Some(metricsExecutorResAcc @ MetricsToolExecutorResult(_, _, Success(fileMetricsAcc))),
               metricsExecutorRes @ MetricsToolExecutorResult(_, _, Success(fileMetrics))) =>
-            Some(
-              metricsExecutorResAcc.copy(
-                files = metricsExecutorResAcc.files ++ metricsExecutorRes.files,
-                analysisResults = Success(reduceFileMetricsByFile(fileMetrics ++ fileMetricsAcc))))
-          //TODO (FT-5698): we need to find a way to return the failures to backend so we can manage to distinguish between PartialFailures and metrics that don't have complexity
+            val allFiles = metricsExecutorResAcc.files ++ metricsExecutorRes.files
+            val reducedFileMetrics = reduceFileMetricsByFile(fileMetrics ++ fileMetricsAcc)
+            Some(metricsExecutorResAcc.copy(files = allFiles, analysisResults = Success(reducedFileMetrics)))
+          //TODO (FT-5881): we need to find a way to return the failures to backend so we can manage to distinguish between PartialFailures and metrics that don't have complexity
           case (
               metricsToolExecutorRes @ Some(MetricsToolExecutorResult(_, _, Success(_))),
-              MetricsToolExecutorResult(_, _, Failure(e))) =>
-            logger.error(e)("Failed to run metrics.")
+              MetricsToolExecutorResult(_, _, Failure(_))) =>
+            logger.error(errorLogMessage)
             metricsToolExecutorRes
           case (
-              Some(MetricsToolExecutorResult(_, _, Failure(e))),
+              Some(MetricsToolExecutorResult(_, _, Failure(_))),
               metricsToolExecutorRes @ MetricsToolExecutorResult(_, _, Success(_))) =>
-            logger.error(e)("Failed to run metrics.")
+            logger.error(errorLogMessage)
             Some(metricsToolExecutorRes)
           case (_, o) => Some(o)
         }
@@ -51,8 +52,11 @@ object MetricsToolExecutor {
               fMetricsAccumulator.cloc.orElse(fMetricsElement.cloc),
               fMetricsAccumulator.nrMethods.orElse(fMetricsElement.nrMethods),
               fMetricsAccumulator.nrClasses.orElse(fMetricsElement.nrClasses),
-              if (fMetricsAccumulator.lineComplexities.nonEmpty) fMetricsAccumulator.lineComplexities
-              else fMetricsElement.lineComplexities)
+              if (fMetricsAccumulator.lineComplexities.nonEmpty) {
+                fMetricsAccumulator.lineComplexities
+              } else {
+                fMetricsElement.lineComplexities
+              })
           }
       }(collection.breakOut)
   }
