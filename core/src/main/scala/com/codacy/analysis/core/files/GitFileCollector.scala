@@ -19,7 +19,6 @@ class GitFileCollector extends FileCollector[Try] {
       allFiles <- latestCommit.files
     } yield {
       val filteredFiles = defaultFilter(allFiles, localConfiguration, remoteConfiguration)
-
       val checkedFiles = checkPermissions(directory, filteredFiles)
 
       FilesTarget(directory, checkedFiles.readableFiles, checkedFiles.unreadableFiles)

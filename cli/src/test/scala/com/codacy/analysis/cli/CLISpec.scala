@@ -1,9 +1,13 @@
 package com.codacy.analysis.cli
 
 import better.files.{File, Resource}
-import com.codacy.analysis.cli.command.{Command, DefaultCommand}
-import com.codacy.analysis.core.utils.TestUtils._
+import caseapp.Tag
+import com.codacy.analysis.cli.analysis.ExitStatus
+import com.codacy.analysis.cli.command._
+import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.{DuplicationClone, FileError, Result, ToolResult}
+import com.codacy.analysis.core.utils.TestUtils._
+import com.codacy.plugins.utils.CommandRunner
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
@@ -50,9 +54,6 @@ class CLISpec extends Specification with NoLanguageFeatures {
     }
 
     "fail parse" in {
-      val x =
-        cli.parse(Array("bad-command", "--directory", "/tmp", "--tool", "pylint"))
-      println(x)
       cli.parse(Array("bad-command", "--directory", "/tmp", "--tool", "pylint")) must beEqualTo(
         Right(errorMsg("Command not found: bad-command")))
       cli.parse(Array("analyse", "--bad-parameter", "/tmp", "--tool", "pylint")) must beEqualTo(
@@ -245,6 +246,55 @@ class CLISpec extends Specification with NoLanguageFeatures {
             case Right((response, expected)) =>
               removeCloneLines(response) must beEqualTo(removeCloneLines(expected))
           }
+      }
+    }
+
+    "fail because of uncommited files with enabled upload" in {
+      val commitUuid = "31a62935ec48f4fdd3b513a69cd77be583fd850f"
+      withClonedRepo("git@github.com:qamine-test/JS-Tests.git", commitUuid) { (file, directory) =>
+        (for {
+          newFile <- File.temporaryFile(parent = Some(directory))
+        } yield {
+
+          CommandRunner.exec(List("git", "add", newFile.name), Option(directory.toJava))
+
+          val analyse = Analyse(
+            options = CommonOptions(),
+            api = APIOptions(projectToken = None, codacyApiBaseUrl = None),
+            tool = None,
+            directory = Option(directory),
+            upload = Tag.of(1),
+            extras = ExtraOptions(),
+            commitUuid = Option(Commit.Uuid(commitUuid)),
+            toolTimeout = None)
+
+          cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommitedChanges)
+        }).get
+      }
+    }
+
+    "not fail because of uncommited files with disabled upload" in {
+      val commitUuid = "31a62935ec48f4fdd3b513a69cd77be583fd850f"
+      withClonedRepo("git@github.com:qamine-test/JS-Tests.git", commitUuid) { (file, directory) =>
+        (for {
+          newFile <- File.temporaryFile(parent = Some(directory))
+        } yield {
+
+          CommandRunner.exec(List("git", "add", newFile.name), Option(directory.toJava))
+
+          val analyse = Analyse(
+            options = CommonOptions(),
+            api = APIOptions(projectToken = None, codacyApiBaseUrl = None),
+            tool = None,
+            directory = Option(directory),
+            upload = Tag.of(0),
+            extras = ExtraOptions(),
+            commitUuid = Option(Commit.Uuid(commitUuid)),
+            toolTimeout = None,
+            maxAllowedIssues = 200)
+
+          cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.success)
+        }).get
       }
     }
 

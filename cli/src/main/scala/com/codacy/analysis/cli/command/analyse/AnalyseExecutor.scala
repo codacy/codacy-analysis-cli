@@ -3,7 +3,7 @@ package com.codacy.analysis.cli.command.analyse
 import java.nio.file.Path
 
 import better.files.File
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.ErrorMessage._
+import com.codacy.analysis.cli.CLIErrorMessage
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
@@ -37,7 +37,7 @@ class AnalyseExecutor(toolInput: Option[String],
 
   private val logger: Logger = getLogger
 
-  def run(): Either[ErrorMessage, Seq[ExecutorResult]] = {
+  def run(): Either[CLIErrorMessage, Seq[ExecutorResult]] = {
     formatter.begin()
 
     val localConfigurationFile: Either[String, CodacyConfigurationFile] =
@@ -47,10 +47,10 @@ class AnalyseExecutor(toolInput: Option[String],
       overrideFilePermissions(directory)
     }
 
-    val filesTargetAndTool: Either[ErrorMessage, (FilesTarget, Set[ITool])] = for {
+    val filesTargetAndTool: Either[CLIErrorMessage, (FilesTarget, Set[ITool])] = for {
       filesTarget <- fileCollector
         .list(directory, localConfigurationFile, remoteProjectConfiguration)
-        .toRight(FilesAccessError)
+        .toRight(CLIErrorMessage.FilesAccessError)
       tools <- allTools(
         toolInput,
         remoteProjectConfiguration,
@@ -58,7 +58,7 @@ class AnalyseExecutor(toolInput: Option[String],
         allowNetwork)
     } yield (filesTarget, tools)
 
-    val analysisResult: Either[ErrorMessage, Seq[ExecutorResult]] = filesTargetAndTool.map {
+    val analysisResult: Either[CLIErrorMessage, Seq[ExecutorResult]] = filesTargetAndTool.map {
       case (filesTarget, tools) =>
         SetOps.mapInParallel[ITool, ExecutorResult](tools, nrParallelTools) { tool: ITool =>
           tool match {
@@ -202,77 +202,10 @@ object AnalyseExecutor {
                                                  analysisResults: Try[Set[DuplicationClone]])
       extends ExecutorResult
 
-  sealed trait ErrorMessage {
-    val message: String
-  }
-
-  object ErrorMessage {
-
-    def from(coreError: Analyser.ErrorMessage): ErrorMessage = {
-      coreError match {
-        case Analyser.ErrorMessage.ToolExecutionFailure(toolType, toolName) =>
-          ErrorMessage.ToolExecutionFailure(toolType, toolName)
-        case Analyser.ErrorMessage.ToolNeedsNetwork(toolName) =>
-          ErrorMessage.ToolNeedsNetwork(toolName)
-        case Analyser.ErrorMessage.NonExistingToolInput(toolName, _) =>
-          ErrorMessage.NonExistingToolInput(toolName)
-        case Analyser.ErrorMessage.NoActiveToolInConfiguration =>
-          ErrorMessage.NoActiveToolInConfiguration
-        case Analyser.ErrorMessage.NoToolsFoundForFiles =>
-          ErrorMessage.NoToolsFoundForFiles
-      }
-    }
-
-    final case class CouldNotGetTools(errors: String) extends ErrorMessage {
-      override val message: String = s"Could not get tools due to: $errors"
-    }
-
-    final case class NonExistingToolInput(toolName: String) extends ErrorMessage {
-      override val message: String = s"""The selected tool "$toolName" is not supported or does not exist.
-                                        |Use the --help option to get more information about available tools""".stripMargin
-    }
-
-    final case class NonExistentToolsFromRemoteConfiguration(tools: Set[String]) extends ErrorMessage {
-      override val message: String =
-        s"Could not find locally the following tools from remote configuration: ${tools.mkString(",")}"
-    }
-
-    final case class CodacyConfigurationFileError(error: String) extends ErrorMessage {
-      override val message: String = s"Codacy configuration file error: $error"
-    }
-
-    case object FilesAccessError extends ErrorMessage {
-      override val message: String = "Could not access project files"
-    }
-
-    final case class NoRemoteProjectConfiguration(error: String) extends ErrorMessage {
-      override val message: String = s"Could not get remote project configuration: $error"
-    }
-
-    final case class NoToolsForLanguages(languages: Set[Language]) extends ErrorMessage {
-      override val message: String = s"No tools for languages: ${languages.mkString(",")}"
-    }
-
-    final case class ToolExecutionFailure(toolType: String, toolName: String) extends ErrorMessage {
-      override val message: String = s"Failed $toolType for $toolName"
-    }
-
-    final case class ToolNeedsNetwork(toolName: String) extends ErrorMessage {
-      override val message: String =
-        s"The tool $toolName needs network access to execute. Run with the parameter 'allow-network'."
-    }
-    case object NoActiveToolInConfiguration extends ErrorMessage {
-      override val message: String = "No active tool found on the remote configuration"
-    }
-    case object NoToolsFoundForFiles extends ErrorMessage {
-      override val message: String = "No tools found for files provided"
-    }
-  }
-
   def allTools(toolInput: Option[String],
                remoteProjectConfiguration: Either[String, ProjectConfiguration],
                languages: Set[Language],
-               allowNetwork: Boolean): Either[AnalyseExecutor.ErrorMessage, Set[ITool]] = {
+               allowNetwork: Boolean): Either[CLIErrorMessage, Set[ITool]] = {
 
     def metricsTools = MetricsToolCollector.fromLanguages(languages)
     def duplicationTools = DuplicationToolCollector.fromLanguages(languages)
@@ -298,31 +231,34 @@ object AnalyseExecutor {
   def tools(toolInput: Option[String],
             remoteProjectConfiguration: Either[String, ProjectConfiguration],
             allowNetwork: Boolean,
-            languages: Set[Language]): Either[AnalyseExecutor.ErrorMessage, Set[Tool]] = {
+            languages: Set[Language]): Either[CLIErrorMessage, Set[Tool]] = {
 
     val remoteProjectConfig =
-      remoteProjectConfiguration.left.map(AnalyseExecutor.ErrorMessage.NoRemoteProjectConfiguration)
+      remoteProjectConfiguration.left.map(CLIErrorMessage.NoRemoteProjectConfiguration)
 
     val toolCollector = new ToolCollector(allowNetwork)
 
-    def fromRemoteConfig: Either[ErrorMessage, Set[Tool]] = {
+    def fromRemoteConfig: Either[CLIErrorMessage, Set[Tool]] = {
       remoteProjectConfig.flatMap { projectConfiguration =>
         val toolUuids = projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)
-        toolCollector.fromToolUUIDs(toolUuids).left.map(_ => NonExistentToolsFromRemoteConfiguration(toolUuids))
+        toolCollector
+          .fromToolUUIDs(toolUuids)
+          .left
+          .map(_ => CLIErrorMessage.NonExistentToolsFromRemoteConfiguration(toolUuids))
       }
     }
 
-    def fromLocalConfig: Either[AnalyseExecutor.ErrorMessage, Set[Tool]] = {
-      toolCollector.fromLanguages(languages).left.map(AnalyseExecutor.ErrorMessage.from)
+    def fromLocalConfig: Either[CLIErrorMessage, Set[Tool]] = {
+      toolCollector.fromLanguages(languages).left.map(CLIErrorMessage.from)
     }
 
     toolInput.map { toolStr =>
-      toolCollector.fromNameOrUUID(toolStr).left.map(AnalyseExecutor.ErrorMessage.from)
+      toolCollector.fromNameOrUUID(toolStr).left.map(CLIErrorMessage.from)
     }.getOrElse {
       for {
         e1 <- fromRemoteConfig.left
         e2 <- fromLocalConfig.left
-      } yield AnalyseExecutor.ErrorMessage.CouldNotGetTools(s"${e1.message} and ${e2.message}")
+      } yield CLIErrorMessage.CouldNotGetTools(s"${e1.message} and ${e2.message}")
     }
   }
 }

@@ -1,12 +1,12 @@
 package com.codacy.analysis.cli.analysis
 
+import com.codacy.analysis.cli.CLIErrorMessage
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.{
   DuplicationToolExecutorResult,
   ExecutorResult,
   IssuesToolExecutorResult,
   MetricsToolExecutorResult
 }
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 
 object ExitStatus {
 
@@ -15,6 +15,7 @@ object ExitStatus {
     val failedAnalysis = 1
     val partiallyFailedAnalysis = 2
     val nonExistentTool = 301
+    val uncommitedChanges = 302
     val failedUpload = 101
     val maxAllowedIssuesExceeded = 201
   }
@@ -22,27 +23,28 @@ object ExitStatus {
 
 class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
 
-  def exitCode(executorResultsEither: Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]],
-               uploadResult: Either[String, Unit]): Int = {
-    val resultsCount = countResults(executorResultsEither)
+  def exitCode(resultsEither: Either[CLIErrorMessage, Seq[ExecutorResult]]): Int = {
+    val resultsCount = countResults(resultsEither)
 
-    executorResultsEither match {
-      case Left(_: AnalyseExecutor.ErrorMessage.NonExistingToolInput) =>
+    resultsEither match {
+      case Left(_: CLIErrorMessage.UncommitedChanges) =>
+        ExitStatus.ExitCodes.uncommitedChanges
+      case Left(_: CLIErrorMessage.NonExistingToolInput) =>
         ExitStatus.ExitCodes.nonExistentTool
+      case Left(_: CLIErrorMessage.UploadError | _: CLIErrorMessage.MissingUploadRequisites) =>
+        ExitStatus.ExitCodes.failedUpload
       case Left(_) =>
         ExitStatus.ExitCodes.failedAnalysis
       case Right(results) if failIfIncomplete && existsFailure(results) =>
         ExitStatus.ExitCodes.partiallyFailedAnalysis
       case Right(_) if resultsCount > maxAllowedIssues =>
         ExitStatus.ExitCodes.maxAllowedIssuesExceeded
-      case _ if uploadResult.isLeft =>
-        ExitStatus.ExitCodes.failedUpload
       case _ =>
         ExitStatus.ExitCodes.success
     }
   }
 
-  private def countResults(executorResultsEither: Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]]): Int = {
+  private def countResults(executorResultsEither: Either[CLIErrorMessage, Seq[ExecutorResult]]): Int = {
     executorResultsEither
       .getOrElse(Seq.empty[ExecutorResult])
       .map {

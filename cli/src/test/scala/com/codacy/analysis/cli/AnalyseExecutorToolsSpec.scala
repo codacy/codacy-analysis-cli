@@ -72,7 +72,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
       val toolEither =
         AnalyseExecutor.tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
-      toolEither must beLeft(AnalyseExecutor.ErrorMessage.NonExistingToolInput(expectedToolName))
+      toolEither must beLeft(CLIErrorMessage.NonExistingToolInput(expectedToolName))
     }
 
     "fallback to remote configuration" in {
@@ -154,7 +154,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val toolEither =
         AnalyseExecutor.tools(Some(toolName), remoteProjectConfiguration, allowNetwork = false, languages)
 
-      toolEither must beLeft(AnalyseExecutor.ErrorMessage.ToolNeedsNetwork(toolName))
+      toolEither must beLeft(CLIErrorMessage.ToolNeedsNetwork(toolName))
     }
 
     "list tools that need access to the network if this argument is provided" in {
