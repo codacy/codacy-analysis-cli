@@ -91,10 +91,12 @@ docker run \
 * :tada: 0: Success
 * :cold_sweat: 1: Failed Analysis
 * :frowning: 2: Partially Failed Analysis
-* :angry: 301: Non-existent tool provided as input
-* :confused: 302: Uncommited changes in project (with upload option selected)
 * :weary: 101: Failed Upload
+* :confused: 102: Uncommited changes in project (with upload option selected)
 * :cop: 201: Max Allowed Issues Exceeded
+* :angry: 301: Non-existent tool provided as input
+
+
 
 ## Configuration
 

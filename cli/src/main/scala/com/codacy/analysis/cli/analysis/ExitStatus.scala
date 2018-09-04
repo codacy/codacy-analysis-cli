@@ -1,6 +1,6 @@
 package com.codacy.analysis.cli.analysis
 
-import com.codacy.analysis.cli.CLIErrorMessage
+import com.codacy.analysis.cli.CLIError
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.{
   DuplicationToolExecutorResult,
   ExecutorResult,
@@ -14,24 +14,24 @@ object ExitStatus {
     val success = 0
     val failedAnalysis = 1
     val partiallyFailedAnalysis = 2
-    val nonExistentTool = 301
-    val uncommitedChanges = 302
     val failedUpload = 101
+    val uncommitedChanges = 102
     val maxAllowedIssuesExceeded = 201
+    val nonExistentTool = 301
   }
 }
 
 class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
 
-  def exitCode(resultsEither: Either[CLIErrorMessage, Seq[ExecutorResult]]): Int = {
+  def exitCode(resultsEither: Either[CLIError, Seq[ExecutorResult]]): Int = {
     val resultsCount = countResults(resultsEither)
 
     resultsEither match {
-      case Left(_: CLIErrorMessage.UncommitedChanges) =>
+      case Left(_: CLIError.UncommitedChanges) =>
         ExitStatus.ExitCodes.uncommitedChanges
-      case Left(_: CLIErrorMessage.NonExistingToolInput) =>
+      case Left(_: CLIError.NonExistingToolInput) =>
         ExitStatus.ExitCodes.nonExistentTool
-      case Left(_: CLIErrorMessage.UploadError | _: CLIErrorMessage.MissingUploadRequisites) =>
+      case Left(_: CLIError.UploadError | _: CLIError.MissingUploadRequisites) =>
         ExitStatus.ExitCodes.failedUpload
       case Left(_) =>
         ExitStatus.ExitCodes.failedAnalysis
@@ -44,7 +44,7 @@ class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
     }
   }
 
-  private def countResults(executorResultsEither: Either[CLIErrorMessage, Seq[ExecutorResult]]): Int = {
+  private def countResults(executorResultsEither: Either[CLIError, Seq[ExecutorResult]]): Int = {
     executorResultsEither
       .getOrElse(Seq.empty[ExecutorResult])
       .map {

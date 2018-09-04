@@ -4,7 +4,6 @@ import better.files.{File, Resource}
 import caseapp.Tag
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command._
-import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.{DuplicationClone, FileError, Result, ToolResult}
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.plugins.utils.CommandRunner
@@ -250,8 +249,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
     }
 
     "fail because of uncommited files with enabled upload" in {
-      val commitUuid = "31a62935ec48f4fdd3b513a69cd77be583fd850f"
-      withClonedRepo("git@github.com:qamine-test/JS-Tests.git", commitUuid) { (file, directory) =>
+      withTemporaryGitRepo { directory =>
         (for {
           newFile <- File.temporaryFile(parent = Some(directory))
         } yield {
@@ -265,7 +263,6 @@ class CLISpec extends Specification with NoLanguageFeatures {
             directory = Option(directory),
             upload = Tag.of(1),
             extras = ExtraOptions(),
-            commitUuid = Option(Commit.Uuid(commitUuid)),
             toolTimeout = None)
 
           cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommitedChanges)
@@ -274,8 +271,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
     }
 
     "not fail because of uncommited files with disabled upload" in {
-      val commitUuid = "31a62935ec48f4fdd3b513a69cd77be583fd850f"
-      withClonedRepo("git@github.com:qamine-test/JS-Tests.git", commitUuid) { (file, directory) =>
+      withTemporaryGitRepo { directory =>
         (for {
           newFile <- File.temporaryFile(parent = Some(directory))
         } yield {
@@ -289,11 +285,9 @@ class CLISpec extends Specification with NoLanguageFeatures {
             directory = Option(directory),
             upload = Tag.of(0),
             extras = ExtraOptions(),
-            commitUuid = Option(Commit.Uuid(commitUuid)),
-            toolTimeout = None,
-            maxAllowedIssues = 200)
+            toolTimeout = None)
 
-          cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.success)
+          cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
         }).get
       }
     }

@@ -2,7 +2,7 @@ package com.codacy.analysis.cli.analysis
 
 import java.nio.file.Paths
 
-import com.codacy.analysis.cli.CLIErrorMessage
+import com.codacy.analysis.cli.CLIError
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.IssuesToolExecutorResult
 import com.codacy.analysis.core.model.{FullLocation, Issue}
 import com.codacy.plugins.api.results.{Pattern, Result}
@@ -18,8 +18,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
   "ExitStatus" should {
 
     "send failed analysis code" in {
-      new ExitStatus(3).exitCode(Left(CLIErrorMessage.FilesAccessError)) should beEqualTo(
-        ExitStatus.ExitCodes.failedAnalysis)
+      new ExitStatus(3).exitCode(Left(CLIError.FilesAccessError)) should beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
     }
 
     "send success code when issues do not exceed max issues number" in {
@@ -102,18 +101,16 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
 
     "send failedUpload when uploader has an error" in {
       new ExitStatus(10, failIfIncomplete = true)
-        .exitCode(Left(CLIErrorMessage.UploadError("Failed upload!"))) should beEqualTo(
-        ExitStatus.ExitCodes.failedUpload)
+        .exitCode(Left(CLIError.UploadError("Failed upload!"))) should beEqualTo(ExitStatus.ExitCodes.failedUpload)
     }
 
     "send nonExistentTool when analysis fails because of non-existent tool argument value" in {
       new ExitStatus(10, failIfIncomplete = true)
-        .exitCode(Left(CLIErrorMessage.NonExistingToolInput("tool"))) should beEqualTo(
-        ExitStatus.ExitCodes.nonExistentTool)
+        .exitCode(Left(CLIError.NonExistingToolInput("tool"))) should beEqualTo(ExitStatus.ExitCodes.nonExistentTool)
     }
 
     "send uncommited changes exit code when a validation error of that type is present" in {
-      new ExitStatus(10).exitCode(Left(CLIErrorMessage.UncommitedChanges(Set.empty))) should beEqualTo(
+      new ExitStatus(10).exitCode(Left(CLIError.UncommitedChanges(Set.empty))) should beEqualTo(
         ExitStatus.ExitCodes.uncommitedChanges)
     }
   }

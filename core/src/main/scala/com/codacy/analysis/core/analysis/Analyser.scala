@@ -52,26 +52,26 @@ object Analyser {
     builder()
   }
 
-  sealed trait ErrorMessage {
+  sealed trait Error {
     val message: String
   }
 
-  object ErrorMessage {
-    final case class ToolExecutionFailure(toolType: String, toolName: String) extends ErrorMessage {
+  object Error {
+    final case class ToolExecutionFailure(toolType: String, toolName: String) extends Error {
       override val message: String = s"Failed $toolType for $toolName"
     }
-    final case class ToolNeedsNetwork(toolName: String) extends ErrorMessage {
+    final case class ToolNeedsNetwork(toolName: String) extends Error {
       override val message: String = s"The tool $toolName needs network access to execute."
     }
-    final case class NonExistingToolInput(toolName: String, availableTools: Set[String]) extends ErrorMessage {
+    final case class NonExistingToolInput(toolName: String, availableTools: Set[String]) extends Error {
       override val message: String = s"""The selected tool "$toolName" is not supported or does not exist.
                                         |The tool should be one of (${availableTools.mkString(", ")})""".stripMargin
     }
-    case object NoActiveToolInConfiguration extends ErrorMessage {
+    case object NoActiveToolInConfiguration extends Error {
       override val message: String = "No active tool found on the remote configuration"
     }
 
-    case object NoToolsFoundForFiles extends ErrorMessage {
+    case object NoToolsFoundForFiles extends Error {
       override val message: String = "No tools found for files provided"
     }
 

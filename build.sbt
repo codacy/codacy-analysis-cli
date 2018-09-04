@@ -36,7 +36,7 @@ lazy val root = project
 lazy val codacyAnalysisCore = project
   .in(file("core"))
   .settings(name := "codacy-analysis-core")
-  .settings(coverageExcludedPackages := "<empty>;com\\.codacy\\..*ErrorMessage.*")
+  .settings(coverageExcludedPackages := "<empty>;com\\.codacy\\..*Error.*")
   .settings(Common.genericSettings: _*)
   .settings(
     // App Dependencies
@@ -111,7 +111,7 @@ lazy val codacyAnalysisCli = project
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
   .settings(name := "codacy-analysis-cli")
-  .settings(coverageExcludedPackages := "<empty>;com\\.codacy\\..*ErrorMessage.*")
+  .settings(coverageExcludedPackages := "<empty>;com\\.codacy\\..*CLIError.*")
   .settings(Common.dockerSettings: _*)
   .settings(Common.genericSettings: _*)
   .settings(

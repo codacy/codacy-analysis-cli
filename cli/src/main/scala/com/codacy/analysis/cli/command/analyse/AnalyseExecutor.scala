@@ -3,7 +3,7 @@ package com.codacy.analysis.cli.command.analyse
 import java.nio.file.Path
 
 import better.files.File
-import com.codacy.analysis.cli.CLIErrorMessage
+import com.codacy.analysis.cli.CLIError
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
@@ -37,7 +37,7 @@ class AnalyseExecutor(toolInput: Option[String],
 
   private val logger: Logger = getLogger
 
-  def run(): Either[CLIErrorMessage, Seq[ExecutorResult]] = {
+  def run(): Either[CLIError, Seq[ExecutorResult]] = {
     formatter.begin()
 
     val localConfigurationFile: Either[String, CodacyConfigurationFile] =
@@ -47,10 +47,10 @@ class AnalyseExecutor(toolInput: Option[String],
       overrideFilePermissions(directory)
     }
 
-    val filesTargetAndTool: Either[CLIErrorMessage, (FilesTarget, Set[ITool])] = for {
+    val filesTargetAndTool: Either[CLIError, (FilesTarget, Set[ITool])] = for {
       filesTarget <- fileCollector
         .list(directory, localConfigurationFile, remoteProjectConfiguration)
-        .toRight(CLIErrorMessage.FilesAccessError)
+        .toRight(CLIError.FilesAccessError)
       tools <- allTools(
         toolInput,
         remoteProjectConfiguration,
@@ -58,7 +58,7 @@ class AnalyseExecutor(toolInput: Option[String],
         allowNetwork)
     } yield (filesTarget, tools)
 
-    val analysisResult: Either[CLIErrorMessage, Seq[ExecutorResult]] = filesTargetAndTool.map {
+    val analysisResult: Either[CLIError, Seq[ExecutorResult]] = filesTargetAndTool.map {
       case (filesTarget, tools) =>
         SetOps.mapInParallel[ITool, ExecutorResult](tools, nrParallelTools) { tool: ITool =>
           tool match {
@@ -205,7 +205,7 @@ object AnalyseExecutor {
   def allTools(toolInput: Option[String],
                remoteProjectConfiguration: Either[String, ProjectConfiguration],
                languages: Set[Language],
-               allowNetwork: Boolean): Either[CLIErrorMessage, Set[ITool]] = {
+               allowNetwork: Boolean): Either[CLIError, Set[ITool]] = {
 
     def metricsTools = MetricsToolCollector.fromLanguages(languages)
     def duplicationTools = DuplicationToolCollector.fromLanguages(languages)
@@ -231,34 +231,34 @@ object AnalyseExecutor {
   def tools(toolInput: Option[String],
             remoteProjectConfiguration: Either[String, ProjectConfiguration],
             allowNetwork: Boolean,
-            languages: Set[Language]): Either[CLIErrorMessage, Set[Tool]] = {
+            languages: Set[Language]): Either[CLIError, Set[Tool]] = {
 
     val remoteProjectConfig =
-      remoteProjectConfiguration.left.map(CLIErrorMessage.NoRemoteProjectConfiguration)
+      remoteProjectConfiguration.left.map(CLIError.NoRemoteProjectConfiguration)
 
     val toolCollector = new ToolCollector(allowNetwork)
 
-    def fromRemoteConfig: Either[CLIErrorMessage, Set[Tool]] = {
+    def fromRemoteConfig: Either[CLIError, Set[Tool]] = {
       remoteProjectConfig.flatMap { projectConfiguration =>
         val toolUuids = projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)
         toolCollector
           .fromToolUUIDs(toolUuids)
           .left
-          .map(_ => CLIErrorMessage.NonExistentToolsFromRemoteConfiguration(toolUuids))
+          .map(_ => CLIError.NonExistentToolsFromRemoteConfiguration(toolUuids))
       }
     }
 
-    def fromLocalConfig: Either[CLIErrorMessage, Set[Tool]] = {
-      toolCollector.fromLanguages(languages).left.map(CLIErrorMessage.from)
+    def fromLocalConfig: Either[CLIError, Set[Tool]] = {
+      toolCollector.fromLanguages(languages).left.map(CLIError.from)
     }
 
     toolInput.map { toolStr =>
-      toolCollector.fromNameOrUUID(toolStr).left.map(CLIErrorMessage.from)
+      toolCollector.fromNameOrUUID(toolStr).left.map(CLIError.from)
     }.getOrElse {
       for {
         e1 <- fromRemoteConfig.left
         e2 <- fromLocalConfig.left
-      } yield CLIErrorMessage.CouldNotGetTools(s"${e1.message} and ${e2.message}")
+      } yield CLIError.CouldNotGetTools(s"${e1.message} and ${e2.message}")
     }
   }
 }
