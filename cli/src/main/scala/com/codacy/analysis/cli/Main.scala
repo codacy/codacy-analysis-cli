@@ -9,7 +9,7 @@ import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
-import com.codacy.analysis.cli.configuration.Environment
+import com.codacy.analysis.cli.configuration.{Environment, CLIProperties}
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.CodacyClient
@@ -45,33 +45,31 @@ class MainImpl extends CLIApp {
 
         val environment = new Environment(sys.env)
         val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
-        val projectDirectory: File = environment.baseProjectDirectory(analyse.directory)
-        val commitUuid: Option[Commit.Uuid] =
-          analyse.commitUuid.orElse(Git.currentCommitUuid(projectDirectory))
+        val properties: CLIProperties = CLIProperties(codacyClientOpt, environment, analyse)
 
         //TODO(31/08/2018): In the next tickets:
-        // (1) configs will be converted to common model and passed through parameter to validate
         // (2) validate commit cli parameter with commit retrieved from jGit
         val analysisAndUpload = for {
-          _ <- validate(projectDirectory, analyse.uploadValue)
-          analysisResults <- analysis(analyse, projectDirectory, codacyClientOpt)
-          _ <- upload(analyse, commitUuid, codacyClientOpt, analysisResults)
+          _ <- validate(properties)
+          analysisResults <- analysis(analyse, properties.analysis.projectDirectory, codacyClientOpt)
+          _ <- upload(analyse, properties.upload.commitUuid, codacyClientOpt, analysisResults)
         } yield {
           analysisResults
         }
 
-        new ExitStatus(analyse.maxAllowedIssues).exitCode(analysisAndUpload)
+        new ExitStatus(properties.result.maxAllowedIssues, properties.result.failIfIncomplete)
+          .exitCode(analysisAndUpload)
     }
   }
 
-  private def validate(directory: File, upload: Boolean): Either[CLIError, Unit] = {
+  private def validate(properties: CLIProperties): Either[CLIError, Unit] = {
     (for {
-      repo <- Git.repository(directory)
+      repo <- Git.repository(properties.analysis.projectDirectory)
       uncommitedFiles <- repo.uncommitedFiles
     } yield {
       if (uncommitedFiles.nonEmpty) {
         val error: CLIError = CLIError.UncommitedChanges(uncommitedFiles)
-        if (upload) {
+        if (properties.upload.upload) {
           logger.error(error.message)
           Left(error)
         } else {
