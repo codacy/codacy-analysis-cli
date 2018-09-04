@@ -96,8 +96,6 @@ docker run \
 * :cop: 201: Max Allowed Issues Exceeded
 * :angry: 301: Non-existent tool provided as input
 
-
-
 ## Configuration
 
 ### CLI Parameters

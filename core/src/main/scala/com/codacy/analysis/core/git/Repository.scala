@@ -22,7 +22,10 @@ class Repository(repository: JGitRepository) {
 
   def uncommitedFiles: Try[Set[String]] = {
     Try {
-      jGit.status().call().getUncommittedChanges.asScala.toSet
+      (jGit.status().call().getUncommittedChanges.asScala ++
+        jGit.status().call().getUntracked.asScala ++
+        jGit.status().call().getUntrackedFolders.asScala).toSet
     }
   }
+
 }

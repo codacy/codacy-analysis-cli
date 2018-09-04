@@ -270,7 +270,27 @@ class CLISpec extends Specification with NoLanguageFeatures {
       }
     }
 
-    "not fail because of uncommited files with disabled upload" in {
+    "fail because of untracked files with enabled upload" in {
+      withTemporaryGitRepo { directory =>
+        (for {
+          newFile <- File.temporaryFile(parent = Some(directory))
+        } yield {
+
+          val analyse = Analyse(
+            options = CommonOptions(),
+            api = APIOptions(projectToken = None, codacyApiBaseUrl = None),
+            tool = None,
+            directory = Option(directory),
+            upload = Tag.of(1),
+            extras = ExtraOptions(),
+            toolTimeout = None)
+
+          cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommitedChanges)
+        }).get
+      }
+    }
+
+    "fail for another reason other than uncommited files (with upload disabled)" in {
       withTemporaryGitRepo { directory =>
         (for {
           newFile <- File.temporaryFile(parent = Some(directory))
@@ -280,7 +300,7 @@ class CLISpec extends Specification with NoLanguageFeatures {
 
           val analyse = Analyse(
             options = CommonOptions(),
-            api = APIOptions(projectToken = None, codacyApiBaseUrl = None),
+            api = APIOptions(projectToken = Some("hey, im a token"), codacyApiBaseUrl = Some("https://codacy.com")),
             tool = None,
             directory = Option(directory),
             upload = Tag.of(0),
