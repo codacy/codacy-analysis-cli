@@ -49,18 +49,44 @@ class MainImpl extends CLIApp {
         val commitUuid: Option[Commit.Uuid] =
           analyse.commitUuid.orElse(Git.currentCommitUuid(projectDirectory))
 
-        val analysisResults = analysis(analyse, projectDirectory, codacyClientOpt)
+        //TODO(31/08/2018): In the next tickets:
+        // (1) configs will be converted to common model and passed through parameter to validate
+        // (2) validate commit cli parameter with commit retrieved from jGit
+        val analysisAndUpload = for {
+          _ <- validate(projectDirectory, analyse.uploadValue)
+          analysisResults <- analysis(analyse, projectDirectory, codacyClientOpt)
+          _ <- upload(analyse, commitUuid, codacyClientOpt, analysisResults)
+        } yield {
+          analysisResults
+        }
 
-        val uploadResult = upload(analyse, commitUuid, codacyClientOpt, analysisResults)
-
-        new ExitStatus(analyse.maxAllowedIssues, analyse.failIfIncompleteValue).exitCode(analysisResults, uploadResult)
+        new ExitStatus(analyse.maxAllowedIssues).exitCode(analysisAndUpload)
     }
   }
 
-  private def analysis(
-    analyse: Analyse,
-    projectDirectory: File,
-    codacyClientOpt: Option[CodacyClient]): Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]] = {
+  private def validate(directory: File, upload: Boolean): Either[CLIError, Unit] = {
+    (for {
+      repo <- Git.repository(directory)
+      uncommitedFiles <- repo.uncommitedFiles
+    } yield {
+      if (uncommitedFiles.nonEmpty) {
+        val error: CLIError = CLIError.UncommitedChanges(uncommitedFiles)
+        if (upload) {
+          logger.error(error.message)
+          Left(error)
+        } else {
+          logger.warn(error.message)
+          Right(())
+        }
+      } else {
+        Right(())
+      }
+    }).getOrElse(Right(()))
+  }
+
+  private def analysis(analyse: Analyse,
+                       projectDirectory: File,
+                       codacyClientOpt: Option[CodacyClient]): Either[CLIError, Seq[ExecutorResult]] = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
@@ -87,18 +113,19 @@ class MainImpl extends CLIApp {
   private def upload(analyse: Analyse,
                      commitUuid: Option[Commit.Uuid],
                      codacyClientOpt: Option[CodacyClient],
-                     analysisResults: Either[AnalyseExecutor.ErrorMessage, Seq[AnalyseExecutor.ExecutorResult]]) = {
+                     analysisResults: Seq[AnalyseExecutor.ExecutorResult]): Either[CLIError, Unit] = {
 
-    val uploadResultFut = uploadResults(codacyClientOpt)(analyse.uploadValue, commitUuid, analysisResults)
+    val uploadResultFut: Future[Either[String, Unit]] =
+      uploadResults(codacyClientOpt)(analyse.uploadValue, commitUuid, analysisResults)
 
     if (analyse.uploadValue) {
       Try(Await.result(uploadResultFut, Duration.Inf)) match {
         case Failure(err) =>
           logger.error(err.getMessage)
-          Left(err.getMessage)
+          Left(CLIError.UploadError(err.getMessage))
         case Success(Left(err)) =>
           logger.warn(err)
-          Left(err)
+          Left(CLIError.MissingUploadRequisites(err))
         case Success(Right(_)) =>
           logger.info("Completed upload of results to API")
           Right(())
@@ -109,10 +136,9 @@ class MainImpl extends CLIApp {
   private def uploadResults(codacyClientOpt: Option[CodacyClient])(
     upload: Boolean,
     commitUuid: Option[Commit.Uuid],
-    executorResultsEither: Either[AnalyseExecutor.ErrorMessage, Seq[ExecutorResult]]): Future[Either[String, Unit]] = {
+    executorResults: Seq[ExecutorResult]): Future[Either[String, Unit]] = {
     (for {
       uploaderOpt <- ResultsUploader(codacyClientOpt, upload, commitUuid)
-      executorResults <- executorResultsEither.left.map(_.message)
     } yield {
       uploaderOpt.map { uploader =>
         val (issuesToolExecutorResult, metricsToolExecutorResult, duplicationToolExecutorResult) =
@@ -120,14 +146,12 @@ class MainImpl extends CLIApp {
             .partitionSubtypes[IssuesToolExecutorResult, MetricsToolExecutorResult, DuplicationToolExecutorResult]
 
         val issuesPerToolSeq = issuesPerTool(issuesToolExecutorResult)
-        val issuesResultsSeq: Seq[ResultsUploader.ToolResults] = issuesResults(issuesPerToolSeq)
+        val issuesResultsSeq = issuesResults(issuesPerToolSeq)
 
-        val metricsPerLanguageSeq =
-          metricsPerLanguage(metricsToolExecutorResult)
+        val metricsPerLanguageSeq = metricsPerLanguage(metricsToolExecutorResult)
+        val metricsResultsSeq = metricsResults(metricsPerLanguageSeq)
 
-        val metricsResultsSeq: Seq[MetricsResult] = metricsResults(metricsPerLanguageSeq)
-
-        val duplicationResultsSeq: Seq[DuplicationResult] = duplicationResults(duplicationToolExecutorResult)
+        val duplicationResultsSeq = duplicationResults(duplicationToolExecutorResult)
 
         uploader.sendResults(issuesResultsSeq, metricsResultsSeq, duplicationResultsSeq)
       }.getOrElse(Future.successful(().asRight[String]))

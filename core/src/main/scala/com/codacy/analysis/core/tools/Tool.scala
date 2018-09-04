@@ -145,13 +145,13 @@ class ToolCollector(allowNetwork: Boolean) {
 
   private val availableTools = Tool.availableTools ++ availableInternetTools
 
-  def fromNameOrUUID(toolInput: String): Either[Analyser.ErrorMessage, Set[Tool]] = {
+  def fromNameOrUUID(toolInput: String): Either[Analyser.Error, Set[Tool]] = {
     from(toolInput).map(Set(_))
   }
 
-  def fromToolUUIDs(toolUuids: Set[String]): Either[Analyser.ErrorMessage, Set[Tool]] = {
+  def fromToolUUIDs(toolUuids: Set[String]): Either[Analyser.Error, Set[Tool]] = {
     if (toolUuids.isEmpty) {
-      Left(Analyser.ErrorMessage.NoActiveToolInConfiguration)
+      Left(Analyser.Error.NoActiveToolInConfiguration)
     } else {
       val toolsIdentified = toolUuids.flatMap { toolUuid =>
         from(toolUuid).fold({ _ =>
@@ -168,22 +168,22 @@ class ToolCollector(allowNetwork: Boolean) {
     }
   }
 
-  def fromLanguages(languages: Set[Language]): Either[Analyser.ErrorMessage, Set[Tool]] = {
+  def fromLanguages(languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
     val collectedTools: Set[Tool] = availableTools.collect {
       case tool if languages.exists(tool.languages.contains) =>
         new Tool(tool)
     }(collection.breakOut)
 
     if (collectedTools.isEmpty) {
-      Left(Analyser.ErrorMessage.NoToolsFoundForFiles)
+      Left(Analyser.Error.NoToolsFoundForFiles)
     } else {
       Right(collectedTools)
     }
   }
 
-  def from(value: String): Either[Analyser.ErrorMessage, Tool] = find(value).map(new Tool(_))
+  def from(value: String): Either[Analyser.Error, Tool] = find(value).map(new Tool(_))
 
-  private def find(value: String): Either[Analyser.ErrorMessage, DockerTool] = {
+  private def find(value: String): Either[Analyser.Error, DockerTool] = {
     availableTools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
       .toRight(CodacyPluginsAnalyser.errors.missingTool(value))

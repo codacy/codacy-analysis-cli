@@ -3,6 +3,7 @@ package com.codacy.analysis.core.git
 import org.eclipse.jgit.api.{Git => JGit}
 import org.eclipse.jgit.lib.{Repository => JGitRepository}
 
+import scala.collection.JavaConverters._
 import scala.util.Try
 
 class Repository(repository: JGitRepository) {
@@ -19,9 +20,11 @@ class Repository(repository: JGitRepository) {
     }
   }
 
-  def hasUncommittedChanges: Try[Boolean] = {
+  def uncommitedFiles: Try[Set[String]] = {
     Try {
-      jGit.status().call().hasUncommittedChanges
+      (jGit.status().call().getUncommittedChanges.asScala ++
+        jGit.status().call().getUntracked.asScala ++
+        jGit.status().call().getUntrackedFolders.asScala).toSet
     }
   }
 
