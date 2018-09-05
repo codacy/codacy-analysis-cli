@@ -1,9 +1,14 @@
 package com.codacy.analysis.cli.command.analyse
+import java.nio.file.Paths
+
+import better.files.File
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.MetricsToolExecutorResult
+import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.model.FileMetrics
+import com.codacy.plugins.utils.FileHelper
 import org.log4s.{Logger, getLogger}
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 object MetricsToolExecutor {
 
@@ -59,5 +64,44 @@ object MetricsToolExecutor {
               })
           }
       }(collection.breakOut)
+  }
+
+  def calculateMissingFileMetrics(directory: File,
+                                  formatter: Formatter,
+                                  metricsResults: Seq[MetricsToolExecutorResult]): Seq[MetricsToolExecutorResult] = {
+
+    val analysisFiles: Seq[File] = metricsResults.flatMap(_.files.map(path => directory / path.toString))
+
+    metricsResults.map { res =>
+      val fileMetrics: Try[Set[FileMetrics]] = res.analysisResults.map { analysisResults =>
+        analysisFiles.map { file =>
+          val relativizedFilePath = Paths.get(FileHelper.toRelativePath(directory.pathAsString, file.pathAsString))
+          analysisResults
+            .find(_.filename == relativizedFilePath)
+            .map {
+              case metrics if metrics.loc.isEmpty => metrics.copy(loc = Some(getLoc(file)))
+              case metrics                        => metrics
+            }
+            .getOrElse {
+              FileMetrics(
+                filename = relativizedFilePath,
+                nrClasses = None,
+                nrMethods = None,
+                loc = Some(getLoc(file)),
+                cloc = None,
+                complexity = None,
+                lineComplexities = Set.empty)
+            }
+        }(collection.breakOut)
+      }
+
+      fileMetrics.foreach(results => formatter.addAll(results.to[List]))
+
+      res.copy(analysisResults = fileMetrics)
+    }
+  }
+
+  private def getLoc(file: File): Int = {
+    file.lines.count(_.trim.length >= 3)
   }
 }

@@ -71,10 +71,8 @@ class AnalyseExecutor(toolInput: Option[String],
               analysisResults.foreach(results => formatter.addAll(results.to[List]))
               IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, analysisResults)
             case metricsTool: MetricsTool =>
-              val analysisResults =
-                analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles))
-              analysisResults.foreach(results => formatter.addAll(results.to[List]))
-              MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, analysisResults)
+              val analysisResults = analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles))
+              MetricsToolExecutorResult(metricsTool.languageToRun.name, filesTarget.readableFiles, analysisResults)
             case duplicationTool: DuplicationTool =>
               val analysisResults =
                 analyser.duplication(duplicationTool, filteredFiles.directory, filteredFiles.readableFiles)
@@ -87,13 +85,20 @@ class AnalyseExecutor(toolInput: Option[String],
         }
     }
 
-    formatter.end()
-
-    analysisResult.map { result =>
+    val analysisResultsWithMissingMetrics = analysisResult.map { result =>
       val (metricsResults, issuesResults, duplicationResults) =
         result.partitionSubtypes[MetricsToolExecutorResult, IssuesToolExecutorResult, DuplicationToolExecutorResult]
-      MetricsToolExecutor.reduceMetricsToolResultsByFile(metricsResults) ++ issuesResults ++ duplicationResults
+      reduceAndCalculateMissingFileMetrics(metricsResults) ++ issuesResults ++ duplicationResults
     }
+
+    formatter.end()
+    analysisResultsWithMissingMetrics
+  }
+
+  private def reduceAndCalculateMissingFileMetrics(
+    metricsResults: Seq[MetricsToolExecutorResult]): Seq[MetricsToolExecutorResult] = {
+    (MetricsToolExecutor.reduceMetricsToolResultsByFile _ andThen (results =>
+      MetricsToolExecutor.calculateMissingFileMetrics(directory, formatter, results)))(metricsResults)
   }
 
   private def issues(tool: Tool,
