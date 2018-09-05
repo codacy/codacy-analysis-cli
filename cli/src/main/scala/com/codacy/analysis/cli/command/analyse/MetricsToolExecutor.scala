@@ -7,7 +7,7 @@ import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.model.FileMetrics
 import com.codacy.plugins.utils.FileHelper
 import org.log4s.{Logger, getLogger}
-
+import com.codacy.analysis.core
 import scala.util.{Failure, Success, Try}
 
 object MetricsToolExecutor {
@@ -79,7 +79,7 @@ object MetricsToolExecutor {
           analysisResults
             .find(_.filename == relativizedFilePath)
             .map {
-              case metrics if metrics.loc.isEmpty => metrics.copy(loc = Some(getLoc(file)))
+              case metrics if metrics.loc.isEmpty => metrics.copy(loc = countLoc(file))
               case metrics                        => metrics
             }
             .getOrElse {
@@ -87,7 +87,7 @@ object MetricsToolExecutor {
                 filename = relativizedFilePath,
                 nrClasses = None,
                 nrMethods = None,
-                loc = Some(getLoc(file)),
+                loc = countLoc(file),
                 cloc = None,
                 complexity = None,
                 lineComplexities = Set.empty)
@@ -101,7 +101,7 @@ object MetricsToolExecutor {
     }
   }
 
-  private def getLoc(file: File): Int = {
-    file.lines.count(_.trim.length >= 3)
+  private def countLoc(file: File): Option[Int] = {
+    core.utils.FileHelper.countLoc(file.path.toAbsolutePath.toString)
   }
 }
