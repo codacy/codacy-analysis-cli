@@ -70,7 +70,7 @@ codacy-analysis-cli analyse \
 ### Local
 
 ```sh
-sbt "runMain com.codacy.analysis.cli.Main analyse --tool <TOOL-SHORT-NAME> --directory <SOURCE-CODE-PATH>"
+sbt "codacyAnalysisCli/runMain com.codacy.analysis.cli.Main analyse --tool <TOOL-SHORT-NAME> --directory <SOURCE-CODE-PATH>"
 ```
 
 ### Docker
