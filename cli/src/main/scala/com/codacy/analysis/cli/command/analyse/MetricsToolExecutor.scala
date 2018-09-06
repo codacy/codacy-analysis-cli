@@ -70,7 +70,7 @@ object MetricsToolExecutor {
                                   formatter: Formatter,
                                   metricsResults: Seq[MetricsToolExecutorResult]): Seq[MetricsToolExecutorResult] = {
 
-    val analysisFiles: Seq[File] = metricsResults.flatMap(_.files.map(path => directory / path.toString))
+    val analysisFiles: Set[File] = metricsResults.flatMap(_.files.map(path => directory / path.toString))(collection.breakOut)
 
     metricsResults.map { res =>
       val fileMetrics: Try[Set[FileMetrics]] = res.analysisResults.map { analysisResults =>

@@ -213,7 +213,9 @@ class CLISpec extends Specification with NoLanguageFeatures {
           } yield (response, expected)
 
           result must beRight
-          result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+          result must beLike {
+            case Right((response, expected)) => response must containTheSameElementsAs(expected.to[Seq])
+          }
       }
     }
 

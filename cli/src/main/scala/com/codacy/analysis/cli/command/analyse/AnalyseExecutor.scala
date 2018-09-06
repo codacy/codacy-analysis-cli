@@ -71,8 +71,9 @@ class AnalyseExecutor(toolInput: Option[String],
               analysisResults.foreach(results => formatter.addAll(results.to[List]))
               IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, analysisResults)
             case metricsTool: MetricsTool =>
-              val analysisResults = analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles))
-              MetricsToolExecutorResult(metricsTool.languageToRun.name, filesTarget.readableFiles, analysisResults)
+              val analysisResults =
+                analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles))
+              MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, analysisResults)
             case duplicationTool: DuplicationTool =>
               val analysisResults =
                 analyser.duplication(duplicationTool, filteredFiles.directory, filteredFiles.readableFiles)
