@@ -1,13 +1,13 @@
 package com.codacy.analysis.cli.command.analyse
-import java.nio.file.Paths
+import java.nio.file.Path
 
 import better.files.File
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.MetricsToolExecutorResult
 import com.codacy.analysis.cli.formatter.Formatter
-import com.codacy.analysis.core.model.FileMetrics
-import com.codacy.plugins.utils.FileHelper
-import org.log4s.{Logger, getLogger}
 import com.codacy.analysis.core
+import com.codacy.analysis.core.model.FileMetrics
+import org.log4s.{Logger, getLogger}
+
 import scala.util.{Failure, Success, Try}
 
 object MetricsToolExecutor {
@@ -70,24 +70,23 @@ object MetricsToolExecutor {
                                   formatter: Formatter,
                                   metricsResults: Seq[MetricsToolExecutorResult]): Seq[MetricsToolExecutorResult] = {
 
-    val analysisFiles: Set[File] = metricsResults.flatMap(_.files.map(path => directory / path.toString))(collection.breakOut)
+    val analysisFiles: Set[Path] = metricsResults.flatMap(_.files)(collection.breakOut)
 
     metricsResults.map { res =>
       val fileMetrics: Try[Set[FileMetrics]] = res.analysisResults.map { analysisResults =>
         analysisFiles.map { file =>
-          val relativizedFilePath = Paths.get(FileHelper.toRelativePath(directory.pathAsString, file.pathAsString))
           analysisResults
-            .find(_.filename == relativizedFilePath)
+            .find(_.filename == file)
             .map {
-              case metrics if metrics.loc.isEmpty => metrics.copy(loc = countLoc(file))
+              case metrics if metrics.loc.isEmpty => metrics.copy(loc = countLoc(directory, file))
               case metrics                        => metrics
             }
             .getOrElse {
               FileMetrics(
-                filename = relativizedFilePath,
+                filename = file,
                 nrClasses = None,
                 nrMethods = None,
-                loc = countLoc(file),
+                loc = countLoc(directory, file),
                 cloc = None,
                 complexity = None,
                 lineComplexities = Set.empty)
@@ -101,7 +100,8 @@ object MetricsToolExecutor {
     }
   }
 
-  private def countLoc(file: File): Option[Int] = {
-    core.utils.FileHelper.countLoc(file.path.toAbsolutePath.toString)
+  private def countLoc(directory: File, file: Path): Option[Int] = {
+    val fileAbsolutePath = (directory / file.toString).path.toAbsolutePath.toString
+    core.utils.FileHelper.countLoc(fileAbsolutePath)
   }
 }

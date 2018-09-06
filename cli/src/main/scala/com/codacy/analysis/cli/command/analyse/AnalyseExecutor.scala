@@ -98,8 +98,11 @@ class AnalyseExecutor(toolInput: Option[String],
 
   private def reduceAndCalculateMissingFileMetrics(
     metricsResults: Seq[MetricsToolExecutorResult]): Seq[MetricsToolExecutorResult] = {
-    (MetricsToolExecutor.reduceMetricsToolResultsByFile _ andThen (results =>
-      MetricsToolExecutor.calculateMissingFileMetrics(directory, formatter, results)))(metricsResults)
+    val reduce = MetricsToolExecutor.reduceMetricsToolResultsByFile _
+    val calculateMissingMetrics: Seq[MetricsToolExecutorResult] => Seq[MetricsToolExecutorResult] =
+      MetricsToolExecutor.calculateMissingFileMetrics(directory, formatter, _)
+
+    reduce.andThen(calculateMissingMetrics)(metricsResults)
   }
 
   private def issues(tool: Tool,
