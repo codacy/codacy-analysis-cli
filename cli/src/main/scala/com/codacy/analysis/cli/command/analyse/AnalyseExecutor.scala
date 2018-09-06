@@ -59,23 +59,28 @@ class AnalyseExecutor(toolInput: Option[String],
     } yield (filesTarget, tools)
 
     val analysisResult: Either[CLIError, Seq[ExecutorResult]] = filesTargetAndTool.map {
-      case (filesTarget, tools) =>
+      case (allFiles, tools) =>
         SetOps.mapInParallel[ITool, ExecutorResult](tools, nrParallelTools) { tool: ITool =>
+          val filteredFiles: FilesTarget =
+            fileCollector.filter(tool, allFiles, localConfigurationFile, remoteProjectConfiguration)
+
           tool match {
             case tool: Tool =>
-              val analysisResults = issues(tool, filesTarget, localConfigurationFile)
+              val analysisResults = issues(tool, filteredFiles, localConfigurationFile)
               analysisResults.foreach(results => formatter.addAll(results.to[List]))
-              IssuesToolExecutorResult(tool.name, filesTarget.readableFiles, analysisResults)
+              IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, analysisResults)
             case metricsTool: MetricsTool =>
-              val analysisResults = metrics(metricsTool, filesTarget, localConfigurationFile)
+              val analysisResults =
+                analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles))
               analysisResults.foreach(results => formatter.addAll(results.to[List]))
-              MetricsToolExecutorResult(metricsTool.languageToRun.name, filesTarget.readableFiles, analysisResults)
+              MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, analysisResults)
             case duplicationTool: DuplicationTool =>
-              val analysisResults = duplication(duplicationTool, filesTarget, localConfigurationFile)
+              val analysisResults =
+                analyser.duplication(duplicationTool, filteredFiles.directory, filteredFiles.readableFiles)
               analysisResults.foreach(results => formatter.addAll(results.to[List]))
               DuplicationToolExecutorResult(
                 duplicationTool.languageToRun.name,
-                filesTarget.readableFiles,
+                filteredFiles.readableFiles,
                 analysisResults)
           }
         }
@@ -91,12 +96,10 @@ class AnalyseExecutor(toolInput: Option[String],
   }
 
   private def issues(tool: Tool,
-                     filesTarget: FilesTarget,
+                     analysisFilesTarget: FilesTarget,
                      localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[ToolResult]] = {
-    val analysisFilesTarget =
-      fileCollector.filter(tool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
 
-    val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, filesTarget)
+    val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, analysisFilesTarget)
 
     for {
       toolConfiguration <- getToolConfiguration(
@@ -107,26 +110,6 @@ class AnalyseExecutor(toolInput: Option[String],
       results <- analyser
         .analyse(tool, analysisFilesTarget.directory, analysisFilesTarget.readableFiles, toolConfiguration, toolTimeout)
     } yield results
-  }
-
-  private def metrics(metricsTool: MetricsTool,
-                      filesTarget: FilesTarget,
-                      localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[FileMetrics]] = {
-    val metricsFilesTarget =
-      fileCollector.filter(metricsTool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
-
-    analyser.metrics(metricsTool, metricsFilesTarget.directory, Some(metricsFilesTarget.readableFiles))
-  }
-
-  private def duplication(
-    duplicationTool: DuplicationTool,
-    filesTarget: FilesTarget,
-    localConfigurationFile: Either[String, CodacyConfigurationFile]): Try[Set[DuplicationClone]] = {
-
-    val duplicationFilesTarget =
-      fileCollector.filter(duplicationTool, filesTarget, localConfigurationFile, remoteProjectConfiguration)
-
-    analyser.duplication(duplicationTool, duplicationFilesTarget.directory, duplicationFilesTarget.readableFiles)
   }
 
   private def getToolConfiguration(tool: Tool,
