@@ -40,7 +40,6 @@ class MainImpl extends CLIApp {
   def runCommand(command: Command): Int = {
     command match {
       case analyse: Analyse =>
-        cleanup(analyse.directory)
         Logger.setLevel(analyse.options.verboseValue)
 
         val environment = new Environment(sys.env)
@@ -59,6 +58,8 @@ class MainImpl extends CLIApp {
         } yield {
           analysisResults
         }
+
+        cleanup(projectDirectory)
 
         new ExitStatus(analyse.maxAllowedIssues).exitCode(analysisAndUpload)
     }
@@ -233,8 +234,10 @@ class MainImpl extends CLIApp {
     }
   }
 
-  private def cleanup(directoryOpt: Option[File]): Unit = {
-    val directory = directoryOpt.getOrElse(File.currentWorkingDirectory) / ".codacy.json"
-    directory.delete(swallowIOExceptions = true)
+  private def cleanup(directory: File): Unit = {
+    val codacyJson = directory / ".codacy.json"
+    codacyJson.delete(swallowIOExceptions = true)
+    val codacyRc = directory / ".codacyrc"
+    codacyRc.delete(swallowIOExceptions = true)
   }
 }
