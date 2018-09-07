@@ -4,8 +4,9 @@ import java.nio.file.Path
 
 import better.files.File
 import com.codacy.analysis.core.model.DuplicationClone
+import com.codacy.plugins.api.duplication.DuplicationTool.CodacyConfiguration
 import com.codacy.plugins.api.languages.Language
-import com.codacy.plugins.duplication.api.{DuplicationCloneFile, DuplicationConfiguration, DuplicationRequest}
+import com.codacy.plugins.duplication.api.{DuplicationCloneFile, DuplicationRequest}
 import com.codacy.plugins.duplication.traits.DuplicationRunner
 import com.codacy.plugins.duplication.{api, _}
 import com.codacy.plugins.traits.BinaryDockerRunner
@@ -32,7 +33,7 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
     for {
       duplicationClones <- runner.run(
         request,
-        DuplicationConfiguration(languageToRun, Map.empty),
+        CodacyConfiguration(Option(languageToRun), Option.empty),
         timeout.getOrElse(dockerRunner.defaultRunTimeout),
         None)
       clones = filterDuplicationClones(duplicationClones, files)
@@ -44,7 +45,7 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
 
   private def filterDuplicationClones(duplicationClones: List[api.DuplicationClone],
                                       files: Set[Path],
-                                      minCloneLines: Int = 5) = {
+                                      minCloneLines: Int = 5): List[api.DuplicationClone] = {
     // The duplication files should be more than 1. If it is one, then it means
     // that the other clone was in an ignored file. This is based on the assumption
     // that the duplication results will contain more than one entry for files
@@ -57,7 +58,8 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
     }.collect { case (clone, nrCloneFiles) if nrCloneFiles > 1 => clone }
   }
 
-  private def filterUnignoredFiles(duplicated: Seq[DuplicationCloneFile], expectedFiles: Set[String]) = {
+  private def filterUnignoredFiles(duplicated: Seq[DuplicationCloneFile],
+                                   expectedFiles: Set[String]): Seq[DuplicationCloneFile] = {
     duplicated.collect {
       case cloneFile if expectedFiles.contains(cloneFile.filePath) =>
         cloneFile
@@ -69,7 +71,7 @@ object DuplicationToolCollector {
 
   private val logger: org.log4s.Logger = getLogger
 
-  private val availableTools = PluginHelper.dockerDuplicationPlugins
+  private val availableTools: List[traits.DuplicationTool] = PluginHelper.dockerDuplicationPlugins
 
   def fromLanguages(languages: Set[Language]): Set[DuplicationTool] = {
     languages.flatMap { lang =>

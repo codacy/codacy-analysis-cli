@@ -5,7 +5,7 @@ import com.codacy.analysis.core.model.DuplicationClone
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.plugins.api.languages.{Language, Languages}
 import com.codacy.plugins.duplication.api.DuplicationCloneFile
-import com.codacy.plugins.duplication.docker.pmdcpd.PmdCpd
+import com.codacy.plugins.duplication.docker.PmdCpd
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 
@@ -94,6 +94,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
   def assertDuplication(duplicationResults: Set[DuplicationClone], expectedClones: Seq[DuplicationClone]) = {
     //ignore the clone lines field for assertion
     duplicationResults.map(_.files.to[Set]) must containTheSameElementsAs(expectedClones.map(_.files.to[Set]))
-    duplicationResults.map(_.copy(cloneLines = "", files = Set.empty)) must containTheSameElementsAs(expectedClones.map(_.copy(files = Set.empty)))
+    duplicationResults.map(_.copy(cloneLines = "", files = Set.empty)) must containTheSameElementsAs(
+      expectedClones.map(_.copy(files = Set.empty)))
   }
 }

@@ -6,7 +6,7 @@ import com.codacy.analysis.core.model.FileMetrics
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.plugins.api.Source
 import com.codacy.plugins.api.languages.{Language, Languages}
-import com.codacy.plugins.metrics.docker.cloc.Cloc
+import com.codacy.plugins.metrics.docker.Cloc
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 
@@ -65,15 +65,6 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
       tools must haveSize(4)
 
       tools.map(_.languageToRun) must containTheSameElementsAs(languagesWithTools.to[Seq])
-    }
-
-    val languagesWithoutTools: Set[Language] = Set(Languages.Dart, Languages.OCaml, Languages.Julia)
-
-    s"return no metrics tools for the given languages: ${languagesWithoutTools}" in {
-
-      val tools = MetricsToolCollector.fromLanguages(languagesWithoutTools)
-
-      tools should beEmpty
     }
   }
 }
