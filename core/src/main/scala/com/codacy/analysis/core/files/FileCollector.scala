@@ -61,7 +61,7 @@ trait FileCollector[T[_]] {
     val filters =
       Set(
         excludeForTool(tool.name, localConfiguration) _,
-        filterByLanguage(tool.supportedLanguages, localConfiguration, remoteConfiguration) _)
+        filterByLanguage(tool.languageToRun, localConfiguration, remoteConfiguration) _)
     val filteredFiles = filters.foldLeft(target.readableFiles) { case (fs, filter) => filter(fs) }
     target.copy(readableFiles = filteredFiles)
   }
@@ -115,7 +115,7 @@ trait FileCollector[T[_]] {
   }
 
   private def filterByLanguage(
-    languages: Set[Language],
+    language: Language,
     localConfiguration: Either[String, CodacyConfigurationFile],
     remoteConfiguration: Either[String, ProjectConfiguration])(files: Set[Path]): Set[Path] = {
 
@@ -127,7 +127,7 @@ trait FileCollector[T[_]] {
         _.projectExtensions.map(le => (le.language, le.extensions))(collection.breakOut))
 
     Languages
-      .filter(files.map(_.toString), languages, localCustomExtensionsByLanguage ++ remoteCustomExtensionsByLanguage)
+      .filter(files.map(_.toString), Set(language), localCustomExtensionsByLanguage ++ remoteCustomExtensionsByLanguage)
       .map(Paths.get(_))
   }
 

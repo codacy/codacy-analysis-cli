@@ -14,15 +14,16 @@ import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.tools._
 import com.codacy.analysis.core.utils.InheritanceOps.InheritanceOps
+import com.codacy.analysis.core.utils.SeqOps._
 import com.codacy.analysis.core.utils.TryOps._
 import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
 import com.codacy.plugins.api.languages.Language
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
+
 import scala.concurrent.duration.Duration
 import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
-import com.codacy.analysis.core.utils.SeqOps._
 
 class AnalyseExecutor(toolInput: Option[String],
                       directory: File,
@@ -229,7 +230,7 @@ object AnalyseExecutor {
       remoteProjectConfig.flatMap { projectConfiguration =>
         val toolUuids = projectConfiguration.toolConfiguration.filter(_.isEnabled).map(_.uuid)
         toolCollector
-          .fromToolUUIDs(toolUuids)
+          .fromToolUUIDs(toolUuids, languages)
           .left
           .map(_ => CLIError.NonExistentToolsFromRemoteConfiguration(toolUuids))
       }
@@ -240,7 +241,7 @@ object AnalyseExecutor {
     }
 
     toolInput.map { toolStr =>
-      toolCollector.fromNameOrUUID(toolStr).left.map(CLIError.from)
+      toolCollector.fromNameOrUUID(toolStr, languages).left.map(CLIError.from)
     }.getOrElse {
       for {
         e1 <- fromRemoteConfig.left
