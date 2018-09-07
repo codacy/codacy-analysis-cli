@@ -23,7 +23,7 @@ object ExitStatus {
 
 class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
 
-  def exitCode(resultsEither: Either[CLIError, Seq[ExecutorResult]]): Int = {
+  def exitCode(resultsEither: Either[CLIError, Seq[ExecutorResult[_]]]): Int = {
     val resultsCount = countResults(resultsEither)
 
     resultsEither match {
@@ -44,9 +44,9 @@ class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
     }
   }
 
-  private def countResults(executorResultsEither: Either[CLIError, Seq[ExecutorResult]]): Int = {
+  private def countResults(executorResultsEither: Either[CLIError, Seq[ExecutorResult[_]]]): Int = {
     executorResultsEither
-      .getOrElse(Seq.empty[ExecutorResult])
+      .getOrElse(Seq.empty[ExecutorResult[_]])
       .map {
         case executorResult: IssuesToolExecutorResult =>
           executorResult.analysisResults.map(_.size).getOrElse(0)
@@ -56,7 +56,7 @@ class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
       .sum
   }
 
-  private def existsFailure(executorResults: Seq[ExecutorResult]): Boolean = {
+  private def existsFailure(executorResults: Seq[ExecutorResult[_]]): Boolean = {
     executorResults.exists {
       case executorResult: IssuesToolExecutorResult =>
         executorResult.analysisResults.isFailure

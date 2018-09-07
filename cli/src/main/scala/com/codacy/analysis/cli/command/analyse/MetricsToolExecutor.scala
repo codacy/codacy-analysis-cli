@@ -3,12 +3,11 @@ import java.nio.file.Path
 
 import better.files.File
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.MetricsToolExecutorResult
-import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core
 import com.codacy.analysis.core.model.FileMetrics
 import org.log4s.{Logger, getLogger}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 object MetricsToolExecutor {
 
@@ -67,21 +66,17 @@ object MetricsToolExecutor {
   }
 
   def calculateMissingFileMetrics(directory: File,
-                                  formatter: Formatter,
                                   metricsResults: Seq[MetricsToolExecutorResult]): Seq[MetricsToolExecutorResult] = {
 
-    val analysisFiles: Set[Path] = metricsResults.flatMap(_.files)(collection.breakOut)
+    val fileMetricsByFilePath: Map[Path, FileMetrics] = metricsResults.flatMap { result =>
+      result.analysisResults.map(_.map(fileMetrics => (fileMetrics.filename, fileMetrics))).getOrElse(Set.empty)
+    }(collection.breakOut)
 
-    metricsResults.map { res =>
-      val fileMetrics: Try[Set[FileMetrics]] = res.analysisResults.map { analysisResults =>
-        analysisFiles.map { file =>
-          analysisResults
-            .find(_.filename == file)
-            .map {
-              case metrics if metrics.loc.isEmpty => metrics.copy(loc = countLoc(directory, file))
-              case metrics                        => metrics
-            }
-            .getOrElse {
+    metricsResults.map {
+      case res @ AnalyseExecutor.MetricsToolExecutorResult(_, files, _) =>
+        val fileMetrics = files.map { file =>
+          fileMetricsByFilePath.get(file) match {
+            case None =>
               FileMetrics(
                 filename = file,
                 nrClasses = None,
@@ -90,13 +85,11 @@ object MetricsToolExecutor {
                 cloc = None,
                 complexity = None,
                 lineComplexities = Set.empty)
-            }
-        }(collection.breakOut)
-      }
-
-      fileMetrics.foreach(results => formatter.addAll(results.to[List]))
-
-      res.copy(analysisResults = fileMetrics)
+            case Some(metrics) if metrics.loc.isEmpty => metrics.copy(loc = countLoc(directory, file))
+            case Some(metrics)                        => metrics
+          }
+        }
+        res.copy(analysisResults = Success(fileMetrics))
     }
   }
 
