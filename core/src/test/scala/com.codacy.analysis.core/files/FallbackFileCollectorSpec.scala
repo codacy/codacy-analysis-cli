@@ -8,13 +8,11 @@ import scala.util.{Failure, Success, Try}
 
 class FallbackFileCollectorSpec extends Specification with NoLanguageFeatures {
 
-  private val emptyExclusionRules = FileExclusionRules(None, Set.empty, ExcludePaths(Set.empty, Map.empty), Map.empty)
-
   private val failingCompanion: FileCollectorCompanion[Try] = new FileCollectorCompanion[Try] {
     override def name: String = ""
 
     override def apply(): FileCollector[Try] = new FileCollector[Try] {
-      override def list(directory: File, exclusionRules: FileExclusionRules): Try[FilesTarget] = {
+      override def list(directory: File): Try[FilesTarget] = {
         Failure(new Exception("because fail"))
       }
     }
@@ -24,7 +22,7 @@ class FallbackFileCollectorSpec extends Specification with NoLanguageFeatures {
     override def name: String = ""
 
     override def apply(): FileCollector[Try] = new FileCollector[Try] {
-      override def list(directory: File, exclusionRules: FileExclusionRules): Try[FilesTarget] = {
+      override def list(directory: File): Try[FilesTarget] = {
         Success(FilesTarget(directory, Set.empty, Set.empty))
       }
     }
@@ -32,18 +30,15 @@ class FallbackFileCollectorSpec extends Specification with NoLanguageFeatures {
 
   "FallbackFileCollectorSpec" should {
     "not fallback" in {
-      new FallbackFileCollector(List(successfulCompanion, failingCompanion))
-        .list(File(""), emptyExclusionRules) must beSuccessfulTry
+      new FallbackFileCollector(List(successfulCompanion, failingCompanion)).list(File("")) must beSuccessfulTry
     }
 
     "fallback" in {
-      new FallbackFileCollector(List(failingCompanion, successfulCompanion))
-        .list(File(""), emptyExclusionRules) must beSuccessfulTry
+      new FallbackFileCollector(List(failingCompanion, successfulCompanion)).list(File("")) must beSuccessfulTry
     }
 
     "fail when all fail" in {
-      new FallbackFileCollector(List(failingCompanion, failingCompanion))
-        .list(File(""), emptyExclusionRules) must beFailedTry
+      new FallbackFileCollector(List(failingCompanion, failingCompanion)).list(File("")) must beFailedTry
     }
   }
 }
