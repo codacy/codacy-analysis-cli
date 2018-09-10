@@ -6,7 +6,7 @@ command -v docker > /dev/null 2>&1 || {
   exit 1
 }
 
-docker version | grep -q "Server version\|Server:" || {
+docker version --format '{{.Server.Version}}' || {
   echo "Unable to run 'docker version'. Docker daemon needs to be running." >&2
   exit 1
 }
