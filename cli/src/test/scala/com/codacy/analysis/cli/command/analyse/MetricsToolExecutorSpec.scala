@@ -1,12 +1,15 @@
 package com.codacy.analysis.cli.command.analyse
 import java.nio.file.Paths
 
+import better.files.File
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.MetricsToolExecutorResult
 import com.codacy.analysis.core.model.FileMetrics
+import com.codacy.plugins.api.languages.Languages
 import com.codacy.plugins.api.languages.Languages.Java
 import com.codacy.plugins.api.metrics.LineComplexity
 import org.specs2.mutable.Specification
 
+import scala.collection.immutable.Set
 import scala.util.Success
 
 class MetricsToolExecutorSpec extends Specification {
@@ -85,6 +88,29 @@ class MetricsToolExecutorSpec extends Specification {
               nrMethods = Some(23),
               nrClasses = None,
               lineComplexities = Set(LineComplexity(12, 2), LineComplexity(66, 6))))))))
+    }
+
+    "always count the lines of code for a file, even if the metrics do not have this data" in {
+      //Given
+      val fileName = "test.go"
+      val filePath = Paths.get(fileName)
+      val goCycloFileMetrics =
+        FileMetrics(filePath, Some(2), None, None, Some(2), None, Set(LineComplexity(18, 2), LineComplexity(24, 1)))
+
+      //When
+      val resultsWithMissingMetrics = MetricsToolExecutor.calculateMissingFileMetrics(
+        File("cli/src/test/resources/com/codacy/analysis/cli/samples"),
+        Seq(
+          AnalyseExecutor
+            .MetricsToolExecutorResult(Languages.Go.name, Set(filePath), Success(Set(goCycloFileMetrics)))))
+
+      //Then
+      resultsWithMissingMetrics must containTheSameElementsAs(
+        Seq(
+          AnalyseExecutor.MetricsToolExecutorResult(
+            Languages.Go.name,
+            Set(filePath),
+            Success(Set(goCycloFileMetrics.copy(loc = Some(64)))))))
     }
   }
 }

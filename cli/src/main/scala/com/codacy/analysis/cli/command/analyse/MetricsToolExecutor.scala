@@ -1,5 +1,9 @@
 package com.codacy.analysis.cli.command.analyse
+import java.nio.file.Path
+
+import better.files.File
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.MetricsToolExecutorResult
+import com.codacy.analysis.core
 import com.codacy.analysis.core.model.FileMetrics
 import org.log4s.{Logger, getLogger}
 
@@ -59,5 +63,38 @@ object MetricsToolExecutor {
               })
           }
       }(collection.breakOut)
+  }
+
+  def calculateMissingFileMetrics(directory: File,
+                                  metricsResults: Seq[MetricsToolExecutorResult]): Seq[MetricsToolExecutorResult] = {
+
+    val fileMetricsByFilePath: Map[Path, FileMetrics] = metricsResults.flatMap { result =>
+      result.analysisResults.map(_.map(fileMetrics => (fileMetrics.filename, fileMetrics))).getOrElse(Set.empty)
+    }(collection.breakOut)
+
+    metricsResults.map {
+      case res @ AnalyseExecutor.MetricsToolExecutorResult(_, files, _) =>
+        val fileMetrics = files.map { file =>
+          fileMetricsByFilePath.get(file) match {
+            case None =>
+              FileMetrics(
+                filename = file,
+                nrClasses = None,
+                nrMethods = None,
+                loc = countLoc(directory, file),
+                cloc = None,
+                complexity = None,
+                lineComplexities = Set.empty)
+            case Some(metrics) if metrics.loc.isEmpty => metrics.copy(loc = countLoc(directory, file))
+            case Some(metrics)                        => metrics
+          }
+        }
+        res.copy(analysisResults = Success(fileMetrics))
+    }
+  }
+
+  private def countLoc(directory: File, file: Path): Option[Int] = {
+    val fileAbsolutePath = (directory / file.toString).path.toAbsolutePath.toString
+    core.utils.FileHelper.countLoc(fileAbsolutePath)
   }
 }

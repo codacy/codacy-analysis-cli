@@ -86,7 +86,7 @@ class MainImpl extends CLIApp {
 
   private def analysis(analyse: Analyse,
                        projectDirectory: File,
-                       codacyClientOpt: Option[CodacyClient]): Either[CLIError, Seq[ExecutorResult]] = {
+                       codacyClientOpt: Option[CodacyClient]): Either[CLIError, Seq[ExecutorResult[_]]] = {
     val formatter: Formatter = Formatter(analyse.format, analyse.output)
     val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
@@ -113,7 +113,7 @@ class MainImpl extends CLIApp {
   private def upload(analyse: Analyse,
                      commitUuid: Option[Commit.Uuid],
                      codacyClientOpt: Option[CodacyClient],
-                     analysisResults: Seq[AnalyseExecutor.ExecutorResult]): Either[CLIError, Unit] = {
+                     analysisResults: Seq[AnalyseExecutor.ExecutorResult[_]]): Either[CLIError, Unit] = {
 
     val uploadResultFut: Future[Either[String, Unit]] =
       uploadResults(codacyClientOpt)(analyse.uploadValue, commitUuid, analysisResults)
@@ -136,7 +136,7 @@ class MainImpl extends CLIApp {
   private def uploadResults(codacyClientOpt: Option[CodacyClient])(
     upload: Boolean,
     commitUuid: Option[Commit.Uuid],
-    executorResults: Seq[ExecutorResult]): Future[Either[String, Unit]] = {
+    executorResults: Seq[ExecutorResult[_]]): Future[Either[String, Unit]] = {
     (for {
       uploaderOpt <- ResultsUploader(codacyClientOpt, upload, commitUuid)
     } yield {

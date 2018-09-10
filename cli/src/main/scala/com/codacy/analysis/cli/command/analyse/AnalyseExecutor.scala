@@ -38,8 +38,7 @@ class AnalyseExecutor(toolInput: Option[String],
 
   private val logger: Logger = getLogger
 
-  def run(): Either[CLIError, Seq[ExecutorResult]] = {
-    formatter.begin()
+  def run(): Either[CLIError, Seq[ExecutorResult[_]]] = {
 
     val localConfigurationFile: Either[String, CodacyConfigurationFile] =
       CodacyConfigurationFile.search(directory).flatMap(CodacyConfigurationFile.load)
@@ -59,26 +58,23 @@ class AnalyseExecutor(toolInput: Option[String],
         allowNetwork)
     } yield (filesTarget, tools)
 
-    val analysisResult: Either[CLIError, Seq[ExecutorResult]] = filesTargetAndTool.map {
+    val analysisResult: Either[CLIError, Seq[ExecutorResult[_]]] = filesTargetAndTool.map {
       case (allFiles, tools) =>
-        SetOps.mapInParallel[ITool, ExecutorResult](tools, nrParallelTools) { tool: ITool =>
+        SetOps.mapInParallel[ITool, ExecutorResult[_]](tools, nrParallelTools) { tool: ITool =>
           val filteredFiles: FilesTarget =
             fileCollector.filter(tool, allFiles, localConfigurationFile, remoteProjectConfiguration)
 
           tool match {
             case tool: Tool =>
               val analysisResults = issues(tool, filteredFiles, localConfigurationFile)
-              analysisResults.foreach(results => formatter.addAll(results.to[List]))
               IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, analysisResults)
             case metricsTool: MetricsTool =>
               val analysisResults =
                 analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles))
-              analysisResults.foreach(results => formatter.addAll(results.to[List]))
               MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, analysisResults)
             case duplicationTool: DuplicationTool =>
               val analysisResults =
                 analyser.duplication(duplicationTool, filteredFiles.directory, filteredFiles.readableFiles)
-              analysisResults.foreach(results => formatter.addAll(results.to[List]))
               DuplicationToolExecutorResult(
                 duplicationTool.languageToRun.name,
                 filteredFiles.readableFiles,
@@ -87,12 +83,28 @@ class AnalyseExecutor(toolInput: Option[String],
         }
     }
 
-    formatter.end()
+    postProcess(analysisResult)
+  }
 
+  private def postProcess(
+    analysisResult: Either[CLIError, Seq[ExecutorResult[_]]]): Either[CLIError, Seq[ExecutorResult[_]]] = {
     analysisResult.map { result =>
-      val (metricsResults, issuesResults, duplicationResults) =
-        result.partitionSubtypes[MetricsToolExecutorResult, IssuesToolExecutorResult, DuplicationToolExecutorResult]
-      MetricsToolExecutor.reduceMetricsToolResultsByFile(metricsResults) ++ issuesResults ++ duplicationResults
+      val (issuesResults, duplicationResults, metricsResults) =
+        result.partitionSubtypes[IssuesToolExecutorResult, DuplicationToolExecutorResult, MetricsToolExecutorResult]
+
+      val reduce = MetricsToolExecutor.reduceMetricsToolResultsByFile _
+      val calculateMissingMetrics: Seq[MetricsToolExecutorResult] => Seq[MetricsToolExecutorResult] =
+        MetricsToolExecutor.calculateMissingFileMetrics(directory, _)
+
+      val processedFileMetrics = reduce.andThen(calculateMissingMetrics)(metricsResults)
+
+      val executorResults = issuesResults ++ duplicationResults ++ processedFileMetrics
+
+      formatter.begin()
+      executorResults.foreach(_.analysisResults.foreach(results => formatter.addAll(results.to[List])))
+      formatter.end()
+
+      executorResults
     }
   }
 
@@ -180,15 +192,17 @@ class AnalyseExecutor(toolInput: Option[String],
 
 object AnalyseExecutor {
 
-  sealed trait ExecutorResult
+  sealed trait ExecutorResult[T <: Result] {
+    def analysisResults: Try[Set[T]]
+  }
   final case class IssuesToolExecutorResult(toolName: String, files: Set[Path], analysisResults: Try[Set[ToolResult]])
-      extends ExecutorResult
+      extends ExecutorResult[ToolResult]
   final case class MetricsToolExecutorResult(language: String, files: Set[Path], analysisResults: Try[Set[FileMetrics]])
-      extends ExecutorResult
+      extends ExecutorResult[FileMetrics]
   final case class DuplicationToolExecutorResult(language: String,
                                                  files: Set[Path],
                                                  analysisResults: Try[Set[DuplicationClone]])
-      extends ExecutorResult
+      extends ExecutorResult[DuplicationClone]
 
   def allTools(toolInput: Option[String],
                remoteProjectConfiguration: Either[String, ProjectConfiguration],
