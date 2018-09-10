@@ -36,7 +36,7 @@ final case class SubDirectory(sourceDirectory: String, protected val subDirector
   def removePrefix(filename: String): String = filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(private val plugin: DockerTool) extends ITool {
+class Tool(private val plugin: DockerTool, val languageToRun: Language) extends ITool {
 
   private val logger: Logger = getLogger
 
@@ -137,27 +137,27 @@ class ToolCollector(allowNetwork: Boolean) {
 
   private val logger: Logger = getLogger
 
-  private val availableInternetTools = if (allowNetwork) {
+  private val availableInternetTools: List[DockerTool] = if (allowNetwork) {
     PluginHelper.dockerEnterprisePlugins
   } else {
     List.empty[DockerTool]
   }
 
-  private val availableTools = Tool.availableTools ++ availableInternetTools
+  private val availableTools: List[DockerTool] = Tool.availableTools ++ availableInternetTools
 
-  def fromNameOrUUID(toolInput: String): Either[Analyser.Error, Set[Tool]] = {
-    from(toolInput).map(Set(_))
+  def fromNameOrUUID(toolInput: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
+    from(toolInput, languages)
   }
 
-  def fromToolUUIDs(toolUuids: Set[String]): Either[Analyser.Error, Set[Tool]] = {
+  def fromToolUUIDs(toolUuids: Set[String], languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
     if (toolUuids.isEmpty) {
       Left(Analyser.Error.NoActiveToolInConfiguration)
     } else {
       val toolsIdentified = toolUuids.flatMap { toolUuid =>
-        from(toolUuid).fold({ _ =>
+        from(toolUuid, languages).fold({ _ =>
           logger.warn(s"Failed to get tool for uuid:$toolUuid")
-          Option.empty[Tool]
-        }, Option(_))
+          Set.empty[Tool]
+        }, identity)
       }
 
       if (toolsIdentified.size != toolUuids.size) {
@@ -169,10 +169,11 @@ class ToolCollector(allowNetwork: Boolean) {
   }
 
   def fromLanguages(languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
-    val collectedTools: Set[Tool] = availableTools.collect {
-      case tool if languages.exists(tool.languages.contains) =>
-        new Tool(tool)
-    }(collection.breakOut)
+    val collectedTools: Set[Tool] = (for {
+      tool <- availableTools
+      languagesToRun = tool.languages.intersect(languages)
+      languageToRun <- languagesToRun
+    } yield new Tool(tool, languageToRun))(collection.breakOut)
 
     if (collectedTools.isEmpty) {
       Left(Analyser.Error.NoToolsFoundForFiles)
@@ -181,7 +182,9 @@ class ToolCollector(allowNetwork: Boolean) {
     }
   }
 
-  def from(value: String): Either[Analyser.Error, Tool] = find(value).map(new Tool(_))
+  def from(value: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
+    find(value).map(dockerTool => dockerTool.languages.intersect(languages).map(new Tool(dockerTool, _)))
+  }
 
   private def find(value: String): Either[Analyser.Error, DockerTool] = {
     availableTools

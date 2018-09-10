@@ -345,7 +345,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38"), directory.toJava).!
 
-        val tool = toolCollector.from("brakeman").right.get
+        val tool = toolCollector.from("brakeman", Set(Languages.Ruby)).right.get.head
 
         val result = for {
           filesTargetGlobal <- fileCollector.list(
@@ -394,7 +394,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
-        val tool = toolCollector.from("scalastyle").right.get
+        val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
 
         val result = for {
           filesTargetGlobal <- fileCollector.list(
@@ -437,7 +437,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
-        val tool = toolCollector.from("scalastyle").right.get
+        val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
 
         val result = for {
           filesTargetGlobal <- fileCollector.list(
@@ -481,7 +481,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
-        val tool = toolCollector.from("scalastyle").right.get
+        val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
 
         val result = for {
           filesTargetGlobal <- fileCollector.list(
@@ -529,7 +529,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
-        val tool = toolCollector.from("scalastyle").right.get
+        val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
 
         val result = for {
           filesTargetGlobal <- fileCollector.list(directory, localConfiguration, remoteConfiguration)

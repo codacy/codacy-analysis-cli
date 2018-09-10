@@ -8,6 +8,7 @@ import com.codacy.analysis.core.files.FilesTarget
 import com.codacy.analysis.core.tools.Tool
 import com.codacy.analysis.core.utils.LanguagesHelper
 import com.codacy.plugins.api.languages.Languages
+import com.codacy.plugins.api.languages.Languages.{Javascript, Python}
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 
@@ -43,10 +44,8 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
           Set.empty,
           Set(ToolConfiguration("InvalidToolName", isEnabled = true, notEdited = false, Set.empty))))
 
-      val languages = LanguagesHelper.fromFileTarget(emptyFilesTarget, noLocalConfiguration)
-
       val toolEither =
-        AnalyseExecutor.tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
+        AnalyseExecutor.tools(userInput, remoteProjectConfiguration, allowNetwork = false, Set(Python))
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -92,10 +91,8 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
             ToolConfiguration("someRandomTool", isEnabled = false, notEdited = false, Set.empty),
             ToolConfiguration("anotherRandomTool", isEnabled = false, notEdited = false, Set.empty))))
 
-      val languages = LanguagesHelper.fromFileTarget(emptyFilesTarget, noLocalConfiguration)
-
       val toolEither =
-        AnalyseExecutor.tools(userInput, remoteProjectConfiguration, allowNetwork = false, languages)
+        AnalyseExecutor.tools(userInput, remoteProjectConfiguration, allowNetwork = false, Set(Javascript, Python))
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -138,7 +135,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
-          toolSet.map(_.name) mustEqual Set("checkstyle", "findbugs", "findbugssec", "pmd")
+          toolSet.map(_.name) mustEqual Set("checkstyle", "findbugs", "findbugssec", "pmd", "pmd-legacy")
       }
     }
 
