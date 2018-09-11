@@ -39,9 +39,10 @@ object CodacyConfigurationFile {
           .mkString(", ")}."))(Right(_))
   }
 
-  def load(file: File): Either[String, CodacyConfigurationFile] = {
-    parse(file.contentAsString)
-  }
+  def load(directory: File): Either[String, CodacyConfigurationFile] =
+    CodacyConfigurationFile
+      .search(directory)
+      .flatMap(configDir => CodacyConfigurationFile.parse(configDir.contentAsString))
 
   def parse(yamlString: String): Either[String, CodacyConfigurationFile] = {
     Try {

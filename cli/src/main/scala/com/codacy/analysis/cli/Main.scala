@@ -9,11 +9,12 @@ import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
-import com.codacy.analysis.cli.configuration.{Environment, CLIProperties}
+import com.codacy.analysis.cli.configuration.CLIProperties.{AnalysisProperties, UploadProperties}
+import com.codacy.analysis.cli.configuration.{CLIProperties, Environment}
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.CodacyClient
-import com.codacy.analysis.core.clients.api.ProjectConfiguration
+import com.codacy.analysis.core.configuration.CodacyConfigurationFile
 import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.git.{Commit, Git}
 import com.codacy.analysis.core.model._
@@ -45,14 +46,16 @@ class MainImpl extends CLIApp {
 
         val environment = new Environment(sys.env)
         val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
-        val properties: CLIProperties = CLIProperties(codacyClientOpt, environment, analyse)
+
+        val properties: CLIProperties =
+          CLIProperties(codacyClientOpt, environment, analyse, CodacyConfigurationFile.load)
 
         //TODO(31/08/2018): In the next tickets:
         // (2) validate commit cli parameter with commit retrieved from jGit
         val analysisAndUpload = for {
           _ <- validate(properties)
-          analysisResults <- analysis(analyse, properties.analysis.projectDirectory, codacyClientOpt)
-          _ <- upload(analyse, properties.upload.commitUuid, codacyClientOpt, analysisResults)
+          analysisResults <- analysis(Analyser(analyse.extras.analyser), properties.analysis)
+          _ <- upload(properties.upload, codacyClientOpt, analysisResults)
         } yield {
           analysisResults
         }
@@ -82,41 +85,22 @@ class MainImpl extends CLIApp {
     }).getOrElse(Right(()))
   }
 
-  private def analysis(analyse: Analyse,
-                       projectDirectory: File,
-                       codacyClientOpt: Option[CodacyClient]): Either[CLIError, Seq[ExecutorResult[_]]] = {
-    val formatter: Formatter = Formatter(analyse.format, analyse.output)
-    val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
+  private def analysis(analyser: Analyser[Try],
+                       properties: AnalysisProperties): Either[CLIError, Seq[ExecutorResult[_]]] = {
+    val formatter: Formatter = Formatter(properties.output.format, properties.output.file)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    val remoteProjectConfiguration: Either[String, ProjectConfiguration] = codacyClientOpt.fold {
-      "No credentials found.".asLeft[ProjectConfiguration]
-    } {
-      _.getRemoteConfiguration
-    }
-
-    new AnalyseExecutor(
-      analyse.tool,
-      projectDirectory,
-      formatter,
-      analyser,
-      fileCollector,
-      remoteProjectConfiguration,
-      analyse.parallel,
-      analyse.allowNetworkValue,
-      analyse.forceFilePermissionsValue,
-      analyse.toolTimeout).run()
+    new AnalyseExecutor(formatter, analyser, fileCollector, properties).run()
   }
 
-  private def upload(analyse: Analyse,
-                     commitUuid: Option[Commit.Uuid],
+  private def upload(properties: UploadProperties,
                      codacyClientOpt: Option[CodacyClient],
                      analysisResults: Seq[AnalyseExecutor.ExecutorResult[_]]): Either[CLIError, Unit] = {
 
     val uploadResultFut: Future[Either[String, Unit]] =
-      uploadResults(codacyClientOpt)(analyse.uploadValue, commitUuid, analysisResults)
+      uploadResults(codacyClientOpt)(properties.upload, properties.commitUuid, analysisResults)
 
-    if (analyse.uploadValue) {
+    if (properties.upload) {
       Try(Await.result(uploadResultFut, Duration.Inf)) match {
         case Failure(err) =>
           logger.error(err.getMessage)

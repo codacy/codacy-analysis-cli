@@ -145,6 +145,10 @@ class ToolCollector(allowNetwork: Boolean) {
 
   private val availableTools: List[DockerTool] = Tool.availableTools ++ availableInternetTools
 
+  def fromUuid(uuid: String): Option[DockerTool] = {
+    availableTools.find(_.uuid == uuid)
+  }
+
   def fromNameOrUUID(toolInput: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
     from(toolInput, languages)
   }
