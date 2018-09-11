@@ -1,16 +1,16 @@
 package com.codacy.analysis.cli
 
-import com.codacy.analysis.cli.command._
+import better.files.File
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
-import com.codacy.analysis.cli.configuration.Environment
+import com.codacy.analysis.cli.configuration.CLIProperties
+import com.codacy.analysis.cli.configuration.CLIProperties.AnalysisProperties
+import com.codacy.analysis.cli.configuration.CLIProperties.AnalysisProperties.Tool.IssuesToolConfiguration
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
-import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.api._
-import com.codacy.analysis.core.clients.{ProjectName, UserName}
 import com.codacy.analysis.core.files.FileCollector
-import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.{Issue, Result, ToolResult}
+import com.codacy.analysis.core.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
@@ -33,34 +33,23 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
         | and considers just patterns ${pyLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/improver.git", commitUuid) { (file, directory) =>
-        val projTokenStr = "RandomProjectToken"
-        val analyse = Analyse(
-          options = CommonOptions(),
-          api = APIOptions(projectToken = Option(projTokenStr), codacyApiBaseUrl = Some("codacy.com")),
-          tool = Option("pylint"),
-          directory = Option(directory),
-          format = Json.name,
-          output = Option(file),
-          extras = ExtraOptions(),
-          commitUuid = Option(Commit.Uuid(commitUuid)),
-          toolTimeout = Option(15.minutes))
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
-          ToolPattern(patternId, Set.empty)
+          new IssuesToolConfiguration.Pattern(patternId, Set.empty)
         }
-        val remoteConfiguration: Either[String, ProjectConfiguration] =
-          Right(
-            ProjectConfiguration(
-              Set(FilePath(pathToIgnore)),
-              Some(Set.empty),
-              Set.empty,
-              Set(
-                ToolConfiguration(
-                  "34225275-f79e-4b85-8126-c7512c987c0d",
-                  isEnabled = true,
-                  notEdited = false,
-                  toolPatterns))))
 
-        runAnalyseExecutor(analyse, remoteConfiguration)
+        val properties = analysisProperties(
+          directory,
+          file,
+          Option("pylint"),
+          Set(
+            new IssuesToolConfiguration(
+              uuid = "34225275-f79e-4b85-8126-c7512c987c0d",
+              enabled = true,
+              notEdited = false,
+              toolPatterns)),
+          Set(FilePath(pathToIgnore)))
+
+        runAnalyseExecutor(Analyser.defaultAnalyser.name, properties)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -91,40 +80,22 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
         | that considers just patterns ${esLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
-        val apiTokenStr = "RandomApiToken"
-        val username = "some_user"
-        val project = "some_project"
-        val analyse = Analyse(
-          options = CommonOptions(),
-          api = APIOptions(
-            apiToken = Option(apiTokenStr),
-            username = Option(UserName(username)),
-            project = Option(ProjectName(project)),
-            codacyApiBaseUrl = Option("codacy.com")),
-          tool = Option("eslint"),
-          directory = Option(directory),
-          format = Json.name,
-          output = Option(file),
-          extras = ExtraOptions(),
-          commitUuid = Option(Commit.Uuid(commitUuid)),
-          toolTimeout = Option(15.minutes))
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
-          ToolPattern(patternId, Set.empty)
+          new IssuesToolConfiguration.Pattern(patternId, Set.empty)
         }
-        val remoteConfiguration: Either[String, ProjectConfiguration] =
-          Right(
-            ProjectConfiguration(
-              Set.empty,
-              Some(Set.empty),
-              Set.empty,
-              Set(
-                ToolConfiguration(
-                  "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
-                  isEnabled = true,
-                  notEdited = false,
-                  toolPatterns))))
+        val properties = analysisProperties(
+          directory,
+          file,
+          Option("eslint"),
+          Set(
+            new IssuesToolConfiguration(
+              uuid = "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
+              enabled = true,
+              notEdited = false,
+              toolPatterns)),
+          Set.empty)
 
-        runAnalyseExecutor(analyse, remoteConfiguration)
+        runAnalyseExecutor(Analyser.defaultAnalyser.name, properties)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -149,47 +120,28 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     "analyse a javascript and css project" in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
-        val apiTokenStr = "RandomApiToken"
-        val username = "some_user"
-        val project = "some_project"
-        val analyse = Analyse(
-          options = CommonOptions(),
-          api = APIOptions(
-            apiToken = Option(apiTokenStr),
-            username = Option(UserName(username)),
-            project = Option(ProjectName(project)),
-            codacyApiBaseUrl = Option("codacy.com")),
-          tool = None,
-          directory = Option(directory),
-          format = Json.name,
-          output = Option(file),
-          extras = ExtraOptions(),
-          commitUuid = Option(Commit.Uuid(commitUuid)),
-          toolTimeout = Option(15.minutes))
+        val properties = analysisProperties(
+          directory,
+          file,
+          Option.empty,
+          Set(
+            new IssuesToolConfiguration(
+              uuid = "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
+              enabled = true,
+              notEdited = false,
+              patterns = esLintPatternsInternalIds.map { patternId =>
+                new IssuesToolConfiguration.Pattern(patternId, Set.empty)
+              }),
+            new IssuesToolConfiguration(
+              uuid = "997201eb-0907-4823-87c0-a8f7703531e7",
+              enabled = true,
+              notEdited = true,
+              patterns = cssLintPatternsInternalIds.map { patternId =>
+                new IssuesToolConfiguration.Pattern(patternId, Set.empty)
+              })),
+          Set.empty)
 
-        val remoteConfiguration: Either[String, ProjectConfiguration] =
-          Right(
-            ProjectConfiguration(
-              Set.empty,
-              None,
-              Set.empty,
-              Set(
-                ToolConfiguration(
-                  "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
-                  isEnabled = true,
-                  notEdited = false,
-                  esLintPatternsInternalIds.map { patternId =>
-                    ToolPattern(patternId, Set.empty)
-                  }),
-                ToolConfiguration(
-                  "997201eb-0907-4823-87c0-a8f7703531e7",
-                  isEnabled = true,
-                  notEdited = true,
-                  cssLintPatternsInternalIds.map { patternId =>
-                    ToolPattern(patternId, Set.empty)
-                  }))))
-
-        runAnalyseExecutor(analyse, remoteConfiguration)
+        runAnalyseExecutor(Analyser.defaultAnalyser.name, properties)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -209,22 +161,38 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     }
   }
 
-  private def runAnalyseExecutor(analyse: Analyse, remoteProjectConfiguration: Either[String, ProjectConfiguration]) = {
-    val formatter: Formatter = Formatter(analyse.format, analyse.output)
-    val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
-    val environment: Environment = new Environment(Map.empty[String, String])
+  private def runAnalyseExecutor(analyserName: String, analysisProperties: AnalysisProperties) = {
+    val formatter: Formatter = Formatter(analysisProperties.output.format, analysisProperties.output.file)
+    val analyser: Analyser[Try] = Analyser(analyserName)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    new AnalyseExecutor(
-      analyse.tool,
-      environment.baseProjectDirectory(analyse.directory),
-      formatter,
-      analyser,
-      fileCollector,
-      remoteProjectConfiguration,
-      None,
-      allowNetwork = false,
-      forceFilePermissions = true).run() must beRight
+    new AnalyseExecutor(formatter, analyser, fileCollector, analysisProperties).run() must beRight
   }
 
+  private def analysisProperties(directory: File,
+                                 outputFile: File,
+                                 tool: Option[String],
+                                 toolConfigs: Set[IssuesToolConfiguration],
+                                 ignoredPaths: Set[FilePath]) = {
+    val fileExclusions = new AnalysisProperties.FileExclusionRules(
+      Some(Set.empty),
+      ignoredPaths,
+      new AnalysisProperties.FileExclusionRules.ExcludePaths(Set.empty, Map.empty),
+      Map.empty)
+
+    val toolProperties = new CLIProperties.AnalysisProperties.Tool(
+      Option(15.minutes),
+      allowNetwork = false,
+      Right(toolConfigs),
+      Option.empty,
+      Map.empty)
+    new AnalysisProperties(
+      directory,
+      new AnalysisProperties.Output(Json.name, Option(outputFile)),
+      tool,
+      Option.empty,
+      forceFilePermissions = false,
+      fileExclusions,
+      toolProperties)
+  }
 }

@@ -1,9 +1,7 @@
 package com.codacy.analysis.core.files
 
 import better.files.File
-import cats.implicits._
-import com.codacy.analysis.core.clients.api.{FilePath, LanguageExtensions, PathRegex, ProjectConfiguration}
-import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, EngineConfiguration, LanguageConfiguration}
+import com.codacy.analysis.core.clients.api.{FilePath, PathRegex}
 import com.codacy.analysis.core.tools.ToolCollector
 import com.codacy.plugins.api.languages.Languages
 import org.specs2.control.NoLanguageFeatures
@@ -345,18 +343,12 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38"), directory.toJava).!
 
+        val emptyExclusionRules = FileExclusionRules(None, Set.empty, ExcludePaths(Set.empty, Map.empty), Map.empty)
         val tool = toolCollector.from("brakeman", Set(Languages.Ruby)).right.get.head
 
         val result = for {
-          filesTargetGlobal <- fileCollector.list(
-            directory,
-            "Local configuration not found".asLeft,
-            "Remote configuration not found".asLeft)
-          filesTargetTool = fileCollector.filter(
-            tool,
-            filesTargetGlobal,
-            "Local configuration not found".asLeft,
-            "Remote configuration not found".asLeft)
+          filesTargetGlobal <- fileCollector.list(directory, emptyExclusionRules)
+          filesTargetTool = fileCollector.filter(tool, filesTargetGlobal, emptyExclusionRules)
         } yield (filesTargetGlobal, filesTargetTool)
 
         result must beSuccessfulTry
@@ -385,27 +377,19 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
           "src/main/scala/codacy/Test1.scala",
           "src/main/scala/codacy/TestWeird.sc")
 
-        val remoteConfiguration = ProjectConfiguration(
+        val exclusionRules = FileExclusionRules(
+          None,
           Set(FilePath("src/main/scala/codacy/brakeman/Test2.scala")),
-          Some(Set.empty),
-          Set(LanguageExtensions(Languages.Scala, Set(".sc"))),
-          Set()).asRight
-
+          ExcludePaths(Set.empty, Map.empty),
+          Map(Languages.Scala -> Set(".sc")))
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
         val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
 
         val result = for {
-          filesTargetGlobal <- fileCollector.list(
-            directory,
-            "Local configuration not found".asLeft,
-            remoteConfiguration)
-          filesTargetTool = fileCollector.filter(
-            tool,
-            filesTargetGlobal,
-            "Local configuration not found".asLeft,
-            remoteConfiguration)
+          filesTargetGlobal <- fileCollector.list(directory, exclusionRules)
+          filesTargetTool = fileCollector.filter(tool, filesTargetGlobal, exclusionRules)
         } yield filesTargetTool
 
         result must beSuccessfulTry
@@ -429,10 +413,11 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
           "src/main/scala/codacy/brakeman/Brakeman.scala",
           "src/main/scala/codacy/TestWeird.sc")
 
-        val localConfiguration = CodacyConfigurationFile(
-          Option(Map("scalastyle" -> EngineConfiguration(Some(Set(Glob("**/brakeman/Test2.scala"))), None, None))),
-          Option(Set(Glob("**/Test1.scala"))),
-          Option(Map((Languages.Scala, LanguageConfiguration(Option(Set(".sc"))))))).asRight
+        val exclusionRules = FileExclusionRules(
+          None,
+          Set(FilePath("src/main/scala/codacy/brakeman/Test2.scala")),
+          ExcludePaths(Set(Glob("**/Test1.scala")), Map("scalastyle" -> Set(Glob("**/brakeman/Test2.scala")))),
+          Map(Languages.Scala -> Set(".sc")))
 
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
@@ -440,15 +425,8 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
 
         val result = for {
-          filesTargetGlobal <- fileCollector.list(
-            directory,
-            localConfiguration,
-            "Remote configuration not found".asLeft)
-          filesTargetTool = fileCollector.filter(
-            tool,
-            filesTargetGlobal,
-            localConfiguration,
-            "Remote configuration not found".asLeft)
+          filesTargetGlobal <- fileCollector.list(directory, exclusionRules)
+          filesTargetTool = fileCollector.filter(tool, filesTargetGlobal, exclusionRules)
         } yield filesTargetTool
 
         result must beSuccessfulTry
@@ -472,27 +450,19 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
           "src/main/scala/codacy/Test1.scala",
           "src/main/scala/codacy/TestWeird.sc")
 
-        val remoteConfiguration = ProjectConfiguration(
-          Set.empty,
+        val exclusionRules = FileExclusionRules(
           Some(Set(PathRegex(""".*/main/scala/codacy/brakeman/.*"""))),
-          Set(LanguageExtensions(Languages.Scala, Set(".sc"))),
-          Set()).asRight
-
+          Set.empty,
+          ExcludePaths(Set.empty, Map.empty),
+          Map(Languages.Scala -> Set(".sc")))
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
 
         val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
 
         val result = for {
-          filesTargetGlobal <- fileCollector.list(
-            directory,
-            "Local configuration not found".asLeft,
-            remoteConfiguration)
-          filesTargetTool = fileCollector.filter(
-            tool,
-            filesTargetGlobal,
-            "Local configuration not found".asLeft,
-            remoteConfiguration)
+          filesTargetGlobal <- fileCollector.list(directory, exclusionRules)
+          filesTargetTool = fileCollector.filter(tool, filesTargetGlobal, exclusionRules)
         } yield filesTargetTool
 
         result must beSuccessfulTry
@@ -516,15 +486,12 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
           "src/main/scala/codacy/brakeman/Brakeman.scala",
           "src/main/scala/codacy/TestWeird.sc")
 
-        val localConfiguration = CodacyConfigurationFile(
-          Option(Map("scalastyle" -> EngineConfiguration(Some(Set(Glob("**/brakeman/Test2.scala"))), None, None))),
-          Option(Set(Glob("**/Test1.scala"))),
-          Option(Map((Languages.Scala, LanguageConfiguration(Option(Set(".sc"))))))).asRight
-        val remoteConfiguration = ProjectConfiguration(
-          Set.empty,
-          Some(Set(PathRegex(""".*/main/scala/codacy/brakeman/.*"""))),
-          Set(LanguageExtensions(Languages.Scala, Set(".sc"))),
-          Set()).asRight
+        //TODO: Add test to check proper implementation of default ignores
+        val exclusionRules = FileExclusionRules(
+          None, //beacause local configuration exists default ignores will be instantiated as None
+          Set(FilePath("src/main/scala/codacy/brakeman/Test2.scala")),
+          ExcludePaths(Set(Glob("**/Test1.scala")), Map("scalastyle" -> Set(Glob("**/brakeman/Test2.scala")))),
+          Map(Languages.Scala -> Set(".sc")))
 
         Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "32f7302bcd4f1afbfb94b7365e20120120943a10"), directory.toJava).!
@@ -532,12 +499,8 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
 
         val result = for {
-          filesTargetGlobal <- fileCollector.list(directory, localConfiguration, remoteConfiguration)
-          filesTargetTool = fileCollector.filter(
-            tool,
-            filesTargetGlobal,
-            localConfiguration,
-            "Remote configuration not found".asLeft)
+          filesTargetGlobal <- fileCollector.list(directory, exclusionRules)
+          filesTargetTool = fileCollector.filter(tool, filesTargetGlobal, exclusionRules)
         } yield filesTargetTool
 
         result must beSuccessfulTry

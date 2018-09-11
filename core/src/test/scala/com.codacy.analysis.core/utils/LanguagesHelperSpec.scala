@@ -10,10 +10,11 @@ class LanguagesHelperSpec extends Specification with NoLanguageFeatures {
 
   "LanguagesHelper" should {
     "detect the languages from a given set of files" in {
+
       val filesTarget =
         FilesTarget(File(""), Set(File("test.js").path, File("Test.java").path, File("SomeClazz.rb").path), Set.empty)
 
-      val languages = LanguagesHelper.fromFileTarget(filesTarget, List.empty)
+      val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
       languages should containTheSameElementsAs(Seq(Languages.Java, Languages.Ruby, Languages.Javascript))
     }
@@ -30,9 +31,9 @@ class LanguagesHelperSpec extends Specification with NoLanguageFeatures {
 
       val languages = LanguagesHelper.fromFileTarget(
         filesTarget,
-        List(
-          Languages.Ruby -> List("-rb.resource", "-1.java-that_will_be_ruby"),
-          Languages.Kotlin -> List(".js-that_will_be_kotlin")))
+        Map(
+          Languages.Ruby -> Set("-rb.resource", "-1.java-that_will_be_ruby"),
+          Languages.Kotlin -> Set(".js-that_will_be_kotlin")))
 
       languages should containTheSameElementsAs(Seq(Languages.Kotlin, Languages.Ruby, Languages.CSS))
     }
@@ -44,7 +45,7 @@ class LanguagesHelperSpec extends Specification with NoLanguageFeatures {
           Set(File("test.exotericLanguage").path, File("test-rb.anotherLanguageThatNoOneUses").path),
           Set.empty)
 
-      val languages = LanguagesHelper.fromFileTarget(filesTarget, List.empty)
+      val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
       languages should beEmpty
     }
