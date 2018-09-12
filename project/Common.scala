@@ -14,8 +14,7 @@ object Common {
   val genericSettings: Seq[Def.Setting[_]] = Seq(
     resolvers in ThisBuild += "Codacy Public Mvn bucket" at "https://s3-eu-west-1.amazonaws.com/public.mvn.codacy.com",
     //addCompilerPlugin("org.scalameta" % "semanticdb-scalac" % "4.0.0-M8" cross CrossVersion.full),
-    scalacOptions.in(Compile, console) --= Seq("-Ywarn-unused", "-Ywarn-unused:imports", "-Xfatal-warnings")
-  )
+    scalacOptions.in(Compile, console) --= Seq("-Ywarn-unused", "-Ywarn-unused:imports", "-Xfatal-warnings"))
 
   val dockerSettings: Seq[Def.Setting[_]] = Seq(
     packageName in Docker := packageName.value,
@@ -43,14 +42,11 @@ object Common {
                 |ln -s /usr/bin/docker /usr/local/bin/docker &&
                 |chmod +x /usr/local/bin/docker &&
                 |apk del .deps &&
-                |rm -rf /tmp/*""".stripMargin.replaceAllLiterally(Properties.lineSeparator, " ")
-          ),
-          cmd
-        )
+                |rm -rf /tmp/*""".stripMargin.replaceAllLiterally(Properties.lineSeparator, " ")),
+          cmd)
 
       case other => List(other)
-    }
-  )
+    })
 
   val compilerFlags: Seq[String] = Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
@@ -104,7 +100,6 @@ object Common {
     "-Ywarn-unused:patvars", // Warn if a variable bound in a pattern is unused.
     "-Ywarn-unused:privates", // Warn if a private member is unused.
     "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
-    "-Yrangepos"
-  )
+    "-Yrangepos")
 
 }

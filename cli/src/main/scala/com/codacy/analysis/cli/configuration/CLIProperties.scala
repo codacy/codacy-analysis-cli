@@ -10,12 +10,13 @@ import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, EngineConfiguration}
 import com.codacy.analysis.core.files.Glob
 import com.codacy.analysis.core.git.{Commit, Git}
+import com.codacy.analysis.core.utils.MapOps
 import com.codacy.plugins.api.languages.Language
 import play.api.libs.json.JsValue
 
 import scala.concurrent.duration.Duration
 
-class CLIProperties(val analysis: AnalysisProperties, val upload: UploadProperties, val result: ResultProperties)
+case class CLIProperties(analysis: AnalysisProperties, upload: UploadProperties, result: ResultProperties)
 
 object CLIProperties {
 
@@ -23,33 +24,33 @@ object CLIProperties {
   private type EitherA[A] = Either[String, A]
   private val foldable: Foldable[EitherA] = implicitly[Foldable[EitherA]]
 
-  class AnalysisProperties(val projectDirectory: File,
-                           val output: AnalysisProperties.Output,
-                           val tool: Option[String],
-                           val parallel: Option[Int],
-                           val forceFilePermissions: Boolean,
-                           val fileExclusionRules: AnalysisProperties.FileExclusionRules,
-                           val toolProperties: AnalysisProperties.Tool)
+  case class AnalysisProperties(projectDirectory: File,
+                                output: AnalysisProperties.Output,
+                                tool: Option[String],
+                                parallel: Option[Int],
+                                forceFilePermissions: Boolean,
+                                fileExclusionRules: AnalysisProperties.FileExclusionRules,
+                                toolProperties: AnalysisProperties.Tool)
 
   object AnalysisProperties {
 
-    class Tool(val toolTimeout: Option[Duration],
-               val allowNetwork: Boolean,
-               val toolConfigurations: Either[String, Set[Tool.IssuesToolConfiguration]],
-               val extraToolConfigurations: Option[Map[String, Tool.IssuesToolConfiguration.Extra]],
-               val localExtensionsByLanguage: Map[Language, Set[String]])
+    case class Tool(toolTimeout: Option[Duration],
+                    allowNetwork: Boolean,
+                    toolConfigurations: Either[String, Set[Tool.IssuesToolConfiguration]],
+                    extraToolConfigurations: Option[Map[String, Tool.IssuesToolConfiguration.Extra]],
+                    extensionsByLanguage: Map[Language, Set[String]])
 
     object Tool {
 
-      class IssuesToolConfiguration(val uuid: String,
-                                    val enabled: Boolean,
-                                    val notEdited: Boolean,
-                                    val patterns: Set[IssuesToolConfiguration.Pattern])
+      case class IssuesToolConfiguration(uuid: String,
+                                         enabled: Boolean,
+                                         notEdited: Boolean,
+                                         patterns: Set[IssuesToolConfiguration.Pattern])
 
       object IssuesToolConfiguration {
-        class Extra(val baseSubDir: Option[String], val extraValues: Option[Map[String, JsValue]])
-        class Pattern(val id: String, val parameters: Set[IssuesToolConfiguration.Parameter])
-        class Parameter(val name: String, val value: String)
+        case class Extra(baseSubDir: Option[String], extraValues: Option[Map[String, JsValue]])
+        case class Pattern(id: String, parameters: Set[IssuesToolConfiguration.Parameter])
+        case class Parameter(name: String, value: String)
 
         def extraFromApi(engines: Map[String, EngineConfiguration]): Map[String, IssuesToolConfiguration.Extra] = {
           engines.mapValues(config => new IssuesToolConfiguration.Extra(config.baseSubDir, config.extraValues))
@@ -57,14 +58,13 @@ object CLIProperties {
 
         def fromApi(toolConfigs: Set[ToolConfiguration]): Set[IssuesToolConfiguration] = {
           toolConfigs.map { toolConfig =>
-            new IssuesToolConfiguration(
+            IssuesToolConfiguration(
               uuid = toolConfig.uuid,
               enabled = toolConfig.isEnabled,
               notEdited = toolConfig.notEdited,
               patterns = toolConfig.patterns.map { pattern =>
-                new IssuesToolConfiguration.Pattern(id = pattern.internalId, parameters = pattern.parameters.map {
-                  param =>
-                    new IssuesToolConfiguration.Parameter(param.name, param.value)
+                IssuesToolConfiguration.Pattern(id = pattern.internalId, parameters = pattern.parameters.map { param =>
+                  IssuesToolConfiguration.Parameter(param.name, param.value)
                 })
               })
           }
@@ -94,7 +94,7 @@ object CLIProperties {
 
         val languageExtensions: Map[Language, Set[String]] =
           localConfiguration.map(_.languageCustomExtensions).getOrElse(Map.empty[Language, Set[String]])
-        new AnalysisProperties.Tool(
+        AnalysisProperties.Tool(
           analyse.toolTimeout,
           analyse.allowNetworkValue,
           toolConfigurations,
@@ -103,14 +103,14 @@ object CLIProperties {
       }
     }
 
-    class FileExclusionRules(val defaultIgnores: Option[Set[PathRegex]],
-                             val ignoredPaths: Set[FilePath],
-                             val excludePaths: FileExclusionRules.ExcludePaths,
-                             val allowedExtensionsByLanguage: Map[Language, Set[String]])
+    case class FileExclusionRules(defaultIgnores: Option[Set[PathRegex]],
+                                  ignoredPaths: Set[FilePath],
+                                  excludePaths: FileExclusionRules.ExcludePaths,
+                                  allowedExtensionsByLanguage: Map[Language, Set[String]])
 
     object FileExclusionRules {
 
-      class ExcludePaths(val global: Set[Glob], val byTool: Map[String, Set[Glob]])
+      case class ExcludePaths(global: Set[Glob], byTool: Map[String, Set[Glob]])
 
       def apply(localConfiguration: Either[String, CodacyConfigurationFile],
                 remoteProjectConfiguration: Either[String, ProjectConfiguration]): FileExclusionRules = {
@@ -126,16 +126,18 @@ object CLIProperties {
               localConfig.engines.fold(Map.empty[String, Set[Glob]])(
                 _.mapValues(_.exclude_paths.getOrElse(Set.empty[Glob]))))
         val excludeGlobal = foldable.foldMap(localConfiguration)(_.exclude_paths.getOrElse(Set.empty[Glob]))
-        val excludePaths = new ExcludePaths(excludeGlobal, excludeByTool)
+        val excludePaths = ExcludePaths(excludeGlobal, excludeByTool)
 
         val localCustomExtensionsByLanguage =
           localConfiguration.map(_.languageCustomExtensions).getOrElse(Map.empty)
         val remoteCustomExtensionsByLanguage: Map[Language, Set[String]] =
           foldable.foldMap(remoteProjectConfiguration)(
             _.projectExtensions.map(le => (le.language, le.extensions))(collection.breakOut))
-        val allowedExtensionsByLanguage = localCustomExtensionsByLanguage ++ remoteCustomExtensionsByLanguage
 
-        new FileExclusionRules(defaultIgnores, ignoredPaths, excludePaths, allowedExtensionsByLanguage)
+        val allowedExtensionsByLanguage =
+          MapOps.merge(localCustomExtensionsByLanguage, remoteCustomExtensionsByLanguage)
+
+        FileExclusionRules(defaultIgnores, ignoredPaths, excludePaths, allowedExtensionsByLanguage)
       }
 
       implicit def toCollectorExclusionRules(
@@ -148,7 +150,7 @@ object CLIProperties {
       }
     }
 
-    class Output(val format: String, val file: Option[File])
+    case class Output(format: String, file: Option[File])
 
     def apply(projectDirectory: File,
               analyse: Analyse,
@@ -156,9 +158,9 @@ object CLIProperties {
               remoteProjectConfiguration: Either[String, ProjectConfiguration]): AnalysisProperties = {
 
       val fileExclusionRules = AnalysisProperties.FileExclusionRules(localConfiguration, remoteProjectConfiguration)
-      val output = new AnalysisProperties.Output(analyse.format, analyse.output)
+      val output = AnalysisProperties.Output(analyse.format, analyse.output)
       val toolProperties = AnalysisProperties.Tool(analyse, localConfiguration, remoteProjectConfiguration)
-      new AnalysisProperties(
+      AnalysisProperties(
         projectDirectory,
         output,
         analyse.tool,
@@ -169,8 +171,8 @@ object CLIProperties {
     }
   }
 
-  class UploadProperties(val commitUuid: Option[Commit.Uuid], val upload: Boolean)
-  class ResultProperties(val maxAllowedIssues: Int, val failIfIncomplete: Boolean)
+  case class UploadProperties(commitUuid: Option[Commit.Uuid], upload: Boolean)
+  case class ResultProperties(maxAllowedIssues: Int, failIfIncomplete: Boolean)
 
   def apply(clientOpt: Option[CodacyClient],
             environment: Environment,
@@ -188,10 +190,10 @@ object CLIProperties {
     }
     val analysisProperties =
       AnalysisProperties(projectDirectory, analyse, localConfiguration, remoteProjectConfiguration)
-    val uploadProperties = new UploadProperties(commitUuid, analyse.uploadValue)
-    val resultProperties = new ResultProperties(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
+    val uploadProperties = UploadProperties(commitUuid, analyse.uploadValue)
+    val resultProperties = ResultProperties(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
 
-    new CLIProperties(analysisProperties, uploadProperties, resultProperties)
+    CLIProperties(analysisProperties, uploadProperties, resultProperties)
   }
 
 }
