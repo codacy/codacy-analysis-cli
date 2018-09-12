@@ -34,7 +34,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/improver.git", commitUuid) { (file, directory) =>
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
-          new IssuesToolConfiguration.Pattern(patternId, Set.empty)
+          IssuesToolConfiguration.Pattern(patternId, Set.empty)
         }
 
         val properties = analysisProperties(
@@ -42,7 +42,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           file,
           Option("pylint"),
           Set(
-            new IssuesToolConfiguration(
+            IssuesToolConfiguration(
               uuid = "34225275-f79e-4b85-8126-c7512c987c0d",
               enabled = true,
               notEdited = false,
@@ -81,14 +81,14 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
-          new IssuesToolConfiguration.Pattern(patternId, Set.empty)
+          IssuesToolConfiguration.Pattern(patternId, Set.empty)
         }
         val properties = analysisProperties(
           directory,
           file,
           Option("eslint"),
           Set(
-            new IssuesToolConfiguration(
+            IssuesToolConfiguration(
               uuid = "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
               enabled = true,
               notEdited = false,
@@ -125,19 +125,19 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           file,
           Option.empty,
           Set(
-            new IssuesToolConfiguration(
+            IssuesToolConfiguration(
               uuid = "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
               enabled = true,
               notEdited = false,
               patterns = esLintPatternsInternalIds.map { patternId =>
-                new IssuesToolConfiguration.Pattern(patternId, Set.empty)
+                IssuesToolConfiguration.Pattern(patternId, Set.empty)
               }),
-            new IssuesToolConfiguration(
+            IssuesToolConfiguration(
               uuid = "997201eb-0907-4823-87c0-a8f7703531e7",
               enabled = true,
               notEdited = true,
               patterns = cssLintPatternsInternalIds.map { patternId =>
-                new IssuesToolConfiguration.Pattern(patternId, Set.empty)
+                IssuesToolConfiguration.Pattern(patternId, Set.empty)
               })),
           Set.empty)
 
@@ -174,21 +174,17 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
                                  tool: Option[String],
                                  toolConfigs: Set[IssuesToolConfiguration],
                                  ignoredPaths: Set[FilePath]) = {
-    val fileExclusions = new AnalysisProperties.FileExclusionRules(
+    val fileExclusions = AnalysisProperties.FileExclusionRules(
       Some(Set.empty),
       ignoredPaths,
-      new AnalysisProperties.FileExclusionRules.ExcludePaths(Set.empty, Map.empty),
+      AnalysisProperties.FileExclusionRules.ExcludePaths(Set.empty, Map.empty),
       Map.empty)
 
-    val toolProperties = new CLIProperties.AnalysisProperties.Tool(
-      Option(15.minutes),
-      allowNetwork = false,
-      Right(toolConfigs),
-      Option.empty,
-      Map.empty)
-    new AnalysisProperties(
+    val toolProperties = CLIProperties.AnalysisProperties
+      .Tool(Option(15.minutes), allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
+    AnalysisProperties(
       directory,
-      new AnalysisProperties.Output(Json.name, Option(outputFile)),
+      AnalysisProperties.Output(Json.name, Option(outputFile)),
       tool,
       Option.empty,
       forceFilePermissions = false,
