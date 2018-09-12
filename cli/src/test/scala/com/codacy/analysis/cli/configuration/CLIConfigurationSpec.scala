@@ -3,9 +3,6 @@ package com.codacy.analysis.cli.configuration
 import better.files.File
 import caseapp.Tag
 import com.codacy.analysis.cli.command.{APIOptions, Analyse, CommonOptions, ExtraOptions}
-import com.codacy.analysis.cli.configuration.CLIProperties.AnalysisProperties.{FileExclusionRules, Tool}
-import com.codacy.analysis.cli.configuration.CLIProperties.AnalysisProperties.FileExclusionRules.ExcludePaths
-import com.codacy.analysis.cli.configuration.CLIProperties.{AnalysisProperties, ResultProperties, UploadProperties}
 import com.codacy.analysis.cli.formatter.Json
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients._
@@ -22,7 +19,7 @@ import play.api.libs.json.JsString
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 
-class CLIPropertiesSpec extends Specification with NoLanguageFeatures {
+class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
 
   private val apiTokenStr = "RandomApiToken"
   private val username = "some_user"
@@ -76,29 +73,29 @@ class CLIPropertiesSpec extends Specification with NoLanguageFeatures {
           maxAllowedIssues = 5,
           failIfIncomplete = Tag.of(1))
 
-        val expectedProperties = CLIProperties(
-          analysis = AnalysisProperties(
+        val expectedProperties = CLIConfiguration(
+          analysis = CLIConfiguration.Analysis(
             projectDirectory = directory,
-            output = AnalysisProperties.Output(Json.name, Option(outputFile)),
+            output = CLIConfiguration.Analysis.Output(Json.name, Option(outputFile)),
             tool = toolInput,
             parallel = Option(2),
             forceFilePermissions = true,
-            fileExclusionRules = AnalysisProperties.FileExclusionRules(
+            fileExclusionRules = CLIConfiguration.Analysis.FileExclusionRules(
               defaultIgnores = Option.empty,
               ignoredPaths = Set.empty,
-              excludePaths = AnalysisProperties.FileExclusionRules.ExcludePaths(Set.empty, Map.empty),
+              excludePaths = CLIConfiguration.Analysis.FileExclusionRules.ExcludePaths(Set.empty, Map.empty),
               allowedExtensionsByLanguage = Map.empty),
-            toolProperties = AnalysisProperties.Tool(
+            toolProperties = CLIConfiguration.Analysis.Tool(
               toolTimeout = Option(20.seconds),
               allowNetwork = true,
               toolConfigurations = Left("no remote config"),
               extraToolConfigurations = Option.empty,
               extensionsByLanguage = Map.empty)),
-          upload = UploadProperties(commitUuid = commitUuid, upload = true),
-          result = ResultProperties(maxAllowedIssues = 5, failIfIncomplete = true))
+          upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = true),
+          result = CLIConfiguration.Result(maxAllowedIssues = 5, failIfIncomplete = true))
 
         val actualProperties =
-          CLIProperties(Option(noRemoteConfigCodacyClient), defaultEnvironment, analyse, noLocalConfig)
+          CLIConfiguration(Option(noRemoteConfigCodacyClient), defaultEnvironment, analyse, noLocalConfig)
 
         actualProperties must beEqualTo(expectedProperties)
       }).get
@@ -129,37 +126,39 @@ class CLIPropertiesSpec extends Specification with NoLanguageFeatures {
         }
       }
 
-      val expectedProperties = CLIProperties(
-        AnalysisProperties(
+      val expectedProperties = CLIConfiguration(
+        CLIConfiguration.Analysis(
           projectDirectory = File.currentWorkingDirectory,
-          output = AnalysisProperties.Output(Json.name, Option.empty),
+          output = CLIConfiguration.Analysis.Output(Json.name, Option.empty),
           tool = toolInput,
           parallel = Option.empty,
           forceFilePermissions = false,
-          fileExclusionRules = FileExclusionRules(
+          fileExclusionRules = CLIConfiguration.Analysis.FileExclusionRules(
             defaultIgnores = Option(defaultIgnores),
             ignoredPaths = ignoredPaths,
-            excludePaths = ExcludePaths(global = Set.empty, byTool = Map.empty),
+            excludePaths =
+              CLIConfiguration.Analysis.FileExclusionRules.ExcludePaths(global = Set.empty, byTool = Map.empty),
             allowedExtensionsByLanguage = Map(Languages.Scala -> Set(".scala", ".alacs"))),
-          toolProperties = CLIProperties.AnalysisProperties.Tool(
+          toolProperties = CLIConfiguration.Analysis.Tool(
             toolTimeout = Option.empty,
             allowNetwork = false,
             toolConfigurations = Right(
-              Set(AnalysisProperties.Tool.IssuesToolConfiguration(
+              Set(CLIConfiguration.Analysis.Tool.IssuesToolConfiguration(
                 uuid = toolConfig.uuid,
                 enabled = toolConfig.isEnabled,
                 notEdited = toolConfig.notEdited,
                 patterns = toolConfig.patterns.map(pattern =>
-                  Tool.IssuesToolConfiguration.Pattern(
+                  CLIConfiguration.Analysis.Tool.IssuesToolConfiguration.Pattern(
                     id = pattern.internalId,
                     parameters = pattern.parameters.map(parameter =>
-                      Tool.IssuesToolConfiguration.Parameter(name = parameter.name, value = parameter.value))))))),
+                      CLIConfiguration.Analysis.Tool.IssuesToolConfiguration
+                        .Parameter(name = parameter.name, value = parameter.value))))))),
             extraToolConfigurations = Option.empty,
             extensionsByLanguage = Map.empty)),
-        upload = UploadProperties(commitUuid = commitUuid, upload = false),
-        result = ResultProperties(maxAllowedIssues = 0, failIfIncomplete = false))
+        upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
+        result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
-      val actualProperties = CLIProperties(Option(codacyClient), defaultEnvironment, defaultAnalyse, noLocalConfig)
+      val actualProperties = CLIConfiguration(Option(codacyClient), defaultEnvironment, defaultAnalyse, noLocalConfig)
 
       actualProperties must beEqualTo(expectedProperties)
 
@@ -183,31 +182,32 @@ class CLIPropertiesSpec extends Specification with NoLanguageFeatures {
               Option(Map(Languages.Scala -> LanguageConfiguration(extensions = Option(Set(".scala", ".alacs")))))))
       }
 
-      val expectedProperties = CLIProperties(
-        AnalysisProperties(
+      val expectedProperties = CLIConfiguration(
+        CLIConfiguration.Analysis(
           projectDirectory = File.currentWorkingDirectory,
-          output = AnalysisProperties.Output(Json.name, Option.empty),
+          output = CLIConfiguration.Analysis.Output(Json.name, Option.empty),
           tool = toolInput,
           parallel = Option.empty,
           forceFilePermissions = false,
-          fileExclusionRules = FileExclusionRules(
+          fileExclusionRules = CLIConfiguration.Analysis.FileExclusionRules(
             defaultIgnores = Option.empty,
             ignoredPaths = Set.empty,
-            excludePaths = ExcludePaths(global = globalExcludes, byTool = Map("engine no. 9" -> engine9Excludes)),
+            excludePaths = CLIConfiguration.Analysis.FileExclusionRules
+              .ExcludePaths(global = globalExcludes, byTool = Map("engine no. 9" -> engine9Excludes)),
             allowedExtensionsByLanguage = Map(Languages.Scala -> Set(".scala", ".alacs"))),
-          toolProperties = CLIProperties.AnalysisProperties.Tool(
+          toolProperties = CLIConfiguration.Analysis.Tool(
             toolTimeout = Option.empty,
             allowNetwork = false,
             toolConfigurations = Left("no remote config"),
             extraToolConfigurations = Option(
-              Map("engine no. 9" -> Tool.IssuesToolConfiguration
+              Map("engine no. 9" -> CLIConfiguration.Analysis.Tool.IssuesToolConfiguration
                 .Extra(baseSubDir = engineConfig.baseSubDir, extraValues = engineConfig.extraValues))),
             extensionsByLanguage = Map(Languages.Scala -> Set(".scala", ".alacs")))),
-        upload = UploadProperties(commitUuid = commitUuid, upload = false),
-        result = ResultProperties(maxAllowedIssues = 0, failIfIncomplete = false))
+        upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
+        result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
       val actualProperties =
-        CLIProperties(Option(noRemoteConfigCodacyClient), defaultEnvironment, defaultAnalyse, localConfig)
+        CLIConfiguration(Option(noRemoteConfigCodacyClient), defaultEnvironment, defaultAnalyse, localConfig)
       println(actualProperties)
       actualProperties must beEqualTo(expectedProperties)
 
@@ -217,28 +217,29 @@ class CLIPropertiesSpec extends Specification with NoLanguageFeatures {
 
       val environment = new Environment(Map("CODACY_CODE" -> "."))
 
-      val expectedProperties = CLIProperties(
-        AnalysisProperties(
+      val expectedProperties = CLIConfiguration(
+        CLIConfiguration.Analysis(
           projectDirectory = File("."),
-          output = AnalysisProperties.Output(Json.name, Option.empty),
+          output = CLIConfiguration.Analysis.Output(Json.name, Option.empty),
           tool = toolInput,
           parallel = Option.empty,
           forceFilePermissions = false,
-          fileExclusionRules = FileExclusionRules(
+          fileExclusionRules = CLIConfiguration.Analysis.FileExclusionRules(
             defaultIgnores = Option.empty,
             ignoredPaths = Set.empty,
-            excludePaths = ExcludePaths(global = Set.empty, byTool = Map.empty),
+            excludePaths =
+              CLIConfiguration.Analysis.FileExclusionRules.ExcludePaths(global = Set.empty, byTool = Map.empty),
             allowedExtensionsByLanguage = Map.empty),
-          toolProperties = CLIProperties.AnalysisProperties.Tool(
+          toolProperties = CLIConfiguration.Analysis.Tool(
             toolTimeout = Option.empty,
             allowNetwork = false,
             toolConfigurations = Left("no remote config"),
             extraToolConfigurations = Option.empty,
             extensionsByLanguage = Map.empty)),
-        upload = UploadProperties(commitUuid = commitUuid, upload = false),
-        result = ResultProperties(maxAllowedIssues = 0, failIfIncomplete = false))
+        upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
+        result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
-      CLIProperties(Option(noRemoteConfigCodacyClient), environment, defaultAnalyse, noLocalConfig) must beEqualTo(
+      CLIConfiguration(Option(noRemoteConfigCodacyClient), environment, defaultAnalyse, noLocalConfig) must beEqualTo(
         expectedProperties)
     }
 
@@ -280,40 +281,42 @@ class CLIPropertiesSpec extends Specification with NoLanguageFeatures {
         }
       }
 
-      val expectedProperties = CLIProperties(
-        AnalysisProperties(
+      val expectedProperties = CLIConfiguration(
+        CLIConfiguration.Analysis(
           projectDirectory = File.currentWorkingDirectory,
-          output = AnalysisProperties.Output(Json.name, Option.empty),
+          output = CLIConfiguration.Analysis.Output(Json.name, Option.empty),
           tool = toolInput,
           parallel = Option.empty,
           forceFilePermissions = false,
-          fileExclusionRules = FileExclusionRules(
-            //although remote config has default ignores they should be ignored since there is a local config present
+          fileExclusionRules = CLIConfiguration.Analysis.FileExclusionRules(
+            //although remote config has default ignores they should be discarded since there is a local config present
             defaultIgnores = Option.empty,
             ignoredPaths = ignoredPaths,
-            excludePaths = ExcludePaths(global = globalExcludes, byTool = Map("engine no. 9" -> engine9Excludes)),
+            excludePaths = CLIConfiguration.Analysis.FileExclusionRules
+              .ExcludePaths(global = globalExcludes, byTool = Map("engine no. 9" -> engine9Excludes)),
             allowedExtensionsByLanguage = Map(Languages.Scala -> Set(".scala", ".alacs", ".sc"))),
-          toolProperties = CLIProperties.AnalysisProperties.Tool(
+          toolProperties = CLIConfiguration.Analysis.Tool(
             toolTimeout = Option.empty,
             allowNetwork = false,
             toolConfigurations = Right(
-              Set(AnalysisProperties.Tool.IssuesToolConfiguration(
+              Set(CLIConfiguration.Analysis.Tool.IssuesToolConfiguration(
                 uuid = toolConfig.uuid,
                 enabled = toolConfig.isEnabled,
                 notEdited = toolConfig.notEdited,
                 patterns = toolConfig.patterns.map(pattern =>
-                  Tool.IssuesToolConfiguration.Pattern(
+                  CLIConfiguration.Analysis.Tool.IssuesToolConfiguration.Pattern(
                     id = pattern.internalId,
                     parameters = pattern.parameters.map(parameter =>
-                      Tool.IssuesToolConfiguration.Parameter(name = parameter.name, value = parameter.value))))))),
+                      CLIConfiguration.Analysis.Tool.IssuesToolConfiguration
+                        .Parameter(name = parameter.name, value = parameter.value))))))),
             extraToolConfigurations = Option(
-              Map("engine no. 9" -> Tool.IssuesToolConfiguration
+              Map("engine no. 9" -> CLIConfiguration.Analysis.Tool.IssuesToolConfiguration
                 .Extra(baseSubDir = engineConfig.baseSubDir, extraValues = engineConfig.extraValues))),
             extensionsByLanguage = Map(Languages.Scala -> Set(".sc")))),
-        upload = UploadProperties(commitUuid = commitUuid, upload = false),
-        result = ResultProperties(maxAllowedIssues = 0, failIfIncomplete = false))
+        upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
+        result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
-      CLIProperties(Option(codacyClient), defaultEnvironment, defaultAnalyse, localConfig) must beEqualTo(
+      CLIConfiguration(Option(codacyClient), defaultEnvironment, defaultAnalyse, localConfig) must beEqualTo(
         expectedProperties)
     }
   }

@@ -2,8 +2,7 @@ package com.codacy.analysis.cli
 
 import better.files.File
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
-import com.codacy.analysis.cli.configuration.CLIProperties.AnalysisProperties
-import com.codacy.analysis.cli.configuration.CLIProperties.AnalysisProperties.Tool.IssuesToolConfiguration
+import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.core.files.FilesTarget
 import com.codacy.analysis.core.tools.Tool
 import com.codacy.analysis.core.utils.LanguagesHelper
@@ -21,7 +20,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
     "find python tools" in {
 
       val toolProperties =
-        AnalysisProperties.Tool(Option.empty, allowNetwork = false, Left("no config"), Option.empty, Map.empty)
+        CLIConfiguration.Analysis.Tool(Option.empty, allowNetwork = false, Left("no config"), Option.empty, Map.empty)
       val pythonTools = AnalyseExecutor.allTools(None, toolProperties, Set(Languages.Ruby))
 
       pythonTools should beRight
@@ -39,9 +38,11 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
       val expectedToolName = "pylint"
       val toolConfigs =
-        Set(IssuesToolConfiguration("InvalidToolName", enabled = true, notEdited = false, Set.empty))
+        Set(
+          CLIConfiguration.Analysis.Tool
+            .IssuesToolConfiguration("InvalidToolName", enabled = true, notEdited = false, Set.empty))
       val toolProperties =
-        AnalysisProperties.Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
+        CLIConfiguration.Analysis.Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
       val userInput = Some(expectedToolName)
 
       val toolEither =
@@ -61,9 +62,13 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val userInput = Some(expectedToolName)
       val toolConfigs =
         Set(
-          IssuesToolConfiguration("34225275-f79e-4b85-8126-c7512c987c0d", enabled = true, notEdited = false, Set.empty))
+          CLIConfiguration.Analysis.Tool.IssuesToolConfiguration(
+            "34225275-f79e-4b85-8126-c7512c987c0d",
+            enabled = true,
+            notEdited = false,
+            Set.empty))
       val toolProperties =
-        AnalysisProperties.Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
+        CLIConfiguration.Analysis.Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(emptyFilesTarget, Map.empty)
 
       val toolEither =
@@ -79,12 +84,16 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val userInput = None
       val toolConfigs =
         Set(
-          IssuesToolConfiguration(expectedToolUuid1, enabled = true, notEdited = false, Set.empty),
-          IssuesToolConfiguration(expectedToolUuid2, enabled = true, notEdited = false, Set.empty),
-          IssuesToolConfiguration("someRandomTool", enabled = false, notEdited = false, Set.empty),
-          IssuesToolConfiguration("anotherRandomTool", enabled = false, notEdited = false, Set.empty))
+          CLIConfiguration.Analysis.Tool
+            .IssuesToolConfiguration(expectedToolUuid1, enabled = true, notEdited = false, Set.empty),
+          CLIConfiguration.Analysis.Tool
+            .IssuesToolConfiguration(expectedToolUuid2, enabled = true, notEdited = false, Set.empty),
+          CLIConfiguration.Analysis.Tool
+            .IssuesToolConfiguration("someRandomTool", enabled = false, notEdited = false, Set.empty),
+          CLIConfiguration.Analysis.Tool
+            .IssuesToolConfiguration("anotherRandomTool", enabled = false, notEdited = false, Set.empty))
       val toolProperties =
-        AnalysisProperties.Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
+        CLIConfiguration.Analysis.Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
 
       val toolEither =
         AnalyseExecutor.tools(userInput, toolProperties, Set(Javascript, Python))
@@ -101,7 +110,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val toolConfigs = Left("some error")
       val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rb").path), Set.empty)
       val toolProperties =
-        AnalysisProperties.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
+        CLIConfiguration.Analysis.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
       val toolEither = AnalyseExecutor.tools(userInput, toolProperties, languages)
@@ -118,7 +127,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rawr").path), Set.empty)
       val languageExtensions: Map[Language, Set[String]] = Map(Languages.Java -> Set("rawr"))
       val toolProperties =
-        AnalysisProperties.Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, languageExtensions)
+        CLIConfiguration.Analysis.Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, languageExtensions)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, languageExtensions)
 
       val toolEither = AnalyseExecutor.tools(userInput, toolProperties, languages)
@@ -135,7 +144,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val toolConfigs = Left("some error")
       val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path), Set.empty)
       val toolProperties =
-        AnalysisProperties.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
+        CLIConfiguration.Analysis.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
       val toolEither =
@@ -148,7 +157,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val toolConfigs = Left("some error")
       val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
       val toolProperties =
-        AnalysisProperties.Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, Map.empty)
+        CLIConfiguration.Analysis.Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
       val toolEither =
@@ -165,7 +174,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val toolConfigs = Left("some error")
       val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
       val toolProperties =
-        AnalysisProperties.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
+        CLIConfiguration.Analysis.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
       val toolEither =

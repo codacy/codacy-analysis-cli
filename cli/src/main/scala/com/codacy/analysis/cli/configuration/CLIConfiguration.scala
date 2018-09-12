@@ -4,7 +4,7 @@ import better.files.File
 import cats.Foldable
 import cats.implicits._
 import com.codacy.analysis.cli.command.Analyse
-import com.codacy.analysis.cli.configuration.CLIProperties.{AnalysisProperties, ResultProperties, UploadProperties}
+import com.codacy.analysis.cli.configuration.CLIConfiguration.{Analysis, Result, Upload}
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, EngineConfiguration}
@@ -16,23 +16,23 @@ import play.api.libs.json.JsValue
 
 import scala.concurrent.duration.Duration
 
-case class CLIProperties(analysis: AnalysisProperties, upload: UploadProperties, result: ResultProperties)
+case class CLIConfiguration(analysis: Analysis, upload: Upload, result: Result)
 
-object CLIProperties {
+object CLIConfiguration {
 
   // HACK: Fixes Intellij IDEA highlight problems
   private type EitherA[A] = Either[String, A]
   private val foldable: Foldable[EitherA] = implicitly[Foldable[EitherA]]
 
-  case class AnalysisProperties(projectDirectory: File,
-                                output: AnalysisProperties.Output,
-                                tool: Option[String],
-                                parallel: Option[Int],
-                                forceFilePermissions: Boolean,
-                                fileExclusionRules: AnalysisProperties.FileExclusionRules,
-                                toolProperties: AnalysisProperties.Tool)
+  case class Analysis(projectDirectory: File,
+                      output: Analysis.Output,
+                      tool: Option[String],
+                      parallel: Option[Int],
+                      forceFilePermissions: Boolean,
+                      fileExclusionRules: Analysis.FileExclusionRules,
+                      toolProperties: Analysis.Tool)
 
-  object AnalysisProperties {
+  object Analysis {
 
     case class Tool(toolTimeout: Option[Duration],
                     allowNetwork: Boolean,
@@ -82,19 +82,19 @@ object CLIProperties {
 
       def apply(analyse: Analyse,
                 localConfiguration: Either[String, CodacyConfigurationFile],
-                remoteProjectConfiguration: Either[String, ProjectConfiguration]): AnalysisProperties.Tool = {
+                remoteProjectConfiguration: Either[String, ProjectConfiguration]): Analysis.Tool = {
         val enginesConfiguration = for {
           config <- localConfiguration.toOption
           engines <- config.engines
         } yield IssuesToolConfiguration.extraFromApi(engines)
-        val toolConfigurations: Either[String, Set[AnalysisProperties.Tool.IssuesToolConfiguration]] = for {
+        val toolConfigurations: Either[String, Set[Analysis.Tool.IssuesToolConfiguration]] = for {
           projectConfig <- remoteProjectConfiguration
           toolConfigs = projectConfig.toolConfiguration
         } yield IssuesToolConfiguration.fromApi(toolConfigs)
 
         val languageExtensions: Map[Language, Set[String]] =
           localConfiguration.map(_.languageCustomExtensions).getOrElse(Map.empty[Language, Set[String]])
-        AnalysisProperties.Tool(
+        Analysis.Tool(
           analyse.toolTimeout,
           analyse.allowNetworkValue,
           toolConfigurations,
@@ -141,7 +141,7 @@ object CLIProperties {
       }
 
       implicit def toCollectorExclusionRules(
-        rules: AnalysisProperties.FileExclusionRules): com.codacy.analysis.core.files.FileExclusionRules = {
+        rules: Analysis.FileExclusionRules): com.codacy.analysis.core.files.FileExclusionRules = {
         com.codacy.analysis.core.files.FileExclusionRules(
           rules.defaultIgnores,
           rules.ignoredPaths,
@@ -155,12 +155,12 @@ object CLIProperties {
     def apply(projectDirectory: File,
               analyse: Analyse,
               localConfiguration: Either[String, CodacyConfigurationFile],
-              remoteProjectConfiguration: Either[String, ProjectConfiguration]): AnalysisProperties = {
+              remoteProjectConfiguration: Either[String, ProjectConfiguration]): Analysis = {
 
-      val fileExclusionRules = AnalysisProperties.FileExclusionRules(localConfiguration, remoteProjectConfiguration)
-      val output = AnalysisProperties.Output(analyse.format, analyse.output)
-      val toolProperties = AnalysisProperties.Tool(analyse, localConfiguration, remoteProjectConfiguration)
-      AnalysisProperties(
+      val fileExclusionRules = Analysis.FileExclusionRules(localConfiguration, remoteProjectConfiguration)
+      val output = Analysis.Output(analyse.format, analyse.output)
+      val toolProperties = Analysis.Tool(analyse, localConfiguration, remoteProjectConfiguration)
+      Analysis(
         projectDirectory,
         output,
         analyse.tool,
@@ -171,13 +171,13 @@ object CLIProperties {
     }
   }
 
-  case class UploadProperties(commitUuid: Option[Commit.Uuid], upload: Boolean)
-  case class ResultProperties(maxAllowedIssues: Int, failIfIncomplete: Boolean)
+  case class Upload(commitUuid: Option[Commit.Uuid], upload: Boolean)
+  case class Result(maxAllowedIssues: Int, failIfIncomplete: Boolean)
 
   def apply(clientOpt: Option[CodacyClient],
             environment: Environment,
             analyse: Analyse,
-            loadLocalConfig: File => Either[String, CodacyConfigurationFile]): CLIProperties = {
+            loadLocalConfig: File => Either[String, CodacyConfigurationFile]): CLIConfiguration = {
     val projectDirectory: File = environment.baseProjectDirectory(analyse.directory)
     val commitUuid: Option[Commit.Uuid] =
       analyse.commitUuid.orElse(Git.currentCommitUuid(projectDirectory))
@@ -189,11 +189,11 @@ object CLIProperties {
       _.getRemoteConfiguration
     }
     val analysisProperties =
-      AnalysisProperties(projectDirectory, analyse, localConfiguration, remoteProjectConfiguration)
-    val uploadProperties = UploadProperties(commitUuid, analyse.uploadValue)
-    val resultProperties = ResultProperties(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
+      Analysis(projectDirectory, analyse, localConfiguration, remoteProjectConfiguration)
+    val uploadProperties = Upload(commitUuid, analyse.uploadValue)
+    val resultProperties = Result(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
 
-    CLIProperties(analysisProperties, uploadProperties, resultProperties)
+    CLIConfiguration(analysisProperties, uploadProperties, resultProperties)
   }
 
 }

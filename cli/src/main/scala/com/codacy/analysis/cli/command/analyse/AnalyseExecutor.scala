@@ -5,10 +5,10 @@ import java.nio.file.Path
 import better.files.File
 import com.codacy.analysis.cli.CLIError
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
-import com.codacy.analysis.cli.configuration.CLIProperties.AnalysisProperties.FileExclusionRules.toCollectorExclusionRules
-import com.codacy.analysis.cli.configuration.CLIProperties.AnalysisProperties.Tool.IssuesToolConfiguration
-import com.codacy.analysis.cli.configuration.CLIProperties._
-import com.codacy.analysis.cli.configuration.CLIProperties.AnalysisProperties.Tool.IssuesToolConfiguration.toInternalPattern
+import com.codacy.analysis.cli.configuration.CLIConfiguration.Analysis.FileExclusionRules.toCollectorExclusionRules
+import com.codacy.analysis.cli.configuration.CLIConfiguration.Analysis.Tool.IssuesToolConfiguration
+import com.codacy.analysis.cli.configuration.CLIConfiguration._
+import com.codacy.analysis.cli.configuration.CLIConfiguration.Analysis.Tool.IssuesToolConfiguration.toInternalPattern
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
@@ -28,7 +28,7 @@ import com.codacy.analysis.core.utils.SeqOps._
 class AnalyseExecutor(formatter: Formatter,
                       analyser: Analyser[Try],
                       fileCollector: FileCollector[Try],
-                      properties: AnalysisProperties) {
+                      properties: Analysis) {
 
   private val logger: Logger = getLogger
 
@@ -97,9 +97,7 @@ class AnalyseExecutor(formatter: Formatter,
     }
   }
 
-  private def issues(tool: Tool,
-                     analysisFilesTarget: FilesTarget,
-                     properties: AnalysisProperties.Tool): Try[Set[ToolResult]] = {
+  private def issues(tool: Tool, analysisFilesTarget: FilesTarget, properties: Analysis.Tool): Try[Set[ToolResult]] = {
 
     val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, analysisFilesTarget)
 
@@ -116,7 +114,7 @@ class AnalyseExecutor(formatter: Formatter,
 
   private def getToolConfiguration(tool: Tool,
                                    hasConfigFiles: Boolean,
-                                   properties: AnalysisProperties.Tool): Try[Configuration] = {
+                                   properties: Analysis.Tool): Try[Configuration] = {
     val (baseSubDir, extraValues) = getExtraConfiguration(properties.extraToolConfigurations, tool)
     (for {
       allToolsConfiguration <- properties.toolConfigurations
@@ -188,7 +186,7 @@ object AnalyseExecutor {
       extends ExecutorResult[DuplicationClone]
 
   def allTools(toolInput: Option[String],
-               properties: AnalysisProperties.Tool,
+               properties: Analysis.Tool,
                languages: Set[Language]): Either[CLIError, Set[ITool]] = {
 
     def metricsTools = MetricsToolCollector.fromLanguages(languages)
@@ -213,7 +211,7 @@ object AnalyseExecutor {
   }
 
   def tools(toolInput: Option[String],
-            properties: AnalysisProperties.Tool,
+            properties: Analysis.Tool,
             languages: Set[Language]): Either[CLIError, Set[Tool]] = {
 
     val toolCollector = new ToolCollector(properties.allowNetwork)

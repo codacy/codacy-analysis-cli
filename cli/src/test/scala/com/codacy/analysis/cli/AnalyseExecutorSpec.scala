@@ -2,9 +2,7 @@ package com.codacy.analysis.cli
 
 import better.files.File
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
-import com.codacy.analysis.cli.configuration.CLIProperties
-import com.codacy.analysis.cli.configuration.CLIProperties.AnalysisProperties
-import com.codacy.analysis.cli.configuration.CLIProperties.AnalysisProperties.Tool.IssuesToolConfiguration
+import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.api._
@@ -34,7 +32,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/improver.git", commitUuid) { (file, directory) =>
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
-          IssuesToolConfiguration.Pattern(patternId, Set.empty)
+          CLIConfiguration.Analysis.Tool.IssuesToolConfiguration.Pattern(patternId, Set.empty)
         }
 
         val properties = analysisProperties(
@@ -42,7 +40,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           file,
           Option("pylint"),
           Set(
-            IssuesToolConfiguration(
+            CLIConfiguration.Analysis.Tool.IssuesToolConfiguration(
               uuid = "34225275-f79e-4b85-8126-c7512c987c0d",
               enabled = true,
               notEdited = false,
@@ -81,14 +79,14 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
-          IssuesToolConfiguration.Pattern(patternId, Set.empty)
+          CLIConfiguration.Analysis.Tool.IssuesToolConfiguration.Pattern(patternId, Set.empty)
         }
         val properties = analysisProperties(
           directory,
           file,
           Option("eslint"),
           Set(
-            IssuesToolConfiguration(
+            CLIConfiguration.Analysis.Tool.IssuesToolConfiguration(
               uuid = "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
               enabled = true,
               notEdited = false,
@@ -125,19 +123,19 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
           file,
           Option.empty,
           Set(
-            IssuesToolConfiguration(
+            CLIConfiguration.Analysis.Tool.IssuesToolConfiguration(
               uuid = "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
               enabled = true,
               notEdited = false,
               patterns = esLintPatternsInternalIds.map { patternId =>
-                IssuesToolConfiguration.Pattern(patternId, Set.empty)
+                CLIConfiguration.Analysis.Tool.IssuesToolConfiguration.Pattern(patternId, Set.empty)
               }),
-            IssuesToolConfiguration(
+            CLIConfiguration.Analysis.Tool.IssuesToolConfiguration(
               uuid = "997201eb-0907-4823-87c0-a8f7703531e7",
               enabled = true,
               notEdited = true,
               patterns = cssLintPatternsInternalIds.map { patternId =>
-                IssuesToolConfiguration.Pattern(patternId, Set.empty)
+                CLIConfiguration.Analysis.Tool.IssuesToolConfiguration.Pattern(patternId, Set.empty)
               })),
           Set.empty)
 
@@ -161,7 +159,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     }
   }
 
-  private def runAnalyseExecutor(analyserName: String, analysisProperties: AnalysisProperties) = {
+  private def runAnalyseExecutor(analyserName: String, analysisProperties: CLIConfiguration.Analysis) = {
     val formatter: Formatter = Formatter(analysisProperties.output.format, analysisProperties.output.file)
     val analyser: Analyser[Try] = Analyser(analyserName)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
@@ -172,19 +170,19 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
   private def analysisProperties(directory: File,
                                  outputFile: File,
                                  tool: Option[String],
-                                 toolConfigs: Set[IssuesToolConfiguration],
+                                 toolConfigs: Set[CLIConfiguration.Analysis.Tool.IssuesToolConfiguration],
                                  ignoredPaths: Set[FilePath]) = {
-    val fileExclusions = AnalysisProperties.FileExclusionRules(
+    val fileExclusions = CLIConfiguration.Analysis.FileExclusionRules(
       Some(Set.empty),
       ignoredPaths,
-      AnalysisProperties.FileExclusionRules.ExcludePaths(Set.empty, Map.empty),
+      CLIConfiguration.Analysis.FileExclusionRules.ExcludePaths(Set.empty, Map.empty),
       Map.empty)
 
-    val toolProperties = CLIProperties.AnalysisProperties
+    val toolProperties = CLIConfiguration.Analysis
       .Tool(Option(15.minutes), allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
-    AnalysisProperties(
+    CLIConfiguration.Analysis(
       directory,
-      AnalysisProperties.Output(Json.name, Option(outputFile)),
+      CLIConfiguration.Analysis.Output(Json.name, Option(outputFile)),
       tool,
       Option.empty,
       forceFilePermissions = false,

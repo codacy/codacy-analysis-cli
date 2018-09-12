@@ -9,8 +9,8 @@ import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
-import com.codacy.analysis.cli.configuration.CLIProperties.{AnalysisProperties, UploadProperties}
-import com.codacy.analysis.cli.configuration.{CLIProperties, Environment}
+import com.codacy.analysis.cli.configuration.CLIConfiguration.{Analysis, Upload}
+import com.codacy.analysis.cli.configuration.{CLIConfiguration, Environment}
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.CodacyClient
@@ -47,8 +47,8 @@ class MainImpl extends CLIApp {
         val environment = new Environment(sys.env)
         val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
 
-        val properties: CLIProperties =
-          CLIProperties(codacyClientOpt, environment, analyse, CodacyConfigurationFile.load)
+        val properties: CLIConfiguration =
+          CLIConfiguration(codacyClientOpt, environment, analyse, CodacyConfigurationFile.load)
 
         //TODO(31/08/2018): In the next tickets:
         // (2) validate commit cli parameter with commit retrieved from jGit
@@ -65,7 +65,7 @@ class MainImpl extends CLIApp {
     }
   }
 
-  private def validate(properties: CLIProperties): Either[CLIError, Unit] = {
+  private def validate(properties: CLIConfiguration): Either[CLIError, Unit] = {
     (for {
       repo <- Git.repository(properties.analysis.projectDirectory)
       uncommitedFiles <- repo.uncommitedFiles
@@ -85,15 +85,14 @@ class MainImpl extends CLIApp {
     }).getOrElse(Right(()))
   }
 
-  private def analysis(analyser: Analyser[Try],
-                       properties: AnalysisProperties): Either[CLIError, Seq[ExecutorResult[_]]] = {
+  private def analysis(analyser: Analyser[Try], properties: Analysis): Either[CLIError, Seq[ExecutorResult[_]]] = {
     val formatter: Formatter = Formatter(properties.output.format, properties.output.file)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
     new AnalyseExecutor(formatter, analyser, fileCollector, properties).run()
   }
 
-  private def upload(properties: UploadProperties,
+  private def upload(properties: Upload,
                      codacyClientOpt: Option[CodacyClient],
                      analysisResults: Seq[AnalyseExecutor.ExecutorResult[_]]): Either[CLIError, Unit] = {
 
