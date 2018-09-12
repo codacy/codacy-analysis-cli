@@ -28,6 +28,14 @@ final case class CodacyConfigurationFile(engines: Option[Map[String, EngineConfi
 
 object CodacyConfigurationFile {
 
+  class Loader {
+
+    def load(directory: File): Either[String, CodacyConfigurationFile] =
+      CodacyConfigurationFile
+        .search(directory)
+        .flatMap(configDir => CodacyConfigurationFile.parse(configDir.contentAsString))
+  }
+
   val filenames = Set(".codacy.yaml", ".codacy.yml")
 
   def search(root: File): Either[String, File] = {
@@ -38,11 +46,6 @@ object CodacyConfigurationFile {
         Left(s"Could not find Codacy configuration file. Make sure you have a file named like one of ${filenames
           .mkString(", ")}."))(Right(_))
   }
-
-  def load(directory: File): Either[String, CodacyConfigurationFile] =
-    CodacyConfigurationFile
-      .search(directory)
-      .flatMap(configDir => CodacyConfigurationFile.parse(configDir.contentAsString))
 
   def parse(yamlString: String): Either[String, CodacyConfigurationFile] = {
     Try {

@@ -32,22 +32,22 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/improver.git", commitUuid) { (file, directory) =>
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
-          CLIConfiguration.Analysis.Tool.IssuesToolConfiguration.Pattern(patternId, Set.empty)
+          CLIConfiguration.IssuesTool.Pattern(patternId, Set.empty)
         }
 
-        val properties = analysisProperties(
+        val configuration = analysisConfiguration(
           directory,
           file,
           Option("pylint"),
           Set(
-            CLIConfiguration.Analysis.Tool.IssuesToolConfiguration(
+            CLIConfiguration.IssuesTool(
               uuid = "34225275-f79e-4b85-8126-c7512c987c0d",
               enabled = true,
               notEdited = false,
               toolPatterns)),
           Set(FilePath(pathToIgnore)))
 
-        runAnalyseExecutor(Analyser.defaultAnalyser.name, properties)
+        runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -79,21 +79,21 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
-          CLIConfiguration.Analysis.Tool.IssuesToolConfiguration.Pattern(patternId, Set.empty)
+          CLIConfiguration.IssuesTool.Pattern(patternId, Set.empty)
         }
-        val properties = analysisProperties(
+        val configuration = analysisConfiguration(
           directory,
           file,
           Option("eslint"),
           Set(
-            CLIConfiguration.Analysis.Tool.IssuesToolConfiguration(
+            CLIConfiguration.IssuesTool(
               uuid = "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
               enabled = true,
               notEdited = false,
               toolPatterns)),
           Set.empty)
 
-        runAnalyseExecutor(Analyser.defaultAnalyser.name, properties)
+        runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -118,28 +118,28 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     "analyse a javascript and css project" in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
       withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
-        val properties = analysisProperties(
+        val configuration = analysisConfiguration(
           directory,
           file,
           Option.empty,
           Set(
-            CLIConfiguration.Analysis.Tool.IssuesToolConfiguration(
+            CLIConfiguration.IssuesTool(
               uuid = "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
               enabled = true,
               notEdited = false,
               patterns = esLintPatternsInternalIds.map { patternId =>
-                CLIConfiguration.Analysis.Tool.IssuesToolConfiguration.Pattern(patternId, Set.empty)
+                CLIConfiguration.IssuesTool.Pattern(patternId, Set.empty)
               }),
-            CLIConfiguration.Analysis.Tool.IssuesToolConfiguration(
+            CLIConfiguration.IssuesTool(
               uuid = "997201eb-0907-4823-87c0-a8f7703531e7",
               enabled = true,
               notEdited = true,
               patterns = cssLintPatternsInternalIds.map { patternId =>
-                CLIConfiguration.Analysis.Tool.IssuesToolConfiguration.Pattern(patternId, Set.empty)
+                CLIConfiguration.IssuesTool.Pattern(patternId, Set.empty)
               })),
           Set.empty)
 
-        runAnalyseExecutor(Analyser.defaultAnalyser.name, properties)
+        runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -159,34 +159,34 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     }
   }
 
-  private def runAnalyseExecutor(analyserName: String, analysisProperties: CLIConfiguration.Analysis) = {
-    val formatter: Formatter = Formatter(analysisProperties.output.format, analysisProperties.output.file)
+  private def runAnalyseExecutor(analyserName: String, configuration: CLIConfiguration.Analysis) = {
+    val formatter: Formatter = Formatter(configuration.output.format, configuration.output.file)
     val analyser: Analyser[Try] = Analyser(analyserName)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    new AnalyseExecutor(formatter, analyser, fileCollector, analysisProperties).run() must beRight
+    new AnalyseExecutor(formatter, analyser, fileCollector, configuration).run() must beRight
   }
 
-  private def analysisProperties(directory: File,
-                                 outputFile: File,
-                                 tool: Option[String],
-                                 toolConfigs: Set[CLIConfiguration.Analysis.Tool.IssuesToolConfiguration],
-                                 ignoredPaths: Set[FilePath]) = {
-    val fileExclusions = CLIConfiguration.Analysis.FileExclusionRules(
+  private def analysisConfiguration(directory: File,
+                                    outputFile: File,
+                                    tool: Option[String],
+                                    toolConfigs: Set[CLIConfiguration.IssuesTool],
+                                    ignoredPaths: Set[FilePath]): CLIConfiguration.Analysis = {
+    val fileExclusions = CLIConfiguration.FileExclusionRules(
       Some(Set.empty),
       ignoredPaths,
-      CLIConfiguration.Analysis.FileExclusionRules.ExcludePaths(Set.empty, Map.empty),
+      CLIConfiguration.FileExclusionRules.ExcludePaths(Set.empty, Map.empty),
       Map.empty)
 
-    val toolProperties = CLIConfiguration.Analysis
-      .Tool(Option(15.minutes), allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
+    val toolConfiguration =
+      CLIConfiguration.Tool(Option(15.minutes), allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
     CLIConfiguration.Analysis(
       directory,
-      CLIConfiguration.Analysis.Output(Json.name, Option(outputFile)),
+      CLIConfiguration.Output(Json.name, Option(outputFile)),
       tool,
       Option.empty,
       forceFilePermissions = false,
       fileExclusions,
-      toolProperties)
+      toolConfiguration)
   }
 }

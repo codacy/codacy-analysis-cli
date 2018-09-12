@@ -486,9 +486,8 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
           "src/main/scala/codacy/brakeman/Brakeman.scala",
           "src/main/scala/codacy/TestWeird.sc")
 
-        //TODO: Add test to check proper implementation of default ignores
         val exclusionRules = FileExclusionRules(
-          None, //beacause local configuration exists default ignores will be instantiated as None
+          None, //because local configuration exists default ignores will be instantiated as None
           Set(FilePath("src/main/scala/codacy/brakeman/Test2.scala")),
           ExcludePaths(Set(Glob("**/Test1.scala")), Map("scalastyle" -> Set(Glob("**/brakeman/Test2.scala")))),
           Map(Languages.Scala -> Set(".sc")))

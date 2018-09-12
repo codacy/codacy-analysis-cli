@@ -4,7 +4,6 @@ import better.files.File
 import cats.Foldable
 import cats.implicits._
 import com.codacy.analysis.cli.command.Analyse
-import com.codacy.analysis.cli.configuration.CLIConfiguration.{Analysis, Result, Upload}
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, EngineConfiguration}
@@ -16,7 +15,9 @@ import play.api.libs.json.JsValue
 
 import scala.concurrent.duration.Duration
 
-case class CLIConfiguration(analysis: Analysis, upload: Upload, result: Result)
+case class CLIConfiguration(analysis: CLIConfiguration.Analysis,
+                            upload: CLIConfiguration.Upload,
+                            result: CLIConfiguration.Result)
 
 object CLIConfiguration {
 
@@ -25,175 +26,176 @@ object CLIConfiguration {
   private val foldable: Foldable[EitherA] = implicitly[Foldable[EitherA]]
 
   case class Analysis(projectDirectory: File,
-                      output: Analysis.Output,
+                      output: CLIConfiguration.Output,
                       tool: Option[String],
                       parallel: Option[Int],
                       forceFilePermissions: Boolean,
-                      fileExclusionRules: Analysis.FileExclusionRules,
-                      toolProperties: Analysis.Tool)
+                      fileExclusionRules: CLIConfiguration.FileExclusionRules,
+                      toolConfiguration: CLIConfiguration.Tool)
 
   object Analysis {
-
-    case class Tool(toolTimeout: Option[Duration],
-                    allowNetwork: Boolean,
-                    toolConfigurations: Either[String, Set[Tool.IssuesToolConfiguration]],
-                    extraToolConfigurations: Option[Map[String, Tool.IssuesToolConfiguration.Extra]],
-                    extensionsByLanguage: Map[Language, Set[String]])
-
-    object Tool {
-
-      case class IssuesToolConfiguration(uuid: String,
-                                         enabled: Boolean,
-                                         notEdited: Boolean,
-                                         patterns: Set[IssuesToolConfiguration.Pattern])
-
-      object IssuesToolConfiguration {
-        case class Extra(baseSubDir: Option[String], extraValues: Option[Map[String, JsValue]])
-        case class Pattern(id: String, parameters: Set[IssuesToolConfiguration.Parameter])
-        case class Parameter(name: String, value: String)
-
-        def extraFromApi(engines: Map[String, EngineConfiguration]): Map[String, IssuesToolConfiguration.Extra] = {
-          engines.mapValues(config => new IssuesToolConfiguration.Extra(config.baseSubDir, config.extraValues))
-        }
-
-        def fromApi(toolConfigs: Set[ToolConfiguration]): Set[IssuesToolConfiguration] = {
-          toolConfigs.map { toolConfig =>
-            IssuesToolConfiguration(
-              uuid = toolConfig.uuid,
-              enabled = toolConfig.isEnabled,
-              notEdited = toolConfig.notEdited,
-              patterns = toolConfig.patterns.map { pattern =>
-                IssuesToolConfiguration.Pattern(id = pattern.internalId, parameters = pattern.parameters.map { param =>
-                  IssuesToolConfiguration.Parameter(param.name, param.value)
-                })
-              })
-          }
-        }
-
-        private def toInternalParameter(
-          parameter: IssuesToolConfiguration.Parameter): com.codacy.analysis.core.model.Parameter = {
-          com.codacy.analysis.core.model.Parameter(parameter.name, parameter.value)
-        }
-
-        def toInternalPattern(pattern: IssuesToolConfiguration.Pattern): com.codacy.analysis.core.model.Pattern = {
-          com.codacy.analysis.core.model.Pattern(pattern.id, pattern.parameters.map(toInternalParameter))
-        }
-      }
-
-      def apply(analyse: Analyse,
-                localConfiguration: Either[String, CodacyConfigurationFile],
-                remoteProjectConfiguration: Either[String, ProjectConfiguration]): Analysis.Tool = {
-        val enginesConfiguration = for {
-          config <- localConfiguration.toOption
-          engines <- config.engines
-        } yield IssuesToolConfiguration.extraFromApi(engines)
-        val toolConfigurations: Either[String, Set[Analysis.Tool.IssuesToolConfiguration]] = for {
-          projectConfig <- remoteProjectConfiguration
-          toolConfigs = projectConfig.toolConfiguration
-        } yield IssuesToolConfiguration.fromApi(toolConfigs)
-
-        val languageExtensions: Map[Language, Set[String]] =
-          localConfiguration.map(_.languageCustomExtensions).getOrElse(Map.empty[Language, Set[String]])
-        Analysis.Tool(
-          analyse.toolTimeout,
-          analyse.allowNetworkValue,
-          toolConfigurations,
-          enginesConfiguration,
-          languageExtensions)
-      }
-    }
-
-    case class FileExclusionRules(defaultIgnores: Option[Set[PathRegex]],
-                                  ignoredPaths: Set[FilePath],
-                                  excludePaths: FileExclusionRules.ExcludePaths,
-                                  allowedExtensionsByLanguage: Map[Language, Set[String]])
-
-    object FileExclusionRules {
-
-      case class ExcludePaths(global: Set[Glob], byTool: Map[String, Set[Glob]])
-
-      def apply(localConfiguration: Either[String, CodacyConfigurationFile],
-                remoteProjectConfiguration: Either[String, ProjectConfiguration]): FileExclusionRules = {
-        val defaultIgnores: Option[Set[PathRegex]] =
-          foldable.foldMap(remoteProjectConfiguration)(remoteConfig =>
-            localConfiguration.fold(_ => Some(remoteConfig.defaultIgnores.getOrElse(Set.empty)), _ => None))
-
-        val ignoredPaths: Set[FilePath] = foldable.foldMap(remoteProjectConfiguration)(_.ignoredPaths)
-
-        val excludeByTool: Map[String, Set[Glob]] =
-          foldable.foldMap(localConfiguration)(
-            localConfig =>
-              localConfig.engines.fold(Map.empty[String, Set[Glob]])(
-                _.mapValues(_.exclude_paths.getOrElse(Set.empty[Glob]))))
-        val excludeGlobal = foldable.foldMap(localConfiguration)(_.exclude_paths.getOrElse(Set.empty[Glob]))
-        val excludePaths = ExcludePaths(excludeGlobal, excludeByTool)
-
-        val localCustomExtensionsByLanguage =
-          localConfiguration.map(_.languageCustomExtensions).getOrElse(Map.empty)
-        val remoteCustomExtensionsByLanguage: Map[Language, Set[String]] =
-          foldable.foldMap(remoteProjectConfiguration)(
-            _.projectExtensions.map(le => (le.language, le.extensions))(collection.breakOut))
-
-        val allowedExtensionsByLanguage =
-          MapOps.merge(localCustomExtensionsByLanguage, remoteCustomExtensionsByLanguage)
-
-        FileExclusionRules(defaultIgnores, ignoredPaths, excludePaths, allowedExtensionsByLanguage)
-      }
-
-      implicit def toCollectorExclusionRules(
-        rules: Analysis.FileExclusionRules): com.codacy.analysis.core.files.FileExclusionRules = {
-        com.codacy.analysis.core.files.FileExclusionRules(
-          rules.defaultIgnores,
-          rules.ignoredPaths,
-          com.codacy.analysis.core.files.ExcludePaths(rules.excludePaths.global, rules.excludePaths.byTool),
-          rules.allowedExtensionsByLanguage)
-      }
-    }
-
-    case class Output(format: String, file: Option[File])
 
     def apply(projectDirectory: File,
               analyse: Analyse,
               localConfiguration: Either[String, CodacyConfigurationFile],
               remoteProjectConfiguration: Either[String, ProjectConfiguration]): Analysis = {
 
-      val fileExclusionRules = Analysis.FileExclusionRules(localConfiguration, remoteProjectConfiguration)
-      val output = Analysis.Output(analyse.format, analyse.output)
-      val toolProperties = Analysis.Tool(analyse, localConfiguration, remoteProjectConfiguration)
-      Analysis(
+      val fileExclusionRules = CLIConfiguration.FileExclusionRules(localConfiguration, remoteProjectConfiguration)
+      val output = CLIConfiguration.Output(analyse.format, analyse.output)
+      val toolConfiguration = CLIConfiguration.Tool(analyse, localConfiguration, remoteProjectConfiguration)
+      CLIConfiguration.Analysis(
         projectDirectory,
         output,
         analyse.tool,
         analyse.parallel,
         analyse.forceFilePermissionsValue,
         fileExclusionRules,
-        toolProperties)
+        toolConfiguration)
     }
   }
 
   case class Upload(commitUuid: Option[Commit.Uuid], upload: Boolean)
   case class Result(maxAllowedIssues: Int, failIfIncomplete: Boolean)
 
+  case class Output(format: String, file: Option[File])
+  case class FileExclusionRules(defaultIgnores: Option[Set[PathRegex]],
+                                ignoredPaths: Set[FilePath],
+                                excludePaths: FileExclusionRules.ExcludePaths,
+                                allowedExtensionsByLanguage: Map[Language, Set[String]])
+
+  object FileExclusionRules {
+
+    case class ExcludePaths(global: Set[Glob], byTool: Map[String, Set[Glob]])
+
+    def apply(localConfiguration: Either[String, CodacyConfigurationFile],
+              remoteProjectConfiguration: Either[String, ProjectConfiguration]): FileExclusionRules = {
+      val defaultIgnores: Option[Set[PathRegex]] =
+        foldable.foldMap(remoteProjectConfiguration)(remoteConfig =>
+          localConfiguration.fold(_ => Some(remoteConfig.defaultIgnores.getOrElse(Set.empty)), _ => None))
+
+      val ignoredPaths: Set[FilePath] = foldable.foldMap(remoteProjectConfiguration)(_.ignoredPaths)
+
+      val excludeByTool: Map[String, Set[Glob]] =
+        foldable.foldMap(localConfiguration)(
+          localConfig =>
+            localConfig.engines.fold(Map.empty[String, Set[Glob]])(
+              _.mapValues(_.exclude_paths.getOrElse(Set.empty[Glob]))))
+      val excludeGlobal = foldable.foldMap(localConfiguration)(_.exclude_paths.getOrElse(Set.empty[Glob]))
+      val excludePaths = ExcludePaths(excludeGlobal, excludeByTool)
+
+      val localCustomExtensionsByLanguage =
+        localConfiguration.map(_.languageCustomExtensions).getOrElse(Map.empty)
+      val remoteCustomExtensionsByLanguage: Map[Language, Set[String]] =
+        foldable.foldMap(remoteProjectConfiguration)(
+          _.projectExtensions.map(le => (le.language, le.extensions))(collection.breakOut))
+
+      val allowedExtensionsByLanguage =
+        MapOps.merge(localCustomExtensionsByLanguage, remoteCustomExtensionsByLanguage)
+
+      FileExclusionRules(defaultIgnores, ignoredPaths, excludePaths, allowedExtensionsByLanguage)
+    }
+
+    implicit def toCollectorExclusionRules(
+      rules: CLIConfiguration.FileExclusionRules): com.codacy.analysis.core.files.FileExclusionRules = {
+      com.codacy.analysis.core.files.FileExclusionRules(
+        rules.defaultIgnores,
+        rules.ignoredPaths,
+        com.codacy.analysis.core.files.ExcludePaths(rules.excludePaths.global, rules.excludePaths.byTool),
+        rules.allowedExtensionsByLanguage)
+    }
+  }
+
+  case class Tool(toolTimeout: Option[Duration],
+                  allowNetwork: Boolean,
+                  toolConfigurations: Either[String, Set[CLIConfiguration.IssuesTool]],
+                  extraToolConfigurations: Option[Map[String, CLIConfiguration.IssuesTool.Extra]],
+                  extensionsByLanguage: Map[Language, Set[String]])
+
+  object Tool {
+
+    def apply(analyse: Analyse,
+              localConfiguration: Either[String, CodacyConfigurationFile],
+              remoteProjectConfiguration: Either[String, ProjectConfiguration]): CLIConfiguration.Tool = {
+
+      val enginesConfiguration = for {
+        config <- localConfiguration.toOption
+        engines <- config.engines
+      } yield CLIConfiguration.IssuesTool.extraFromApi(engines)
+      val toolConfigurations: Either[String, Set[CLIConfiguration.IssuesTool]] = for {
+        projectConfig <- remoteProjectConfiguration
+        toolConfigs = projectConfig.toolConfiguration
+      } yield CLIConfiguration.IssuesTool.fromApi(toolConfigs)
+
+      val languageExtensions: Map[Language, Set[String]] =
+        localConfiguration.map(_.languageCustomExtensions).getOrElse(Map.empty[Language, Set[String]])
+
+      CLIConfiguration.Tool(
+        analyse.toolTimeout,
+        analyse.allowNetworkValue,
+        toolConfigurations,
+        enginesConfiguration,
+        languageExtensions)
+    }
+  }
+
+  case class IssuesTool(uuid: String,
+                        enabled: Boolean,
+                        notEdited: Boolean,
+                        patterns: Set[CLIConfiguration.IssuesTool.Pattern])
+
+  object IssuesTool {
+    case class Extra(baseSubDir: Option[String], extraValues: Option[Map[String, JsValue]])
+    case class Pattern(id: String, parameters: Set[CLIConfiguration.IssuesTool.Parameter])
+    case class Parameter(name: String, value: String)
+
+    def extraFromApi(apiEngines: Map[String, EngineConfiguration]): Map[String, CLIConfiguration.IssuesTool.Extra] = {
+      apiEngines.mapValues(config => CLIConfiguration.IssuesTool.Extra(config.baseSubDir, config.extraValues))
+    }
+
+    def fromApi(apiToolConfigs: Set[ToolConfiguration]): Set[CLIConfiguration.IssuesTool] = {
+      apiToolConfigs.map { toolConfig =>
+        CLIConfiguration.IssuesTool(
+          uuid = toolConfig.uuid,
+          enabled = toolConfig.isEnabled,
+          notEdited = toolConfig.notEdited,
+          patterns = toolConfig.patterns.map { pattern =>
+            CLIConfiguration.IssuesTool.Pattern(id = pattern.internalId, parameters = pattern.parameters.map { param =>
+              CLIConfiguration.IssuesTool.Parameter(param.name, param.value)
+            })
+          })
+      }
+    }
+
+    private def toInternalParameter(
+      parameter: CLIConfiguration.IssuesTool.Parameter): com.codacy.analysis.core.model.Parameter = {
+      com.codacy.analysis.core.model.Parameter(parameter.name, parameter.value)
+    }
+
+    def toInternalPattern(pattern: CLIConfiguration.IssuesTool.Pattern): com.codacy.analysis.core.model.Pattern = {
+      com.codacy.analysis.core.model.Pattern(pattern.id, pattern.parameters.map(toInternalParameter))
+    }
+  }
+
   def apply(clientOpt: Option[CodacyClient],
             environment: Environment,
             analyse: Analyse,
-            loadLocalConfig: File => Either[String, CodacyConfigurationFile]): CLIConfiguration = {
+            localConfigLoader: CodacyConfigurationFile.Loader): CLIConfiguration = {
     val projectDirectory: File = environment.baseProjectDirectory(analyse.directory)
     val commitUuid: Option[Commit.Uuid] =
       analyse.commitUuid.orElse(Git.currentCommitUuid(projectDirectory))
 
-    val localConfiguration: Either[String, CodacyConfigurationFile] = loadLocalConfig(projectDirectory)
+    val localConfiguration: Either[String, CodacyConfigurationFile] = localConfigLoader.load(projectDirectory)
     val remoteProjectConfiguration: Either[String, ProjectConfiguration] = clientOpt.fold {
       "No credentials found.".asLeft[ProjectConfiguration]
     } {
       _.getRemoteConfiguration
     }
-    val analysisProperties =
+    val analysisConfiguration =
       Analysis(projectDirectory, analyse, localConfiguration, remoteProjectConfiguration)
-    val uploadProperties = Upload(commitUuid, analyse.uploadValue)
-    val resultProperties = Result(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
+    val uploadConfiguration = Upload(commitUuid, analyse.uploadValue)
+    val resultConfiguration = Result(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
 
-    CLIConfiguration(analysisProperties, uploadProperties, resultProperties)
+    CLIConfiguration(analysisConfiguration, uploadConfiguration, resultConfiguration)
   }
 
 }
