@@ -93,6 +93,7 @@ docker run \
 * :frowning: 2: Partially Failed Analysis
 * :weary: 101: Failed Upload
 * :confused: 102: Uncommited changes in project (with upload option selected)
+* :open_mouth: 103: The commit uuid passed by parameter does not match the current commit of the project's repository 
 * :cop: 201: Max Allowed Issues Exceeded
 * :angry: 301: Non-existent tool provided as input
 

@@ -16,6 +16,7 @@ object ExitStatus {
     val partiallyFailedAnalysis = 2
     val failedUpload = 101
     val uncommitedChanges = 102
+    val commitsDoNotMatch = 103
     val maxAllowedIssuesExceeded = 201
     val nonExistentTool = 301
   }
@@ -27,6 +28,8 @@ class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
     val resultsCount = countResults(resultsEither)
 
     resultsEither match {
+      case Left(_: CLIError.CommitUuidsDoNotMatch) =>
+        ExitStatus.ExitCodes.commitsDoNotMatch
       case Left(_: CLIError.UncommitedChanges) =>
         ExitStatus.ExitCodes.uncommitedChanges
       case Left(_: CLIError.NonExistingToolInput) =>

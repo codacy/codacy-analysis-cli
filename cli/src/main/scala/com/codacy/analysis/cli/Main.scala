@@ -52,7 +52,7 @@ class MainImpl extends CLIApp {
         //TODO(31/08/2018): In the next tickets:
         // (2) validate commit cli parameter with commit retrieved from jGit
         val analysisAndUpload = for {
-          _ <- validate(configuration)
+          _ <- validate(analyse, configuration)
           analysisResults <- analysis(Analyser(analyse.extras.analyser), configuration.analysis)
           _ <- upload(configuration.upload, codacyClientOpt, analysisResults)
         } yield {
@@ -64,14 +64,21 @@ class MainImpl extends CLIApp {
     }
   }
 
-  private def validate(configuration: CLIConfiguration): Either[CLIError, Unit] = {
+  private def validate(analyse: Analyse, configuration: CLIConfiguration): Either[CLIError, Unit] = {
+    for {
+      _ <- validateNoUncommitedChanges(configuration.analysis.projectDirectory, configuration.upload.upload)
+      _ <- validateCommitUuid(configuration.analysis.projectDirectory, analyse.commitUuid)
+    } yield ()
+  }
+
+  private def validateNoUncommitedChanges(projectDirectory: File, upload: Boolean): Either[CLIError, Unit] = {
     (for {
-      repo <- Git.repository(configuration.analysis.projectDirectory)
+      repo <- Git.repository(projectDirectory)
       uncommitedFiles <- repo.uncommitedFiles
     } yield {
       if (uncommitedFiles.nonEmpty) {
         val error: CLIError = CLIError.UncommitedChanges(uncommitedFiles)
-        if (configuration.upload.upload) {
+        if (upload) {
           logger.error(error.message)
           Left(error)
         } else {
@@ -81,6 +88,19 @@ class MainImpl extends CLIApp {
       } else {
         Right(())
       }
+    }).getOrElse(Right(()))
+  }
+
+  private def validateCommitUuid(projectDirectory: File, commitUuidOpt: Option[Commit.Uuid]): Either[CLIError, Unit] = {
+    (for {
+      repo <- Git.repository(projectDirectory).toOption
+      gitCommit <- repo.latestCommit.toOption
+      paramCommitUuid <- commitUuidOpt
+      if gitCommit.commitUuid != paramCommitUuid
+    } yield {
+      val error = CLIError.CommitUuidsDoNotMatch(paramCommitUuid, gitCommit.commitUuid)
+      logger.error(error.message)
+      Left(error)
     }).getOrElse(Right(()))
   }
 
