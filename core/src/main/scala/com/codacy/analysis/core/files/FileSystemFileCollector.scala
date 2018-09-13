@@ -12,7 +12,7 @@ private[files] final case class CheckedFiles(readableFiles: Set[Path], unreadabl
 
 class FileSystemFileCollector extends FileCollector[Try] {
 
-  override def list(directory: File, exclusionRules: FileExclusionRules): Try[FilesTarget] = {
+  override def list(directory: File): Try[FilesTarget] = {
     Try {
       val allFiles =
         directory
@@ -21,9 +21,7 @@ class FileSystemFileCollector extends FileCollector[Try] {
           .filterNot(_.startsWith(".git"))
           .to[Set]
 
-      val filteredFiles = defaultFilter(allFiles, exclusionRules)
-
-      val checkedFiles = checkPermissions(directory, filteredFiles)
+      val checkedFiles = checkPermissions(directory, allFiles)
 
       FilesTarget(directory, checkedFiles.readableFiles, checkedFiles.unreadableFiles)
     }

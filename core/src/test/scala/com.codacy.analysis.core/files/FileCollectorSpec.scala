@@ -347,8 +347,9 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         val tool = toolCollector.from("brakeman", Set(Languages.Ruby)).right.get.head
 
         val result = for {
-          filesTargetGlobal <- fileCollector.list(directory, emptyExclusionRules)
-          filesTargetTool = fileCollector.filter(tool, filesTargetGlobal, emptyExclusionRules)
+          allFilesTarget <- fileCollector.list(directory)
+          filesTargetGlobal = fileCollector.filterGlobal(allFilesTarget, emptyExclusionRules)
+          filesTargetTool = fileCollector.filterTool(tool, filesTargetGlobal, emptyExclusionRules)
         } yield (filesTargetGlobal, filesTargetTool)
 
         result must beSuccessfulTry
@@ -388,8 +389,9 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
 
         val result = for {
-          filesTargetGlobal <- fileCollector.list(directory, exclusionRules)
-          filesTargetTool = fileCollector.filter(tool, filesTargetGlobal, exclusionRules)
+          allFilesTarget <- fileCollector.list(directory)
+          filesTargetGlobal = fileCollector.filterGlobal(allFilesTarget, exclusionRules)
+          filesTargetTool = fileCollector.filterTool(tool, filesTargetGlobal, exclusionRules)
         } yield filesTargetTool
 
         result must beSuccessfulTry
@@ -425,8 +427,9 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
 
         val result = for {
-          filesTargetGlobal <- fileCollector.list(directory, exclusionRules)
-          filesTargetTool = fileCollector.filter(tool, filesTargetGlobal, exclusionRules)
+          allFilesTarget <- fileCollector.list(directory)
+          filesTargetGlobal = fileCollector.filterGlobal(allFilesTarget, exclusionRules)
+          filesTargetTool = fileCollector.filterTool(tool, filesTargetGlobal, exclusionRules)
         } yield filesTargetTool
 
         result must beSuccessfulTry
@@ -461,8 +464,9 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
 
         val result = for {
-          filesTargetGlobal <- fileCollector.list(directory, exclusionRules)
-          filesTargetTool = fileCollector.filter(tool, filesTargetGlobal, exclusionRules)
+          allFilesTarget <- fileCollector.list(directory)
+          filesTargetGlobal = fileCollector.filterGlobal(allFilesTarget, exclusionRules)
+          filesTargetTool = fileCollector.filterTool(tool, filesTargetGlobal, exclusionRules)
         } yield filesTargetTool
 
         result must beSuccessfulTry
@@ -498,8 +502,9 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
 
         val result = for {
-          filesTargetGlobal <- fileCollector.list(directory, exclusionRules)
-          filesTargetTool = fileCollector.filter(tool, filesTargetGlobal, exclusionRules)
+          allFilesTarget <- fileCollector.list(directory)
+          filesTargetGlobal = fileCollector.filterGlobal(allFilesTarget, exclusionRules)
+          filesTargetTool = fileCollector.filterTool(tool, filesTargetGlobal, exclusionRules)
         } yield filesTargetTool
 
         result must beSuccessfulTry

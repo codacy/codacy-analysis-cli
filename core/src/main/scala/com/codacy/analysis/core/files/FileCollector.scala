@@ -26,9 +26,9 @@ trait FileCollector[T[_]] {
 
   protected val logger: Logger = getLogger
 
-  def list(directory: File, exclusionRules: FileExclusionRules): T[FilesTarget]
+  def list(directory: File): T[FilesTarget]
 
-  protected def defaultFilter(allFiles: Set[Path], exclusionRules: FileExclusionRules): Set[Path] = {
+  def filterGlobal(target: FilesTarget, exclusionRules: FileExclusionRules): FilesTarget = {
 
     val autoIgnoresFilter: Set[Path] => Set[Path] =
       exclusionRules.defaultIgnores.fold(identity[Set[Path]] _)(autoIgnores => filterByExpression(_, autoIgnores))
@@ -39,16 +39,16 @@ trait FileCollector[T[_]] {
         filterByPaths(_, exclusionRules.ignoredPaths),
         autoIgnoresFilter)
 
-    val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
+    val filteredFiles = filters.foldLeft(target.readableFiles) { case (fs, filter) => filter(fs) }
 
-    filteredFiles
+    target.copy(readableFiles = filteredFiles)
   }
 
   def hasConfigurationFiles(tool: Tool, filesTarget: FilesTarget): Boolean = {
     filesTarget.readableFiles.exists(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
   }
 
-  def filter(tool: ITool, target: FilesTarget, exclusionRules: FileExclusionRules): FilesTarget = {
+  def filterTool(tool: ITool, target: FilesTarget, exclusionRules: FileExclusionRules): FilesTarget = {
 
     val filters =
       Set[Set[Path] => Set[Path]](

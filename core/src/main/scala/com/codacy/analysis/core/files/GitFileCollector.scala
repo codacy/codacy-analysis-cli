@@ -7,15 +7,14 @@ import scala.util.Try
 
 class GitFileCollector extends FileCollector[Try] {
 
-  override def list(directory: File, exclusionRules: FileExclusionRules): Try[FilesTarget] = {
+  override def list(directory: File): Try[FilesTarget] = {
 
     for {
       repository <- Git.repository(directory)
       latestCommit <- repository.latestCommit
       allFiles <- latestCommit.files
     } yield {
-      val filteredFiles = defaultFilter(allFiles, exclusionRules)
-      val checkedFiles = checkPermissions(directory, filteredFiles)
+      val checkedFiles = checkPermissions(directory, allFiles)
 
       FilesTarget(directory, checkedFiles.readableFiles, checkedFiles.unreadableFiles)
     }

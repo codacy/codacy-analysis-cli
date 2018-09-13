@@ -1,6 +1,6 @@
 package com.codacy.analysis.core.tools
 
-import com.codacy.analysis.core.files.{ExcludePaths, FileCollector, FileExclusionRules}
+import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.model.DuplicationClone
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.plugins.api.languages.{Language, Languages}
@@ -13,8 +13,6 @@ import org.specs2.mutable.Specification
 import scala.util.Success
 
 class DuplicationToolSpec extends Specification with NoLanguageFeatures {
-
-  private val emptyExclusionRules = FileExclusionRules(None, Set.empty, ExcludePaths(Set.empty, Map.empty), Map.empty)
 
   "DuplicationTool" should {
     "analyse duplication on a project" in {
@@ -33,7 +31,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
             Set(DuplicationCloneFile("test.js", 1, 22), DuplicationCloneFile("test.js", 33, 54))))
 
         val result = for {
-          fileTarget <- FileCollector.defaultCollector().list(directory, emptyExclusionRules)
+          fileTarget <- FileCollector.defaultCollector().list(directory)
           duplicationTool = new DuplicationTool(PmdCpd, Languages.Javascript)
           duplicationToolResult <- duplicationTool.run(directory, fileTarget.readableFiles)
         } yield duplicationToolResult
@@ -58,7 +56,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
             Set(DuplicationCloneFile("test.js", 1, 22), DuplicationCloneFile("test.js", 33, 54))))
 
         val result = for {
-          fileTarget <- FileCollector.defaultCollector().list(directory, emptyExclusionRules)
+          fileTarget <- FileCollector.defaultCollector().list(directory)
           duplicationTool = new DuplicationTool(PmdCpd, Languages.Javascript)
           filteredFileTarget = fileTarget.readableFiles.filterNot(_.endsWith("test2.js"))
           duplicationToolResult <- duplicationTool.run(directory, filteredFileTarget)

@@ -13,6 +13,7 @@ import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.tools._
 import com.codacy.analysis.core.utils.InheritanceOps.InheritanceOps
+import com.codacy.analysis.core.utils.SeqOps._
 import com.codacy.analysis.core.utils.TryOps._
 import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
 import com.codacy.plugins.api.languages.Language
@@ -21,7 +22,6 @@ import play.api.libs.json.JsValue
 
 import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
-import com.codacy.analysis.core.utils.SeqOps._
 
 class AnalyseExecutor(formatter: Formatter,
                       analyser: Analyser[Try],
@@ -36,24 +36,25 @@ class AnalyseExecutor(formatter: Formatter,
       overrideFilePermissions(configuration.projectDirectory)
     }
 
-    val filesTargetAndTool: Either[CLIError, (FilesTarget, Set[ITool])] = for {
-      filesTarget <- fileCollector
-        .list(configuration.projectDirectory, configuration.fileExclusionRules)
-        .toRight(CLIError.FilesAccessError)
+    val filesTargetAndTool: Either[CLIError, (FilesTarget, FilesTarget, Set[ITool])] = for {
+      allFilesTarget <- fileCollector.list(configuration.projectDirectory).toRight(CLIError.FilesAccessError)
+      filesGlobalTarget = fileCollector.filterGlobal(allFilesTarget, configuration.fileExclusionRules)
       tools <- allTools(
         configuration.tool,
         configuration.toolConfiguration,
-        LanguagesHelper.fromFileTarget(filesTarget, configuration.fileExclusionRules.allowedExtensionsByLanguage))
-    } yield (filesTarget, tools)
+        LanguagesHelper.fromFileTarget(filesGlobalTarget, configuration.fileExclusionRules.allowedExtensionsByLanguage))
+    } yield (allFilesTarget, filesGlobalTarget, tools)
 
     val analysisResult: Either[CLIError, Seq[ExecutorResult[_]]] = filesTargetAndTool.map {
-      case (allFiles, tools) =>
+      case (allFiles, globalFiles, tools) =>
         SetOps.mapInParallel[ITool, ExecutorResult[_]](tools, configuration.parallel) { tool: ITool =>
           val filteredFiles: FilesTarget =
-            fileCollector.filter(tool, allFiles, configuration.fileExclusionRules)
+            fileCollector.filterTool(tool, globalFiles, configuration.fileExclusionRules)
+
           tool match {
             case tool: Tool =>
-              val analysisResults = issues(tool, filteredFiles, configuration.toolConfiguration)
+              val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
+              val analysisResults = issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles)
               IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, analysisResults)
             case metricsTool: MetricsTool =>
               val analysisResults =
@@ -97,10 +98,8 @@ class AnalyseExecutor(formatter: Formatter,
 
   private def issues(tool: Tool,
                      analysisFilesTarget: FilesTarget,
-                     configuration: CLIConfiguration.Tool): Try[Set[ToolResult]] = {
-
-    val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, analysisFilesTarget)
-
+                     configuration: CLIConfiguration.Tool,
+                     toolHasConfigFiles: Boolean): Try[Set[ToolResult]] = {
     for {
       toolConfiguration <- getToolConfiguration(tool, toolHasConfigFiles, configuration)
       results <- analyser.analyse(

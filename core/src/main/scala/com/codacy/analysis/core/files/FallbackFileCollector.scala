@@ -6,21 +6,19 @@ import scala.util.{Failure, Try}
 
 class FallbackFileCollector(fileCollectorCompanions: List[FileCollectorCompanion[Try]]) extends FileCollector[Try] {
 
-  private val fileCollectors = fileCollectorCompanions.map(_.apply())
+  private val fileCollectors: List[FileCollector[Try]] = fileCollectorCompanions.map(_.apply())
 
-  override def list(directory: File, exclusionRules: FileExclusionRules): Try[FilesTarget] = {
-    list(fileCollectors, directory, exclusionRules)
+  override def list(directory: File): Try[FilesTarget] = {
+    list(fileCollectors, directory)
   }
 
-  private def list(fileCollectorList: List[FileCollector[Try]],
-                   directory: File,
-                   exclusionRules: FileExclusionRules): Try[FilesTarget] = {
+  private def list(fileCollectorList: List[FileCollector[Try]], directory: File): Try[FilesTarget] = {
     fileCollectorList match {
       case fileCollector :: tail =>
-        fileCollector.list(directory, exclusionRules).recoverWith {
+        fileCollector.list(directory).recoverWith {
           case _ =>
             logger.info(s"Failed to list files with ${fileCollector.getClass.getName}")
-            list(tail, directory, exclusionRules)
+            list(tail, directory)
         }
       case Nil =>
         val errorMessage =
