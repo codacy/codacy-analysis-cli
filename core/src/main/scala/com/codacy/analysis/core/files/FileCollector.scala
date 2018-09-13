@@ -4,10 +4,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{Path, Paths}
 
 import better.files.File
-import cats.Foldable
-import cats.implicits._
-import com.codacy.analysis.core.clients.api.{FilePath, PathRegex, ProjectConfiguration}
-import com.codacy.analysis.core.configuration.CodacyConfigurationFile
+import com.codacy.analysis.core.clients.api.{FilePath, PathRegex}
 import com.codacy.analysis.core.tools.{ITool, Tool}
 import com.codacy.plugins.api.languages.{Language, Languages}
 import org.log4s.{Logger, getLogger}
@@ -19,30 +16,28 @@ trait FileCollectorCompanion[T[_]] {
   def apply(): FileCollector[T]
 }
 
-trait FileCollector[T[_]] {
+case class FileExclusionRules(defaultIgnores: Option[Set[PathRegex]],
+                              ignoredPaths: Set[FilePath],
+                              excludePaths: ExcludePaths,
+                              allowedExtensionsByLanguage: Map[Language, Set[String]])
+case class ExcludePaths(global: Set[Glob], byTool: Map[String, Set[Glob]])
 
-  // HACK: Fixes Intellij IDEA highlight problems
-  private type EitherA[A] = Either[String, A]
-  private val foldable: Foldable[EitherA] = implicitly[Foldable[EitherA]]
+trait FileCollector[T[_]] {
 
   protected val logger: Logger = getLogger
 
-  def list(directory: File,
-           localConfiguration: Either[String, CodacyConfigurationFile],
-           remoteConfiguration: Either[String, ProjectConfiguration]): T[FilesTarget]
+  def list(directory: File, exclusionRules: FileExclusionRules): T[FilesTarget]
 
-  protected def defaultFilter(allFiles: Set[Path],
-                              localConfiguration: Either[String, CodacyConfigurationFile],
-                              remoteConfiguration: Either[String, ProjectConfiguration]): Set[Path] = {
+  protected def defaultFilter(allFiles: Set[Path], exclusionRules: FileExclusionRules): Set[Path] = {
 
-    val autoIgnoresFilter: Set[Path] => Set[Path] = if (localConfiguration.isLeft) {
-      excludeAutoIgnores(remoteConfiguration)
-    } else {
-      identity
-    }
+    val autoIgnoresFilter: Set[Path] => Set[Path] =
+      exclusionRules.defaultIgnores.fold(identity[Set[Path]] _)(autoIgnores => filterByExpression(_, autoIgnores))
 
     val filters: Set[Set[Path] => Set[Path]] =
-      Set(excludeGlobal(localConfiguration)(_), excludePrefixes(remoteConfiguration)(_), autoIgnoresFilter(_))
+      Set(
+        filterByGlobs(_, exclusionRules.excludePaths.global),
+        filterByPaths(_, exclusionRules.ignoredPaths),
+        autoIgnoresFilter)
 
     val filteredFiles = filters.foldLeft(allFiles) { case (fs, filter) => filter(fs) }
 
@@ -53,41 +48,14 @@ trait FileCollector[T[_]] {
     filesTarget.readableFiles.exists(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
   }
 
-  def filter(tool: ITool,
-             target: FilesTarget,
-             localConfiguration: Either[String, CodacyConfigurationFile],
-             remoteConfiguration: Either[String, ProjectConfiguration]): FilesTarget = {
+  def filter(tool: ITool, target: FilesTarget, exclusionRules: FileExclusionRules): FilesTarget = {
 
     val filters =
-      Set(
-        excludeForTool(tool.name, localConfiguration) _,
-        filterByLanguage(tool.languageToRun, localConfiguration, remoteConfiguration) _)
+      Set[Set[Path] => Set[Path]](
+        filterByGlobs(_, exclusionRules.excludePaths.byTool.getOrElse(tool.name, Set.empty)),
+        filterByLanguage(tool.languageToRun, exclusionRules.allowedExtensionsByLanguage))
     val filteredFiles = filters.foldLeft(target.readableFiles) { case (fs, filter) => filter(fs) }
     target.copy(readableFiles = filteredFiles)
-  }
-
-  private def excludePrefixes(remoteConfiguration: Either[String, ProjectConfiguration])(
-    files: Set[Path]): Set[Path] = {
-    filterByPaths(files, foldable.foldMap(remoteConfiguration)(_.ignoredPaths))
-  }
-
-  private def excludeGlobal(localConfiguration: Either[String, CodacyConfigurationFile])(
-    files: Set[Path]): Set[Path] = {
-    val excludeGlobs = foldable.foldMap(localConfiguration)(_.exclude_paths.getOrElse(Set.empty[Glob]))
-    filterByGlobs(files, excludeGlobs)
-  }
-
-  private def excludeForTool(toolName: String, localConfiguration: Either[String, CodacyConfigurationFile])(
-    files: Set[Path]): Set[Path] = {
-    val excludeGlobs = foldable.foldMap(localConfiguration)(localConfig =>
-      localConfig.engines.foldMap(_.get(toolName).foldMap(_.exclude_paths.getOrElse(Set.empty[Glob]))))
-    filterByGlobs(files, excludeGlobs)
-  }
-
-  private def excludeAutoIgnores(remoteConfiguration: Either[String, ProjectConfiguration])(
-    files: Set[Path]): Set[Path] = {
-    val excludeIgnores: Set[PathRegex] = foldable.foldMap(remoteConfiguration)(_.defaultIgnores.getOrElse(Set.empty))
-    filterByExpression(files, excludeIgnores)
   }
 
   private def filterByGlobs(files: Set[Path], excludeGlobs: Set[Glob]): Set[Path] = {
@@ -114,21 +82,9 @@ trait FileCollector[T[_]] {
     }
   }
 
-  private def filterByLanguage(
-    language: Language,
-    localConfiguration: Either[String, CodacyConfigurationFile],
-    remoteConfiguration: Either[String, ProjectConfiguration])(files: Set[Path]): Set[Path] = {
-
-    val localCustomExtensionsByLanguage =
-      localConfiguration.map(_.languageCustomExtensions).getOrElse(Map.empty)
-
-    val remoteCustomExtensionsByLanguage: Map[Language, Set[String]] =
-      foldable.foldMap(remoteConfiguration)(
-        _.projectExtensions.map(le => (le.language, le.extensions))(collection.breakOut))
-
-    Languages
-      .filter(files.map(_.toString), Set(language), localCustomExtensionsByLanguage ++ remoteCustomExtensionsByLanguage)
-      .map(Paths.get(_))
+  private def filterByLanguage(language: Language, extensionsByLanguage: Map[Language, Set[String]])(
+    files: Set[Path]): Set[Path] = {
+    Languages.filter(files.map(_.toString), Set(language), extensionsByLanguage).map(Paths.get(_))
   }
 
   protected def checkPermissions(directory: File, files: Set[Path]): CheckedFiles = {
@@ -140,7 +96,6 @@ trait FileCollector[T[_]] {
         checkedFiles.copy(unreadableFiles = checkedFiles.unreadableFiles + path)
     }
   }
-
 }
 
 object FileCollector {

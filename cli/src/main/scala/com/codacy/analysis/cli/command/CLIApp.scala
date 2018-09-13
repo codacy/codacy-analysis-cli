@@ -75,10 +75,6 @@ object Version {
   val version: String = Option(getClass.getPackage.getImplementationVersion).getOrElse("0.1.0-SNAPSHOT")
 }
 
-object Properties {
-  val codacyCode: Option[File] = sys.env.get("CODACY_CODE").map(File(_))
-}
-
 @AppName("Codacy Analysis Cli")
 @AppVersion(Version.version)
 @ProgName("codacy-analysis-cli")

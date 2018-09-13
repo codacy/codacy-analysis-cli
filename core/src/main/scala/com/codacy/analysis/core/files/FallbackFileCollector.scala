@@ -1,8 +1,6 @@
 package com.codacy.analysis.core.files
 
 import better.files.File
-import com.codacy.analysis.core.clients.api.ProjectConfiguration
-import com.codacy.analysis.core.configuration.CodacyConfigurationFile
 
 import scala.util.{Failure, Try}
 
@@ -10,22 +8,19 @@ class FallbackFileCollector(fileCollectorCompanions: List[FileCollectorCompanion
 
   private val fileCollectors = fileCollectorCompanions.map(_.apply())
 
-  override def list(directory: File,
-                    localConfiguration: Either[String, CodacyConfigurationFile],
-                    remoteConfiguration: Either[String, ProjectConfiguration]): Try[FilesTarget] = {
-    list(fileCollectors, directory, localConfiguration, remoteConfiguration)
+  override def list(directory: File, exclusionRules: FileExclusionRules): Try[FilesTarget] = {
+    list(fileCollectors, directory, exclusionRules)
   }
 
   private def list(fileCollectorList: List[FileCollector[Try]],
                    directory: File,
-                   localConfiguration: Either[String, CodacyConfigurationFile],
-                   remoteConfiguration: Either[String, ProjectConfiguration]): Try[FilesTarget] = {
+                   exclusionRules: FileExclusionRules): Try[FilesTarget] = {
     fileCollectorList match {
       case fileCollector :: tail =>
-        fileCollector.list(directory, localConfiguration, remoteConfiguration).recoverWith {
+        fileCollector.list(directory, exclusionRules).recoverWith {
           case _ =>
             logger.info(s"Failed to list files with ${fileCollector.getClass.getName}")
-            list(tail, directory, localConfiguration, remoteConfiguration)
+            list(tail, directory, exclusionRules)
         }
       case Nil =>
         val errorMessage =

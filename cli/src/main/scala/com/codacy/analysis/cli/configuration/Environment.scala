@@ -3,7 +3,6 @@ package com.codacy.analysis.cli.configuration
 import java.net.URL
 
 import better.files.File
-import com.codacy.analysis.cli.command.Properties
 import com.codacy.analysis.core.utils.Implicits._
 import org.log4s.{Logger, getLogger}
 
@@ -12,6 +11,10 @@ import scala.util.{Failure, Try}
 class Environment(variables: Map[String, String]) {
 
   private val logger: Logger = getLogger
+
+  def codeDirectoryEnvironmentVariable(): Option[String] = {
+    validate("Project directory", "environment variable", "CODACY_CODE")(variables.get("CODACY_CODE"))
+  }
 
   def projectTokenArgument(projectTokenFromArguments: Option[String]): Option[String] = {
     validate("Project token", "argument", "--project-token")(projectTokenFromArguments)
@@ -41,7 +44,7 @@ class Environment(variables: Map[String, String]) {
   }
 
   def baseProjectDirectory(directory: Option[File]): File =
-    directory.fold(Properties.codacyCode.getOrElse(File.currentWorkingDirectory))(dir =>
+    directory.fold(codeDirectoryEnvironmentVariable().map(File(_)).getOrElse(File.currentWorkingDirectory))(dir =>
       if (dir.isDirectory) dir else dir.parent)
 
   private def validateApiBaseUrl(apiURL: Option[String]): Option[String] = {

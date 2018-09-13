@@ -1,9 +1,6 @@
-package com.codacy.analysis.cli.files
+package com.codacy.analysis.core.files
 
 import better.files.File
-import com.codacy.analysis.core.clients.api.ProjectConfiguration
-import com.codacy.analysis.core.configuration.CodacyConfigurationFile
-import com.codacy.analysis.core.files.{FallbackFileCollector, FileCollector, FileCollectorCompanion, FilesTarget}
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 
@@ -11,25 +8,23 @@ import scala.util.{Failure, Success, Try}
 
 class FallbackFileCollectorSpec extends Specification with NoLanguageFeatures {
 
-  val failingCompanion = new FileCollectorCompanion[Try] {
+  private val emptyExclusionRules = FileExclusionRules(None, Set.empty, ExcludePaths(Set.empty, Map.empty), Map.empty)
+
+  private val failingCompanion: FileCollectorCompanion[Try] = new FileCollectorCompanion[Try] {
     override def name: String = ""
 
     override def apply(): FileCollector[Try] = new FileCollector[Try] {
-      override def list(directory: File,
-                        localConfiguration: Either[String, CodacyConfigurationFile],
-                        remoteConfiguration: Either[String, ProjectConfiguration]): Try[FilesTarget] = {
+      override def list(directory: File, exclusionRules: FileExclusionRules): Try[FilesTarget] = {
         Failure(new Exception("because fail"))
       }
     }
   }
 
-  val successfulCompanion = new FileCollectorCompanion[Try] {
+  private val successfulCompanion: FileCollectorCompanion[Try] = new FileCollectorCompanion[Try] {
     override def name: String = ""
 
     override def apply(): FileCollector[Try] = new FileCollector[Try] {
-      override def list(directory: File,
-                        localConfiguration: Either[String, CodacyConfigurationFile],
-                        remoteConfiguration: Either[String, ProjectConfiguration]): Try[FilesTarget] = {
+      override def list(directory: File, exclusionRules: FileExclusionRules): Try[FilesTarget] = {
         Success(FilesTarget(directory, Set.empty, Set.empty))
       }
     }
@@ -38,17 +33,17 @@ class FallbackFileCollectorSpec extends Specification with NoLanguageFeatures {
   "FallbackFileCollectorSpec" should {
     "not fallback" in {
       new FallbackFileCollector(List(successfulCompanion, failingCompanion))
-        .list(File(""), Left(""), Left("")) must beSuccessfulTry
+        .list(File(""), emptyExclusionRules) must beSuccessfulTry
     }
 
     "fallback" in {
       new FallbackFileCollector(List(failingCompanion, successfulCompanion))
-        .list(File(""), Left(""), Left("")) must beSuccessfulTry
+        .list(File(""), emptyExclusionRules) must beSuccessfulTry
     }
 
     "fail when all fail" in {
       new FallbackFileCollector(List(failingCompanion, failingCompanion))
-        .list(File(""), Left(""), Left("")) must beFailedTry
+        .list(File(""), emptyExclusionRules) must beFailedTry
     }
   }
 }

@@ -9,11 +9,11 @@ import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
-import com.codacy.analysis.cli.configuration.Environment
+import com.codacy.analysis.cli.configuration.{CLIConfiguration, Environment}
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.CodacyClient
-import com.codacy.analysis.core.clients.api.ProjectConfiguration
+import com.codacy.analysis.core.configuration.CodacyConfigurationFile
 import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.git.{Commit, Git}
 import com.codacy.analysis.core.model._
@@ -45,33 +45,33 @@ class MainImpl extends CLIApp {
 
         val environment = new Environment(sys.env)
         val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
-        val projectDirectory: File = environment.baseProjectDirectory(analyse.directory)
-        val commitUuid: Option[Commit.Uuid] =
-          analyse.commitUuid.orElse(Git.currentCommitUuid(projectDirectory))
+
+        val configuration: CLIConfiguration =
+          CLIConfiguration(codacyClientOpt, environment, analyse, new CodacyConfigurationFile.Loader)
 
         //TODO(31/08/2018): In the next tickets:
-        // (1) configs will be converted to common model and passed through parameter to validate
         // (2) validate commit cli parameter with commit retrieved from jGit
         val analysisAndUpload = for {
-          _ <- validate(projectDirectory, analyse.uploadValue)
-          analysisResults <- analysis(analyse, projectDirectory, codacyClientOpt)
-          _ <- upload(analyse, commitUuid, codacyClientOpt, analysisResults)
+          _ <- validate(configuration)
+          analysisResults <- analysis(Analyser(analyse.extras.analyser), configuration.analysis)
+          _ <- upload(configuration.upload, codacyClientOpt, analysisResults)
         } yield {
           analysisResults
         }
 
-        new ExitStatus(analyse.maxAllowedIssues).exitCode(analysisAndUpload)
+        new ExitStatus(configuration.result.maxAllowedIssues, configuration.result.failIfIncomplete)
+          .exitCode(analysisAndUpload)
     }
   }
 
-  private def validate(directory: File, upload: Boolean): Either[CLIError, Unit] = {
+  private def validate(configuration: CLIConfiguration): Either[CLIError, Unit] = {
     (for {
-      repo <- Git.repository(directory)
+      repo <- Git.repository(configuration.analysis.projectDirectory)
       uncommitedFiles <- repo.uncommitedFiles
     } yield {
       if (uncommitedFiles.nonEmpty) {
         val error: CLIError = CLIError.UncommitedChanges(uncommitedFiles)
-        if (upload) {
+        if (configuration.upload.upload) {
           logger.error(error.message)
           Left(error)
         } else {
@@ -84,41 +84,22 @@ class MainImpl extends CLIApp {
     }).getOrElse(Right(()))
   }
 
-  private def analysis(analyse: Analyse,
-                       projectDirectory: File,
-                       codacyClientOpt: Option[CodacyClient]): Either[CLIError, Seq[ExecutorResult[_]]] = {
-    val formatter: Formatter = Formatter(analyse.format, analyse.output)
-    val analyser: Analyser[Try] = Analyser(analyse.extras.analyser)
+  private def analysis(analyser: Analyser[Try],
+                       configuration: CLIConfiguration.Analysis): Either[CLIError, Seq[ExecutorResult[_]]] = {
+    val formatter: Formatter = Formatter(configuration.output.format, configuration.output.file)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    val remoteProjectConfiguration: Either[String, ProjectConfiguration] = codacyClientOpt.fold {
-      "No credentials found.".asLeft[ProjectConfiguration]
-    } {
-      _.getRemoteConfiguration
-    }
-
-    new AnalyseExecutor(
-      analyse.tool,
-      projectDirectory,
-      formatter,
-      analyser,
-      fileCollector,
-      remoteProjectConfiguration,
-      analyse.parallel,
-      analyse.allowNetworkValue,
-      analyse.forceFilePermissionsValue,
-      analyse.toolTimeout).run()
+    new AnalyseExecutor(formatter, analyser, fileCollector, configuration).run()
   }
 
-  private def upload(analyse: Analyse,
-                     commitUuid: Option[Commit.Uuid],
+  private def upload(configuration: CLIConfiguration.Upload,
                      codacyClientOpt: Option[CodacyClient],
                      analysisResults: Seq[AnalyseExecutor.ExecutorResult[_]]): Either[CLIError, Unit] = {
 
     val uploadResultFut: Future[Either[String, Unit]] =
-      uploadResults(codacyClientOpt)(analyse.uploadValue, commitUuid, analysisResults)
+      uploadResults(codacyClientOpt)(configuration.upload, configuration.commitUuid, analysisResults)
 
-    if (analyse.uploadValue) {
+    if (configuration.upload) {
       Try(Await.result(uploadResultFut, Duration.Inf)) match {
         case Failure(err) =>
           logger.error(err.getMessage)
