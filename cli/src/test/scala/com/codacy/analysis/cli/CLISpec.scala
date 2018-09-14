@@ -4,6 +4,7 @@ import better.files.{File, Resource}
 import caseapp.Tag
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command._
+import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.{DuplicationClone, FileError, Result, ToolResult}
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.plugins.utils.CommandRunner
@@ -310,6 +311,27 @@ class CLISpec extends Specification with NoLanguageFeatures {
             toolTimeout = None)
 
           cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
+        }).get
+      }
+    }
+
+    "fail because the uuid of the current commit of the git project does not match the one provided by parameter" in {
+      withTemporaryGitRepo { directory =>
+        (for {
+          newFile <- File.temporaryFile(parent = Some(directory))
+        } yield {
+
+          val analyse = Analyse(
+            options = CommonOptions(),
+            api = APIOptions(projectToken = Some("hey, im a token"), codacyApiBaseUrl = Some("https://codacy.com")),
+            tool = None,
+            directory = Option(directory),
+            upload = Tag.of(0),
+            extras = ExtraOptions(),
+            commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
+            toolTimeout = None)
+
+          cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
         }).get
       }
     }

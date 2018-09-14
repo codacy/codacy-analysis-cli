@@ -4,6 +4,7 @@ import java.nio.file.Paths
 
 import com.codacy.analysis.cli.CLIError
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.IssuesToolExecutorResult
+import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.{FullLocation, Issue}
 import com.codacy.plugins.api.results.{Pattern, Result}
 import org.specs2.control.NoLanguageFeatures
@@ -112,6 +113,12 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
     "send uncommited changes exit code when a validation error of that type is present" in {
       new ExitStatus(10).exitCode(Left(CLIError.UncommitedChanges(Set.empty))) should beEqualTo(
         ExitStatus.ExitCodes.uncommitedChanges)
+    }
+
+    "send commit uuids do not match exit code when the commit uuid from git did not match the cli argument" in {
+      new ExitStatus(10)
+        .exitCode(Left(CLIError.CommitUuidsDoNotMatch(Commit.Uuid("arg"), Commit.Uuid("git")))) should beEqualTo(
+        ExitStatus.ExitCodes.commitsDoNotMatch)
     }
   }
 
