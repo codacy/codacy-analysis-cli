@@ -40,7 +40,6 @@ class MainImpl extends CLIApp {
   def runCommand(command: Command): Int = {
     command match {
       case analyse: Analyse =>
-        cleanup(analyse.directory)
         Logger.setLevel(analyse.options.verboseValue)
 
         val environment = new Environment(sys.env)
@@ -49,8 +48,8 @@ class MainImpl extends CLIApp {
         val configuration: CLIConfiguration =
           CLIConfiguration(codacyClientOpt, environment, analyse, new CodacyConfigurationFile.Loader)
 
-        //TODO(31/08/2018): In the next tickets:
-        // (2) validate commit cli parameter with commit retrieved from jGit
+        removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
+
         val analysisAndUpload = for {
           _ <- validate(analyse, configuration)
           analysisResults <- analysis(Analyser(analyse.extras.analyser), configuration.analysis)
@@ -59,6 +58,7 @@ class MainImpl extends CLIApp {
           analysisResults
         }
 
+        removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
         new ExitStatus(configuration.result.maxAllowedIssues, configuration.result.failIfIncomplete)
           .exitCode(analysisAndUpload)
     }
@@ -234,8 +234,10 @@ class MainImpl extends CLIApp {
     }
   }
 
-  private def cleanup(directoryOpt: Option[File]): Unit = {
-    val directory = directoryOpt.getOrElse(File.currentWorkingDirectory) / ".codacy.json"
-    directory.delete(swallowIOExceptions = true)
+  //TODO: this can be removed when all tools are using the 3.+ seed version.
+  private def removeCodacyRuntimeConfigurationFiles(directory: File): Unit = {
+    directory / ".codacy.json" delete (swallowIOExceptions = true)
+    directory / ".codacyrc" delete (swallowIOExceptions = true)
+    ()
   }
 }
