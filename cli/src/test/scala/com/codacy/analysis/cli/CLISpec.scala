@@ -12,8 +12,9 @@ import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
+import org.specs2.matcher.FileMatchers
 
-class CLISpec extends Specification with NoLanguageFeatures {
+class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
 
   private val cli = new MainImpl() {
     override def exit(code: Int): Unit = ()
@@ -334,6 +335,17 @@ class CLISpec extends Specification with NoLanguageFeatures {
           cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
         }).get
       }
+    }
+
+    "cleanup config files after cli run" in {
+      (for {
+        directory <- File.temporaryDirectory()
+      } yield {
+        cli.main(Array("analyse", "--directory", directory.pathAsString, "--tool", "pylint"))
+
+        (directory / ".codacy.json").toJava must not(exist)
+        (directory / ".codacyrc").toJava must not(exist)
+      }).get()
     }
 
   }

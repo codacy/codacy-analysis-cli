@@ -48,7 +48,7 @@ class MainImpl extends CLIApp {
         val configuration: CLIConfiguration =
           CLIConfiguration(codacyClientOpt, environment, analyse, new CodacyConfigurationFile.Loader)
 
-        cleanup(configuration.analysis.projectDirectory)
+        removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
 
         val analysisAndUpload = for {
           _ <- validate(analyse, configuration)
@@ -58,7 +58,7 @@ class MainImpl extends CLIApp {
           analysisResults
         }
 
-        cleanup(configuration.analysis.projectDirectory)
+        removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
         new ExitStatus(configuration.result.maxAllowedIssues, configuration.result.failIfIncomplete)
           .exitCode(analysisAndUpload)
     }
@@ -234,7 +234,8 @@ class MainImpl extends CLIApp {
     }
   }
 
-  private def cleanup(directory: File): Unit = {
+  //TODO: this can be removed when all tools are using the 3.+ seed version.
+  private def removeCodacyRuntimeConfigurationFiles(directory: File): Unit = {
     directory / ".codacy.json" delete (swallowIOExceptions = true)
     directory / ".codacyrc" delete (swallowIOExceptions = true)
     ()
