@@ -882,6 +882,655 @@
   },
   {
     "FileMetrics": {
+      "filename": "src/main/resources/docs/description/BasicAuth.md",
+      "complexity": null,
+      "loc": 8,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/ValidationRegex.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/JSONEncoding.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/QuoteTableName.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SafeBufferManipulation.md",
+      "complexity": null,
+      "loc": 2,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/tool-description.md",
+      "complexity": null,
+      "loc": 1,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/CreateWith.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SQL.md",
+      "complexity": null,
+      "loc": 16,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/EscapeFunction.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/NestedAttributes.md",
+      "complexity": null,
+      "loc": 5,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/Deserialize.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/StripTags.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/JRubyXML.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/LinkTo.md",
+      "complexity": null,
+      "loc": 2,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/Redirect.md",
+      "complexity": null,
+      "loc": 16,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/RegexDoS.md",
+      "complexity": null,
+      "loc": 19,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SessionSettings.md",
+      "complexity": null,
+      "loc": 7,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/ResponseSplitting.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/ModelAttributes.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/Render.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/DigestDoS.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SkipBeforeFilter.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SanitizeMethods.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/JSONParsing.md",
+      "complexity": null,
+      "loc": 6,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SelectVulnerability.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/Send.md",
+      "complexity": null,
+      "loc": 20,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/RenderDoS.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "README.md",
+      "complexity": null,
+      "loc": 33,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SimpleFormat.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/UnsafeReflection.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/UnscopedFind.md",
+      "complexity": null,
+      "loc": 8,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/ForgerySetting.md",
+      "complexity": null,
+      "loc": 5,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/XMLDoS.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/DetailedExceptions.md",
+      "complexity": null,
+      "loc": 6,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/ContentTag.md",
+      "complexity": null,
+      "loc": 11,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SQLCVEs.md",
+      "complexity": null,
+      "loc": 6,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/I18nXSS.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/Evaluation.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/WithoutProtection.md",
+      "complexity": null,
+      "loc": 16,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/MailTo.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/DefaultRoutes.md",
+      "complexity": null,
+      "loc": 10,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SelectTag.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/MassAssignment.md",
+      "complexity": null,
+      "loc": 16,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/TranslateBug.md",
+      "complexity": null,
+      "loc": 5,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/ModelSerialize.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/ModelAttrAccessible.md",
+      "complexity": null,
+      "loc": 5,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SymbolDoSCVE.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/RenderInline.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/YAMLParsing.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SymbolDoS.md",
+      "complexity": null,
+      "loc": 18,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/FileDisclosure.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/LinkToHref.md",
+      "complexity": null,
+      "loc": 6,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SSLVerify.md",
+      "complexity": null,
+      "loc": 17,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/SingleQuotes.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/HeaderDoS.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/FilterSkipping.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/CrossSiteScripting.md",
+      "complexity": null,
+      "loc": 3,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/FileAccess.md",
+      "complexity": null,
+      "loc": 7,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
+      "filename": "src/main/resources/docs/description/Execute.md",
+      "complexity": null,
+      "loc": 4,
+      "cloc": 0,
+      "nrMethods": null,
+      "nrClasses": null,
+      "lineComplexities": []
+    }
+  },
+  {
+    "FileMetrics": {
       "filename": "src/main/resources/docs/directory-tests/rails4/app/assets/javascripts/application.js",
       "complexity": null,
       "loc": 0,
