@@ -25,7 +25,7 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
     stream.flush()
   }
 
-  def add(element: Result): Unit = {
+  override def add(element: Result): Unit = {
     element match {
       case Issue(patternId, filename, message, level, category, location) =>
         stream.println(prettyMessage(patternId, filename, message, level, category, location))
@@ -37,33 +37,28 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
         stream.println(prettyMessage(nrTokens, nrLines, files))
         stream.flush()
       case fileMetrics: FileMetrics =>
-        fileMetricsMessage(fileMetrics).map(stream.println)
+        stream.println(prettyMessage(fileMetrics))
         stream.flush()
     }
   }
 
-  private def fileMetricsMessage(fileMetrics: FileMetrics): List[String] = {
-    def prettyNamedValue(name: String, value: Int): String =
-      s"$name = $value"
-
-    val fileMetricsList = List(
-      fileMetrics.complexity.map(prettyNamedValue("cyclomatic complexity", _)),
-      fileMetrics.loc.map(prettyNamedValue("lines of code", _)),
-      fileMetrics.cloc.map(prettyNamedValue("commented lines of code", _)),
-      fileMetrics.nrMethods.map(prettyNamedValue("number of methods", _)),
-      fileMetrics.nrClasses.map(prettyNamedValue("number of classes", _)))
-
-    val fileMetricsValues = fileMetricsList.collect {
+  private def prettyMessage(fileMetrics: FileMetrics): String = {
+    val fileMetricsValues = List(
+      fileMetrics.complexity.map(complexityNum => s"  CC - $complexityNum"),
+      fileMetrics.loc.map(loc => s"  LOC - $loc"),
+      fileMetrics.cloc.map(cloc => s"  CLOC - $cloc"),
+      fileMetrics.nrMethods.map(nrMethods => s"  #methods - $nrMethods"),
+      fileMetrics.nrClasses.map(nrClasses => s"  #classes - $nrClasses")).collect {
       case Some(namedValue) => namedValue
     }
 
-    if (fileMetricsValues.isEmpty) {
-      List(s"No metrics found on file ${fileMetrics.filename}")
-    } else {
-      fileMetricsValues.map { fileMetricValue =>
-        s"Found $fileMetricValue on file ${fileMetrics.filename}"
-      }
+    val coloredMetricsFound = Console.BLUE + "Metrics" + Console.RESET
+    val boldFileName = s"${Console.BOLD}${fileMetrics.filename}${Console.RESET}"
 
+    if (fileMetricsValues.isEmpty) {
+      s"No [$coloredMetricsFound] found in $boldFileName."
+    } else {
+      s"Found [$coloredMetricsFound] in $boldFileName:\n${fileMetricsValues.mkString("\n")}"
     }
   }
 
@@ -80,13 +75,17 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
   }
 
   private def prettyMessage(nrTokens: Int, nrLines: Int, files: Set[DuplicationCloneFile]): String = {
-    val cloneFoundColored = Console.MAGENTA + "Clone" + Console.RESET
-    val duplicatedFilesMsg = files.map { file =>
-      s"${file.filePath}, from line ${file.startLine} to ${file.endLine}"
-    }.mkString("; ")
-    val message =
-      s"There are $nrLines duplicated lines with $nrTokens tokens on these files: $duplicatedFilesMsg"
-    s"Found [$cloneFoundColored] $message"
+    val coloredCloneFound = Console.CYAN + "Clone" + Console.RESET
+    val duplicatedFilesMsg = files
+      .groupBy(_.filePath)
+      .map {
+        case (filePath, cloneFiles) =>
+          val lineNumbers =
+            cloneFiles.map(cloneFile => s"    l. ${cloneFile.startLine} - ${cloneFile.endLine}").mkString("\n")
+          s"  ${Console.BOLD}$filePath${Console.RESET}\n$lineNumbers"
+      }
+      .mkString("\n")
+    s"Found [$coloredCloneFound] $nrLines duplicated lines with $nrTokens tokens:\n$duplicatedFilesMsg"
   }
 
   private def levelColor(level: results.Result.Level): String = {
