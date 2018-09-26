@@ -29,7 +29,40 @@
       "cloc": 1,
       "nrMethods": 13,
       "nrClasses": 2,
-      "lineComplexities": []
+      "lineComplexities": [
+        {
+          "line": 32,
+          "value": 8
+        },
+        {
+          "line": 193,
+          "value": 3
+        },
+        {
+          "line": 207,
+          "value": 3
+        },
+        {
+          "line": 163,
+          "value": 3
+        },
+        {
+          "line": 222,
+          "value": 4
+        },
+        {
+          "line": 183,
+          "value": 3
+        },
+        {
+          "line": 32,
+          "value": 5
+        },
+        {
+          "line": 81,
+          "value": 78
+        }
+      ]
     }
   },
   {
