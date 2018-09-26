@@ -5,21 +5,18 @@ import better.files.File
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.MetricsToolExecutorResult
 import com.codacy.analysis.core
 import com.codacy.analysis.core.model.FileMetrics
-import org.log4s.{Logger, getLogger}
 
 import scala.util.{Failure, Success}
 
 object MetricsToolExecutor {
 
-  private val logger: Logger = getLogger
-
   def reduceMetricsToolResultsByFile(metricsResults: Seq[MetricsToolExecutorResult]): Seq[MetricsToolExecutorResult] = {
-    metricsResults
+    val (successfulMetricsResults, failedMetricsResults) = metricsResults.partition(_.analysisResults.isSuccess)
+
+    successfulMetricsResults
       .groupBy(_.language)
       .values
       .flatMap {
-        val errorLogMessage =
-          "While merging metrics results, found a success and a failure for the same file. Will assume the success."
         _.foldLeft(Option.empty[MetricsToolExecutorResult]) {
           case (
               Some(metricsExecutorResAcc @ MetricsToolExecutorResult(_, _, Success(fileMetricsAcc))),
@@ -27,20 +24,9 @@ object MetricsToolExecutor {
             val allFiles = metricsExecutorResAcc.files ++ metricsExecutorRes.files
             val reducedFileMetrics = reduceFileMetricsByFile(fileMetrics ++ fileMetricsAcc)
             Some(metricsExecutorResAcc.copy(files = allFiles, analysisResults = Success(reducedFileMetrics)))
-          //TODO (FT-5881): we need to find a way to return the failures to backend so we can manage to distinguish between PartialFailures and metrics that don't have complexity
-          case (
-              metricsToolExecutorRes @ Some(MetricsToolExecutorResult(_, _, Success(_))),
-              MetricsToolExecutorResult(_, _, Failure(_))) =>
-            logger.error(errorLogMessage)
-            metricsToolExecutorRes
-          case (
-              Some(MetricsToolExecutorResult(_, _, Failure(_))),
-              metricsToolExecutorRes @ MetricsToolExecutorResult(_, _, Success(_))) =>
-            logger.error(errorLogMessage)
-            Some(metricsToolExecutorRes)
           case (_, o) => Some(o)
         }
-      }(collection.breakOut)
+      }(collection.breakOut) ++ failedMetricsResults
   }
 
   private def reduceFileMetricsByFile(fileMetrics: Set[FileMetrics]): Set[FileMetrics] = {
@@ -65,32 +51,44 @@ object MetricsToolExecutor {
       }(collection.breakOut)
   }
 
-  def calculateMissingFileMetrics(directory: File,
-                                  metricsResults: Seq[MetricsToolExecutorResult]): Seq[MetricsToolExecutorResult] = {
+  def calculateMissingFileMetrics(
+    directory: File,
+    metricsResults: Seq[AnalyseExecutor.MetricsToolExecutorResult]): Seq[MetricsToolExecutorResult] = {
 
     val fileMetricsByFilePath: Map[Path, FileMetrics] = metricsResults.flatMap { result =>
       result.analysisResults.map(_.map(fileMetrics => (fileMetrics.filename, fileMetrics))).getOrElse(Set.empty)
     }(collection.breakOut)
 
-    metricsResults.map {
-      case res @ AnalyseExecutor.MetricsToolExecutorResult(_, files, _) =>
-        val fileMetrics = files.map { file =>
-          fileMetricsByFilePath.get(file) match {
-            case None =>
-              FileMetrics(
-                filename = file,
-                nrClasses = None,
-                nrMethods = None,
-                loc = countLoc(directory, file),
-                cloc = None,
-                complexity = None,
-                lineComplexities = Set.empty)
-            case Some(metrics) if metrics.loc.isEmpty => metrics.copy(loc = countLoc(directory, file))
-            case Some(metrics)                        => metrics
-          }
-        }
-        res.copy(analysisResults = Success(fileMetrics))
+    metricsResults.foldLeft(Seq.empty[MetricsToolExecutorResult]) {
+      case (metricsAccumulator, res @ AnalyseExecutor.MetricsToolExecutorResult(_, _, Success(_))) =>
+        metricsAccumulator :+ countMissingLoc(directory, fileMetricsByFilePath, res)
+      case (metricsAccumulator, res @ AnalyseExecutor.MetricsToolExecutorResult(lang, files, Failure(_)))
+          if !metricsResults.exists(r => r.language == lang && r.files == files && r.analysisResults.isSuccess) =>
+        metricsAccumulator :+ res :+ countMissingLoc(directory, fileMetricsByFilePath, res)
+      case (metricsAccumulator, res) =>
+        metricsAccumulator :+ res
     }
+  }
+
+  private def countMissingLoc(directory: File,
+                              fileMetricsByFilePath: Map[Path, FileMetrics],
+                              metricsRes: AnalyseExecutor.MetricsToolExecutorResult) = {
+    val fileMetrics = metricsRes.files.map { file =>
+      fileMetricsByFilePath.get(file) match {
+        case None =>
+          FileMetrics(
+            filename = file,
+            nrClasses = None,
+            nrMethods = None,
+            loc = countLoc(directory, file),
+            cloc = None,
+            complexity = None,
+            lineComplexities = Set.empty)
+        case Some(metrics) if metrics.loc.isEmpty => metrics.copy(loc = countLoc(directory, file))
+        case Some(metrics)                        => metrics
+      }
+    }
+    metricsRes.copy(analysisResults = Success(fileMetrics))
   }
 
   private def countLoc(directory: File, file: Path): Option[Int] = {
