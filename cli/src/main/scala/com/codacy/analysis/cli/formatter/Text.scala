@@ -52,7 +52,7 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
       case Some(namedValue) => namedValue
     }
 
-    val coloredMetricsFound = Console.BLUE + "Metrics" + Console.RESET
+    val coloredMetricsFound = Console.MAGENTA + "Metrics" + Console.RESET
     val boldFileName = s"${Console.BOLD}${fileMetrics.filename}${Console.RESET}"
 
     if (fileMetricsValues.isEmpty) {
