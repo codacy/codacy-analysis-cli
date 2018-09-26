@@ -86,6 +86,53 @@ docker run \
     analyse --tool <TOOL-SHORT-NAME>
 ```
 
+
+### Output
+The default format for the CLI output is text and is divided into 3 categories:
+
+#### Issues
+
+Issues reported by the tools that vary between 3 different levels (`Error`, `Warning` and `Info`). Example:
+
+```
+Found [Error] `Expected "#E1675A" to be "#e1675a" (color-hex-case)` in styles/variables.less:4 (Stylelint_color-hex-case)
+Found [Warning] `'object short notation' is available in ES6 (use esnext option) or Mozilla JS extensions (use moz).` in scripts/main.js:28 (iterator)
+Found [Info] `Missing semicolon.` in views/components/Progress.jsx:18 (asi)
+```
+
+#### Metrics
+
+The metrics data is printed for each file and contains 5 types of data:
+* `LOC` - Lines of Code
+* `CLOC` - Commented Lines of Code
+* `CC` - Cyclomatic Complexity
+* `#methods` - Number of methods
+* `#classes` - Number of classes
+
+Example:
+```
+Found [Metrics] in generic/Test.java:
+  CC - 33
+  LOC - 778
+  CLOC - 864
+  #methods - 3
+  #classes - 1
+```
+
+#### Clones
+Each clone found is printed with information about the total number of lines, number of tokens and
+all the occurrences (the lines where it starts and where it ends). Example:
+
+```
+Found [Clone] 7 duplicated lines with 10 tokens:
+  generic/test.rb
+    l. 681 - 687
+    l. 693 - 699
+  generic/another_test.rb
+    l. 601 - 607
+    l. 193 - 199
+```
+
 ## Exit Status Codes
 
 * :tada: 0: Success
