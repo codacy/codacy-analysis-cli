@@ -36,7 +36,8 @@ final case class SubDirectory(sourceDirectory: String, protected val subDirector
   def removePrefix(filename: String): String = filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(private val plugin: DockerTool, val languageToRun: Language) extends ITool {
+class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: DockerTool, val languageToRun: Language)
+    extends ITool {
 
   private val logger: Logger = getLogger
 
@@ -78,9 +79,7 @@ class Tool(private val plugin: DockerTool, val languageToRun: Language) extends 
         files.to[List].map(f => sourceDirectory.removePrefix(f.toString)),
         pluginConfiguration)
 
-    val dockerRunner = new BinaryDockerRunner[Result](plugin)
-    val runner = new ToolRunner(plugin, new DockerToolDocumentation(plugin), dockerRunner)
-    runner.run(request, timeout.getOrElse(dockerRunner.defaultRunTimeout)).map { res =>
+    runner.run(request, timeout.getOrElse(defaultRunTimeout)).map { res =>
       (res.results.map(r =>
         Issue(
           results.Pattern.Id(r.patternIdentifier),
@@ -131,6 +130,12 @@ object Tool {
     PluginHelper.dockerEnterprisePlugins.map(_.shortName)(collection.breakOut)
 
   val allToolShortNames: Set[String] = internetToolShortNames ++ availableTools.map(_.shortName)
+
+  def apply(plugin: DockerTool, languageToRun: Language): Tool = {
+    val dockerRunner = new BinaryDockerRunner[Result](plugin)
+    val runner = new ToolRunner(plugin, new DockerToolDocumentation(plugin), dockerRunner)
+    new Tool(runner, dockerRunner.defaultRunTimeout)(plugin, languageToRun)
+  }
 }
 
 class ToolCollector(allowNetwork: Boolean) {
@@ -177,7 +182,7 @@ class ToolCollector(allowNetwork: Boolean) {
       tool <- availableTools
       languagesToRun = tool.languages.intersect(languages)
       languageToRun <- languagesToRun
-    } yield new Tool(tool, languageToRun))(collection.breakOut)
+    } yield Tool(tool, languageToRun))(collection.breakOut)
 
     if (collectedTools.isEmpty) {
       Left(Analyser.Error.NoToolsFoundForFiles)
@@ -187,7 +192,7 @@ class ToolCollector(allowNetwork: Boolean) {
   }
 
   def from(value: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
-    find(value).map(dockerTool => dockerTool.languages.intersect(languages).map(new Tool(dockerTool, _)))
+    find(value).map(dockerTool => dockerTool.languages.intersect(languages).map(Tool(dockerTool, _)))
   }
 
   private def find(value: String): Either[Analyser.Error, DockerTool] = {
