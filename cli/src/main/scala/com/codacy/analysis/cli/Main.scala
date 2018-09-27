@@ -27,9 +27,9 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success, Try}
 
-object Main extends MainImpl
+object Main extends MainImpl(sys.env)
 
-class MainImpl extends CLIApp {
+class MainImpl(env: Map[String, String]) extends CLIApp {
 
   private val logger: org.log4s.Logger = getLogger
 
@@ -42,7 +42,7 @@ class MainImpl extends CLIApp {
       case analyse: Analyse =>
         Logger.setLevel(analyse.options.verboseValue)
 
-        val environment = new Environment(sys.env)
+        val environment = new Environment(env)
         val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
 
         val configuration: CLIConfiguration =

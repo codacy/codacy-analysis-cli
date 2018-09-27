@@ -16,7 +16,10 @@ import org.specs2.matcher.FileMatchers
 
 class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
 
-  private val cli = new MainImpl() {
+  /* We need a clean environment to avoid using variables from the outside environment.
+   * e.g.: Using the CLI token that is needed for coverage to retrieve configuration during the tests.
+   */
+  private val cli = new MainImpl(Map.empty) {
     override def exit(code: Int): Unit = ()
   }
 
@@ -64,6 +67,8 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
       cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--commit-uuid", "hold-my-flappy-folds")) must beEqualTo(
         Right(errorMsg("Invalid commit uuid hold-my-flappy-folds - it must be a valid SHA hash")))
     }
+
+    // TODO: Move tests bellow to the integration project after Main refactor
 
     "output text to file" in {
       (for {

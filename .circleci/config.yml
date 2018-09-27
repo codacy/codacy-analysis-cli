@@ -66,6 +66,13 @@ references:
     - *restore_maven_dependencies
     - attach_workspace:
         at: /tmp/workspace
+    # Clean CODACY_PROJECT_TOKEN is needed to make sure tests are run in a clean state without
+    # influence from the build server environment
+    # (e.g.: to avoid tests picking the CODACY_PROJECT_TOKEN used to send coverage
+    # and incorrectly using it to obtain remote configurations)
+    - run:
+        name: Clean CODACY_PROJECT_TOKEN
+        command: echo 'unset CODACY_PROJECT_TOKEN' >> $BASH_ENV
     - run:
         name: Load docker from file
         command: |
