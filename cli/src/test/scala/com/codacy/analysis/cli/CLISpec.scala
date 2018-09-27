@@ -126,11 +126,11 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             responseJson <- parser.parse(file.contentAsString)
             response <- responseJson.as[Set[ToolResult]]
             expectedJson <- parser.parse(Resource.getAsString("com/codacy/analysis/cli/cli-output-brakeman-1.json"))
-            expected <- expectedJson.as[Set[ToolResult]]
+            expected <- expectedJson.as[Seq[ToolResult]]
           } yield (response, expected)
 
           result must beRight
-          result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+          result must beLike { case Right((response, expected)) => response must containTheSameElementsAs(expected) }
       }
     }
 
@@ -155,11 +155,11 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           responseJson <- parser.parse(file.contentAsString)
           response <- responseJson.as[Set[ToolResult]]
           expectedJson <- parser.parse(Resource.getAsString("com/codacy/analysis/cli/cli-output-pylint-1.json"))
-          expected <- expectedJson.as[Set[ToolResult]]
+          expected <- expectedJson.as[Seq[ToolResult]]
         } yield (response, expected)
 
         result must beRight
-        result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+        result must beLike { case Right((response, expected)) => response must containTheSameElementsAs(expected) }
         result must beLike {
           case Right((response, _)) => response.exists(_.isInstanceOf[FileError]) must beFalse
         }
@@ -187,11 +187,11 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             response <- responseJson.as[Set[ToolResult]]
             expectedJson <- parser.parse(
               Resource.getAsString("com/codacy/analysis/cli/cli-output-brakeman-rails4.json"))
-            expected <- expectedJson.as[Set[ToolResult]]
+            expected <- expectedJson.as[Seq[ToolResult]]
           } yield (response, expected)
 
           result must beRight
-          result must beLike { case Right((response, expected)) => response must beEqualTo(expected) }
+          result must beLike { case Right((response, expected)) => response must containTheSameElementsAs(expected) }
       }
     }
 
