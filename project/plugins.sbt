@@ -23,3 +23,9 @@ addSbtPlugin("com.geirsson" % "sbt-scalafmt" % "1.5.1")
 // Dependencies
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.3.4")
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.9.1")
+
+// Faster compile server
+addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.0.0")
+
+// Faster dependency resolution
+addSbtPlugin("io.get-coursier" % "sbt-coursier" % "1.0.3")
