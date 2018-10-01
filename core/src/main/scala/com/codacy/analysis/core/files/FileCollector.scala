@@ -4,6 +4,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{Path, Paths}
 
 import better.files.File
+import cats.instances.try_.catsStdInstancesForTry
 import com.codacy.analysis.core.clients.api.{FilePath, PathRegex}
 import com.codacy.analysis.core.tools.{ITool, Tool}
 import com.codacy.plugins.api.languages.{Language, Languages}
@@ -102,8 +103,8 @@ object FileCollector {
 
   private val logger: Logger = getLogger
 
-  val defaultCollector: FileCollectorCompanion[Try] = new FallbackFileCollectorCompanion(
-    List(GitFileCollector, FileSystemFileCollector))
+  val defaultCollector: FileCollectorCompanion[Try] = new FallbackFileCollectorCompanion[Try, Throwable](
+    List(GitFileCollector, FileSystemFileCollector))(new Exception(_))
 
   val allCollectors: Set[FileCollectorCompanion[Try]] = Set(GitFileCollector, FileSystemFileCollector)
 
