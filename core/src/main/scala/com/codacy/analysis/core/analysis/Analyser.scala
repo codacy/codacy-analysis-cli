@@ -26,12 +26,12 @@ trait Analyser[T[_]] {
   def metrics(metricsTool: MetricsTool,
               directory: File,
               files: Option[Set[Path]],
-              timeout: Option[Duration] = Option.empty[Duration]): Try[Set[FileMetrics]]
+              timeout: Option[Duration] = Option.empty[Duration]): T[Set[FileMetrics]]
 
   def duplication(duplicationTool: DuplicationTool,
                   directory: File,
                   files: Set[Path],
-                  timeout: Option[Duration] = Option.empty[Duration]): Try[Set[DuplicationClone]]
+                  timeout: Option[Duration] = Option.empty[Duration]): T[Set[DuplicationClone]]
 
 }
 
