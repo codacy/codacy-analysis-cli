@@ -11,7 +11,7 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.tools._
-import com.codacy.analysis.core.utils.IOHelper.IOThrowable
+import com.codacy.analysis.core.utils.IOHelper._
 import com.codacy.analysis.core.utils.InheritanceOps.InheritanceOps
 import com.codacy.analysis.core.utils.SeqOps._
 import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
@@ -60,28 +60,21 @@ class AnalyseExecutor(formatter: Formatter,
           tool match {
             case tool: Tool =>
               val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
-              val analysisResults = issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles)
+              val analysisResults =
+                issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles).redeemTry
 
-              val tryIO: IO[Nothing, Try[Set[ToolResult]]] =
-                analysisResults.redeem(err => IO.point(Failure(err)), results => IO.point(Success(results)))
-
-              tryIO.map(IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, _))
+              analysisResults.map(IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, _))
             case metricsTool: MetricsTool =>
               val analysisResults =
-                analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles))
+                analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles)).redeemTry
 
-              val tryIO: IO[Nothing, Try[Set[FileMetrics]]] =
-                analysisResults.redeem(err => IO.point(Failure(err)), results => IO.point(Success(results)))
-
-              tryIO.map(MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, _))
+              analysisResults.map(
+                MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, _))
             case duplicationTool: DuplicationTool =>
               val analysisResults =
-                analyser.duplication(duplicationTool, filteredFiles.directory, filteredFiles.readableFiles)
+                analyser.duplication(duplicationTool, filteredFiles.directory, filteredFiles.readableFiles).redeemTry
 
-              val tryIO: IO[Nothing, Try[Set[DuplicationClone]]] =
-                analysisResults.redeem(err => IO.point(Failure(err)), results => IO.point(Success(results)))
-
-              tryIO.map(
+              analysisResults.map(
                 DuplicationToolExecutorResult(duplicationTool.languageToRun.name, filteredFiles.readableFiles, _))
           }
         }
