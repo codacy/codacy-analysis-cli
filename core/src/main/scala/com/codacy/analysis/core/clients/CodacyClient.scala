@@ -114,7 +114,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   private def sendRemoteResultsTo(endpoint: String,
                                   tool: String,
-                                  results: Either[String, Set[FileResults]]): Future[Either[String, Unit]] =
+                                  results: Either[String, Set[FileResults]]): Future[Either[String, Unit]] = {
+
     Future {
       http.post(
         endpoint,
@@ -133,6 +134,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
           validateRemoteResultsResponse(json)
       }
     }
+  }
 
   private def sendEndOfResultsTo(endpoint: String): Future[Either[String, Unit]] = Future {
     http.post(endpoint, None) match {

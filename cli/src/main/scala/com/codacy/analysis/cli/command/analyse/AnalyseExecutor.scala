@@ -12,42 +12,45 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.tools._
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import com.codacy.analysis.core.utils.InheritanceOps.InheritanceOps
 import com.codacy.analysis.core.utils.SeqOps._
-import com.codacy.analysis.core.utils.TryOps._
 import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
 import com.codacy.plugins.api.languages.Language
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
+import scalaz.zio.IO
 
 import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
 
 class AnalyseExecutor(formatter: Formatter,
-                      analyser: Analyser[Try],
-                      fileCollector: FileCollector[Try],
+                      analyser: Analyser[IOThrowable],
+                      fileCollector: FileCollector[IOThrowable],
                       configuration: CLIConfiguration.Analysis) {
 
   private val logger: Logger = getLogger
 
-  def run(): Either[CLIError, Seq[ExecutorResult[_]]] = {
+  def run(): IO[CLIError, Seq[ExecutorResult[_]]] = {
 
     if (configuration.forceFilePermissions) {
       overrideFilePermissions(configuration.projectDirectory)
     }
 
-    val filesTargetAndTool: Either[CLIError, (FilesTarget, FilesTarget, Set[ITool])] = for {
-      allFilesTarget <- fileCollector.list(configuration.projectDirectory).toRight(CLIError.FilesAccessError)
+    val filesTargetAndTool: IO[CLIError, (FilesTarget, FilesTarget, Set[ITool])] = for {
+      allFilesTarget <- fileCollector
+        .list(configuration.projectDirectory)
+        .bimap(_ => CLIError.FilesAccessError, identity)
       filesGlobalTarget = fileCollector.filterGlobal(allFilesTarget, configuration.fileExclusionRules)
-      tools <- allTools(
+      tools <- IO.fromEither(allTools(
         configuration.tool,
         configuration.toolConfiguration,
-        LanguagesHelper.fromFileTarget(filesGlobalTarget, configuration.fileExclusionRules.allowedExtensionsByLanguage))
+        LanguagesHelper.fromFileTarget(filesGlobalTarget, configuration.fileExclusionRules.allowedExtensionsByLanguage)))
     } yield (allFilesTarget, filesGlobalTarget, tools)
 
-    val analysisResult: Either[CLIError, Seq[ExecutorResult[_]]] = filesTargetAndTool.map {
+    val analysisResult: IO[CLIError, Seq[IO[Nothing, ExecutorResult[_]]]] = filesTargetAndTool.map {
       case (allFiles, globalFiles, tools) =>
-        SetOps.mapInParallel[ITool, ExecutorResult[_]](tools, configuration.parallel) { tool: ITool =>
+        SetOps.mapInParallel[ITool, IO[Nothing, ExecutorResult[_]]](tools, configuration.parallel) { tool: ITool =>
           val filteredFiles: FilesTarget =
             fileCollector.filterTool(tool, globalFiles, configuration.fileExclusionRules)
 
@@ -55,27 +58,36 @@ class AnalyseExecutor(formatter: Formatter,
             case tool: Tool =>
               val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
               val analysisResults = issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles)
-              IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, analysisResults)
+
+              val tryIO: IO[Nothing, Try[Set[ToolResult]]] =
+                analysisResults.redeem(err => IO.point(Failure(err)), results => IO.point(Success(results)))
+
+              tryIO.map(IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, _))
             case metricsTool: MetricsTool =>
               val analysisResults =
                 analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles))
-              MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, analysisResults)
+
+              val tryIO: IO[Nothing, Try[Set[FileMetrics]]] =
+                analysisResults.redeem(err => IO.point(Failure(err)), results => IO.point(Success(results)))
+
+              tryIO.map(MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, _))
             case duplicationTool: DuplicationTool =>
               val analysisResults =
                 analyser.duplication(duplicationTool, filteredFiles.directory, filteredFiles.readableFiles)
-              DuplicationToolExecutorResult(
-                duplicationTool.languageToRun.name,
-                filteredFiles.readableFiles,
-                analysisResults)
+
+              val tryIO: IO[Nothing, Try[Set[DuplicationClone]]] =
+                analysisResults.redeem(err => IO.point(Failure(err)), results => IO.point(Success(results)))
+
+              tryIO.map(DuplicationToolExecutorResult(duplicationTool.languageToRun.name, filteredFiles.readableFiles, _))
           }
         }
     }
 
-    postProcess(analysisResult)
+    postProcess(analysisResult.map(IO.sequence).flatMap(identity))
   }
 
   private def postProcess(
-    analysisResult: Either[CLIError, Seq[ExecutorResult[_]]]): Either[CLIError, Seq[ExecutorResult[_]]] = {
+    analysisResult: IO[CLIError, Seq[ExecutorResult[_]]]): IO[CLIError, Seq[ExecutorResult[_]]] = {
     analysisResult.map { result =>
       val (issuesResults, duplicationResults, metricsResults) =
         result.partitionSubtypes[IssuesToolExecutorResult, DuplicationToolExecutorResult, MetricsToolExecutorResult]
@@ -99,9 +111,9 @@ class AnalyseExecutor(formatter: Formatter,
   private def issues(tool: Tool,
                      analysisFilesTarget: FilesTarget,
                      configuration: CLIConfiguration.Tool,
-                     toolHasConfigFiles: Boolean): Try[Set[ToolResult]] = {
+                     toolHasConfigFiles: Boolean): IOThrowable[Set[ToolResult]] = {
     for {
-      toolConfiguration <- getToolConfiguration(tool, toolHasConfigFiles, configuration)
+      toolConfiguration <- IO.fromTry(getToolConfiguration(tool, toolHasConfigFiles, configuration))
       results <- analyser.analyse(
         tool,
         analysisFilesTarget.directory,
@@ -174,6 +186,7 @@ object AnalyseExecutor {
 
   sealed trait ExecutorResult[T <: Result] {
     def analysisResults: Try[Set[T]]
+    def analysisResultsAsList: Try[List[Result]] = analysisResults.map(_.to[List])
   }
   final case class IssuesToolExecutorResult(toolName: String, files: Set[Path], analysisResults: Try[Set[ToolResult]])
       extends ExecutorResult[ToolResult]

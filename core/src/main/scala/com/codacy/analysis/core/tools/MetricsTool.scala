@@ -4,8 +4,9 @@ import java.nio.file.Paths
 
 import better.files.File
 import com.codacy.analysis.core.model.FileMetrics
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import com.codacy.plugins.api
-import com.codacy.plugins.api.Source
+import com.codacy.plugins.api.{Source, metrics}
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.metrics.MetricsTool.CodacyConfiguration
 import com.codacy.plugins.metrics.traits
@@ -13,6 +14,7 @@ import com.codacy.plugins.metrics.traits.{MetricsRequest, MetricsRunner}
 import com.codacy.plugins.traits.BinaryDockerRunner
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.getLogger
+import scalaz.zio.IO
 
 import scala.concurrent.duration.Duration
 import scala.util.Try
@@ -24,7 +26,7 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
 
   def run(directory: File,
           files: Option[Set[Source.File]],
-          timeout: Option[Duration] = Option.empty[Duration]): Try[List[FileMetrics]] = {
+          timeout: Option[Duration] = Option.empty[Duration]): IOThrowable[List[FileMetrics]] = {
     val request = MetricsRequest(directory.pathAsString)
 
     val dockerRunner = new BinaryDockerRunner[api.metrics.FileMetrics](metricsTool)
@@ -32,10 +34,15 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
 
     val configuration = CodacyConfiguration(files, Some(languageToRun), None)
 
-    val toolFileMetrics = runner.run(request, configuration, timeout.getOrElse(dockerRunner.defaultRunTimeout), None)
+    def run(): Try[List[metrics.FileMetrics]] = {
+      runner.run(request, configuration, timeout.getOrElse(dockerRunner.defaultRunTimeout), None)
+    }
 
-    toolFileMetrics.map {
-      _.collect {
+    for {
+      _ <- IO.point(())
+      fileMetricsList <- IO.fromTry(run())
+    } yield {
+      fileMetricsList.collect {
         case fileMetrics if unignoredFile(fileMetrics, files) =>
           FileMetrics(
             filename = Paths.get(fileMetrics.filename),

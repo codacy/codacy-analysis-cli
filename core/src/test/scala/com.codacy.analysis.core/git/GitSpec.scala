@@ -4,10 +4,12 @@ import better.files.File
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 import com.codacy.analysis.core.utils.TestUtils._
+import scalaz.zio.RTS
 
 import scala.sys.process.Process
+import scala.util.{Success, Try}
 
-class GitSpec extends Specification with NoLanguageFeatures {
+class GitSpec extends Specification with NoLanguageFeatures with RTS {
 
   "Git" should {
     "create a repository" in {
@@ -16,15 +18,15 @@ class GitSpec extends Specification with NoLanguageFeatures {
       } yield {
         Process(Seq("git", "init"), temporaryDirectory.toJava).!
 
-        Git.repository(temporaryDirectory) must beSuccessfulTry
+        Try(unsafeRun(Git.repository(temporaryDirectory))) must beSuccessfulTry
       }).get
     }
 
     "get the current commit uuid" in {
       withTemporaryGitRepo(directory => {
         val expectedUuid = Process(Seq("git", "rev-parse", "HEAD"), directory.toJava).!!.trim
-        Git.currentCommitUuid(directory) must beLike {
-          case Some(commit) => commit.value must beEqualTo(expectedUuid)
+        Try(unsafeRun(Git.currentCommitUuid(directory))) must beLike {
+          case Success(commit) => commit.value must beEqualTo(expectedUuid)
         }
       })
     }
@@ -33,7 +35,7 @@ class GitSpec extends Specification with NoLanguageFeatures {
       (for {
         temporaryDirectory <- File.temporaryDirectory()
       } yield {
-        Git.repository(temporaryDirectory) must beFailedTry
+        Try(unsafeRun(Git.repository(temporaryDirectory))) must beFailedTry
       }).get
     }
   }

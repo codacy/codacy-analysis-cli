@@ -4,11 +4,12 @@ import better.files.File
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 import com.codacy.analysis.core.utils.TestUtils._
+import scalaz.zio.RTS
 
 import scala.sys.process.Process
-import scala.util.Success
+import scala.util.{Success, Try}
 
-class CommitSpec extends Specification with NoLanguageFeatures {
+class CommitSpec extends Specification with NoLanguageFeatures with RTS {
 
   "Commit" should {
     "get all files" in {
@@ -28,7 +29,7 @@ class CommitSpec extends Specification with NoLanguageFeatures {
           Process(Seq("git", "commit", "-m", "tmp"), temporaryDirectory.toJava).!
 
           val expectedFiles = List(tempFile1, tempFile2, tempFile3).map(temporaryDirectory.relativize)
-          Git.repository(temporaryDirectory).flatMap(_.latestCommit).flatMap(_.files) must beLike {
+          Try(unsafeRun(Git.repository(temporaryDirectory).flatMap(_.latestCommit).flatMap(_.files))) must beLike {
             case Success(fileSet) => fileSet must containTheSameElementsAs(expectedFiles)
           }
         }).get()

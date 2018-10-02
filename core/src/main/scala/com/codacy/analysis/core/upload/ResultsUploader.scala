@@ -116,7 +116,7 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
     tool: String,
     fileResultBatches: Either[String, Seq[Set[FileResults]]]): Future[Either[String, Unit]] = {
 
-    val responses: Seq[Future[Either[String, Unit]]] = fileResultBatches.fold(
+    val responses = fileResultBatches.fold(
       error => Seq(codacyClient.sendRemoteIssues(tool, commitUuid, Left(error))),
       _.map(fileResultBatch => codacyClient.sendRemoteIssues(tool, commitUuid, Right(fileResultBatch))))
 

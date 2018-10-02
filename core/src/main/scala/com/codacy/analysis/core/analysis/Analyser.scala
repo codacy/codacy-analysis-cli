@@ -5,10 +5,10 @@ import java.nio.file.Path
 import better.files.File
 import com.codacy.analysis.core.model.{Configuration, DuplicationClone, FileMetrics, ToolResult}
 import com.codacy.analysis.core.tools.{DuplicationTool, MetricsTool, Tool}
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import org.log4s.{Logger, getLogger}
 
 import scala.concurrent.duration.Duration
-import scala.util.Try
 
 trait AnalyserCompanion[T[_]] {
   def name: String
@@ -26,12 +26,12 @@ trait Analyser[T[_]] {
   def metrics(metricsTool: MetricsTool,
               directory: File,
               files: Option[Set[Path]],
-              timeout: Option[Duration] = Option.empty[Duration]): Try[Set[FileMetrics]]
+              timeout: Option[Duration] = Option.empty[Duration]): T[Set[FileMetrics]]
 
   def duplication(duplicationTool: DuplicationTool,
                   directory: File,
                   files: Set[Path],
-                  timeout: Option[Duration] = Option.empty[Duration]): Try[Set[DuplicationClone]]
+                  timeout: Option[Duration] = Option.empty[Duration]): T[Set[DuplicationClone]]
 
 }
 
@@ -39,11 +39,11 @@ object Analyser {
 
   private val logger: Logger = getLogger
 
-  val defaultAnalyser: AnalyserCompanion[Try] = CodacyPluginsAnalyser
+  val defaultAnalyser: AnalyserCompanion[IOThrowable] = CodacyPluginsAnalyser
 
-  val allAnalysers: Set[AnalyserCompanion[Try]] = Set(defaultAnalyser)
+  val allAnalysers: Set[AnalyserCompanion[IOThrowable]] = Set(defaultAnalyser)
 
-  def apply(name: String): Analyser[Try] = {
+  def apply(name: String): Analyser[IOThrowable] = {
     val builder = allAnalysers.find(_.name.equalsIgnoreCase(name)).getOrElse {
       logger.warn(s"Could not find analyser for name $name. Using ${defaultAnalyser.name} as fallback.")
       defaultAnalyser

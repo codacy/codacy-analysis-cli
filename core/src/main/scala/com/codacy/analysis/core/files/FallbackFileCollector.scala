@@ -1,40 +1,40 @@
 package com.codacy.analysis.core.files
 
 import better.files.File
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
+import scalaz.zio.IO
 
-import scala.util.{Failure, Try}
+class FallbackFileCollector(fileCollectorCompanions: List[FileCollectorCompanion[IOThrowable]]) extends FileCollector[IOThrowable] {
 
-class FallbackFileCollector(fileCollectorCompanions: List[FileCollectorCompanion[Try]]) extends FileCollector[Try] {
+  private val fileCollectors: List[FileCollector[IOThrowable]] = fileCollectorCompanions.map(_.apply())
 
-  private val fileCollectors: List[FileCollector[Try]] = fileCollectorCompanions.map(_.apply())
-
-  override def list(directory: File): Try[FilesTarget] = {
+  override def list(directory: File): IOThrowable[FilesTarget] = {
     list(fileCollectors, directory)
   }
 
-  private def list(fileCollectorList: List[FileCollector[Try]], directory: File): Try[FilesTarget] = {
+  private def list(fileCollectorList: List[FileCollector[IOThrowable]], directory: File): IOThrowable[FilesTarget] = {
     fileCollectorList match {
       case fileCollector :: tail =>
-        fileCollector.list(directory).recoverWith {
+        fileCollector.list(directory).redeem({
           case _ =>
             logger.info(s"Failed to list files with ${fileCollector.getClass.getName}")
             list(tail, directory)
-        }
+        }, IO.point(_))
       case Nil =>
         val errorMessage =
           s"All FileCollectors failed to list files: ${fileCollectorCompanions.map(_.name).mkString(",")}"
         logger.error(errorMessage)
 
-        Failure(new Exception(errorMessage))
+        IO.fail(new Exception(errorMessage))
     }
   }
 }
 
-class FallbackFileCollectorCompanion(fileCollectorCompanions: List[FileCollectorCompanion[Try]])
-    extends FileCollectorCompanion[Try] {
+class FallbackFileCollectorCompanion(fileCollectorCompanions: List[FileCollectorCompanion[IOThrowable]])
+    extends FileCollectorCompanion[IOThrowable] {
 
   val name: String = s"fallback:${fileCollectorCompanions.map(_.name).mkString(",")}"
 
-  override def apply(): FileCollector[Try] = new FallbackFileCollector(fileCollectorCompanions)
+  override def apply(): FileCollector[IOThrowable] = new FallbackFileCollector(fileCollectorCompanions)
 
 }
