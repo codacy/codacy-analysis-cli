@@ -76,7 +76,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       when(
         codacyClient.sendRemoteMetrics(
           Commit.Uuid(ArgumentMatchers.eq[String](commitUuid.value)),
-          ArgumentMatchers.any[Seq[MetricsResult]])).thenAnswer((invocation: InvocationOnMock) => {
+          ArgumentMatchers.any[Seq[MetricsResult]])).thenAnswer((_: InvocationOnMock) => {
         Future.successful(().asRight[String])
       })
 
@@ -134,7 +134,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       when(
         codacyClient.sendRemoteDuplication(
           Commit.Uuid(ArgumentMatchers.eq[String](commitUuid.value)),
-          ArgumentMatchers.any[Seq[DuplicationResult]])).thenAnswer((invocation: InvocationOnMock) => {
+          ArgumentMatchers.any[Seq[DuplicationResult]])).thenAnswer((_: InvocationOnMock) => {
         Future.successful(().asRight[String])
       })
 
@@ -178,8 +178,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
     val esLintPatternsInternalIds = Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
 
     s"analyse a javascript project with eslint, $message".stripMargin in {
-      val toolPatterns = esLintPatternsInternalIds.map { patternId =>
-        ToolPattern(patternId, Set.empty)
+      val toolPatterns = esLintPatternsInternalIds.map { patternId => ToolPattern(patternId, Set.empty)
       }
       val codacyClient = mock[CodacyClient]
       val uploader: ResultsUploader =
@@ -189,14 +188,14 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         codacyClient.sendRemoteIssues(
           ArgumentMatchers.eq(tool),
           Commit.Uuid(ArgumentMatchers.eq[String](commitUuid.value)),
-          ArgumentMatchers.any[Right[String, Set[FileResults]]])).thenAnswer((invocation: InvocationOnMock) => {
+          ArgumentMatchers.any[Right[String, Set[FileResults]]])).thenAnswer((_: InvocationOnMock) => {
         Future.successful(().asRight[String])
       })
       when(
         codacyClient.sendRemoteIssues(
           ArgumentMatchers.eq(otherTool),
           Commit.Uuid(ArgumentMatchers.eq[String](commitUuid.value)),
-          ArgumentMatchers.any[Right[String, Set[FileResults]]])).thenAnswer((invocation: InvocationOnMock) => {
+          ArgumentMatchers.any[Right[String, Set[FileResults]]])).thenAnswer((_: InvocationOnMock) => {
         Future.successful(().asRight[String])
       })
 

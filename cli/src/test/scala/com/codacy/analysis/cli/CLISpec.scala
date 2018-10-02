@@ -102,7 +102,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             file.pathAsString))
 
         file.contentAsString must beEqualTo("""|[]
-                 |""".stripMargin)
+                                               |""".stripMargin)
       }).get()
     }
 
@@ -282,9 +282,8 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
     "fail because of untracked files with enabled upload" in {
       withTemporaryGitRepo { directory =>
         (for {
-          newFile <- File.temporaryFile(parent = Some(directory))
+          _ <- File.temporaryFile(parent = Some(directory))
         } yield {
-
           val analyse = Analyse(
             options = CommonOptions(),
             api = APIOptions(projectToken = None, codacyApiBaseUrl = None),
@@ -293,7 +292,6 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             upload = Tag.of(1),
             extras = ExtraOptions(),
             toolTimeout = None)
-
           cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommitedChanges)
         }).get
       }
@@ -324,9 +322,8 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
     "fail because the uuid of the current commit of the git project does not match the one provided by parameter" in {
       withTemporaryGitRepo { directory =>
         (for {
-          newFile <- File.temporaryFile(parent = Some(directory))
+          _ <- File.temporaryFile(parent = Some(directory))
         } yield {
-
           val analyse = Analyse(
             options = CommonOptions(),
             api = APIOptions(projectToken = Some("hey, im a token"), codacyApiBaseUrl = Some("https://codacy.com")),
@@ -336,7 +333,6 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             extras = ExtraOptions(),
             commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
             toolTimeout = None)
-
           cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
         }).get
       }
