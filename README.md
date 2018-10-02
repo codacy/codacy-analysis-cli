@@ -136,13 +136,15 @@ Found [Clone] 7 duplicated lines with 10 tokens:
 ## Exit Status Codes
 
 * :tada: 0: Success
-* :cold_sweat: 1: Failed Analysis
-* :frowning: 2: Partially Failed Analysis
-* :weary: 101: Failed Upload
-* :confused: 102: Uncommited changes in project (with upload option selected)
-* :open_mouth: 103: The commit uuid passed by parameter does not match the current commit of the project's repository 
-* :cop: 201: Max Allowed Issues Exceeded
-* :angry: 301: Non-existent tool provided as input
+* :dizzy_face: 1: Generic Error
+* :sleeping: 2: Timeout
+* :weary: 10: Failed Upload
+* :confused: 11: Uncommited changes in project (with upload option selected)
+* :open_mouth: 12: The commit uuid passed by parameter does not match the current commit of the project's repository
+* :angry: 13: Non-existent tool provided as input
+* :cold_sweat: 100: Failed Analysis
+* :frowning: 101: Partially Failed Analysis
+* :cop: 102: Max Allowed Issues Exceeded
 
 ## Configuration
 

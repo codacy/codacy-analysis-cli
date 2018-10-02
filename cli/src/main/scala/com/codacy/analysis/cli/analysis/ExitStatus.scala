@@ -12,14 +12,17 @@ object ExitStatus {
 
   object ExitCodes {
     val success = 0
-    val failedAnalysis = 1
-    val partiallyFailedAnalysis = 2
-    val failedUpload = 101
-    val uncommitedChanges = 102
-    val commitsDoNotMatch = 103
-    val maxAllowedIssuesExceeded = 201
-    val nonExistentTool = 301
+    val genericError = 1
+    val timeout = 2
+    val failedUpload = 10
+    val uncommitedChanges = 11
+    val commitsDoNotMatch = 12
+    val nonExistentTool = 13
+    val failedAnalysis = 100
+    val partiallyFailedAnalysis = 101
+    val maxAllowedIssuesExceeded = 102
   }
+
 }
 
 class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
