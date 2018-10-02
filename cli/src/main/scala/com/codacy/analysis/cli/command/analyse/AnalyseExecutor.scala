@@ -42,10 +42,12 @@ class AnalyseExecutor(formatter: Formatter,
         .list(configuration.projectDirectory)
         .bimap(_ => CLIError.FilesAccessError, identity)
       filesGlobalTarget = fileCollector.filterGlobal(allFilesTarget, configuration.fileExclusionRules)
-      tools <- IO.fromEither(allTools(
-        configuration.tool,
-        configuration.toolConfiguration,
-        LanguagesHelper.fromFileTarget(filesGlobalTarget, configuration.fileExclusionRules.allowedExtensionsByLanguage)))
+      tools <- IO.fromEither(
+        allTools(
+          configuration.tool,
+          configuration.toolConfiguration,
+          LanguagesHelper
+            .fromFileTarget(filesGlobalTarget, configuration.fileExclusionRules.allowedExtensionsByLanguage)))
     } yield (allFilesTarget, filesGlobalTarget, tools)
 
     val analysisResult: IO[CLIError, Seq[IO[Nothing, ExecutorResult[_]]]] = filesTargetAndTool.map {
@@ -78,7 +80,8 @@ class AnalyseExecutor(formatter: Formatter,
               val tryIO: IO[Nothing, Try[Set[DuplicationClone]]] =
                 analysisResults.redeem(err => IO.point(Failure(err)), results => IO.point(Success(results)))
 
-              tryIO.map(DuplicationToolExecutorResult(duplicationTool.languageToRun.name, filteredFiles.readableFiles, _))
+              tryIO.map(
+                DuplicationToolExecutorResult(duplicationTool.languageToRun.name, filteredFiles.readableFiles, _))
           }
         }
     }

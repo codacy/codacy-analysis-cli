@@ -51,8 +51,8 @@ class MainImpl(env: Map[String, String]) extends CLIApp with RTS {
         val configuration: IO[Nothing, CLIConfiguration] =
           CLIConfiguration(codacyClientOpt, environment, analyse, new CodacyConfigurationFile.Loader)
 
-        val program: IO[(CLIConfiguration, CLIError), (CLIConfiguration, Seq[ExecutorResult[_]])] = configuration.flatMap {
-          configuration =>
+        val program: IO[(CLIConfiguration, CLIError), (CLIConfiguration, Seq[ExecutorResult[_]])] =
+          configuration.flatMap { configuration =>
             removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
 
             val analysisAndUpload = for {
@@ -68,7 +68,7 @@ class MainImpl(env: Map[String, String]) extends CLIApp with RTS {
             def zipWithConfig[T](t: T): (CLIConfiguration, T) = (configuration, t)
 
             analysisAndUpload.bimap(zipWithConfig, zipWithConfig)
-        }
+          }
 
         runAndExit(program)
     }

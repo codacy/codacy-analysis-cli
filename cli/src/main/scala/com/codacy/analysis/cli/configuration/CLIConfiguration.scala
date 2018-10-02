@@ -194,12 +194,12 @@ object CLIConfiguration {
     }
     val analysisConfiguration =
       Analysis(projectDirectory, analyse, localConfiguration, remoteProjectConfiguration)
-    val uploadConfiguration = commitUuid.redeemPure(_ => Upload(None, analyse.uploadValue), commitUuid => Upload(Some(commitUuid), analyse.uploadValue))
+    val uploadConfiguration = commitUuid
+      .redeemPure(_ => Upload(None, analyse.uploadValue), commitUuid => Upload(Some(commitUuid), analyse.uploadValue))
     val resultConfiguration = Result(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
 
-    uploadConfiguration.map {
-      config =>
-        CLIConfiguration(analysisConfiguration, config, resultConfiguration)
+    uploadConfiguration.map { config =>
+      CLIConfiguration(analysisConfiguration, config, resultConfiguration)
     }
 
   }

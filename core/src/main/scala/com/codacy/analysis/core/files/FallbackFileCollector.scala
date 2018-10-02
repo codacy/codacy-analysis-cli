@@ -4,7 +4,8 @@ import better.files.File
 import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import scalaz.zio.IO
 
-class FallbackFileCollector(fileCollectorCompanions: List[FileCollectorCompanion[IOThrowable]]) extends FileCollector[IOThrowable] {
+class FallbackFileCollector(fileCollectorCompanions: List[FileCollectorCompanion[IOThrowable]])
+    extends FileCollector[IOThrowable] {
 
   private val fileCollectors: List[FileCollector[IOThrowable]] = fileCollectorCompanions.map(_.apply())
 
@@ -15,11 +16,13 @@ class FallbackFileCollector(fileCollectorCompanions: List[FileCollectorCompanion
   private def list(fileCollectorList: List[FileCollector[IOThrowable]], directory: File): IOThrowable[FilesTarget] = {
     fileCollectorList match {
       case fileCollector :: tail =>
-        fileCollector.list(directory).redeem({
-          case _ =>
-            logger.info(s"Failed to list files with ${fileCollector.getClass.getName}")
-            list(tail, directory)
-        }, IO.point(_))
+        fileCollector
+          .list(directory)
+          .redeem({
+            case _ =>
+              logger.info(s"Failed to list files with ${fileCollector.getClass.getName}")
+              list(tail, directory)
+          }, IO.point(_))
       case Nil =>
         val errorMessage =
           s"All FileCollectors failed to list files: ${fileCollectorCompanions.map(_.name).mkString(",")}"

@@ -21,15 +21,16 @@ class CodacyPluginsAnalyser extends Analyser[IOThrowable] {
                        files: Set[Path],
                        config: Configuration,
                        timeout: Option[Duration] = Option.empty[Duration]): IOThrowable[Set[ToolResult]] = {
-    tool.run(directory, files, config, timeout).redeem({
-      e =>
-        logger.error(e)(Analyser.Error.ToolExecutionFailure("analysis", tool.name).message)
-        IO.fail(e)
-    }, {
-      res =>
-        logger.info(s"Completed analysis for ${tool.name} with ${res.size} results")
-        IO.point(res)
-    })
+    tool
+      .run(directory, files, config, timeout)
+      .redeem(
+        { e =>
+          logger.error(e)(Analyser.Error.ToolExecutionFailure("analysis", tool.name).message)
+          IO.fail(e)
+        }, { res =>
+          logger.info(s"Completed analysis for ${tool.name} with ${res.size} results")
+          IO.point(res)
+        })
   }
 
   override def metrics(metricsTool: MetricsTool,
@@ -39,15 +40,16 @@ class CodacyPluginsAnalyser extends Analyser[IOThrowable] {
 
     val srcFiles = files.map(_.map(filePath => Source.File(filePath.toString)))
 
-    metricsTool.run(directory, srcFiles, timeout).redeem({
-      e =>
-        logger.error(e)(Analyser.Error.ToolExecutionFailure("metrics", metricsTool.name).message)
-        IO.fail(e)
-    }, {
-      res =>
-        logger.info(s"Completed metrics for ${metricsTool.name} with ${res.size} results")
-        IO.point(res.to[Set])
-    })
+    metricsTool
+      .run(directory, srcFiles, timeout)
+      .redeem(
+        { e =>
+          logger.error(e)(Analyser.Error.ToolExecutionFailure("metrics", metricsTool.name).message)
+          IO.fail(e)
+        }, { res =>
+          logger.info(s"Completed metrics for ${metricsTool.name} with ${res.size} results")
+          IO.point(res.to[Set])
+        })
   }
 
   override def duplication(duplicationTool: DuplicationTool,
@@ -55,15 +57,16 @@ class CodacyPluginsAnalyser extends Analyser[IOThrowable] {
                            files: Set[Path],
                            timeout: Option[Duration] = Option.empty[Duration]): IOThrowable[Set[DuplicationClone]] = {
 
-    duplicationTool.run(directory, files, timeout).redeem({
-      e =>
-        logger.error(e)(Analyser.Error.ToolExecutionFailure("duplication", duplicationTool.name).message)
-        IO.fail(e)
-    }, {
-      res =>
-        logger.info(s"Completed duplication for ${duplicationTool.name} with ${res.size} results")
-        IO.point(res)
-    })
+    duplicationTool
+      .run(directory, files, timeout)
+      .redeem(
+        { e =>
+          logger.error(e)(Analyser.Error.ToolExecutionFailure("duplication", duplicationTool.name).message)
+          IO.fail(e)
+        }, { res =>
+          logger.info(s"Completed duplication for ${duplicationTool.name} with ${res.size} results")
+          IO.point(res)
+        })
   }
 
 }
