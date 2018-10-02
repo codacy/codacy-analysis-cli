@@ -103,8 +103,8 @@ object FileCollector {
 
   private val logger: Logger = getLogger
 
-  val defaultCollector: FileCollectorCompanion[Try] = new FallbackFileCollectorCompanion[Try, Throwable](
-    List(GitFileCollector, FileSystemFileCollector))(new Exception(_))
+  val defaultCollector: FileCollectorCompanion[Try] = new FallbackFileCollectorCompanion(
+    List(GitFileCollector, FileSystemFileCollector))
 
   val allCollectors: Set[FileCollectorCompanion[Try]] = Set(GitFileCollector, FileSystemFileCollector)
 

@@ -3,8 +3,8 @@ package com.codacy.analysis.core.files
 import better.files.File
 import cats.MonadError
 
-class FallbackFileCollector[T[_], E](fileCollectorCompanions: List[FileCollectorCompanion[T]])(
-  errorFromString: String => E)(implicit monadError: MonadError[T, E])
+class FallbackFileCollector[T[_]](fileCollectorCompanions: List[FileCollectorCompanion[T]])(
+  implicit monadError: MonadError[T, Throwable])
     extends FileCollector[T] {
 
   private val fileCollectors: List[FileCollector[T]] = fileCollectorCompanions.map(_.apply())
@@ -26,17 +26,17 @@ class FallbackFileCollector[T[_], E](fileCollectorCompanions: List[FileCollector
           s"All FileCollectors failed to list files: ${fileCollectorCompanions.map(_.name).mkString(",")}"
         logger.error(errorMessage)
 
-        monadError.raiseError(errorFromString(errorMessage))
+        monadError.raiseError(new Exception(errorMessage))
     }
   }
 }
 
-class FallbackFileCollectorCompanion[T[_], E](fileCollectorCompanions: List[FileCollectorCompanion[T]])(
-  errorFromString: String => E)(implicit monadError: MonadError[T, E])
+class FallbackFileCollectorCompanion[T[_]](fileCollectorCompanions: List[FileCollectorCompanion[T]])(
+  implicit monadError: MonadError[T, Throwable])
     extends FileCollectorCompanion[T] {
 
   val name: String = s"fallback:${fileCollectorCompanions.map(_.name).mkString(",")}"
 
-  override def apply(): FileCollector[T] = new FallbackFileCollector(fileCollectorCompanions)(errorFromString)
+  override def apply(): FileCollector[T] = new FallbackFileCollector(fileCollectorCompanions)
 
 }

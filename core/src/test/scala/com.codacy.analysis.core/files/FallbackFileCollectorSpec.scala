@@ -29,21 +29,17 @@ class FallbackFileCollectorSpec extends Specification with NoLanguageFeatures {
     }
   }
 
-  def tryFallbackFileCollector(fileCollectorCompanions: List[FileCollectorCompanion[Try]]): FileCollector[Try] = {
-    new FallbackFileCollectorCompanion[Try, Throwable](fileCollectorCompanions)(new Exception(_)).apply()
-  }
-
   "FallbackFileCollectorSpec" should {
     "not fallback" in {
-      tryFallbackFileCollector(List(successfulCompanion, failingCompanion)).list(File("")) must beSuccessfulTry
+      new FallbackFileCollector(List(successfulCompanion, failingCompanion)).list(File("")) must beSuccessfulTry
     }
 
     "fallback" in {
-      tryFallbackFileCollector(List(failingCompanion, successfulCompanion)).list(File("")) must beSuccessfulTry
+      new FallbackFileCollector(List(failingCompanion, successfulCompanion)).list(File("")) must beSuccessfulTry
     }
 
     "fail when all fail" in {
-      tryFallbackFileCollector(List(failingCompanion, failingCompanion)).list(File("")) must beFailedTry
+      new FallbackFileCollector(List(failingCompanion, failingCompanion)).list(File("")) must beFailedTry
     }
   }
 }
