@@ -8,6 +8,7 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.model.{Issue, Result, ToolResult}
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import com.codacy.analysis.core.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
@@ -15,11 +16,12 @@ import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import scalaz.zio.RTS
 
 import scala.concurrent.duration._
 import scala.util.Try
 
-class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
+class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers with RTS {
 
   "AnalyseExecutor" should {
 
@@ -161,10 +163,10 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
   private def runAnalyseExecutor(analyserName: String, configuration: CLIConfiguration.Analysis) = {
     val formatter: Formatter = Formatter(configuration.output.format, configuration.output.file)
-    val analyser: Analyser[Try] = Analyser(analyserName)
-    val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
+    val analyser: Analyser[IOThrowable] = Analyser(analyserName)
+    val fileCollector: FileCollector[IOThrowable] = FileCollector.defaultCollector()
 
-    new AnalyseExecutor(formatter, analyser, fileCollector, configuration).run() must beRight
+    Try(unsafeRun(new AnalyseExecutor(formatter, analyser, fileCollector, configuration).run())) must beSuccessfulTry
   }
 
   private def analysisConfiguration(directory: File,

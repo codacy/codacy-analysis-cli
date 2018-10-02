@@ -5,14 +5,16 @@ import java.nio.file.{Path, Paths}
 import better.files.File
 import com.codacy.analysis.core.clients.api.{FilePath, PathRegex}
 import com.codacy.analysis.core.tools.ToolCollector
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import com.codacy.plugins.api.languages.Languages
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
+import scalaz.zio.RTS
 
 import scala.sys.process.Process
 import scala.util.{Success, Try}
 
-abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Specification with NoLanguageFeatures {
+abstract class FileCollectorSpec(fileCollector: FileCollector[IOThrowable]) extends Specification with NoLanguageFeatures with RTS {
 
   val toolCollector = new ToolCollector(false)
 
@@ -348,11 +350,11 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         val emptyExclusionRules = FileExclusionRules(None, Set.empty, ExcludePaths(Set.empty, Map.empty), Map.empty)
         val tool = toolCollector.from("brakeman", Set(Languages.Ruby)).right.get.head
 
-        val result = for {
+        val result = Try(unsafeRun(for {
           allFilesTarget <- fileCollector.list(directory)
           filesTargetGlobal = fileCollector.filterGlobal(allFilesTarget, emptyExclusionRules)
           filesTargetTool = fileCollector.filterTool(tool, filesTargetGlobal, emptyExclusionRules)
-        } yield (filesTargetGlobal, filesTargetTool)
+        } yield (filesTargetGlobal, filesTargetTool)))
 
         result must beSuccessfulTry
 

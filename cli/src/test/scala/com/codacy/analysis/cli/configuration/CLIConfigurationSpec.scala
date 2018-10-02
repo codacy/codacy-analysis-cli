@@ -15,11 +15,12 @@ import com.codacy.plugins.api.languages.Languages
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 import play.api.libs.json.JsString
+import scalaz.zio.RTS
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
+class CLIConfigurationSpec extends Specification with NoLanguageFeatures with RTS {
 
   private val apiTokenStr = "RandomApiToken"
   private val username = "some_user"
@@ -99,7 +100,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
         val actualConfiguration =
           CLIConfiguration(Option(noRemoteConfigCodacyClient), defaultEnvironment, analyse, noLocalConfig)
 
-        actualConfiguration must beEqualTo(expectedConfiguration)
+        unsafeRun(actualConfiguration) must beEqualTo(expectedConfiguration)
       }).get
 
     }
@@ -161,7 +162,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
       val actualConfiguration =
         CLIConfiguration(Option(codacyClient), defaultEnvironment, defaultAnalyse, noLocalConfig)
 
-      actualConfiguration must beEqualTo(expectedConfiguration)
+      unsafeRun(actualConfiguration) must beEqualTo(expectedConfiguration)
 
     }
 
@@ -211,9 +212,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
 
       val actualConfiguration =
         CLIConfiguration(Option(noRemoteConfigCodacyClient), defaultEnvironment, defaultAnalyse, localConfig)
-      println(actualConfiguration)
-      actualConfiguration must beEqualTo(expectedConfiguration)
 
+      unsafeRun(actualConfiguration) must beEqualTo(expectedConfiguration)
     }
 
     "parse configuration with environment and analyse command values (no remote or local configs)" in {
@@ -243,7 +243,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
 
       val actualConfiguration =
         CLIConfiguration(Option(noRemoteConfigCodacyClient), environment, defaultAnalyse, noLocalConfig)
-      actualConfiguration must beEqualTo(expectedConfiguration)
+      unsafeRun(actualConfiguration) must beEqualTo(expectedConfiguration)
     }
 
     "parse configuration with both local and remote configurations" in {
@@ -321,7 +321,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
       val actualConfiguration = CLIConfiguration(Option(codacyClient), defaultEnvironment, defaultAnalyse, localConfig)
-      actualConfiguration must beEqualTo(expectedConfiguration)
+      unsafeRun(actualConfiguration) must beEqualTo(expectedConfiguration)
     }
   }
 

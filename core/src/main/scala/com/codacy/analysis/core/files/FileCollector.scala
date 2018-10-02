@@ -4,13 +4,12 @@ import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{Path, Paths}
 
 import better.files.File
-import cats.instances.try_.catsStdInstancesForTry
 import com.codacy.analysis.core.clients.api.{FilePath, PathRegex}
 import com.codacy.analysis.core.tools.{ITool, Tool}
+import com.codacy.analysis.core.utils.IOHelper
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import com.codacy.plugins.api.languages.{Language, Languages}
 import org.log4s.{Logger, getLogger}
-
-import scala.util.Try
 
 trait FileCollectorCompanion[T[_]] {
   def name: String
@@ -103,12 +102,12 @@ object FileCollector {
 
   private val logger: Logger = getLogger
 
-  val defaultCollector: FileCollectorCompanion[Try] = new FallbackFileCollectorCompanion(
-    List(GitFileCollector, FileSystemFileCollector))
+  val defaultCollector: FileCollectorCompanion[IOThrowable] =
+    new FallbackFileCollectorCompanion(List(GitFileCollector, FileSystemFileCollector))(IOHelper.ioExceptionMonadError)
 
-  val allCollectors: Set[FileCollectorCompanion[Try]] = Set(GitFileCollector, FileSystemFileCollector)
+  val allCollectors: Set[FileCollectorCompanion[IOThrowable]] = Set(GitFileCollector, FileSystemFileCollector)
 
-  def apply(name: String): FileCollector[Try] = {
+  def apply(name: String): FileCollector[IOThrowable] = {
     val builder = allCollectors.find(_.name.equalsIgnoreCase(name)).getOrElse {
       logger.warn(s"Could not find file collector for name $name. Using ${defaultCollector.name} as fallback.")
       defaultCollector

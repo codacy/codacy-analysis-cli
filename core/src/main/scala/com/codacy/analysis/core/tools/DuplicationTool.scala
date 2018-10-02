@@ -4,6 +4,7 @@ import java.nio.file.Path
 
 import better.files.File
 import com.codacy.analysis.core.model.DuplicationClone
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import com.codacy.plugins.api.duplication.DuplicationTool.CodacyConfiguration
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.duplication.api.{DuplicationCloneFile, DuplicationRequest}
@@ -12,6 +13,7 @@ import com.codacy.plugins.duplication.{api, _}
 import com.codacy.plugins.traits.{BinaryDockerRunner, DockerRunner}
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.getLogger
+import scalaz.zio.IO
 
 import scala.concurrent.duration._
 import scala.util.Try
@@ -23,24 +25,31 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
 
   def run(directory: File,
           files: Set[Path],
-          timeout: Option[Duration] = Option.empty[Duration]): Try[Set[DuplicationClone]] = {
+          timeout: Option[Duration] = Option.empty[Duration]): IOThrowable[Set[DuplicationClone]] = {
 
     val request = DuplicationRequest(directory.pathAsString)
 
     val dockerRunner = new BinaryDockerRunner[api.DuplicationClone](duplicationTool)
     val runner = new DuplicationRunner(duplicationTool, dockerRunner)
 
-    for {
-      duplicationClones <- runner.run(
-        request,
-        CodacyConfiguration(Option(languageToRun), Option.empty),
-        timeout.getOrElse(DockerRunner.defaultRunTimeout),
-        None)
-      clones = filterDuplicationClones(duplicationClones, files)
-    } yield {
-      clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files.to[Set]))(
-        collection.breakOut): Set[DuplicationClone]
+    def run(): Try[Set[DuplicationClone]] = {
+      for {
+        duplicationClones <- runner.run(
+          request,
+          CodacyConfiguration(Option(languageToRun), Option.empty),
+          timeout.getOrElse(DockerRunner.defaultRunTimeout),
+          None)
+        clones = filterDuplicationClones(duplicationClones, files)
+      } yield {
+        clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files.to[Set]))(
+          collection.breakOut): Set[DuplicationClone]
+      }
     }
+
+    for {
+      _ <- IO.point(())
+      clones <- IO.fromTry(run())
+    } yield clones
   }
 
   private def filterDuplicationClones(duplicationClones: List[api.DuplicationClone],

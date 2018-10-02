@@ -9,10 +9,11 @@ import com.codacy.plugins.api.languages.{Language, Languages}
 import com.codacy.plugins.metrics.docker.Cloc
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
+import scalaz.zio.RTS
 
-import scala.util.Success
+import scala.util.{Success, Try}
 
-class MetricsToolSpec extends Specification with NoLanguageFeatures {
+class MetricsToolSpec extends Specification with NoLanguageFeatures with RTS {
 
   val jsTest2Metrics = FileMetrics(Paths.get("test2.js"), None, Some(25), Some(0), None, None, Set())
   val jsTestMetrics = FileMetrics(Paths.get("test.js"), None, Some(60), Some(0), None, None, Set())
@@ -26,7 +27,7 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
 
         val metricsTool = new MetricsTool(Cloc, Languages.Javascript)
 
-        val result = metricsTool.run(directory, None)
+        val result = Try(unsafeRun(metricsTool.run(directory, None)))
 
         result must beSuccessfulTry
         result must beLike {
@@ -44,7 +45,7 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
 
         val metricsTool = new MetricsTool(Cloc, Languages.Javascript)
 
-        val result = metricsTool.run(directory, Some(Set(Source.File("test.js"), Source.File(".codacy.json"))))
+        val result = Try(unsafeRun(metricsTool.run(directory, Some(Set(Source.File("test.js"), Source.File(".codacy.json"))))))
 
         result must beSuccessfulTry
         result must beLike {

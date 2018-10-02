@@ -6,6 +6,7 @@ import better.files.File
 import com.codacy.analysis.core.analysis.{Analyser, CodacyPluginsAnalyser}
 import com.codacy.analysis.core.model.{Configuration, Issue, _}
 import com.codacy.analysis.core.utils.FileHelper
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import com.codacy.plugins.api
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.results
@@ -16,9 +17,9 @@ import com.codacy.plugins.traits.{BinaryDockerRunner, DockerRunner}
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
+import scalaz.zio.IO
 
 import scala.concurrent.duration._
-import scala.util.Try
 
 sealed trait SourceDirectory {
   val sourceDirectory: String
@@ -59,7 +60,7 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
   def run(directory: File,
           files: Set[Path],
           config: Configuration,
-          timeout: Option[Duration] = Option.empty[Duration]): Try[Set[ToolResult]] = {
+          timeout: Option[Duration] = Option.empty[Duration]): IOThrowable[Set[ToolResult]] = {
     val pluginConfiguration = config match {
       case CodacyCfg(patterns, _, extraValues) =>
         val pts: List[PatternRequest] = patterns.map { pt =>
@@ -79,17 +80,24 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
         files.to[List].map(f => sourceDirectory.removePrefix(f.toString)),
         pluginConfiguration)
 
-    runner.run(request, timeout.getOrElse(defaultRunTimeout)).map { res =>
-      (res.results.map(r =>
-        Issue(
-          results.Pattern.Id(r.patternIdentifier),
-          FileHelper.relativePath(sourceDirectory.appendPrefix(r.filename)),
-          Issue.Message(r.message),
-          r.level,
-          r.category,
-          LineLocation(r.line)))(collection.breakOut): Set[ToolResult]) ++
-        res.failedFiles.map(fe => FileError(FileHelper.relativePath(fe), "Failed to analyse file."))
+    def run = {
+      runner.run(request, timeout.getOrElse(defaultRunTimeout)).map { res =>
+        (res.results.map(r =>
+          Issue(
+            results.Pattern.Id(r.patternIdentifier),
+            FileHelper.relativePath(sourceDirectory.appendPrefix(r.filename)),
+            Issue.Message(r.message),
+            r.level,
+            r.category,
+            LineLocation(r.line)))(collection.breakOut): Set[ToolResult]) ++
+          res.failedFiles.map(fe => FileError(FileHelper.relativePath(fe), "Failed to analyse file."))
+      }
     }
+
+    for {
+      _ <- IO.point(()): IOThrowable[Unit]
+      toolResults <- IO.fromTry(run)
+    } yield toolResults
   }
 
   private def getSourceDirectory(directory: File, baseSubDir: Option[String]): SourceDirectory = {

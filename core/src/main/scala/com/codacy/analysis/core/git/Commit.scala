@@ -2,16 +2,16 @@ package com.codacy.analysis.core.git
 
 import java.nio.file.{Path, Paths}
 
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import org.eclipse.jgit.lib.{Repository => JGitRepository}
 import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
 import org.eclipse.jgit.treewalk.TreeWalk
-
-import scala.util.Try
+import scalaz.zio.IO
 
 class Commit(repository: JGitRepository, revCommit: RevCommit) {
 
-  def files: Try[Set[Path]] = {
-    Try {
+  def files: IOThrowable[Set[Path]] = {
+    IO.syncException {
       val treeWalk = new TreeWalk(repository)
       treeWalk.setRecursive(true)
 
