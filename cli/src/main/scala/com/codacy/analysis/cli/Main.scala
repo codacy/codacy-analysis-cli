@@ -18,18 +18,18 @@ import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.git.{Commit, Git}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.upload.ResultsUploader
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import com.codacy.analysis.core.utils.Logger
 import com.codacy.analysis.core.utils.SeqOps._
 import org.log4s.getLogger
+import scalaz.zio.ExitResult.{Completed, Failed, Terminated}
+import scalaz.zio.{IO, RTS}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 object Main extends MainImpl(sys.env)
 
-class MainImpl(env: Map[String, String]) extends CLIApp {
+class MainImpl(env: Map[String, String]) extends CLIApp with RTS {
 
   private val logger: org.log4s.Logger = getLogger
 
@@ -45,99 +45,117 @@ class MainImpl(env: Map[String, String]) extends CLIApp {
         val environment = new Environment(env)
         val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
 
-        val configuration: CLIConfiguration =
+        val configuration: IO[Nothing, CLIConfiguration] =
           CLIConfiguration(codacyClientOpt, environment, analyse, new CodacyConfigurationFile.Loader)
 
-        removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
+        val program: IO[(CLIConfiguration, CLIError), (CLIConfiguration, Seq[ExecutorResult[_]])] =
+          configuration.flatMap { configuration =>
+            removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
 
-        val analysisAndUpload = for {
-          _ <- validate(analyse, configuration)
-          analysisResults <- analysis(Analyser(analyse.extras.analyser), configuration.analysis)
-          _ <- upload(configuration.upload, codacyClientOpt, analysisResults)
-        } yield {
-          analysisResults
-        }
+            val analysisAndUpload = for {
+              _ <- validate(analyse, configuration)
+              analysisResults <- analysis(Analyser(analyse.extras.analyser), configuration.analysis)
+              _ <- upload(configuration.upload, codacyClientOpt, analysisResults)
+            } yield {
+              analysisResults
+            }
 
-        removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
-        new ExitStatus(configuration.result.maxAllowedIssues, configuration.result.failIfIncomplete)
-          .exitCode(analysisAndUpload)
+            removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
+
+            def zipWithConfig[T](t: T): (CLIConfiguration, T) = (configuration, t)
+
+            analysisAndUpload.bimap(zipWithConfig, zipWithConfig)
+          }
+
+        runAndExit(program)
     }
   }
 
-  private def validate(analyse: Analyse, configuration: CLIConfiguration): Either[CLIError, Unit] = {
+  private def runAndExit(program: IO[(CLIConfiguration, CLIError), (CLIConfiguration, Seq[ExecutorResult[_]])]): Int = {
+    unsafeRunSync(program) match {
+      case Completed((configuration, value)) =>
+        new ExitStatus(configuration.result.maxAllowedIssues, configuration.result.failIfIncomplete)
+          .exitCode(Right(value))
+      case Failed((configuration, err), _) =>
+        new ExitStatus(configuration.result.maxAllowedIssues, configuration.result.failIfIncomplete).exitCode(Left(err))
+      case Terminated(_) =>
+        -1
+    }
+  }
+
+  private def validate(analyse: Analyse, configuration: CLIConfiguration): IO[CLIError, Unit] = {
     for {
       _ <- validateNoUncommitedChanges(configuration.analysis.projectDirectory, configuration.upload.upload)
       _ <- validateCommitUuid(configuration.analysis.projectDirectory, analyse.commitUuid)
     } yield ()
   }
 
-  private def validateNoUncommitedChanges(projectDirectory: File, upload: Boolean): Either[CLIError, Unit] = {
+  private def validateNoUncommitedChanges(projectDirectory: File, upload: Boolean): IO[CLIError, Unit] = {
     (for {
       repo <- Git.repository(projectDirectory)
       uncommitedFiles <- repo.uncommitedFiles
-    } yield {
-      if (uncommitedFiles.nonEmpty) {
+    } yield uncommitedFiles).redeem(_ => IO.point(()), { uncommitedFiles =>
+      if (uncommitedFiles.nonEmpty && upload) {
         val error: CLIError = CLIError.UncommitedChanges(uncommitedFiles)
-        if (upload) {
-          logger.error(error.message)
-          Left(error)
-        } else {
-          logger.warn(error.message)
-          Right(())
-        }
+        logger.error(error.message)
+        IO.fail(error)
       } else {
-        Right(())
+        IO.point(())
       }
-    }).getOrElse(Right(()))
+    })
   }
 
-  private def validateCommitUuid(projectDirectory: File, commitUuidOpt: Option[Commit.Uuid]): Either[CLIError, Unit] = {
-    (for {
-      repo <- Git.repository(projectDirectory).toOption
-      gitCommit <- repo.latestCommit.toOption
-      paramCommitUuid <- commitUuidOpt
-      if gitCommit.commitUuid != paramCommitUuid
-    } yield {
-      val error = CLIError.CommitUuidsDoNotMatch(paramCommitUuid, gitCommit.commitUuid)
-      logger.error(error.message)
-      Left(error)
-    }).getOrElse(Right(()))
+  private def validateCommitUuid(projectDirectory: File, commitUuidOpt: Option[Commit.Uuid]): IO[CLIError, Unit] = {
+    commitUuidOpt match {
+      case None =>
+        IO.point(())
+      case Some(paramCommitUuid) =>
+        (for {
+          repo <- Git.repository(projectDirectory)
+          gitCommit <- repo.latestCommit
+        } yield gitCommit).redeem(_ => IO.point(()), { gitCommit =>
+          if (gitCommit.commitUuid != paramCommitUuid) {
+            val error = CLIError.CommitUuidsDoNotMatch(paramCommitUuid, gitCommit.commitUuid)
+            logger.error(error.message)
+            IO.fail(error)
+          } else {
+            IO.point(())
+          }
+        })
+    }
   }
 
-  private def analysis(analyser: Analyser[Try],
-                       configuration: CLIConfiguration.Analysis): Either[CLIError, Seq[ExecutorResult[_]]] = {
+  private def analysis(analyser: Analyser[IOThrowable],
+                       configuration: CLIConfiguration.Analysis): IO[CLIError, Seq[ExecutorResult[_]]] = {
     val formatter: Formatter = Formatter(configuration.output.format, configuration.output.file)
-    val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
+    val fileCollector: FileCollector[IOThrowable] = FileCollector.defaultCollector()
 
     new AnalyseExecutor(formatter, analyser, fileCollector, configuration).run()
   }
 
   private def upload(configuration: CLIConfiguration.Upload,
                      codacyClientOpt: Option[CodacyClient],
-                     analysisResults: Seq[AnalyseExecutor.ExecutorResult[_]]): Either[CLIError, Unit] = {
+                     analysisResults: Seq[AnalyseExecutor.ExecutorResult[_]]): IO[CLIError, Unit] = {
 
-    val uploadResultFut: Future[Either[String, Unit]] =
+    val uploadResultFut: IO[Nothing, Either[String, Unit]] =
       uploadResults(codacyClientOpt)(configuration.upload, configuration.commitUuid, analysisResults)
 
     if (configuration.upload) {
-      Try(Await.result(uploadResultFut, Duration.Inf)) match {
-        case Failure(err) =>
-          logger.error(err.getMessage)
-          Left(CLIError.UploadError(err.getMessage))
-        case Success(Left(err)) =>
+      uploadResultFut.flatMap {
+        case Left(err) =>
           logger.warn(err)
-          Left(CLIError.MissingUploadRequisites(err))
-        case Success(Right(_)) =>
+          IO.fail(CLIError.MissingUploadRequisites(err))
+        case Right(_) =>
           logger.info("Completed upload of results to API")
-          Right(())
+          IO.point(())
       }
-    } else Right(())
+    } else IO.point(())
   }
 
   private def uploadResults(codacyClientOpt: Option[CodacyClient])(
     upload: Boolean,
     commitUuid: Option[Commit.Uuid],
-    executorResults: Seq[ExecutorResult[_]]): Future[Either[String, Unit]] = {
+    executorResults: Seq[ExecutorResult[_]]): IO[Nothing, Either[String, Unit]] = {
     (for {
       uploaderOpt <- ResultsUploader(codacyClientOpt, upload, commitUuid)
     } yield {
@@ -155,8 +173,8 @@ class MainImpl(env: Map[String, String]) extends CLIApp {
         val duplicationResultsSeq = duplicationResults(duplicationToolExecutorResult)
 
         uploader.sendResults(issuesResultsSeq, metricsResultsSeq, duplicationResultsSeq)
-      }.getOrElse(Future.successful(().asRight[String]))
-    }).fold(err => Future.successful(err.asLeft[Unit]), identity)
+      }.getOrElse(IO.point(().asRight[String]))
+    }).fold(err => IO.point(err.asLeft[Unit]), identity)
   }
 
   def duplicationResults(duplicationExecutorToolResults: Seq[DuplicationToolExecutorResult]): Seq[DuplicationResult] = {

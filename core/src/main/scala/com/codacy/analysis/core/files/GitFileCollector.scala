@@ -3,11 +3,11 @@ package com.codacy.analysis.core.files
 import better.files.File
 import com.codacy.analysis.core.git.Git
 
-import scala.util.Try
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 
-class GitFileCollector extends FileCollector[Try] {
+class GitFileCollector extends FileCollector[IOThrowable] {
 
-  override def list(directory: File): Try[FilesTarget] = {
+  override def list(directory: File): IOThrowable[FilesTarget] = {
 
     for {
       repository <- Git.repository(directory)
@@ -21,10 +21,10 @@ class GitFileCollector extends FileCollector[Try] {
   }
 }
 
-object GitFileCollector extends FileCollectorCompanion[Try] {
+object GitFileCollector extends FileCollectorCompanion[IOThrowable] {
 
   val name: String = "git"
 
-  override def apply(): FileCollector[Try] = new GitFileCollector()
+  override def apply(): FileCollector[IOThrowable] = new GitFileCollector()
 
 }

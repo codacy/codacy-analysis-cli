@@ -12,6 +12,7 @@ import com.codacy.analysis.core.git.{Commit, Git}
 import com.codacy.analysis.core.utils.MapOps
 import com.codacy.plugins.api.languages.Language
 import play.api.libs.json.JsValue
+import scalaz.zio.IO
 
 import scala.concurrent.duration.Duration
 
@@ -179,10 +180,11 @@ object CLIConfiguration {
   def apply(clientOpt: Option[CodacyClient],
             environment: Environment,
             analyse: Analyse,
-            localConfigLoader: CodacyConfigurationFile.Loader): CLIConfiguration = {
+            localConfigLoader: CodacyConfigurationFile.Loader): IO[Nothing, CLIConfiguration] = {
     val projectDirectory: File = environment.baseProjectDirectory(analyse.directory)
-    val commitUuid: Option[Commit.Uuid] =
-      analyse.commitUuid.orElse(Git.currentCommitUuid(projectDirectory))
+
+    val commitUuid: IO[Unit, Commit.Uuid] =
+      IO.fromOption(analyse.commitUuid).orElse(Git.currentCommitUuid(projectDirectory).bimap(_ => (), identity))
 
     val localConfiguration: Either[String, CodacyConfigurationFile] = localConfigLoader.load(projectDirectory)
     val remoteProjectConfiguration: Either[String, ProjectConfiguration] = clientOpt.fold {
@@ -192,10 +194,14 @@ object CLIConfiguration {
     }
     val analysisConfiguration =
       Analysis(projectDirectory, analyse, localConfiguration, remoteProjectConfiguration)
-    val uploadConfiguration = Upload(commitUuid, analyse.uploadValue)
+    val uploadConfiguration = commitUuid
+      .redeemPure(_ => Upload(None, analyse.uploadValue), commitUuid => Upload(Some(commitUuid), analyse.uploadValue))
     val resultConfiguration = Result(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
 
-    CLIConfiguration(analysisConfiguration, uploadConfiguration, resultConfiguration)
+    uploadConfiguration.map { config =>
+      CLIConfiguration(analysisConfiguration, config, resultConfiguration)
+    }
+
   }
 
 }

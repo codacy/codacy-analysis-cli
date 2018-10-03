@@ -9,10 +9,11 @@ import com.codacy.plugins.duplication.docker.PmdCpd
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
+import scalaz.zio.RTS
 
-import scala.util.Success
+import scala.util.{Success, Try}
 
-class DuplicationToolSpec extends Specification with NoLanguageFeatures {
+class DuplicationToolSpec extends Specification with NoLanguageFeatures with RTS {
 
   "DuplicationTool" should {
     "analyse duplication on a project" in {
@@ -30,11 +31,11 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
             22,
             Set(DuplicationCloneFile("test.js", 1, 22), DuplicationCloneFile("test.js", 33, 54))))
 
-        val result = for {
+        val result = Try(unsafeRun(for {
           fileTarget <- FileCollector.defaultCollector().list(directory)
           duplicationTool = new DuplicationTool(PmdCpd, Languages.Javascript)
           duplicationToolResult <- duplicationTool.run(directory, fileTarget.readableFiles)
-        } yield duplicationToolResult
+        } yield duplicationToolResult))
 
         result must beSuccessfulTry
         result must beLike {
@@ -62,8 +63,8 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
           duplicationToolResult <- duplicationTool.run(directory, filteredFileTarget)
         } yield duplicationToolResult
 
-        result must beSuccessfulTry
-        result must beLike {
+        Try(unsafeRun(result)) must beSuccessfulTry
+        Try(unsafeRun(result)) must beLike {
           case Success(duplicationResults) =>
             duplicationResults must haveSize(1)
             assertDuplication(duplicationResults, expectedClones)

@@ -1,12 +1,7 @@
 package com.codacy.analysis.cli.analysis
 
 import com.codacy.analysis.cli.CLIError
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.{
-  DuplicationToolExecutorResult,
-  ExecutorResult,
-  IssuesToolExecutorResult,
-  MetricsToolExecutorResult
-}
+import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 
 object ExitStatus {
 

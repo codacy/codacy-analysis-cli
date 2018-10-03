@@ -4,11 +4,12 @@ import better.files.File
 import com.codacy.analysis.core.utils.TestUtils._
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
+import scalaz.zio.RTS
 
 import scala.sys.process.Process
-import scala.util.Success
+import scala.util.{Success, Try}
 
-class RepositorySpec extends Specification with NoLanguageFeatures {
+class RepositorySpec extends Specification with NoLanguageFeatures with RTS {
 
   "Repository" should {
     "get latest commit" in {
@@ -22,7 +23,7 @@ class RepositorySpec extends Specification with NoLanguageFeatures {
           Process(Seq("git", "add", temporaryDirectory.relativize(temporaryFile).toString), temporaryDirectory.toJava).!
           Process(Seq("git", "commit", "-m", "tmp"), temporaryDirectory.toJava).!
 
-          Git.repository(temporaryDirectory).flatMap(_.latestCommit) must beSuccessfulTry
+          Try(unsafeRun(Git.repository(temporaryDirectory).flatMap(_.latestCommit))) must beSuccessfulTry
         }).get
       }
 
@@ -32,7 +33,7 @@ class RepositorySpec extends Specification with NoLanguageFeatures {
         } yield {
           Process(Seq("git", "init"), temporaryDirectory.toJava).!
 
-          Git.repository(temporaryDirectory).flatMap(_.latestCommit) must beFailedTry
+          Try(unsafeRun(Git.repository(temporaryDirectory).flatMap(_.latestCommit))) must beFailedTry
         }).get
       }
     }
@@ -49,7 +50,7 @@ class RepositorySpec extends Specification with NoLanguageFeatures {
 
           file.write("Random file contents")
 
-          Git.repository(directory).flatMap(_.uncommitedFiles) must beLike {
+          Try(unsafeRun(Git.repository(directory).flatMap(_.uncommitedFiles))) must beLike {
             case Success(uncommited) =>
               uncommited must contain(exactly(relativePath(file, directory)))
           }
@@ -62,7 +63,7 @@ class RepositorySpec extends Specification with NoLanguageFeatures {
             val deepFile = directory / "mainFolder" / "subFolder" / "deepFile.sc"
             deepFile.createFileIfNotExists(createParents = true)
 
-            Git.repository(directory).flatMap(_.uncommitedFiles) must beLike {
+            Try(unsafeRun(Git.repository(directory).flatMap(_.uncommitedFiles))) must beLike {
               case Success(uncommited) =>
                 uncommited must contain(exactly(relativePath(deepFile, directory)))
             }
@@ -74,7 +75,7 @@ class RepositorySpec extends Specification with NoLanguageFeatures {
             val noContentsFolder = directory / "mainFolder" / "noContents"
             noContentsFolder.createDirectoryIfNotExists(createParents = true)
 
-            Git.repository(directory).flatMap(_.uncommitedFiles) must beLike {
+            Try(unsafeRun(Git.repository(directory).flatMap(_.uncommitedFiles))) must beLike {
               case Success(uncommited) =>
                 uncommited must beEmpty
             }

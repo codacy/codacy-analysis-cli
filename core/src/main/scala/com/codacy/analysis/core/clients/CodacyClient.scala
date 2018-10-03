@@ -13,10 +13,9 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder, Json}
 import org.log4s.{Logger, getLogger}
+import scalaz.zio.IO
 
-import scala.concurrent.{ExecutionContext, Future}
-
-class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context: ExecutionContext) {
+class CodacyClient(credentials: Credentials, http: HttpHelper) {
 
   private val logger: Logger = getLogger
 
@@ -38,7 +37,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   def sendRemoteIssues(tool: String,
                        commitUuid: Commit.Uuid,
-                       results: Either[String, Set[FileResults]]): Future[Either[String, Unit]] = {
+                       results: Either[String, Set[FileResults]]): IO[Nothing, Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
         sendRemoteResultsTo(
@@ -49,7 +48,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
-  def sendRemoteMetrics(commitUuid: Commit.Uuid, results: Seq[MetricsResult]): Future[Either[String, Unit]] = {
+  def sendRemoteMetrics(commitUuid: Commit.Uuid, results: Seq[MetricsResult]): IO[Nothing, Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
         sendRemoteMetricsTo(
@@ -59,7 +58,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
-  def sendRemoteDuplication(commitUuid: Commit.Uuid, results: Seq[DuplicationResult]): Future[Either[String, Unit]] = {
+  def sendRemoteDuplication(commitUuid: Commit.Uuid,
+                            results: Seq[DuplicationResult]): IO[Nothing, Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
         sendRemoteDuplicationTo(
@@ -70,7 +70,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
-  def sendEndOfResults(commitUuid: Commit.Uuid): Future[Either[String, Unit]] = {
+  def sendEndOfResults(commitUuid: Commit.Uuid): IO[Nothing, Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
         sendEndOfResultsTo(s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/resultsFinal")
@@ -87,8 +87,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     getProjectConfigurationFrom(s"/project/$username/$projectName/analysis/configuration")
   }
 
-  private def sendRemoteMetricsTo(endpoint: String, metrics: Seq[MetricsResult]): Future[Either[String, Unit]] =
-    Future {
+  private def sendRemoteMetricsTo(endpoint: String, metrics: Seq[MetricsResult]): IO[Nothing, Either[String, Unit]] =
+    IO.point {
       http.post(endpoint, Some(metrics.asJson)) match {
         case Left(error) =>
           logger.error(error)(s"Error posting data to endpoint $endpoint")
@@ -100,8 +100,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
 
   private def sendRemoteDuplicationTo(endpoint: String,
-                                      duplication: Seq[DuplicationResult]): Future[Either[String, Unit]] =
-    Future {
+                                      duplication: Seq[DuplicationResult]): IO[Nothing, Either[String, Unit]] =
+    IO.point {
       http.post(endpoint, Some(duplication.asJson)) match {
         case Left(error) =>
           logger.error(error)(s"Error posting data to endpoint $endpoint")
@@ -114,8 +114,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   private def sendRemoteResultsTo(endpoint: String,
                                   tool: String,
-                                  results: Either[String, Set[FileResults]]): Future[Either[String, Unit]] =
-    Future {
+                                  results: Either[String, Set[FileResults]]): IO[Nothing, Either[String, Unit]] = {
+
+    IO.point {
       http.post(
         endpoint,
         Some(Seq(ToolResults(tool, results.fold(IssuesAnalysis.Failure, IssuesAnalysis.Success))).asJson)) match {
@@ -133,8 +134,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
           validateRemoteResultsResponse(json)
       }
     }
+  }
 
-  private def sendEndOfResultsTo(endpoint: String): Future[Either[String, Unit]] = Future {
+  private def sendEndOfResultsTo(endpoint: String): IO[Nothing, Either[String, Unit]] = IO.point {
     http.post(endpoint, None) match {
       case Left(error) =>
         logger.error(error)(s"Error sending end of upload results to endpoint $endpoint")
@@ -189,7 +191,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
 object CodacyClient {
 
-  def apply(credentials: Credentials)(implicit context: ExecutionContext): CodacyClient = {
+  def apply(credentials: Credentials): CodacyClient = {
     credentials match {
       case ProjectToken(token, baseUrl) =>
         val headers: Map[String, String] = Map(("project_token", token))

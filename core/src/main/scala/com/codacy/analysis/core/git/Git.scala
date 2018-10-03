@@ -1,40 +1,42 @@
 package com.codacy.analysis.core.git
 
 import better.files.File
+import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import org.eclipse.jgit.internal.storage.file.FileRepository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.log4s.{Logger, getLogger}
-
-import scala.util.Try
+import scalaz.zio.IO
 
 object Git {
 
   private val logger: Logger = getLogger
 
-  def repository(directory: File): Try[Repository] = {
-    Try {
+  def repository(directory: File): IOThrowable[Repository] = {
+    IO.syncException {
       (directory / ".git").toJava
-    }.filter { gitDir =>
-      new FileRepository(gitDir.getPath).getObjectDatabase.exists()
     }.flatMap { gitDir =>
-      Try {
-        val builder = new FileRepositoryBuilder
+      if (new FileRepository(gitDir.getPath).getObjectDatabase.exists()) {
+        IO.syncException {
+          val builder = new FileRepositoryBuilder
 
-        val repository = builder.setGitDir(gitDir).readEnvironment.findGitDir.build
+          val repository = builder.setGitDir(gitDir).readEnvironment.findGitDir.build
 
-        new Repository(repository)
+          new Repository(repository)
+        }
+      } else {
+        IO.fail(new Exception("Not a git repository"))
       }
     }
   }
 
-  def currentCommitUuid(directory: File): Option[Commit.Uuid] = {
+  def currentCommitUuid(directory: File): IOThrowable[Commit.Uuid] = {
     Git
       .repository(directory)
       .flatMap(_.latestCommit)
-      .fold({ e =>
+      .redeem({ e =>
         logger.warn(e)(e.getMessage)
-        None
-      }, commit => Some(commit.commitUuid))
+        IO.fail(e)
+      }, commit => IO.point(commit.commitUuid))
   }
 
 }

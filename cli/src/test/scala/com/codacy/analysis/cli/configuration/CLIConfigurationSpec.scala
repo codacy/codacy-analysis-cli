@@ -15,11 +15,11 @@ import com.codacy.plugins.api.languages.Languages
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 import play.api.libs.json.JsString
+import scalaz.zio.RTS
 
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext
 
-class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
+class CLIConfigurationSpec extends Specification with NoLanguageFeatures with RTS {
 
   private val apiTokenStr = "RandomApiToken"
   private val username = "some_user"
@@ -44,7 +44,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
     extras = ExtraOptions(analyser = Analyser.defaultAnalyser.name))
   private val defaultEnvironment = new Environment(Map.empty)
   private val httpHelper = new HttpHelper(Option(remoteUrl), Map.empty)
-  private val noRemoteConfigCodacyClient = new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {
+  private val noRemoteConfigCodacyClient = new CodacyClient(apiCredentials, httpHelper) {
     override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
       Left("no remote config")
     }
@@ -99,7 +99,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
         val actualConfiguration =
           CLIConfiguration(Option(noRemoteConfigCodacyClient), defaultEnvironment, analyse, noLocalConfig)
 
-        actualConfiguration must beEqualTo(expectedConfiguration)
+        unsafeRun(actualConfiguration) must beEqualTo(expectedConfiguration)
       }).get
 
     }
@@ -117,7 +117,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
       val defaultIgnores = Set(PathRegex("dat regex bro!"))
       val ignoredPaths = Set(FilePath("dat file path yo!"))
 
-      val codacyClient = new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {
+      val codacyClient = new CodacyClient(apiCredentials, httpHelper) {
         override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
           Right(
             ProjectConfiguration(
@@ -161,7 +161,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
       val actualConfiguration =
         CLIConfiguration(Option(codacyClient), defaultEnvironment, defaultAnalyse, noLocalConfig)
 
-      actualConfiguration must beEqualTo(expectedConfiguration)
+      unsafeRun(actualConfiguration) must beEqualTo(expectedConfiguration)
 
     }
 
@@ -211,9 +211,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
 
       val actualConfiguration =
         CLIConfiguration(Option(noRemoteConfigCodacyClient), defaultEnvironment, defaultAnalyse, localConfig)
-      println(actualConfiguration)
-      actualConfiguration must beEqualTo(expectedConfiguration)
 
+      unsafeRun(actualConfiguration) must beEqualTo(expectedConfiguration)
     }
 
     "parse configuration with environment and analyse command values (no remote or local configs)" in {
@@ -243,7 +242,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
 
       val actualConfiguration =
         CLIConfiguration(Option(noRemoteConfigCodacyClient), environment, defaultAnalyse, noLocalConfig)
-      actualConfiguration must beEqualTo(expectedConfiguration)
+      unsafeRun(actualConfiguration) must beEqualTo(expectedConfiguration)
     }
 
     "parse configuration with both local and remote configurations" in {
@@ -275,7 +274,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
       val defaultIgnores = Set(PathRegex("dat regex bro!"))
       val ignoredPaths = Set(FilePath("dat file path yo!"))
 
-      val codacyClient = new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {
+      val codacyClient = new CodacyClient(apiCredentials, httpHelper) {
         override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
           Right(
             ProjectConfiguration(
@@ -321,7 +320,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
       val actualConfiguration = CLIConfiguration(Option(codacyClient), defaultEnvironment, defaultAnalyse, localConfig)
-      actualConfiguration must beEqualTo(expectedConfiguration)
+      unsafeRun(actualConfiguration) must beEqualTo(expectedConfiguration)
     }
   }
 

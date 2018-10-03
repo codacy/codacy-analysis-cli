@@ -9,10 +9,7 @@ import com.codacy.analysis.core.model.IssuesAnalysis.FileResults
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.utils.EitherOps
 import org.log4s.{Logger, getLogger}
-import shapeless.syntax.std.TupleOps
-
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scalaz.zio.IO
 
 object ResultsUploader {
 
@@ -26,8 +23,7 @@ object ResultsUploader {
   def apply(codacyClientOpt: Option[CodacyClient],
             upload: Boolean,
             commitUuidOpt: Option[Commit.Uuid],
-            batchSize: Option[Int] = Option.empty[Int])(
-    implicit context: ExecutionContext): Either[String, Option[ResultsUploader]] = {
+            batchSize: Option[Int] = Option.empty[Int]): Either[String, Option[ResultsUploader]] = {
     if (upload) {
       for {
         codacyClient <- codacyClientOpt.toRight("No credentials found.")
@@ -40,8 +36,7 @@ object ResultsUploader {
   }
 }
 
-class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClient, batchSizeOpt: Option[Int])(
-  implicit context: ExecutionContext) {
+class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClient, batchSizeOpt: Option[Int]) {
 
   private val logger: Logger = getLogger
 
@@ -54,45 +49,46 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
 
   def sendResults(toolResults: Seq[ResultsUploader.ToolResults],
                   metricsResults: Seq[MetricsResult],
-                  duplicationResults: Seq[DuplicationResult]): Future[Either[String, Unit]] = {
+                  duplicationResults: Seq[DuplicationResult]): IO[Nothing, Either[String, Unit]] = {
 
-    val sendIssuesFut = if (toolResults.nonEmpty) {
+    val sendIssuesIO: IO[Nothing, Either[String, Unit]] = if (toolResults.nonEmpty) {
       sendIssues(toolResults)
     } else {
       logger.info("There are no issues to upload.")
-      Future.successful(().asRight[String])
+      IO.point(().asRight[String])
     }
-    val sendMetricsFut = if (metricsResults.nonEmpty) {
+    val sendMetricsIO: IO[Nothing, Either[String, Unit]] = if (metricsResults.nonEmpty) {
       codacyClient.sendRemoteMetrics(commitUuid, metricsResults)
     } else {
       logger.info("There are no metrics to upload.")
-      Future.successful(().asRight[String])
+      IO.point(().asRight[String])
     }
-    val sendDuplicationFut = if (duplicationResults.nonEmpty) {
+    val sendDuplicationIO: IO[Nothing, Either[String, Unit]] = if (duplicationResults.nonEmpty) {
       codacyClient.sendRemoteDuplication(commitUuid, duplicationResults)
     } else {
       logger.info("There are no metrics to upload.")
-      Future.successful(().asRight[String])
+      IO.point(().asRight[String])
     }
 
-    val res: Future[Either[String, Unit]] = (sendIssuesFut, sendMetricsFut, sendDuplicationFut).mapN {
-      case eithers =>
-        EitherOps.sequenceFoldingLeft(new TupleOps(eithers).toList)(_ + '\n' + _)
-    }.flatMap { _ =>
-      endUpload()
-    }
-
-    res.onComplete {
-      case Success(_) =>
+    IO.parTraverse(List(sendIssuesIO, sendMetricsIO, sendDuplicationIO))(identity)
+      .map {
+        case eithers =>
+          EitherOps.sequenceFoldingLeft(eithers)(_ + '\n' + _)
+      }
+      .flatMap { _ =>
         logger.info("Completed upload of results to API successfully")
-      case Failure(e) =>
-        logger.info(e)(s"Failed to push results to API")
-    }
-
-    res
+        endUpload().map {
+          case res @ Left(e) =>
+            logger.info(s"Failed to push results to API: $e")
+            res
+          case res @ Right(_) =>
+            logger.info("Completed upload of results to API successfully")
+            res
+        }
+      }
   }
 
-  private def sendIssues(toolResults: Seq[ResultsUploader.ToolResults]): Future[Either[String, Unit]] = {
+  private def sendIssues(toolResults: Seq[ResultsUploader.ToolResults]): IO[Nothing, Either[String, Unit]] = {
     val uploadResultsBatches = toolResults.map { toolResult =>
       val fileResults = toolResult.results.map(results => groupResultsByFile(toolResult.files, results))
       uploadResultsBatch(toolResult.tool, batchSize, fileResults)
@@ -101,22 +97,22 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
     sequenceUploads(uploadResultsBatches)
   }
 
-  private def endUpload(): Future[Either[String, Unit]] = {
+  private def endUpload(): IO[Nothing, Either[String, Unit]] = {
     codacyClient.sendEndOfResults(commitUuid)
   }
 
   private def uploadResultsBatch(tool: String,
                                  batchSize: Int,
-                                 results: Either[String, Set[FileResults]]): Future[Either[String, Unit]] = {
+                                 results: Either[String, Set[FileResults]]): IO[Nothing, Either[String, Unit]] = {
     val fileResultBatches = results.map(res => splitInBatches(batchSize, res))
     uploadResultBatches(tool, fileResultBatches)
   }
 
   private def uploadResultBatches(
     tool: String,
-    fileResultBatches: Either[String, Seq[Set[FileResults]]]): Future[Either[String, Unit]] = {
+    fileResultBatches: Either[String, Seq[Set[FileResults]]]): IO[Nothing, Either[String, Unit]] = {
 
-    val responses: Seq[Future[Either[String, Unit]]] = fileResultBatches.fold(
+    val responses = fileResultBatches.fold(
       error => Seq(codacyClient.sendRemoteIssues(tool, commitUuid, Left(error))),
       _.map(fileResultBatch => codacyClient.sendRemoteIssues(tool, commitUuid, Right(fileResultBatch))))
 
@@ -152,9 +148,8 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
       FileResults(filename = filename, results = resultsByFile.getOrElse(filename, Set.empty[ToolResult])))
   }
 
-  private def sequenceUploads(uploads: Seq[Future[Either[String, Unit]]]): Future[Either[String, Unit]] = {
-    Future
-      .sequence(uploads)
+  private def sequenceUploads(uploads: Seq[IO[Nothing, Either[String, Unit]]]): IO[Nothing, Either[String, Unit]] = {
+    IO.parTraverse(uploads)(identity)
       .map(_.foldLeft[Either[String, Unit]](Right(())) {
         case (result, either) =>
           Seq(result, either).collect {
@@ -162,5 +157,4 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
           }.reduceOption(_ + "\n" + _).map(Left.apply).getOrElse(Right(()))
       })
   }
-
 }
