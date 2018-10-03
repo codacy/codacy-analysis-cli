@@ -8,27 +8,26 @@ import scala.util.{Failure, Success, Try}
 object IOHelper {
   type IOThrowable[A] = IO[Throwable, A]
 
-  val ioExceptionMonadError: MonadError[IOThrowable, Throwable] = new MonadError[IOThrowable, Throwable] {
-    override def raiseError[A](e: Throwable): IOThrowable[A] =
-      IO.fail(e)
-
-    override def handleErrorWith[A](fa: IOThrowable[A])(f: Throwable => IOThrowable[A]): IOThrowable[A] =
-      fa.redeem(f, IO.point(_): IOThrowable[A])
-
-    override def pure[A](x: A): IOThrowable[A] =
-      IO.point(x)
-
-    override def flatMap[A, B](fa: IOThrowable[A])(f: A => IOThrowable[B]): IOThrowable[B] =
+  implicit def ioMonadError[E] = new MonadError[({ type IOE[A] = IO[E, A] })#IOE, E] {
+    override def flatMap[A, B](fa: IO[E, A])(f: A => IO[E, B]): IO[E, B] =
       fa.flatMap(f)
 
-    override def tailRecM[A, B](a: A)(f: A => IOThrowable[Either[A, B]]): IOThrowable[B] = {
+    override def tailRecM[A, B](a: A)(f: A => IO[E, Either[A, B]]): IO[E, B] =
       f(a).flatMap {
         case Left(_) =>
           tailRecM(a)(f)
         case Right(b) =>
           IO.point(b)
       }
-    }
+
+    override def raiseError[A](e: E): IO[E, A] =
+      IO.fail(e)
+
+    override def handleErrorWith[A](fa: IO[E, A])(f: E => IO[E, A]): IO[E, A] =
+      fa.redeem(f, IO.point(_): IO[E, A])
+
+    override def pure[A](x: A): IO[E, A] =
+      IO.point(x)
   }
 
   implicit class IOOps[E, A](io: IO[E, A]) {

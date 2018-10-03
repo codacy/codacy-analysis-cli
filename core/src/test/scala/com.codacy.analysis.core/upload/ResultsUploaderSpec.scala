@@ -17,15 +17,15 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 import org.specs2.control.NoLanguageFeatures
-import org.specs2.matcher.{FutureMatchers, MatchResult}
+import org.specs2.matcher.MatchResult
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import org.specs2.specification.core.Fragment
+import scalaz.zio.{IO, RTS}
 
 import scala.concurrent.Future
-import scala.concurrent.duration._
 
-class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
+class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Mockito with RTS {
 
   private val commitUuid = Commit.Uuid("9232dbdcae98b19412c8dd98c49da8c391612bfa")
   private val tool = "eslint"
@@ -84,7 +84,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         .thenReturn(ProjectConfiguration(Set.empty, Some(Set.empty), Set.empty, Set.empty).asRight[String])
 
       when(codacyClient.sendEndOfResults(Commit.Uuid(ArgumentMatchers.eq[String](commitUuid.value))))
-        .thenReturn(Future.successful(().asRight[String]))
+        .thenReturn(IO.point(().asRight[String]))
 
       val uploader: ResultsUploader =
         ResultsUploader(Option(codacyClient), upload = true, Some(commitUuid), None).right.get.get
@@ -108,7 +108,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
             language,
             MetricsAnalysis.Success(Set(testFileMetrics(1), testFileMetrics(2), testFileMetrics(3)))))
 
-      uploader.sendResults(Seq.empty, testMetrics, Seq.empty) must beRight.awaitFor(10.seconds)
+      unsafeRun(uploader.sendResults(Seq.empty, testMetrics, Seq.empty)) must beRight
 
       there were no(codacyClient).sendRemoteIssues(
         ArgumentMatchers.any[String],
@@ -142,7 +142,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         .thenReturn(ProjectConfiguration(Set.empty, Some(Set.empty), Set.empty, Set.empty).asRight[String])
 
       when(codacyClient.sendEndOfResults(Commit.Uuid(ArgumentMatchers.eq[String](commitUuid.value))))
-        .thenReturn(Future.successful(().asRight[String]))
+        .thenReturn(IO.point(().asRight[String]))
 
       val uploader: ResultsUploader =
         ResultsUploader(Option(codacyClient), upload = true, Some(commitUuid), None).right.get.get
@@ -154,7 +154,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       val testDuplication =
         Seq(DuplicationResult(language, DuplicationAnalysis.Success(Set.empty, Set(testClone(1), testClone(2)))))
 
-      uploader.sendResults(Seq.empty, Seq.empty, testDuplication) must beRight.awaitFor(10.seconds)
+      unsafeRun(uploader.sendResults(Seq.empty, Seq.empty, testDuplication)) must beRight
 
       there were no(codacyClient).sendRemoteIssues(
         ArgumentMatchers.any[String],
@@ -190,19 +190,19 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
           ArgumentMatchers.eq(tool),
           Commit.Uuid(ArgumentMatchers.eq[String](commitUuid.value)),
           ArgumentMatchers.any[Right[String, Set[FileResults]]])).thenAnswer((invocation: InvocationOnMock) => {
-        Future.successful(().asRight[String])
+        IO.point(().asRight[String])
       })
       when(
         codacyClient.sendRemoteIssues(
           ArgumentMatchers.eq(otherTool),
           Commit.Uuid(ArgumentMatchers.eq[String](commitUuid.value)),
           ArgumentMatchers.any[Right[String, Set[FileResults]]])).thenAnswer((invocation: InvocationOnMock) => {
-        Future.successful(().asRight[String])
+        IO.point(().asRight[String])
       })
 
       when(codacyClient.getRemoteConfiguration).thenReturn(getMockedRemoteConfiguration(toolPatterns))
       when(codacyClient.sendEndOfResults(Commit.Uuid(ArgumentMatchers.eq[String](commitUuid.value))))
-        .thenReturn(Future.successful(().asRight[String]))
+        .thenReturn(IO.point(().asRight[String]))
 
       val filenames: Set[Path] = exampleResults.map {
         case i: Issue      => i.filename
@@ -210,12 +210,12 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       }(collection.breakOut)
 
       // scalafix:off NoInfer.any
-      uploader.sendResults(
+      unsafeRun(uploader.sendResults(
         Seq(
           ResultsUploader.ToolResults(tool, filenames, Right(exampleResults)),
           ResultsUploader.ToolResults(otherTool, otherFilenames, Right(Set.empty[ToolResult]))),
         Seq.empty,
-        Seq.empty) must beRight.awaitFor(10.minutes)
+        Seq.empty)) must beRight
       // scalafix:on NoInfer.any
 
       verifyNumberOfCalls(codacyClient, tool, commitUuid, expectedNrOfBatches)
@@ -234,7 +234,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
   private def verifyNumberOfCalls(codacyClient: CodacyClient,
                                   tool: String,
                                   commitUuid: Commit.Uuid,
-                                  expectedNrOfBatches: Int): MatchResult[Future[Either[String, Unit]]] = {
+                                  expectedNrOfBatches: Int): MatchResult[IO[Nothing, Either[String, Unit]]] = {
     there was expectedNrOfBatches
       .times(codacyClient)
       .sendRemoteIssues(

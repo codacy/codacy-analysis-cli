@@ -18,7 +18,6 @@ import play.api.libs.json.JsString
 import scalaz.zio.RTS
 
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext
 
 class CLIConfigurationSpec extends Specification with NoLanguageFeatures with RTS {
 
@@ -45,7 +44,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures with RT
     extras = ExtraOptions(analyser = Analyser.defaultAnalyser.name))
   private val defaultEnvironment = new Environment(Map.empty)
   private val httpHelper = new HttpHelper(Option(remoteUrl), Map.empty)
-  private val noRemoteConfigCodacyClient = new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {
+  private val noRemoteConfigCodacyClient = new CodacyClient(apiCredentials, httpHelper) {
     override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
       Left("no remote config")
     }
@@ -118,7 +117,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures with RT
       val defaultIgnores = Set(PathRegex("dat regex bro!"))
       val ignoredPaths = Set(FilePath("dat file path yo!"))
 
-      val codacyClient = new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {
+      val codacyClient = new CodacyClient(apiCredentials, httpHelper) {
         override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
           Right(
             ProjectConfiguration(
@@ -275,7 +274,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures with RT
       val defaultIgnores = Set(PathRegex("dat regex bro!"))
       val ignoredPaths = Set(FilePath("dat file path yo!"))
 
-      val codacyClient = new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {
+      val codacyClient = new CodacyClient(apiCredentials, httpHelper) {
         override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
           Right(
             ProjectConfiguration(

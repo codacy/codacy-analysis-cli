@@ -25,9 +25,6 @@ import org.log4s.getLogger
 import scalaz.zio.ExitResult.{Completed, Failed, Terminated}
 import scalaz.zio.{IO, RTS}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success}
 
 object Main extends MainImpl(sys.env)
@@ -58,7 +55,7 @@ class MainImpl(env: Map[String, String]) extends CLIApp with RTS {
             val analysisAndUpload = for {
               _ <- validate(analyse, configuration)
               analysisResults <- analysis(Analyser(analyse.extras.analyser), configuration.analysis)
-              _ <- IO.point(upload(configuration.upload, codacyClientOpt, analysisResults))
+              _ <- upload(configuration.upload, codacyClientOpt, analysisResults)
             } yield {
               analysisResults
             }
@@ -140,30 +137,25 @@ class MainImpl(env: Map[String, String]) extends CLIApp with RTS {
                      codacyClientOpt: Option[CodacyClient],
                      analysisResults: Seq[AnalyseExecutor.ExecutorResult[_]]): IO[CLIError, Unit] = {
 
-    val uploadResultFut: Future[Either[String, Unit]] =
+    val uploadResultFut: IO[Nothing, Either[String, Unit]] =
       uploadResults(codacyClientOpt)(configuration.upload, configuration.commitUuid, analysisResults)
 
     if (configuration.upload) {
-      IO.syncThrowable(Await.result(uploadResultFut, Duration.Inf))
-        .redeem(
-          { err =>
-            logger.error(err.getMessage)
-            IO.fail(CLIError.UploadError(err.getMessage))
-          }, {
-            case Left(err) =>
-              logger.warn(err)
-              IO.fail(CLIError.MissingUploadRequisites(err))
-            case Right(_) =>
-              logger.info("Completed upload of results to API")
-              IO.point(())
-          })
+      uploadResultFut.flatMap {
+        case Left(err) =>
+          logger.warn(err)
+          IO.fail(CLIError.MissingUploadRequisites(err))
+        case Right(_) =>
+          logger.info("Completed upload of results to API")
+          IO.point(())
+      }
     } else IO.point(())
   }
 
   private def uploadResults(codacyClientOpt: Option[CodacyClient])(
     upload: Boolean,
     commitUuid: Option[Commit.Uuid],
-    executorResults: Seq[ExecutorResult[_]]): Future[Either[String, Unit]] = {
+    executorResults: Seq[ExecutorResult[_]]): IO[Nothing, Either[String, Unit]] = {
     (for {
       uploaderOpt <- ResultsUploader(codacyClientOpt, upload, commitUuid)
     } yield {
@@ -181,8 +173,8 @@ class MainImpl(env: Map[String, String]) extends CLIApp with RTS {
         val duplicationResultsSeq = duplicationResults(duplicationToolExecutorResult)
 
         uploader.sendResults(issuesResultsSeq, metricsResultsSeq, duplicationResultsSeq)
-      }.getOrElse(Future.successful(().asRight[String]))
-    }).fold(err => Future.successful(err.asLeft[Unit]), identity)
+      }.getOrElse(IO.point(().asRight[String]))
+    }).fold(err => IO.point(err.asLeft[Unit]), identity)
   }
 
   def duplicationResults(duplicationExecutorToolResults: Seq[DuplicationToolExecutorResult]): Seq[DuplicationResult] = {
