@@ -5,12 +5,7 @@ import java.nio.file.Path
 import better.files.File
 import cats.implicits._
 import com.codacy.analysis.cli.CLIError
-import com.codacy.analysis.cli.analysis.AnalyseExecutor.{
-  DuplicationToolExecutorResult,
-  ExecutorResult,
-  IssuesToolExecutorResult,
-  MetricsToolExecutorResult
-}
+import com.codacy.analysis.cli.analysis.AnalyseExecutor.{DuplicationToolExecutorResult, ExecutorResult, IssuesToolExecutorResult, MetricsToolExecutorResult}
 import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ExitStatus}
 import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.configuration.{CLIConfiguration, Environment}
@@ -23,15 +18,12 @@ import com.codacy.analysis.core.git.{Commit, Git, Repository}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.upload.ResultsUploader
 import com.codacy.analysis.core.utils.IOHelper.IOThrowable
-import com.codacy.analysis.core.utils.{IOHelper, Logger}
+import com.codacy.analysis.core.utils.Logger
 import com.codacy.analysis.core.utils.SeqOps._
 import org.log4s.getLogger
 import scalaz.zio.IO
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 object AnalyseCommand {
 
@@ -139,26 +131,21 @@ class AnalyseCommand(analyse: Analyse,
   private def upload(configuration: CLIConfiguration.Upload,
                      analysisResults: Seq[AnalyseExecutor.ExecutorResult[_]]): IO[CLIError, Unit] = {
     if (configuration.upload) {
-      val uploadResultFut: Future[Either[String, Unit]] =
+      val uploadResultFut: IO[Nothing, Either[String, Unit]] =
         uploadResults(analysisResults)
 
-      IOHelper.fromEither {
-        Try(Await.result(uploadResultFut, Duration.Inf)) match {
-          case Failure(err) =>
-            logger.error(err.getMessage)
-            Left(CLIError.UploadError(err.getMessage))
-          case Success(Left(err)) =>
-            logger.warn(err)
-            Left(CLIError.MissingUploadRequisites(err))
-          case Success(Right(_)) =>
-            logger.info("Completed upload of results to API")
-            Right(())
-        }
+      uploadResultFut.flatMap {
+        case Left(err) =>
+          logger.warn(err)
+          IO.fail(CLIError.MissingUploadRequisites(err))
+        case Right(_) =>
+          logger.info("Completed upload of results to API")
+          IO.point(())
       }
     } else IO.now(())
   }
 
-  private def uploadResults(executorResults: Seq[ExecutorResult[_]]): Future[Either[String, Unit]] = {
+  private def uploadResults(executorResults: Seq[ExecutorResult[_]]): IO[Nothing, Either[String, Unit]] = {
     uploaderOpt match {
       case Right(Some(uploader)) =>
         val (issuesToolExecutorResult, metricsToolExecutorResult, duplicationToolExecutorResult) =
@@ -171,10 +158,10 @@ class AnalyseCommand(analyse: Analyse,
         uploader.sendResults(issuesResultsSeq, metricsResultsSeq, duplicationResultsSeq)
 
       case Right(None) =>
-        Future.successful(().asRight[String])
+        IO.now(().asRight[String])
 
       case Left(err) =>
-        Future.successful(err.asLeft[Unit])
+        IO.now(err.asLeft[Unit])
     }
   }
 

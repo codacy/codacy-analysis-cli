@@ -6,8 +6,7 @@ import java.nio.file.{Path, Paths}
 import better.files.File
 import com.codacy.analysis.core.clients.api.{FilePath, PathRegex}
 import com.codacy.analysis.core.tools.{ITool, Tool}
-import com.codacy.analysis.core.utils.IOHelper
-import com.codacy.analysis.core.utils.IOHelper.IOThrowable
+import com.codacy.analysis.core.utils.IOHelper._
 import com.codacy.plugins.api.languages.{Language, Languages}
 import org.log4s.{Logger, getLogger}
 
@@ -103,7 +102,7 @@ object FileCollector {
   private val logger: Logger = getLogger
 
   val defaultCollector: FileCollectorCompanion[IOThrowable] =
-    new FallbackFileCollectorCompanion(List(GitFileCollector, FileSystemFileCollector))(IOHelper.ioExceptionMonadError)
+    new FallbackFileCollectorCompanion(List(GitFileCollector, FileSystemFileCollector))
 
   val allCollectors: Set[FileCollectorCompanion[IOThrowable]] = Set(GitFileCollector, FileSystemFileCollector)
 
