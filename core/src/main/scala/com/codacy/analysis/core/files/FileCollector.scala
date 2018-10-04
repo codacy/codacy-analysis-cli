@@ -4,6 +4,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{Path, Paths}
 
 import better.files.File
+import cats.instances.try_.catsStdInstancesForTry
 import com.codacy.analysis.core.clients.api.{FilePath, PathRegex}
 import com.codacy.analysis.core.tools.{ITool, Tool}
 import com.codacy.plugins.api.languages.{Language, Languages}

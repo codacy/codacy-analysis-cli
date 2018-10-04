@@ -1,6 +1,7 @@
 package com.codacy.analysis.core.files
 
 import better.files.File
+import cats.instances.try_.catsStdInstancesForTry
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 

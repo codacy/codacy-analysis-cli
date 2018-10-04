@@ -1,21 +1,22 @@
 package com.codacy.analysis.core.files
 
 import better.files.File
+import cats.MonadError
 
-import scala.util.{Failure, Try}
+class FallbackFileCollector[T[_]](fileCollectorCompanions: List[FileCollectorCompanion[T]])(
+  implicit monadError: MonadError[T, Throwable])
+    extends FileCollector[T] {
 
-class FallbackFileCollector(fileCollectorCompanions: List[FileCollectorCompanion[Try]]) extends FileCollector[Try] {
+  private val fileCollectors: List[FileCollector[T]] = fileCollectorCompanions.map(_.apply())
 
-  private val fileCollectors: List[FileCollector[Try]] = fileCollectorCompanions.map(_.apply())
-
-  override def list(directory: File): Try[FilesTarget] = {
+  override def list(directory: File): T[FilesTarget] = {
     list(fileCollectors, directory)
   }
 
-  private def list(fileCollectorList: List[FileCollector[Try]], directory: File): Try[FilesTarget] = {
+  private def list(fileCollectorList: List[FileCollector[T]], directory: File): T[FilesTarget] = {
     fileCollectorList match {
       case fileCollector :: tail =>
-        fileCollector.list(directory).recoverWith {
+        monadError.recoverWith(fileCollector.list(directory)) {
           case _ =>
             logger.info(s"Failed to list files with ${fileCollector.getClass.getName}")
             list(tail, directory)
@@ -25,16 +26,17 @@ class FallbackFileCollector(fileCollectorCompanions: List[FileCollectorCompanion
           s"All FileCollectors failed to list files: ${fileCollectorCompanions.map(_.name).mkString(",")}"
         logger.error(errorMessage)
 
-        Failure(new Exception(errorMessage))
+        monadError.raiseError(new Exception(errorMessage))
     }
   }
 }
 
-class FallbackFileCollectorCompanion(fileCollectorCompanions: List[FileCollectorCompanion[Try]])
-    extends FileCollectorCompanion[Try] {
+class FallbackFileCollectorCompanion[T[_]](fileCollectorCompanions: List[FileCollectorCompanion[T]])(
+  implicit monadError: MonadError[T, Throwable])
+    extends FileCollectorCompanion[T] {
 
   val name: String = s"fallback:${fileCollectorCompanions.map(_.name).mkString(",")}"
 
-  override def apply(): FileCollector[Try] = new FallbackFileCollector(fileCollectorCompanions)
+  override def apply(): FileCollector[T] = new FallbackFileCollector(fileCollectorCompanions)
 
 }
