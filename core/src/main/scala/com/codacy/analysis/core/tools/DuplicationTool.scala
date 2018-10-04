@@ -9,7 +9,7 @@ import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.duplication.api.{DuplicationCloneFile, DuplicationRequest}
 import com.codacy.plugins.duplication.traits.DuplicationRunner
 import com.codacy.plugins.duplication.{api, _}
-import com.codacy.plugins.traits.BinaryDockerRunner
+import com.codacy.plugins.traits.{BinaryDockerRunner, DockerRunner}
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.getLogger
 
@@ -34,7 +34,7 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
       duplicationClones <- runner.run(
         request,
         CodacyConfiguration(Option(languageToRun), Option.empty),
-        timeout.getOrElse(dockerRunner.defaultRunTimeout),
+        timeout.getOrElse(DockerRunner.defaultRunTimeout),
         None)
       clones = filterDuplicationClones(duplicationClones, files)
     } yield {

@@ -10,7 +10,7 @@ import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.metrics.MetricsTool.CodacyConfiguration
 import com.codacy.plugins.metrics.traits
 import com.codacy.plugins.metrics.traits.{MetricsRequest, MetricsRunner}
-import com.codacy.plugins.traits.BinaryDockerRunner
+import com.codacy.plugins.traits.{BinaryDockerRunner, DockerRunner}
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.getLogger
 
@@ -32,7 +32,7 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
 
     val configuration = CodacyConfiguration(files, Some(languageToRun), None)
 
-    val toolFileMetrics = runner.run(request, configuration, timeout.getOrElse(dockerRunner.defaultRunTimeout), None)
+    val toolFileMetrics = runner.run(request, configuration, timeout.getOrElse(DockerRunner.defaultRunTimeout), None)
 
     toolFileMetrics.map {
       _.collect {
