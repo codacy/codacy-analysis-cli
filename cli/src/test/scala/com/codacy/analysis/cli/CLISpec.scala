@@ -20,7 +20,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
    * e.g.: Using the CLI token that is needed for coverage to retrieve configuration during the tests.
    */
   private val cli = new MainImpl(Map.empty) {
-    override def exit(code: Int): Unit = ()
+    override def exit(code: ExitStatus.ExitCode): Unit = ()
   }
 
   "CLIApp" should {
@@ -274,7 +274,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             extras = ExtraOptions(),
             toolTimeout = None)
 
-          cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommitedChanges)
+          cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
         }).get
       }
     }
@@ -294,7 +294,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             extras = ExtraOptions(),
             toolTimeout = None)
 
-          cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommitedChanges)
+          cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
         }).get
       }
     }
@@ -316,7 +316,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             extras = ExtraOptions(),
             toolTimeout = None)
 
-          cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
+          cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
         }).get
       }
     }
@@ -337,7 +337,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
             toolTimeout = None)
 
-          cli.runCommand(analyse) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
+          cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
         }).get
       }
     }

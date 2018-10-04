@@ -10,31 +10,34 @@ import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.{
 
 object ExitStatus {
 
+  case class ExitCode(value: Int) extends AnyVal
+
   object ExitCodes {
-    val success = 0
-    val genericError = 1
-    val timeout = 2
-    val failedUpload = 10
-    val uncommitedChanges = 11
-    val commitsDoNotMatch = 12
-    val nonExistentTool = 13
-    val failedAnalysis = 100
-    val partiallyFailedAnalysis = 101
-    val maxAllowedIssuesExceeded = 102
+    val success = ExitCode(0)
+    val genericError = ExitCode(1)
+    val timeout = ExitCode(2)
+    val failedUpload = ExitCode(10)
+    val uncommittedChanges = ExitCode(11)
+    val commitsDoNotMatch = ExitCode(12)
+    val nonExistentTool = ExitCode(13)
+    val invalidConfigurationFile = ExitCode(14)
+    val failedAnalysis = ExitCode(100)
+    val partiallyFailedAnalysis = ExitCode(101)
+    val maxAllowedIssuesExceeded = ExitCode(102)
   }
 
 }
 
 class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
 
-  def exitCode(resultsEither: Either[CLIError, Seq[ExecutorResult[_]]]): Int = {
+  def exitCode(resultsEither: Either[CLIError, Seq[ExecutorResult[_]]]): ExitStatus.ExitCode = {
     val resultsCount = countResults(resultsEither)
 
     resultsEither match {
       case Left(_: CLIError.CommitUuidsDoNotMatch) =>
         ExitStatus.ExitCodes.commitsDoNotMatch
       case Left(_: CLIError.UncommitedChanges) =>
-        ExitStatus.ExitCodes.uncommitedChanges
+        ExitStatus.ExitCodes.uncommittedChanges
       case Left(_: CLIError.NonExistingToolInput) =>
         ExitStatus.ExitCodes.nonExistentTool
       case Left(_: CLIError.UploadError | _: CLIError.MissingUploadRequisites) =>

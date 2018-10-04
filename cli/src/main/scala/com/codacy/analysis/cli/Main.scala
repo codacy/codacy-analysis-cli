@@ -8,7 +8,7 @@ import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
 import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
-import com.codacy.analysis.cli.command.{Analyse, CLIApp, Command}
+import com.codacy.analysis.cli.command._
 import com.codacy.analysis.cli.configuration.{CLIConfiguration, Environment}
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
@@ -33,11 +33,7 @@ class MainImpl(env: Map[String, String]) extends CLIApp {
 
   private val logger: org.log4s.Logger = getLogger
 
-  override def run(command: Command): Unit = {
-    exit(runCommand(command))
-  }
-
-  def runCommand(command: Command): Int = {
+  override def run(command: Command): ExitStatus.ExitCode = {
     command match {
       case analyse: Analyse =>
         Logger.setLevel(analyse.options.verboseValue)
@@ -61,6 +57,9 @@ class MainImpl(env: Map[String, String]) extends CLIApp {
         removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
         new ExitStatus(configuration.result.maxAllowedIssues, configuration.result.failIfIncomplete)
           .exitCode(analysisAndUpload)
+
+      case validateConfiguration: ValidateConfiguration =>
+        new ValidateConfigurationExecutor(validateConfiguration).run()
     }
   }
 

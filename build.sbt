@@ -118,7 +118,14 @@ lazy val codacyAnalysisCli = project
     publish := publish.in(Docker).value,
     publishLocal := publishLocal.in(Docker).value,
     publishArtifact := false)
-  .settings(libraryDependencies ++= testDependencies)
+  .settings(
+    // App Dependencies
+    libraryDependencies ++= Seq(
+      Dependencies.pprint
+    ),
+    // Test Dependencies
+    libraryDependencies ++= testDependencies
+  )
   .dependsOn(codacyAnalysisCore % "compile->compile;test->test")
   .aggregate(codacyAnalysisCore)
 

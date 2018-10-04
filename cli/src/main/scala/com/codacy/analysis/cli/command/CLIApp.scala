@@ -3,6 +3,7 @@ package com.codacy.analysis.cli.command
 import better.files.File
 import caseapp._
 import caseapp.core.ArgParser
+import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command.ArgumentParsers._
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
@@ -15,9 +16,9 @@ import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
 abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command] {
-  def run(command: Command): Unit
+  def run(command: Command): ExitStatus.ExitCode
 
-  override final def run(command: Command, remainingArgs: RemainingArgs): Unit = {
+  override final def run(command: Command, remainingArgs: RemainingArgs): ExitStatus.ExitCode = {
     run(command)
   }
 
@@ -155,3 +156,10 @@ final case class Analyse(
   val allowNetworkValue: Boolean = allowNetwork.## > 0
   val forceFilePermissionsValue: Boolean = forceFilePermissions.## > 0
 }
+
+final case class ValidateConfiguration(@Recurse
+                                       options: CommonOptions,
+                                       @ExtraName("d") @ValueDescription(
+                                         "The directory where the configuration file is located")
+                                       directory: Option[File] = Option.empty)
+    extends Command
