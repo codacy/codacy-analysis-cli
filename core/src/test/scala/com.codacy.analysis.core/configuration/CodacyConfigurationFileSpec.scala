@@ -9,6 +9,8 @@ import play.api.libs.json.Json
 
 class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures {
 
+  private val codacyConfigurationFileLoader = new CodacyConfigurationFileLoader()
+
   "CodacyConfigurationFile" should {
     "be parsed as expected" in {
       val expected = CodacyConfigurationFile(
@@ -25,7 +27,8 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
         None)
 
       val resource = Resource.getAsString("com/codacy/analysis/core/configuration/codacy.yaml")
-      val codacyConfigurationFile = CodacyConfigurationFile.parse(resource)
+
+      val codacyConfigurationFile = codacyConfigurationFileLoader.parse(resource)
 
       codacyConfigurationFile must beEqualTo(Right(expected))
     }
@@ -35,7 +38,7 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
         Resource.getAsString("com/codacy/analysis/core/configuration/codacy-test-1.yaml"),
         Resource.getAsString("com/codacy/analysis/core/configuration/codacy-test-2.yaml"),
         Resource.getAsString("com/codacy/analysis/core/configuration/codacy-test-3.yaml"))
-        .map(CodacyConfigurationFile.parse)
+        .map(codacyConfigurationFileLoader.parse)
 
       foreach(moreFileContents)(_ must beRight)
     }
@@ -55,7 +58,7 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
         Some(Map((Languages.CSS, LanguageConfiguration(Some(Set("-css.resource")))))))
 
       val resource = Resource.getAsString("com/codacy/analysis/core/configuration/codacy-langs.yaml")
-      val codacyConfigurationFile = CodacyConfigurationFile.parse(resource)
+      val codacyConfigurationFile = codacyConfigurationFileLoader.parse(resource)
 
       codacyConfigurationFile must beEqualTo(Right(expected))
     }

@@ -6,7 +6,11 @@ import cats.implicits._
 import com.codacy.analysis.cli.command.Analyse
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api._
-import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, EngineConfiguration}
+import com.codacy.analysis.core.configuration.{
+  CodacyConfigurationFile,
+  CodacyConfigurationFileLoader,
+  EngineConfiguration
+}
 import com.codacy.analysis.core.files.Glob
 import com.codacy.analysis.core.git.{Commit, Git}
 import com.codacy.analysis.core.utils.MapOps
@@ -79,8 +83,8 @@ object CLIConfiguration {
         foldable.foldMap(localConfiguration)(
           localConfig =>
             localConfig.engines.fold(Map.empty[String, Set[Glob]])(
-              _.mapValues(_.exclude_paths.getOrElse(Set.empty[Glob]))))
-      val excludeGlobal = foldable.foldMap(localConfiguration)(_.exclude_paths.getOrElse(Set.empty[Glob]))
+              _.mapValues(_.excludePaths.getOrElse(Set.empty[Glob]))))
+      val excludeGlobal = foldable.foldMap(localConfiguration)(_.excludePaths.getOrElse(Set.empty[Glob]))
       val excludePaths = ExcludePaths(excludeGlobal, excludeByTool)
 
       val localCustomExtensionsByLanguage =
@@ -179,7 +183,7 @@ object CLIConfiguration {
   def apply(clientOpt: Option[CodacyClient],
             environment: Environment,
             analyse: Analyse,
-            localConfigLoader: CodacyConfigurationFile.Loader): CLIConfiguration = {
+            localConfigLoader: CodacyConfigurationFileLoader): CLIConfiguration = {
     val projectDirectory: File = environment.baseProjectDirectory(analyse.directory)
     val commitUuid: Option[Commit.Uuid] =
       analyse.commitUuid.orElse(Git.currentCommitUuid(projectDirectory))

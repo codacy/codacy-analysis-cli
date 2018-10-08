@@ -148,21 +148,24 @@ Found [Clone] 7 duplicated lines with 10 tokens:
 
 ## Configuration
 
-### CLI Parameters
+### Commands and Configuration
 
-* `--tool` - Choose the tool to analyse the code (e.g. brakeman)
-* `--directory` - Choose the directory to be analysed
-* `--codacy-api-base-url` or env.`CODACY_API_BASE_URL` - Change the Codacy installation API URL to retrieve the configuration (e.g. Enterprise installation)
-* `--output` - Send the output results to a file
-* `--format` [default: text] - Change the output format (e.g. json)
-* `--commit-uuid` [default: latest commit of current git branch] - Set the commit UUID that will receive the results on Codacy
-* ` --upload` [default: false] - Request to push results to Codacy
-* `--parallel` [default: 2] - Number of tools to run in parallel
-* `--max-allowed-issues` [default: 0] - Maximum number of issues allowed for the analysis to succeed
-* `--fail-if-incomplete` [default: false] - Fail the analysis if any tool fails to run
-* `--allow-network` [default: false] - Allow network access, so tools that need it can execute (e.g. findbugs)
-* `--force-file-permissions` [default: false] - Force files to be readable by changing the permissions before running the analysis
-* `--tool-timeout` [default: 15minutes] - Maximum time each tool has to execute (e.g. 15minutes, 1hour)
+* `analyze` - Run a Codacy analysis over a directory/files
+    * `--tool` - Choose the tool to analyse the code (e.g. brakeman)
+    * `--directory` - Choose the directory to be analysed
+    * `--codacy-api-base-url` or env.`CODACY_API_BASE_URL` - Change the Codacy installation API URL to retrieve the configuration (e.g. Enterprise installation)
+    * `--output` - Send the output results to a file
+    * `--format` [default: text] - Change the output format (e.g. json)
+    * `--commit-uuid` [default: latest commit of current git branch] - Set the commit UUID that will receive the results on Codacy
+    * ` --upload` [default: false] - Request to push results to Codacy
+    * `--parallel` [default: 2] - Number of tools to run in parallel
+    * `--max-allowed-issues` [default: 0] - Maximum number of issues allowed for the analysis to succeed
+    * `--fail-if-incomplete` [default: false] - Fail the analysis if any tool fails to run
+    * `--allow-network` [default: false] - Allow network access, so tools that need it can execute (e.g. findbugs)
+    * `--force-file-permissions` [default: false] - Force files to be readable by changing the permissions before running the analysis
+    * `--tool-timeout` [default: 15minutes] - Maximum time each tool has to execute (e.g. 15minutes, 1hour)
+* `validate-configuration` - Validate the Codacy configuration file
+    * `--directory` - Choose the directory where to look for the Codacy configuration file
 
 ### Environment Variables
 

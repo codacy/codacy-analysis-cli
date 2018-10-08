@@ -3,7 +3,7 @@ package com.codacy.analysis.cli.analysis
 import java.nio.file.Paths
 
 import com.codacy.analysis.cli.CLIError
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.IssuesToolExecutorResult
+import com.codacy.analysis.cli.analysis.AnalyseExecutor.IssuesToolExecutorResult
 import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.{FullLocation, Issue}
 import com.codacy.plugins.api.results.{Pattern, Result}
