@@ -1,10 +1,9 @@
-package com.codacy.analysis.cli.command.analyse
+package com.codacy.analysis.cli.analysis
 
 import java.nio.file.Path
 
 import better.files.File
 import com.codacy.analysis.cli.CLIError
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor._
 import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.cli.configuration.CLIConfiguration.IssuesTool.toInternalPattern
 import com.codacy.analysis.cli.formatter.Formatter
@@ -27,6 +26,8 @@ class AnalyseExecutor(formatter: Formatter,
                       analyser: Analyser[Try],
                       fileCollector: FileCollector[Try],
                       configuration: CLIConfiguration.Analysis) {
+
+  import com.codacy.analysis.cli.analysis.AnalyseExecutor._
 
   private val logger: Logger = getLogger
 

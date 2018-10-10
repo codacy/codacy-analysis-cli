@@ -2,7 +2,8 @@ package com.codacy.analysis.cli.command.analyse
 import java.nio.file.Paths
 
 import better.files.File
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.MetricsToolExecutorResult
+import com.codacy.analysis.cli.analysis.AnalyseExecutor.MetricsToolExecutorResult
+import com.codacy.analysis.cli.analysis.{AnalyseExecutor, MetricsToolExecutor}
 import com.codacy.analysis.core.model.FileMetrics
 import com.codacy.plugins.api.languages.Languages
 import com.codacy.plugins.api.languages.Languages._

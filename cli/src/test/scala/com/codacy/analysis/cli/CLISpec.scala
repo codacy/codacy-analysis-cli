@@ -11,15 +11,15 @@ import com.codacy.plugins.utils.CommandRunner
 import io.circe.generic.auto._
 import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
-import org.specs2.mutable.Specification
 import org.specs2.matcher.FileMatchers
+import org.specs2.mutable.Specification
 
 class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
 
   /* We need a clean environment to avoid using variables from the outside environment.
    * e.g.: Using the CLI token that is needed for coverage to retrieve configuration during the tests.
    */
-  private val cli = new MainImpl(Map.empty) {
+  private val cli = new MainImpl(analyseCommand = AnalyseCommand(_, Map.empty)) {
     override def exit(code: ExitStatus.ExitCode): Unit = ()
   }
 
@@ -102,7 +102,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             file.pathAsString))
 
         file.contentAsString must beEqualTo("""|[]
-                 |""".stripMargin)
+                                               |""".stripMargin)
       }).get()
     }
 
@@ -282,9 +282,8 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
     "fail because of untracked files with enabled upload" in {
       withTemporaryGitRepo { directory =>
         (for {
-          newFile <- File.temporaryFile(parent = Some(directory))
+          _ <- File.temporaryFile(parent = Some(directory))
         } yield {
-
           val analyse = Analyse(
             options = CommonOptions(),
             api = APIOptions(projectToken = None, codacyApiBaseUrl = None),
@@ -293,7 +292,6 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             upload = Tag.of(1),
             extras = ExtraOptions(),
             toolTimeout = None)
-
           cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
         }).get
       }
@@ -324,9 +322,8 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
     "fail because the uuid of the current commit of the git project does not match the one provided by parameter" in {
       withTemporaryGitRepo { directory =>
         (for {
-          newFile <- File.temporaryFile(parent = Some(directory))
+          _ <- File.temporaryFile(parent = Some(directory))
         } yield {
-
           val analyse = Analyse(
             options = CommonOptions(),
             api = APIOptions(projectToken = Some("hey, im a token"), codacyApiBaseUrl = Some("https://codacy.com")),
@@ -336,7 +333,6 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             extras = ExtraOptions(),
             commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
             toolTimeout = None)
-
           cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
         }).get
       }
@@ -363,7 +359,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
   }
 
   private def errorMsg(message: String)
-    : (DefaultCommand, List[String], Option[Either[String, (String, Command, Seq[String], Seq[String])]]) = {
+    : (DefaultCommand, List[String], Option[Either[String, (String, CommandOptions, Seq[String], Seq[String])]]) = {
     (DefaultCommand(), List.empty[String], Some(Left(message)))
   }
 

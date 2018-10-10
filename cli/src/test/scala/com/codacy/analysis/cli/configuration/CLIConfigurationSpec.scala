@@ -7,7 +7,7 @@ import com.codacy.analysis.cli.formatter.Json
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients._
 import com.codacy.analysis.core.clients.api._
-import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, EngineConfiguration, LanguageConfiguration}
+import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, CodacyConfigurationFileLoader, EngineConfiguration, LanguageConfiguration}
 import com.codacy.analysis.core.files.Glob
 import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.utils.HttpHelper
@@ -16,8 +16,8 @@ import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 import play.api.libs.json.JsString
 
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
 
@@ -28,7 +28,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
   private val apiCredentials: Credentials =
     APIToken(apiTokenStr, Option(remoteUrl), UserName(username), ProjectName(project))
 
-  private object noLocalConfig extends CodacyConfigurationFile.Loader {
+  private object noLocalConfig extends CodacyConfigurationFileLoader {
     override def load(directory: File) = Left("no local config")
   }
   private val toolInput = Option("hey! i'm a tool!")
@@ -169,17 +169,17 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
 
       val engine9Excludes = Set(Glob("this"), Glob("is a"), Glob("deftones track"))
       val engineConfig = EngineConfiguration(
-        exclude_paths = Option(engine9Excludes),
+        excludePaths = Option(engine9Excludes),
         baseSubDir = Option("this/aint/no/m*****f****n/stick/up"),
         extraValues = Option(Map("just pick" -> JsString("the stick up!"))))
       val globalExcludes = Set(Glob("global exclude #1"), Glob("global exclude #2"))
 
-      object localConfig extends CodacyConfigurationFile.Loader {
+      object localConfig extends CodacyConfigurationFileLoader {
         override def load(directory: File): Either[String, CodacyConfigurationFile] = {
           Right(
             CodacyConfigurationFile(
               engines = Option(Map("engine no. 9" -> engineConfig)),
-              exclude_paths = Option(globalExcludes),
+              excludePaths = Option(globalExcludes),
               languages =
                 Option(Map(Languages.Scala -> LanguageConfiguration(extensions = Option(Set(".scala", ".alacs")))))))
         }
@@ -250,17 +250,17 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
 
       val engine9Excludes = Set(Glob("this"), Glob("is a"), Glob("deftones track"))
       val engineConfig = EngineConfiguration(
-        exclude_paths = Option(engine9Excludes),
+        excludePaths = Option(engine9Excludes),
         baseSubDir = Option("this/aint/no/m*****f****n/stick/up"),
         extraValues = Option(Map("just pick" -> JsString("the stick up!"))))
       val globalExcludes = Set(Glob("global exclude #1"), Glob("global exclude #2"))
 
-      object localConfig extends CodacyConfigurationFile.Loader {
+      object localConfig extends CodacyConfigurationFileLoader {
         override def load(directory: File): Either[String, CodacyConfigurationFile] = {
           Right(
             CodacyConfigurationFile(
               engines = Option(Map("engine no. 9" -> engineConfig)),
-              exclude_paths = Option(globalExcludes),
+              excludePaths = Option(globalExcludes),
               languages = Option(Map(Languages.Scala -> LanguageConfiguration(extensions = Option(Set(".sc")))))))
         }
       }

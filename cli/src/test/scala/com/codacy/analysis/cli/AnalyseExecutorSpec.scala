@@ -1,7 +1,7 @@
 package com.codacy.analysis.cli
 
 import better.files.File
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor
+import com.codacy.analysis.cli.analysis.AnalyseExecutor
 import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.core.analysis.Analyser

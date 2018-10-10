@@ -15,10 +15,10 @@ import scala.concurrent.duration.Duration
 import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
-abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, Command] {
-  def run(command: Command): ExitStatus.ExitCode
+abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, CommandOptions] {
+  def run(command: CommandOptions): ExitStatus.ExitCode
 
-  override final def run(command: Command, remainingArgs: RemainingArgs): ExitStatus.ExitCode = {
+  override final def run(command: CommandOptions, remainingArgs: RemainingArgs): ExitStatus.ExitCode = {
     run(command)
   }
 
@@ -99,7 +99,7 @@ final case class CommonOptions(
   val verboseValue: Boolean = verbose.## > 0
 }
 
-sealed trait Command {
+sealed trait CommandOptions {
   def options: CommonOptions
 }
 
@@ -150,7 +150,7 @@ final case class Analyse(
   toolTimeout: Option[Duration],
   @Recurse
   extras: ExtraOptions)
-    extends Command {
+    extends CommandOptions {
   val uploadValue: Boolean = upload.## > 0
   val failIfIncompleteValue: Boolean = failIfIncomplete.## > 0
   val allowNetworkValue: Boolean = allowNetwork.## > 0
@@ -162,4 +162,4 @@ final case class ValidateConfiguration(@Recurse
                                        @ExtraName("d") @ValueDescription(
                                          "The directory where the configuration file is located")
                                        directory: Option[File] = Option.empty)
-    extends Command
+    extends CommandOptions

@@ -6,14 +6,8 @@ object Dependencies {
   lazy val circe = List(
     "io.circe" %% "circe-core" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
-    "io.circe" %% "circe-parser" % circeVersion)
-
-  val jacksonVersion = "2.9.6"
-  lazy val jackson = Seq(
-    "com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion,
-    "com.fasterxml.jackson.core" % "jackson-annotations" % jacksonVersion,
-    "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % jacksonVersion)
+    "io.circe" %% "circe-parser" % circeVersion,
+    "io.circe" %% "circe-yaml" % "0.9.0")
 
   lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.6.0"
 

@@ -1,7 +1,7 @@
 package com.codacy.analysis.cli.analysis
 
 import com.codacy.analysis.cli.CLIError
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.{
+import com.codacy.analysis.cli.analysis.AnalyseExecutor.{
   DuplicationToolExecutorResult,
   ExecutorResult,
   IssuesToolExecutorResult,

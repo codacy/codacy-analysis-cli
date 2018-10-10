@@ -1,14 +1,15 @@
-package com.codacy.analysis.cli.command.analyse
+package com.codacy.analysis.cli.analysis
 import java.nio.file.Path
 
 import better.files.File
-import com.codacy.analysis.cli.command.analyse.AnalyseExecutor.MetricsToolExecutorResult
 import com.codacy.analysis.core
 import com.codacy.analysis.core.model.FileMetrics
 
 import scala.util.{Failure, Success}
 
 object MetricsToolExecutor {
+
+  import com.codacy.analysis.cli.analysis.AnalyseExecutor._
 
   def reduceMetricsToolResultsByFile(metricsResults: Seq[MetricsToolExecutorResult]): Seq[MetricsToolExecutorResult] = {
     val (successfulMetricsResults, failedMetricsResults) = metricsResults.partition(_.analysisResults.isSuccess)
@@ -72,7 +73,7 @@ object MetricsToolExecutor {
 
   private def countMissingLoc(directory: File,
                               fileMetricsByFilePath: Map[Path, FileMetrics],
-                              metricsRes: AnalyseExecutor.MetricsToolExecutorResult) = {
+                              metricsRes: AnalyseExecutor.MetricsToolExecutorResult): MetricsToolExecutorResult = {
     val fileMetrics = metricsRes.files.map { file =>
       fileMetricsByFilePath.get(file) match {
         case None =>

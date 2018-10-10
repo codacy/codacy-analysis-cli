@@ -1,23 +1,24 @@
 package com.codacy.analysis.core.configuration
 
 import better.files.File
+import cats.syntax.show._
 import com.codacy.analysis.core.files.Glob
 import com.codacy.plugins.api.languages.{Language, Languages}
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.dataformat.yaml.{YAMLFactory, YAMLGenerator}
-import play.api.libs.json.Reads._
-import play.api.libs.json._
+import io.circe.generic.auto._
+import io.circe.yaml.parser
+import io.circe.{Decoder, Json, _}
+import play.api.libs.json.JsValue
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Properties, Try}
 
 final case class LanguageConfiguration(extensions: Option[Set[String]])
 
-final case class EngineConfiguration(exclude_paths: Option[Set[Glob]],
+final case class EngineConfiguration(excludePaths: Option[Set[Glob]],
                                      baseSubDir: Option[String],
                                      extraValues: Option[Map[String, JsValue]])
 
 final case class CodacyConfigurationFile(engines: Option[Map[String, EngineConfiguration]],
-                                         exclude_paths: Option[Set[Glob]],
+                                         excludePaths: Option[Set[Glob]],
                                          languages: Option[Map[Language, LanguageConfiguration]]) {
 
   lazy val languageCustomExtensions: Map[Language, Set[String]] =
@@ -26,17 +27,13 @@ final case class CodacyConfigurationFile(engines: Option[Map[String, EngineConfi
     })
 }
 
-object CodacyConfigurationFile {
-
-  class Loader {
-
-    def load(directory: File): Either[String, CodacyConfigurationFile] =
-      CodacyConfigurationFile
-        .search(directory)
-        .flatMap(configDir => CodacyConfigurationFile.parse(configDir.contentAsString))
-  }
+class CodacyConfigurationFileLoader {
 
   val filenames = Set(".codacy.yaml", ".codacy.yml")
+
+  def load(directory: File): Either[String, CodacyConfigurationFile] = {
+    search(directory).flatMap(configDir => parse(configDir.contentAsString))
+  }
 
   def search(root: File): Either[String, File] = {
     filenames
@@ -48,41 +45,48 @@ object CodacyConfigurationFile {
   }
 
   def parse(yamlString: String): Either[String, CodacyConfigurationFile] = {
-    Try {
-      val yamlMapper =
-        new ObjectMapper(new YAMLFactory().configure(YAMLGenerator.Feature.WRITE_DOC_START_MARKER, false))
-      val jsonString = yamlMapper.readTree(yamlString).toString
-      val json = Json.parse(jsonString)
-      json.validate[CodacyConfigurationFile] match {
-        case JsError(error)      => Left(error.mkString)
-        case JsSuccess(value, _) => Right(value)
-      }
-    } match {
-      case Failure(error)  => Left(error.getMessage)
-      case Success(config) => config
-    }
+    for {
+      json <- parser.parse(yamlString).left.map(_.show)
+      cursor = HCursor.fromJson(json)
+      configurationEither = Decoder[CodacyConfigurationFile].accumulating(cursor).toEither
+      configuration <- configurationEither.left.map(_.toList.map(_.show).mkString(Properties.lineSeparator))
+    } yield configuration
   }
 
-  implicit val globReads: Reads[Glob] = StringReads.map(Glob.apply)
-  implicit val languageConfigurationReads: Reads[LanguageConfiguration] = Json.reads[LanguageConfiguration]
-  implicit val engineConfigurationReads: Reads[EngineConfiguration] = Reads { json =>
-    val codacyKeys = Set("enabled", "exclude_paths", "base_sub_dir")
-    val excludePaths = (json \ "exclude_paths").asOpt[Set[Glob]]
-    val baseSubDir = (json \ "base_sub_dir").asOpt[String]
-    val extraValuesRaw = json.asOpt[Map[String, JsValue]]
-    val extraValues = extraValuesRaw.map(_.filterNot { case (key, _) => codacyKeys.contains(key) }).filter(_.nonEmpty)
-    JsSuccess(EngineConfiguration(excludePaths, baseSubDir, extraValues))
-  }
+}
 
-  implicit val optionSetStringReads: Reads[Option[Set[String]]] = Reads(_.validateOpt[Set[String]])
+object CodacyConfigurationFile {
 
-  implicit val languageMapReads: Reads[Map[Language, LanguageConfiguration]] = Reads { json =>
-    json.validate[Map[String, LanguageConfiguration]].map { languages =>
+  implicit val globDecoder: Decoder[Glob] = (c: HCursor) => c.as[String].map(Glob)
+
+  implicit val languageKeyDecoder: KeyDecoder[Language] = (languageStr: String) => Languages.fromName(languageStr)
+
+  implicit val decodeEngineConfiguration: Decoder[EngineConfiguration] = new Decoder[EngineConfiguration] {
+    val engineConfigurationKeys = Set("enabled", "exclude_paths", "base_sub_dir")
+
+    final def apply(c: HCursor): Decoder.Result[EngineConfiguration] = {
+      val extraKeys = c.keys.fold(List.empty[String])(_.to[List]).filter(key => !engineConfigurationKeys.contains(key))
       for {
-        (languageName, langConfig) <- languages
-        languageC <- Languages.fromName(languageName)
-      } yield (languageC, langConfig)
+        excludePaths <- c.downField("exclude_paths").as[Option[Set[Glob]]]
+        baseSubDir <- c.downField("base_sub_dir").as[Option[String]]
+      } yield {
+        val extraToolConfigurations: Map[String, JsValue] = extraKeys.flatMap { extraKey =>
+          c.downField(extraKey)
+            .as[Json]
+            .fold[Option[JsValue]]({ _ =>
+              Option.empty
+            }, { json =>
+              Try(play.api.libs.json.Json.parse(json.noSpaces)).toOption
+            })
+            .map(value => (extraKey, value))
+        }(collection.breakOut)
+
+        EngineConfiguration(excludePaths, baseSubDir, Option(extraToolConfigurations).filter(_.nonEmpty))
+      }
     }
   }
-  implicit val codacyConfigurationFileReads: Reads[CodacyConfigurationFile] = Json.reads[CodacyConfigurationFile]
+
+  implicit val decodeCodacyConfigurationFile: Decoder[CodacyConfigurationFile] =
+    Decoder.forProduct3("engines", "exclude_paths", "languages")(CodacyConfigurationFile.apply)
+
 }
