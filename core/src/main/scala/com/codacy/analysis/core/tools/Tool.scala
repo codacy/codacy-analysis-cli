@@ -5,7 +5,7 @@ import java.nio.file.{Path, Paths}
 import better.files.File
 import com.codacy.analysis.core.analysis.{Analyser, CodacyPluginsAnalyser}
 import com.codacy.analysis.core.model.{Configuration, Issue, _}
-import com.codacy.analysis.core.utils.FileHelper
+import com.codacy.analysis.core.utils.{FileHelper, IOHelper}
 import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import com.codacy.plugins.api
 import com.codacy.plugins.api.languages.Language
@@ -94,10 +94,7 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
       }
     }
 
-    for {
-      _ <- IO.point(())
-      toolResults <- IO.fromTry(run)
-    } yield toolResults
+    IOHelper.fromTry(run)
   }
 
   private def getSourceDirectory(directory: File, baseSubDir: Option[String]): SourceDirectory = {

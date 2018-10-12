@@ -4,6 +4,7 @@ import java.nio.file.Path
 
 import better.files.File
 import com.codacy.analysis.core.model.DuplicationClone
+import com.codacy.analysis.core.utils.IOHelper
 import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import com.codacy.plugins.api.duplication.DuplicationTool.CodacyConfiguration
 import com.codacy.plugins.api.languages.Language
@@ -46,10 +47,7 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
       }
     }
 
-    for {
-      _ <- IO.point(())
-      clones <- IO.fromTry(run())
-    } yield clones
+    IOHelper.fromTry(run())
   }
 
   private def filterDuplicationClones(duplicationClones: List[api.DuplicationClone],

@@ -4,6 +4,7 @@ import java.nio.file.Paths
 
 import better.files.File
 import com.codacy.analysis.core.model.FileMetrics
+import com.codacy.analysis.core.utils.IOHelper
 import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import com.codacy.plugins.api
 import com.codacy.plugins.api.{Source, metrics}
@@ -39,8 +40,7 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
     }
 
     for {
-      _ <- IO.point(())
-      fileMetricsList <- IO.fromTry(run())
+      fileMetricsList <- IOHelper.fromTry(run())
     } yield {
       fileMetricsList.collect {
         case fileMetrics if unignoredFile(fileMetrics, files) =>

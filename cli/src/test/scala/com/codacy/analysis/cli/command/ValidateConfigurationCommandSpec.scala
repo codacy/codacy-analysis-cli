@@ -5,8 +5,9 @@ import com.codacy.analysis.cli.analysis.ExitStatus.ExitCodes
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.FileMatchers
 import org.specs2.mutable.Specification
+import scalaz.zio.RTS
 
-class ValidateConfigurationCommandSpec extends Specification with NoLanguageFeatures with FileMatchers {
+class ValidateConfigurationCommandSpec extends Specification with NoLanguageFeatures with FileMatchers with RTS {
 
   "ValidateConfigurationExecutor" should {
     "find configuration file" in {
@@ -18,7 +19,7 @@ class ValidateConfigurationCommandSpec extends Specification with NoLanguageFeat
 
           val command = ValidateConfigurationCommand(ValidateConfiguration(CommonOptions(), Option(directory)))
 
-          command.run() mustEqual ExitCodes.success
+          unsafeRun(command.run()) mustEqual ExitCodes.success
         }
         .get
     }
@@ -29,7 +30,7 @@ class ValidateConfigurationCommandSpec extends Specification with NoLanguageFeat
         .map { directory =>
           val command = ValidateConfigurationCommand(ValidateConfiguration(CommonOptions(), Option(directory)))
 
-          command.run() mustEqual ExitCodes.invalidConfigurationFile
+          unsafeRun(command.run()) mustEqual ExitCodes.invalidConfigurationFile
         }
         .get
     }
