@@ -6,13 +6,10 @@ import cats.implicits._
 import com.codacy.analysis.cli.command.Analyse
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api._
-import com.codacy.analysis.core.configuration.{
-  CodacyConfigurationFile,
-  CodacyConfigurationFileLoader,
-  EngineConfiguration
-}
+import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, CodacyConfigurationFileLoader, EngineConfiguration}
 import com.codacy.analysis.core.files.Glob
 import com.codacy.analysis.core.git.{Commit, Git}
+import com.codacy.analysis.core.utils.IOHelper._
 import com.codacy.analysis.core.utils.MapOps
 import com.codacy.plugins.api.languages.Language
 import play.api.libs.json.JsValue
@@ -190,21 +187,22 @@ object CLIConfiguration {
     val commitUuid: IO[Unit, Commit.Uuid] =
       IO.fromOption(analyse.commitUuid).orElse(Git.currentCommitUuid(projectDirectory).bimap(_ => (), identity))
 
-    val localConfiguration: Either[String, CodacyConfigurationFile] = localConfigLoader.load(projectDirectory)
+    val localConfiguration: IO[String, CodacyConfigurationFile] = localConfigLoader.load(projectDirectory)
     val remoteProjectConfiguration: Either[String, ProjectConfiguration] = clientOpt.fold {
       "No credentials found.".asLeft[ProjectConfiguration]
     } {
       _.getRemoteConfiguration
     }
     val analysisConfiguration =
-      Analysis(projectDirectory, analyse, localConfiguration, remoteProjectConfiguration)
+      localConfiguration.redeemEither.map(Analysis(projectDirectory, analyse, _, remoteProjectConfiguration))
     val uploadConfiguration = commitUuid
       .redeemPure(_ => Upload(None, analyse.uploadValue), commitUuid => Upload(Some(commitUuid), analyse.uploadValue))
     val resultConfiguration = Result(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
 
-    uploadConfiguration.map { config =>
-      CLIConfiguration(analysisConfiguration, config, resultConfiguration)
-    }
+    for {
+      analysisConfig <- analysisConfiguration
+      uploadConfig <- uploadConfiguration
+    } yield CLIConfiguration(analysisConfig, uploadConfig, resultConfiguration)
 
   }
 

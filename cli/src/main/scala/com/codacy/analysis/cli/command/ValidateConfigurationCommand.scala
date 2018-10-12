@@ -4,7 +4,6 @@ import better.files.File
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.analysis.ExitStatus.ExitCodes
 import com.codacy.analysis.core.configuration.CodacyConfigurationFileLoader
-import com.codacy.analysis.core.utils.IOHelper
 import scalaz.zio.IO
 
 object ValidateConfigurationCommand {
@@ -21,8 +20,8 @@ class ValidateConfigurationCommand(validateConfiguration: ValidateConfiguration,
     val directory = validateConfiguration.directory.getOrElse(File.currentWorkingDirectory)
 
     (for {
-      file <- IOHelper.fromEither(configurationLoader.search(directory))
-      cfgFile <- IOHelper.fromEither(configurationLoader.parse(file.contentAsString))
+      file <- configurationLoader.search(directory)
+      cfgFile <- configurationLoader.parse(file.contentAsString)
     } yield (file, cfgFile)).redeemPure({ e =>
       Console.err.println(e)
       ExitCodes.invalidConfigurationFile

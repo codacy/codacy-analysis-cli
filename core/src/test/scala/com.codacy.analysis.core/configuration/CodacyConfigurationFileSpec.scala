@@ -6,8 +6,11 @@ import com.codacy.plugins.api.languages.Languages
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
+import scalaz.zio.RTS
 
-class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures {
+import scala.util.Try
+
+class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures with RTS {
 
   private val codacyConfigurationFileLoader = new CodacyConfigurationFileLoader()
 
@@ -40,7 +43,7 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
         Resource.getAsString("com/codacy/analysis/core/configuration/codacy-test-3.yaml"))
         .map(codacyConfigurationFileLoader.parse)
 
-      foreach(moreFileContents)(_ must beRight)
+      foreach(moreFileContents)(io => Try(unsafeRun(io)) must beSuccessfulTry)
     }
 
     "be parsed with language configs" in {

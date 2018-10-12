@@ -7,15 +7,14 @@ import com.codacy.analysis.core.model.FileMetrics
 import com.codacy.analysis.core.utils.IOHelper
 import com.codacy.analysis.core.utils.IOHelper.IOThrowable
 import com.codacy.plugins.api
-import com.codacy.plugins.api.{Source, metrics}
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.metrics.MetricsTool.CodacyConfiguration
+import com.codacy.plugins.api.{Source, metrics}
 import com.codacy.plugins.metrics.traits
 import com.codacy.plugins.metrics.traits.{MetricsRequest, MetricsRunner}
 import com.codacy.plugins.traits.{BinaryDockerRunner, DockerRunner}
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.getLogger
-import scalaz.zio.IO
 
 import scala.concurrent.duration.Duration
 import scala.util.Try

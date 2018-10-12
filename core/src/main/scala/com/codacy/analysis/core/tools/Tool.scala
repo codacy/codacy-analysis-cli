@@ -5,8 +5,8 @@ import java.nio.file.{Path, Paths}
 import better.files.File
 import com.codacy.analysis.core.analysis.{Analyser, CodacyPluginsAnalyser}
 import com.codacy.analysis.core.model.{Configuration, Issue, _}
-import com.codacy.analysis.core.utils.{FileHelper, IOHelper}
 import com.codacy.analysis.core.utils.IOHelper.IOThrowable
+import com.codacy.analysis.core.utils.{FileHelper, IOHelper}
 import com.codacy.plugins.api
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.results
@@ -17,7 +17,6 @@ import com.codacy.plugins.traits.{BinaryDockerRunner, DockerRunner}
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
-import scalaz.zio.IO
 
 import scala.concurrent.duration._
 

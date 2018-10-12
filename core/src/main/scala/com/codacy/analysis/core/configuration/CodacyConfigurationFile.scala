@@ -3,11 +3,13 @@ package com.codacy.analysis.core.configuration
 import better.files.File
 import cats.syntax.show._
 import com.codacy.analysis.core.files.Glob
+import com.codacy.analysis.core.utils.IOHelper
 import com.codacy.plugins.api.languages.{Language, Languages}
 import io.circe.generic.auto._
 import io.circe.yaml.parser
 import io.circe.{Decoder, Json, _}
 import play.api.libs.json.JsValue
+import scalaz.zio.IO
 
 import scala.util.{Properties, Try}
 
@@ -31,26 +33,26 @@ class CodacyConfigurationFileLoader {
 
   val filenames = Set(".codacy.yaml", ".codacy.yml")
 
-  def load(directory: File): Either[String, CodacyConfigurationFile] = {
+  def load(directory: File): IO[String, CodacyConfigurationFile] = {
     search(directory).flatMap(configDir => parse(configDir.contentAsString))
   }
 
-  def search(root: File): Either[String, File] = {
-    filenames
+  def search(root: File): IO[String, File] = {
+    IOHelper.fromEither(filenames
       .map(root / _)
       .find(f => f.exists && f.isRegularFile)
       .fold[Either[String, File]](
         Left(s"Could not find Codacy configuration file. Make sure you have a file named like one of ${filenames
-          .mkString(", ")}."))(Right(_))
+          .mkString(", ")}."))(Right(_)))
   }
 
-  def parse(yamlString: String): Either[String, CodacyConfigurationFile] = {
-    for {
+  def parse(yamlString: String): IO[String, CodacyConfigurationFile] = {
+    IOHelper.fromEither(for {
       json <- parser.parse(yamlString).left.map(_.show)
       cursor = HCursor.fromJson(json)
       configurationEither = Decoder[CodacyConfigurationFile].accumulating(cursor).toEither
       configuration <- configurationEither.left.map(_.toList.map(_.show).mkString(Properties.lineSeparator))
-    } yield configuration
+    } yield configuration)
   }
 
 }

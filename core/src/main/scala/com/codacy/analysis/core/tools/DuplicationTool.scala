@@ -14,7 +14,6 @@ import com.codacy.plugins.duplication.{api, _}
 import com.codacy.plugins.traits.{BinaryDockerRunner, DockerRunner}
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.getLogger
-import scalaz.zio.IO
 
 import scala.concurrent.duration._
 import scala.util.Try

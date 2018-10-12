@@ -15,7 +15,7 @@ import com.codacy.plugins.api.languages.Languages
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 import play.api.libs.json.JsString
-import scalaz.zio.RTS
+import scalaz.zio.{IO, RTS}
 
 import scala.concurrent.duration._
 
@@ -29,7 +29,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures with RT
     APIToken(apiTokenStr, Option(remoteUrl), UserName(username), ProjectName(project))
 
   private object noLocalConfig extends CodacyConfigurationFileLoader {
-    override def load(directory: File) = Left("no local config")
+    override def load(directory: File) = IO.fail("no local config")
   }
   private val toolInput = Option("hey! i'm a tool!")
   private val commitUuid = Option(Commit.Uuid("uuid"))
@@ -175,8 +175,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures with RT
       val globalExcludes = Set(Glob("global exclude #1"), Glob("global exclude #2"))
 
       object localConfig extends CodacyConfigurationFileLoader {
-        override def load(directory: File): Either[String, CodacyConfigurationFile] = {
-          Right(
+        override def load(directory: File): IO[String, CodacyConfigurationFile] = {
+          IO.now(
             CodacyConfigurationFile(
               engines = Option(Map("engine no. 9" -> engineConfig)),
               excludePaths = Option(globalExcludes),
@@ -255,8 +255,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures with RT
       val globalExcludes = Set(Glob("global exclude #1"), Glob("global exclude #2"))
 
       object localConfig extends CodacyConfigurationFileLoader {
-        override def load(directory: File): Either[String, CodacyConfigurationFile] = {
-          Right(
+        override def load(directory: File): IO[String, CodacyConfigurationFile] = {
+          IO.now(
             CodacyConfigurationFile(
               engines = Option(Map("engine no. 9" -> engineConfig)),
               excludePaths = Option(globalExcludes),
