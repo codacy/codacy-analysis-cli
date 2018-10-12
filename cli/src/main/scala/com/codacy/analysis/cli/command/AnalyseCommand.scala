@@ -5,7 +5,12 @@ import java.nio.file.Path
 import better.files.File
 import cats.implicits._
 import com.codacy.analysis.cli.CLIError
-import com.codacy.analysis.cli.analysis.AnalyseExecutor.{DuplicationToolExecutorResult, ExecutorResult, IssuesToolExecutorResult, MetricsToolExecutorResult}
+import com.codacy.analysis.cli.analysis.AnalyseExecutor.{
+  DuplicationToolExecutorResult,
+  ExecutorResult,
+  IssuesToolExecutorResult,
+  MetricsToolExecutorResult
+}
 import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ExitStatus}
 import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.configuration.{CLIConfiguration, Environment}
@@ -17,7 +22,7 @@ import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.git.{Commit, Git, Repository}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.upload.ResultsUploader
-import com.codacy.analysis.core.utils.IOHelper.IOThrowable
+import com.codacy.analysis.core.utils.IOHelper._
 import com.codacy.analysis.core.utils.Logger
 import com.codacy.analysis.core.utils.SeqOps._
 import org.log4s.getLogger
@@ -71,12 +76,7 @@ class AnalyseCommand(analyse: Analyse,
     val exitStatus =
       new ExitStatus(configuration.result.maxAllowedIssues, configuration.result.failIfIncomplete)
 
-    analysisAndUpload.redeem({ error =>
-      IO.point(exitStatus.exitCode(Left(error)))
-    }, { succ =>
-      IO.point(exitStatus.exitCode(Right(succ)))
-    })
-
+    analysisAndUpload.redeemEither.map(exitStatus.exitCode)
   }
 
   private def validate(analyse: Analyse, configuration: CLIConfiguration): IO[CLIError, Unit] = {

@@ -6,7 +6,11 @@ import cats.implicits._
 import com.codacy.analysis.cli.command.Analyse
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api._
-import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, CodacyConfigurationFileLoader, EngineConfiguration}
+import com.codacy.analysis.core.configuration.{
+  CodacyConfigurationFile,
+  CodacyConfigurationFileLoader,
+  EngineConfiguration
+}
 import com.codacy.analysis.core.files.Glob
 import com.codacy.analysis.core.git.{Commit, Git}
 import com.codacy.analysis.core.utils.IOHelper._

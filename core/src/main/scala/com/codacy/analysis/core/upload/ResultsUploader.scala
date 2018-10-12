@@ -71,9 +71,8 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
     }
 
     IO.parTraverse(List(sendIssuesIO, sendMetricsIO, sendDuplicationIO))(identity)
-      .map {
-        eithers =>
-          EitherOps.sequenceFoldingLeft(eithers)(_ + '\n' + _)
+      .map { eithers =>
+        EitherOps.sequenceFoldingLeft(eithers)(_ + '\n' + _)
       }
       .flatMap { _ =>
         logger.info("Completed upload of results to API successfully")

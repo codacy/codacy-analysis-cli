@@ -38,12 +38,13 @@ class CodacyConfigurationFileLoader {
   }
 
   def search(root: File): IO[String, File] = {
-    IOHelper.fromEither(filenames
-      .map(root / _)
-      .find(f => f.exists && f.isRegularFile)
-      .fold[Either[String, File]](
-        Left(s"Could not find Codacy configuration file. Make sure you have a file named like one of ${filenames
-          .mkString(", ")}."))(Right(_)))
+    IOHelper.fromEither(
+      filenames
+        .map(root / _)
+        .find(f => f.exists && f.isRegularFile)
+        .fold[Either[String, File]](
+          Left(s"Could not find Codacy configuration file. Make sure you have a file named like one of ${filenames
+            .mkString(", ")}."))(Right(_)))
   }
 
   def parse(yamlString: String): IO[String, CodacyConfigurationFile] = {
