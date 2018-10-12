@@ -51,19 +51,19 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
                   metricsResults: Seq[MetricsResult],
                   duplicationResults: Seq[DuplicationResult]): IO[Nothing, Either[String, Unit]] = {
 
-    val sendIssuesIO: IO[Nothing, Either[String, Unit]] = if (toolResults.nonEmpty) {
+    val sendIssuesIO = if (toolResults.nonEmpty) {
       sendIssues(toolResults)
     } else {
       logger.info("There are no issues to upload.")
       IO.point(().asRight[String])
     }
-    val sendMetricsIO: IO[Nothing, Either[String, Unit]] = if (metricsResults.nonEmpty) {
+    val sendMetricsIO = if (metricsResults.nonEmpty) {
       codacyClient.sendRemoteMetrics(commitUuid, metricsResults)
     } else {
       logger.info("There are no metrics to upload.")
       IO.point(().asRight[String])
     }
-    val sendDuplicationIO: IO[Nothing, Either[String, Unit]] = if (duplicationResults.nonEmpty) {
+    val sendDuplicationIO = if (duplicationResults.nonEmpty) {
       codacyClient.sendRemoteDuplication(commitUuid, duplicationResults)
     } else {
       logger.info("There are no metrics to upload.")
@@ -72,7 +72,7 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
 
     IO.parTraverse(List(sendIssuesIO, sendMetricsIO, sendDuplicationIO))(identity)
       .map {
-        case eithers =>
+        eithers =>
           EitherOps.sequenceFoldingLeft(eithers)(_ + '\n' + _)
       }
       .flatMap { _ =>
