@@ -9,7 +9,7 @@ object IOHelper {
 
   implicit class IOOps[E, A](io: IO[E, A]) {
 
-    def redeemTry(implicit ev: E =:= Throwable): IO[Nothing, Try[A]] =
+    def redeemTry(implicit ev: E <:< Throwable): IO[Nothing, Try[A]] =
       io.redeem(err => IO.point(Failure(err)), results => IO.point(Success(results)))
   }
 }

@@ -95,7 +95,7 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
     }
 
     for {
-      _ <- IO.point(()): IOThrowable[Unit]
+      _ <- IO.point(())
       toolResults <- IO.fromTry(run)
     } yield toolResults
   }
