@@ -33,7 +33,7 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
 
       val codacyConfigurationFile = codacyConfigurationFileLoader.parse(resource)
 
-      codacyConfigurationFile must beEqualTo(Right(expected))
+      unsafeRun(codacyConfigurationFile) must beEqualTo(expected)
     }
 
     "be parseable" in {
@@ -63,7 +63,7 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
       val resource = Resource.getAsString("com/codacy/analysis/core/configuration/codacy-langs.yaml")
       val codacyConfigurationFile = codacyConfigurationFileLoader.parse(resource)
 
-      codacyConfigurationFile must beEqualTo(Right(expected))
+      unsafeRun(codacyConfigurationFile) must beEqualTo(expected)
     }
   }
 

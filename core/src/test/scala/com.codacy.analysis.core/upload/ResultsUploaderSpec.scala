@@ -23,8 +23,6 @@ import org.specs2.mutable.Specification
 import org.specs2.specification.core.Fragment
 import scalaz.zio.{IO, RTS}
 
-import scala.concurrent.Future
-
 class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Mockito with RTS {
 
   private val commitUuid = Commit.Uuid("9232dbdcae98b19412c8dd98c49da8c391612bfa")
@@ -77,7 +75,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         codacyClient.sendRemoteMetrics(
           Commit.Uuid(ArgumentMatchers.eq[String](commitUuid.value)),
           ArgumentMatchers.any[Seq[MetricsResult]])).thenAnswer((_: InvocationOnMock) => {
-        Future.successful(().asRight[String])
+        IO.now(().asRight[String])
       })
 
       when(codacyClient.getRemoteConfiguration)
@@ -135,7 +133,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         codacyClient.sendRemoteDuplication(
           Commit.Uuid(ArgumentMatchers.eq[String](commitUuid.value)),
           ArgumentMatchers.any[Seq[DuplicationResult]])).thenAnswer((_: InvocationOnMock) => {
-        Future.successful(().asRight[String])
+        IO.now(().asRight[String])
       })
 
       when(codacyClient.getRemoteConfiguration)
