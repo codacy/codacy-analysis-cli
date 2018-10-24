@@ -13,8 +13,9 @@ import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.FileMatchers
 import org.specs2.mutable.Specification
+import scalaz.zio.RTS
 
-class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
+class CLISpec extends Specification with NoLanguageFeatures with FileMatchers with RTS {
 
   /* We need a clean environment to avoid using variables from the outside environment.
    * e.g.: Using the CLI token that is needed for coverage to retrieve configuration during the tests.
@@ -274,7 +275,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             extras = ExtraOptions(),
             toolTimeout = None)
 
-          cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
+          unsafeRun(cli.run(analyse)) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
         }).get
       }
     }
@@ -292,7 +293,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             upload = Tag.of(1),
             extras = ExtraOptions(),
             toolTimeout = None)
-          cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
+          unsafeRun(cli.run(analyse)) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
         }).get
       }
     }
@@ -314,7 +315,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             extras = ExtraOptions(),
             toolTimeout = None)
 
-          cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
+          unsafeRun(cli.run(analyse)) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
         }).get
       }
     }
@@ -333,7 +334,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             extras = ExtraOptions(),
             commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
             toolTimeout = None)
-          cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
+          unsafeRun(cli.run(analyse)) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
         }).get
       }
     }
