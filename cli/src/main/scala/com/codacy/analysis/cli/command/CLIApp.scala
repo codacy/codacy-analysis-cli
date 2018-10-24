@@ -10,15 +10,16 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
 import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.tools.Tool
+import scalaz.zio.IO
 
 import scala.concurrent.duration.Duration
 import scala.util.matching.Regex
 import scala.util.{Failure, Success, Try}
 
 abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, CommandOptions] {
-  def run(command: CommandOptions): ExitStatus.ExitCode
+  def run(command: CommandOptions): IO[Nothing, ExitStatus.ExitCode]
 
-  override final def run(command: CommandOptions, remainingArgs: RemainingArgs): ExitStatus.ExitCode = {
+  override final def run(command: CommandOptions, remainingArgs: RemainingArgs): IO[Nothing, ExitStatus.ExitCode] = {
     run(command)
   }
 

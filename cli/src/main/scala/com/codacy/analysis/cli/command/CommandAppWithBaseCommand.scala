@@ -4,16 +4,18 @@ import caseapp.core.{CommandsMessages, Messages, WithHelp}
 import caseapp.{CommandParser, Parser, RemainingArgs}
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.analysis.ExitStatus.ExitCodes
+import scalaz.zio.{IO, RTS}
 
 abstract class CommandAppWithBaseCommand[D, T](implicit
                                                val beforeCommandParser: Parser[D],
                                                baseBeforeCommandMessages: Messages[D],
                                                val commandParser: CommandParser[T],
-                                               val commandsMessages: CommandsMessages[T]) {
+                                               val commandsMessages: CommandsMessages[T])
+    extends RTS {
 
   def defaultCommand(options: D, remainingArgs: Seq[String]): Unit
 
-  def run(options: T, remainingArgs: RemainingArgs): ExitStatus.ExitCode
+  def run(options: T, remainingArgs: RemainingArgs): IO[Nothing, ExitStatus.ExitCode]
 
   def exit(code: ExitStatus.ExitCode): Unit =
     sys.exit(code.value)
@@ -100,7 +102,8 @@ abstract class CommandAppWithBaseCommand[D, T](implicit
               case Left(err) =>
                 error(err)
               case Right(t0) =>
-                val code = run(t0, RemainingArgs(commandArgs, commandArgs0))
+                val code =
+                  unsafeRun(run(t0, RemainingArgs(commandArgs, commandArgs0)))
                 exit(code)
             }
         }
