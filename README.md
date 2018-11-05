@@ -151,6 +151,7 @@ Found [Clone] 7 duplicated lines with 10 tokens:
 ### Commands and Configuration
 
 * `analyze` - Run a Codacy analysis over a directory/files
+    * `--verbose` - Run the tool with verbose output
     * `--tool` - Choose the tool to analyse the code (e.g. brakeman)
     * `--directory` - Choose the directory to be analysed
     * `--codacy-api-base-url` or env.`CODACY_API_BASE_URL` - Change the Codacy installation API URL to retrieve the configuration (e.g. Enterprise installation)
