@@ -24,7 +24,7 @@ object Dependencies {
 
   lazy val caseApp = "com.github.alexarchambault" %% "case-app" % "1.2.0"
 
-  lazy val codacyPlugins = Seq("codacy" %% "codacy-plugins" % "5.0.346")
+  lazy val codacyPlugins = Seq("codacy" %% "codacy-plugins" % "5.0.365")
 
   lazy val fansi = "com.lihaoyi" %% "fansi" % "0.2.5"
 
