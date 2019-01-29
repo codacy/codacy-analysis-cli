@@ -27,7 +27,7 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
 
     val request = DuplicationRequest(directory.pathAsString)
 
-    val dockerRunner = new BinaryDockerRunner[api.DuplicationClone](duplicationTool)
+    val dockerRunner = new BinaryDockerRunner[api.DuplicationClone](duplicationTool)()
     val runner = new DuplicationRunner(duplicationTool, dockerRunner)
 
     for {

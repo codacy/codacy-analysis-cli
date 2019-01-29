@@ -132,7 +132,7 @@ object Tool {
   val allToolShortNames: Set[String] = internetToolShortNames ++ availableTools.map(_.shortName)
 
   def apply(plugin: DockerTool, languageToRun: Language): Tool = {
-    val dockerRunner = new BinaryDockerRunner[Result](plugin)
+    val dockerRunner = new BinaryDockerRunner[Result](plugin)()
     val runner = new ToolRunner(plugin, new DockerToolDocumentation(plugin), dockerRunner)
     new Tool(runner, DockerRunner.defaultRunTimeout)(plugin, languageToRun)
   }

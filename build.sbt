@@ -47,10 +47,10 @@ lazy val codacyAnalysisCore = project
       Dependencies.fansi,
       Dependencies.scalajHttp,
       Dependencies.jGit,
-      Dependencies.cats) ++
+      Dependencies.cats,
+      Dependencies.codacyPlugins) ++
       Dependencies.circe ++
-      Dependencies.log4s ++
-      Dependencies.codacyPlugins,
+      Dependencies.log4s,
     // Test Dependencies
     libraryDependencies ++= testDependencies
   )
