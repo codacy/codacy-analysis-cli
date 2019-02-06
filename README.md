@@ -50,6 +50,63 @@ brew tap codacy/tap
 brew install codacy-analysis-cli
 ```
 
+### Windows
+
+#### Pre-Requisites
+- Have Docker installed on Windows (https://hub.docker.com/editions/community/docker-ce-desktop-windows)
+- Have WSL enabled with Ubuntu bash installed (https://docs.microsoft.com/en-us/windows/wsl/install-win10)
+
+#### Docker Configuration
+Once the pre-requisites are met, it’s time to enable the connectivity between bash and docker.
+ 
+It’s mandatory that the daemon is exposed without LTS. In order to do that go to Docker Settings -> General and you’ll a screen similar to the one below. Just click on the checkbox and docker will reload.
+
+#### Preparing docker client on bash
+Now it’s time to go to the bash and install and configure the docker client.
+ 
+If you are using Windows 10 (build above 1803) the following command will make the docker client available from the bash
+```sudo ln -s "/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe" /usr/local/bin/docker```
+
+If you are using a previous version of Windows 10, [here](https://medium.com/@sebagomez/installing-the-docker-client-on-ubuntus-windows-subsystem-for-linux-612b392a44c4) you can find a very easy tutorial to follow.
+ 
+Since you’ll be using the WSL, the variable DOCKER_HOST needs to be configured to `tcp://0.0.0.0:2375`, in order to do that just type the following command on the bash
+
+```export DOCKER_HOST=tcp://0.0.0.0:2375```
+
+It’s also possible to add this variable to your .bashrc or .bash_profile files so that the variable is always ready when you start the bash
+
+```echo "export DOCKER_HOST=tcp://0.0.0.0:2375" >> ~/.bash_profile```
+
+```echo "export DOCKER_HOST=tcp://0.0.0.0:2375" >> ~/.bashrc```
+
+
+#### Installing codacy-analysis-cli
+At this point, codacy-analysis-cli is ready to be installed.
+ 
+In bash, go to the folder you want to download the tool into and type the following commands:
+
+```sudo apt-get install make```
+
+```curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz```
+
+```cd codacy-analysis-cli-*```
+
+Once again, due to the use of the WSL, it’s mandatory to add the two highlighted lines to the Makefile in this directory.
+
+Before the **test** section:
+
+```export DOCKER_HOST=tcp://0.0.0.0:2375```
+
+and, in the **install**, section:
+
+```docker login```
+
+Finally, just type the following command and the installation will start
+
+```sudo make install```
+
+When Docker’s username is required, be sure to write the username and not the e-mail because depending on how you’ve created your docker account, they might be different.
+
 ### Others
 
 ```bash
