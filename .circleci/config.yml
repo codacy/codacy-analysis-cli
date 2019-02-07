@@ -56,7 +56,7 @@ references:
     steps:
     - add_ssh_keys:
         fingerprints:
-        - "92:a5:bf:4c:21:1b:23:1f:b3:49:3c:34:fe:38:43:5f"
+        - "df:83:d7:c7:d5:79:06:c2:3b:d1:fd:e2:a3:d1:12:c5"
     - run:
         name: Checkout integration tests
         working_directory: ~/
@@ -334,7 +334,7 @@ jobs:
     steps:
     - add_ssh_keys:
         fingerprints:
-        - "92:a5:bf:4c:21:1b:23:1f:b3:49:3c:34:fe:38:43:5f"
+        - "df:83:d7:c7:d5:79:06:c2:3b:d1:fd:e2:a3:d1:12:c5"
     - run:
         name: Checkout integration tests
         command: |
