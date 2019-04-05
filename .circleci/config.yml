@@ -386,6 +386,7 @@ workflows:
             only:
             - master
     - publish_dockerhub:
+        context: CodacyDocker
         requires:
         - test
         - lint
@@ -396,6 +397,7 @@ workflows:
             only:
             - master
     - publish_dockerhub_latest:
+        context: CodacyDocker
         requires:
         - test
         - lint
@@ -406,6 +408,7 @@ workflows:
             only:
             - master
     - publish_dockerhub_stable_hold:
+        context: CodacyDocker
         type: approval
         requires:
         - test
@@ -417,6 +420,7 @@ workflows:
             only:
             - master
     - publish_dockerhub_stable:
+        context: CodacyDocker
         requires:
         - publish_dockerhub_stable_hold
     - maven_dependencies:
