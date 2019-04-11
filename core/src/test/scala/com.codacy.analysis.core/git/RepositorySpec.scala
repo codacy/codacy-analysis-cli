@@ -37,7 +37,7 @@ class RepositorySpec extends Specification with NoLanguageFeatures {
       }
     }
 
-    "get all uncommited changes" in {
+    "get all uncommitted changes" in {
 
       "changed files" in {
         withTemporaryGitRepo { directory =>
@@ -49,9 +49,9 @@ class RepositorySpec extends Specification with NoLanguageFeatures {
 
           file.write("Random file contents")
 
-          Git.repository(directory).flatMap(_.uncommitedFiles) must beLike {
-            case Success(uncommited) =>
-              uncommited must contain(exactly(relativePath(file, directory)))
+          Git.repository(directory).flatMap(_.uncommittedFiles) must beLike {
+            case Success(uncommitted) =>
+              uncommitted must contain(exactly(relativePath(file, directory)))
           }
         }
       }
@@ -62,9 +62,9 @@ class RepositorySpec extends Specification with NoLanguageFeatures {
             val deepFile = directory / "mainFolder" / "subFolder" / "deepFile.sc"
             deepFile.createFileIfNotExists(createParents = true)
 
-            Git.repository(directory).flatMap(_.uncommitedFiles) must beLike {
-              case Success(uncommited) =>
-                uncommited must contain(exactly(relativePath(deepFile, directory)))
+            Git.repository(directory).flatMap(_.uncommittedFiles) must beLike {
+              case Success(uncommitted) =>
+                uncommitted must contain(exactly(relativePath(deepFile, directory)))
             }
           }
         }
@@ -74,9 +74,9 @@ class RepositorySpec extends Specification with NoLanguageFeatures {
             val noContentsFolder = directory / "mainFolder" / "noContents"
             noContentsFolder.createDirectoryIfNotExists(createParents = true)
 
-            Git.repository(directory).flatMap(_.uncommitedFiles) must beLike {
-              case Success(uncommited) =>
-                uncommited must beEmpty
+            Git.repository(directory).flatMap(_.uncommittedFiles) must beLike {
+              case Success(uncommitted) =>
+                uncommitted must beEmpty
             }
           }
         }

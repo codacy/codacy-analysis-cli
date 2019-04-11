@@ -88,12 +88,12 @@ class AnalyseCommand(analyse: Analyse,
   }
 
   private def validateNoUncommitedChanges(repository: Repository, upload: Boolean): Either[CLIError, Unit] = {
-    repository.uncommitedFiles.fold(
+    repository.uncommittedFiles.fold(
       { _ =>
         Right(())
-      }, { uncommitedFiles =>
-        if (uncommitedFiles.nonEmpty) {
-          val error: CLIError = CLIError.UncommitedChanges(uncommitedFiles)
+      }, { uncommittedFiles =>
+        if (uncommittedFiles.nonEmpty) {
+          val error: CLIError = CLIError.UncommitedChanges(uncommittedFiles)
           if (upload) {
             logger.error(error.message)
             Left(error)

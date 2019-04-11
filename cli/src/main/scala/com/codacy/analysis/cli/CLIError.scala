@@ -71,7 +71,7 @@ object CLIError {
   }
   final case class UncommitedChanges(files: Set[String]) extends CLIError {
     override val message: String = {
-      s"""There are uncommited changes in the project.
+      s"""There are uncommitted changes in the project.
          |Please commit them before running your analysis:
          |Uncommited files:
          |${files.mkString("\n")}""".stripMargin
