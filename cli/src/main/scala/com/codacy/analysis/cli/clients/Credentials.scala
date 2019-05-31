@@ -42,6 +42,6 @@ object Credentials {
       userName <- userNameOpt
     } yield {
       APIToken(apiToken, apiUrlOpt, userName, project)
-    }).ifEmpty(logger.warn("Could not username and/or project"))
+    }).ifEmpty(logger.warn("Could not retrieve username and/or project"))
   }
 }
