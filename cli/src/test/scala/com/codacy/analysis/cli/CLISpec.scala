@@ -257,7 +257,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
       }
     }
 
-    "fail because of uncommited files with enabled upload" in {
+    "fail because of uncommitted files with enabled upload" in {
       withTemporaryGitRepo { directory =>
         (for {
           newFile <- File.temporaryFile(parent = Some(directory))
@@ -297,7 +297,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
       }
     }
 
-    "fail for another reason other than uncommited files (with upload disabled)" in {
+    "fail for another reason other than uncommitted files (with upload disabled)" in {
       withTemporaryGitRepo { directory =>
         (for {
           newFile <- File.temporaryFile(parent = Some(directory))

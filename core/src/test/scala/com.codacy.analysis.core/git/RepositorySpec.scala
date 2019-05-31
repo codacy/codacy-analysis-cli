@@ -37,7 +37,7 @@ class RepositorySpec extends Specification with NoLanguageFeatures {
       }
     }
 
-    "get all uncommited changes" in {
+    "get all uncommitted changes" in {
 
       "changed files" in {
         withTemporaryGitRepo { directory =>
