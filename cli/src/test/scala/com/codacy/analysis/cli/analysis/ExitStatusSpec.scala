@@ -110,7 +110,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
         .exitCode(Left(CLIError.NonExistingToolInput("tool"))) should beEqualTo(ExitStatus.ExitCodes.nonExistentTool)
     }
 
-    "send uncommited changes exit code when a validation error of that type is present" in {
+    "send uncommitted changes exit code when a validation error of that type is present" in {
       new ExitStatus(10).exitCode(Left(CLIError.UncommitedChanges(Set.empty))) should beEqualTo(
         ExitStatus.ExitCodes.uncommittedChanges)
     }
