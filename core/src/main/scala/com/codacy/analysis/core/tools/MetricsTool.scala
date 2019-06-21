@@ -10,7 +10,7 @@ import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.metrics.MetricsTool.CodacyConfiguration
 import com.codacy.plugins.metrics.traits
 import com.codacy.plugins.metrics.traits.{MetricsRequest, MetricsRunner}
-import com.codacy.plugins.traits.{BinaryDockerRunner, DockerRunner}
+import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.getLogger
 
