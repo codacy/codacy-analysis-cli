@@ -9,7 +9,7 @@ import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.duplication.api.{DuplicationCloneFile, DuplicationRequest}
 import com.codacy.plugins.duplication.traits.DuplicationRunner
 import com.codacy.plugins.duplication.{api, _}
-import com.codacy.plugins.traits.{BinaryDockerRunner, DockerRunner}
+import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.getLogger
 
