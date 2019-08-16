@@ -350,10 +350,10 @@ jobs:
         paths:
         - ~/.m2
 
-  test_integration:
+  test_staging:
     <<: *run_integration_tests
     environment:
-      TEST_PATH: Suite/CLI/QA.xml
+      TEST_PATH: Suite/CLI/STAGING.xml
 
   test_production:
     <<: *run_integration_tests
@@ -380,7 +380,7 @@ workflows:
         requires:
         - test
         - lint
-        - test_integration
+        - test_staging
         filters:
           branches:
             only:
@@ -391,7 +391,7 @@ workflows:
         - test
         - lint
         - publish_docker_locally
-        - test_integration
+        - test_staging
         filters:
           branches:
             only:
@@ -402,7 +402,7 @@ workflows:
         - test
         - lint
         - publish_docker_locally
-        - test_integration
+        - test_staging
         filters:
           branches:
             only:
@@ -414,7 +414,7 @@ workflows:
         - test
         - lint
         - publish_docker_locally
-        - test_integration
+        - test_staging
         filters:
           branches:
             only:
@@ -428,7 +428,7 @@ workflows:
           branches:
             only:
             - master
-    - test_integration:
+    - test_staging:
         requires:
         - maven_dependencies
         - publish_docker_locally
