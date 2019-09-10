@@ -428,6 +428,12 @@ workflows:
           branches:
             only:
             - master
+    - maven_dependencies:
+        type: approval
+        filters:
+          branches:
+            ignore:
+            - master
     - test_staging:
         requires:
         - maven_dependencies
@@ -435,6 +441,15 @@ workflows:
         filters:
           branches:
             only:
+            - master
+    - test_staging:
+        requires:
+        - maven_dependencies
+        - publish_docker_locally
+        type: approval
+        filters:
+          branches:
+            ignore:
             - master
 
   nightly:
