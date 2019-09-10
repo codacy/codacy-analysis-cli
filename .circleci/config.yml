@@ -62,7 +62,7 @@ references:
         working_directory: ~/
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
+          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests update-eslint-output
     - *restore_maven_dependencies
     - attach_workspace:
         at: /tmp/workspace
@@ -339,7 +339,7 @@ jobs:
         name: Checkout integration tests
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
+          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests update-eslint-output
     - *restore_maven_dependencies
     - run: mvn dependency:go-offline
     - run:
@@ -423,19 +423,11 @@ workflows:
         context: CodacyDocker
         requires:
         - publish_dockerhub_stable_hold
-    - maven_dependencies:
-        filters:
-          branches:
-            only:
-            - master
+    - maven_dependencies
     - test_staging:
         requires:
         - maven_dependencies
         - publish_docker_locally
-        filters:
-          branches:
-            only:
-            - master
 
   nightly:
     triggers:
