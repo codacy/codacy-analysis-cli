@@ -62,7 +62,7 @@ references:
         working_directory: ~/
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests update-eslint-output
+          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
     - *restore_maven_dependencies
     - attach_workspace:
         at: /tmp/workspace
@@ -339,7 +339,7 @@ jobs:
         name: Checkout integration tests
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests update-eslint-output
+          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
     - *restore_maven_dependencies
     - run: mvn dependency:go-offline
     - run:
