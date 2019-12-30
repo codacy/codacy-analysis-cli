@@ -62,7 +62,7 @@ references:
         working_directory: ~/
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
+          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation-tests.git ~/integration-tests master
     - *restore_maven_dependencies
     - attach_workspace:
         at: /tmp/workspace
@@ -339,7 +339,7 @@ jobs:
         name: Checkout integration tests
         command: |
           ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation.git ~/integration-tests master
+          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation-tests.git ~/integration-tests master
     - *restore_maven_dependencies
     - run: mvn dependency:go-offline
     - run:
@@ -354,12 +354,19 @@ jobs:
     <<: *run_integration_tests
     environment:
       TEST_PATH: Suite/CLI/STAGING.xml
-
+      LAUNCH_TAG: CIRCLECI;CLI;STAGING
+      PROJECT_NAME: codacy-analysis-cli
+      LAUNCH_NAME: CLI_STAGING
+      RP_LAUNCH_URL: https://reportportal.staging.codacy.org/ui/#codacy-analysis-cli/launches
   test_production:
     <<: *run_integration_tests
     environment:
       TEST_PATH: Suite/CLI/PROD.xml
       CODACY_ANALYSIS_CLI_VERSION: latest
+      LAUNCH_TAG: CIRCLECI;CLI;PROD
+      PROJECT_NAME: codacy-analysis-cli
+      LAUNCH_NAME: CLI_PROD
+      RP_LAUNCH_URL: https://reportportal.staging.codacy.org/ui/#codacy-analysis-cli/launches
 
 workflows:
   version: 2
