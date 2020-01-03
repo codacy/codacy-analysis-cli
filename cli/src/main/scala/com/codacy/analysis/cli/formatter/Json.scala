@@ -19,9 +19,12 @@ object Json extends FormatterCompanion {
 private[formatter] class Json(val stream: PrintStream) extends Formatter {
 
   private var alreadyPrinted: Boolean = false
+
   private implicit val categoryEncoder: Encoder[results.Pattern.Category.Value] =
     Encoder.encodeEnumeration(results.Pattern.Category)
-  private implicit val levelEncoder: Encoder[results.Result.Level.Value] = Encoder.encodeEnumeration(results.Result.Level)
+
+  private implicit val levelEncoder: Encoder[results.Result.Level.Value] =
+    Encoder.encodeEnumeration(results.Result.Level)
   private implicit val fileEncoder: Encoder[Path] = Encoder[String].contramap(_.toString)
 
   override def begin(): Unit = {

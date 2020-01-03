@@ -62,6 +62,7 @@ object CLIConfiguration {
   case class Result(maxAllowedIssues: Int, failIfIncomplete: Boolean)
 
   case class Output(format: String, file: Option[File])
+
   case class FileExclusionRules(defaultIgnores: Option[Set[PathRegex]],
                                 ignoredPaths: Set[FilePath],
                                 excludePaths: FileExclusionRules.ExcludePaths,

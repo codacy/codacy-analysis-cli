@@ -176,10 +176,13 @@ object AnalyseExecutor {
   sealed trait ExecutorResult[T <: Result] {
     def analysisResults: Try[Set[T]]
   }
+
   final case class IssuesToolExecutorResult(toolName: String, files: Set[Path], analysisResults: Try[Set[ToolResult]])
       extends ExecutorResult[ToolResult]
+
   final case class MetricsToolExecutorResult(language: String, files: Set[Path], analysisResults: Try[Set[FileMetrics]])
       extends ExecutorResult[FileMetrics]
+
   final case class DuplicationToolExecutorResult(language: String,
                                                  files: Set[Path],
                                                  analysisResults: Try[Set[DuplicationClone]])

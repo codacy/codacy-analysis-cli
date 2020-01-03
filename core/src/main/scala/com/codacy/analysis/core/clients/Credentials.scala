@@ -5,6 +5,7 @@ sealed trait Credentials {
 }
 
 final case class ProjectToken(token: String, baseUrl: Option[String] = Option.empty[String]) extends Credentials
+
 final case class APIToken(token: String,
                           baseUrl: Option[String] = Option.empty[String],
                           userName: UserName,
@@ -14,6 +15,7 @@ final case class APIToken(token: String,
 final case class UserName(private val userName: String) extends AnyVal {
   override def toString: String = userName
 }
+
 final case class ProjectName(private val projectName: String) extends AnyVal {
   override def toString: String = projectName
 }

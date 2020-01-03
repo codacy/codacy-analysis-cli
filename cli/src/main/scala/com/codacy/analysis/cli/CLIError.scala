@@ -35,6 +35,7 @@ object CLIError {
   }
 
   final case class NonExistentToolsFromRemoteConfiguration(tools: Set[String]) extends CLIError {
+
     override val message: String =
       s"Could not find locally the following tools from remote configuration: ${tools.mkString(",")}"
   }
@@ -60,16 +61,21 @@ object CLIError {
   }
 
   final case class ToolNeedsNetwork(toolName: String) extends CLIError {
+
     override val message: String =
       s"The tool $toolName needs network access to execute. Run with the parameter --allow-network."
   }
+
   case object NoActiveToolInConfiguration extends CLIError {
     override val message: String = "No active tool found on the remote configuration"
   }
+
   case object NoToolsFoundForFiles extends CLIError {
     override val message: String = "No tools found for files provided"
   }
+
   final case class UncommitedChanges(files: Set[String]) extends CLIError {
+
     override val message: String = {
       s"""There are uncommitted changes in the project.
          |Please commit them before running your analysis:

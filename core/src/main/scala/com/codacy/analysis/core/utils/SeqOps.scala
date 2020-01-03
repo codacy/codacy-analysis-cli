@@ -3,6 +3,7 @@ package com.codacy.analysis.core.utils
 import scala.reflect.ClassTag
 
 object SeqOps {
+
   implicit class SeqOps[T](seq: Seq[T]) {
 
     def partitionSubtypes[A <: T: ClassTag, B <: T: ClassTag, C <: T: ClassTag]: (Seq[A], Seq[B], Seq[C]) = {

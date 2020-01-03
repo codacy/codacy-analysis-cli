@@ -7,7 +7,12 @@ import com.codacy.analysis.cli.formatter.Json
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients._
 import com.codacy.analysis.core.clients.api._
-import com.codacy.analysis.core.configuration.{CodacyConfigurationFile, CodacyConfigurationFileLoader, EngineConfiguration, LanguageConfiguration}
+import com.codacy.analysis.core.configuration.{
+  CodacyConfigurationFile,
+  CodacyConfigurationFileLoader,
+  EngineConfiguration,
+  LanguageConfiguration
+}
 import com.codacy.analysis.core.files.Glob
 import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.utils.HttpHelper
@@ -25,6 +30,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
   private val username = "some_user"
   private val project = "some_project"
   private val remoteUrl = "codacy.com/2.0"
+
   private val apiCredentials: Credentials =
     APIToken(apiTokenStr, Option(remoteUrl), UserName(username), ProjectName(project))
 
@@ -33,6 +39,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
   }
   private val toolInput = Option("hey! i'm a tool!")
   private val commitUuid = Option(Commit.Uuid("uuid"))
+
   private val defaultAnalyse = Analyse(
     options = CommonOptions(),
     api = APIOptions(),
@@ -44,7 +51,9 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
     extras = ExtraOptions(analyser = Analyser.defaultAnalyser.name))
   private val defaultEnvironment = new Environment(Map.empty)
   private val httpHelper = new HttpHelper(Option(remoteUrl), Map.empty)
+
   private val noRemoteConfigCodacyClient = new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {
+
     override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
       Left("no remote config")
     }

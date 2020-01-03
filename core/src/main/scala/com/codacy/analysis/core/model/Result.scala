@@ -24,6 +24,7 @@ final case class Issue(patternId: results.Pattern.Id,
     extends ToolResult
 
 object Issue {
+
   final case class Message(text: String) extends AnyVal {
     override def toString: String = text
   }

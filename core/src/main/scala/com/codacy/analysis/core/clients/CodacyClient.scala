@@ -22,9 +22,11 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   private implicit val levelEncoder: Encoder[com.codacy.plugins.api.results.Result.Level.Value] =
     Encoder.encodeEnumeration(com.codacy.plugins.api.results.Result.Level)
+
   private implicit val categoryEncoder: Encoder[com.codacy.plugins.api.results.Pattern.Category.Value] =
     Encoder.encodeEnumeration(com.codacy.plugins.api.results.Pattern.Category)
   private implicit val pathEncoder: Encoder[Path] = Encoder[String].contramap(_.toString)
+
   private implicit val languageDecoder: Decoder[Language] =
     Decoder[String].emap(lang =>
       Languages.fromName(lang).fold[Either[String, Language]](Left(s"Failed to parse language $lang"))(Right(_)))

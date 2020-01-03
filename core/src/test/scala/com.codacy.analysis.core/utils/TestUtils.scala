@@ -12,7 +12,9 @@ import org.specs2.matcher.MatchResult
 import scala.sys.process.Process
 
 object TestUtils {
-  implicit val categoryDecoder: Decoder[results.Pattern.Category.Value] = Decoder.decodeEnumeration(results.Pattern.Category)
+
+  implicit val categoryDecoder: Decoder[results.Pattern.Category.Value] =
+    Decoder.decodeEnumeration(results.Pattern.Category)
   implicit val levelDecoder: Decoder[results.Result.Level.Value] = Decoder.decodeEnumeration(results.Result.Level)
   implicit val fileDecoder: Decoder[Path] = Decoder[String].map(Paths.get(_))
   implicit val executionEnv: ExecutionEnv = ExecutionEnv.fromGlobalExecutionContext

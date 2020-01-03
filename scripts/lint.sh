@@ -3,4 +3,4 @@
 set -e
 
 # sbt scalafmtCheck scapegoat scalafixEnable "scalafixCli --test"
-sbt scalafmtCheck scapegoat
+sbt scalafmtCheckAll scapegoat
