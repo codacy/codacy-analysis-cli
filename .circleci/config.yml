@@ -96,10 +96,10 @@ references:
           cd codacy-analysis-cli-* && sudo make install
           rm -rf codacy-analysis-cli-*
     - run:
-      name: Run tests
-      command: |
-        export EXECUTION_TIME=`date +%F_%Hh%M-%Z`
-        mvn test -DsuiteFile=$TEST_PATH -Drp.description=$EXECUTION_TIME -Drp.uuid=$RP_CIRCLECI_UUID -Drp.launch=$LAUNCH_NAME -Drp.project=$PROJECT_NAME -Drp.mode=DEFAULT -Drp.endpoint=$RP_ENDPOINT -Drp.tags=$LAUNCH_TAG
+        name: Run tests
+        command: |
+          export EXECUTION_TIME=`date +%F_%Hh%M-%Z`
+          mvn test -DsuiteFile=$TEST_PATH -Drp.description=$EXECUTION_TIME -Drp.uuid=$RP_CIRCLECI_UUID -Drp.launch=$LAUNCH_NAME -Drp.project=$PROJECT_NAME -Drp.mode=DEFAULT -Drp.endpoint=$RP_ENDPOINT -Drp.tags=$LAUNCH_TAG
     - run:
         name: Save test results
         command: |
