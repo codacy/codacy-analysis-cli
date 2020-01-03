@@ -2,17 +2,17 @@ import sbt._
 
 object Dependencies {
 
-  val codacyPluginsVersion = "8.9.4_play_2.6"
-  val circeVersion = "0.12.0"
+  val codacyPluginsVersion = "8.9.5_play_2.6"
+  val circeVersion = "0.12.3"
   val specs2Version = "4.8.1"
 
   lazy val circe = List(
     "io.circe" %% "circe-core" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
     "io.circe" %% "circe-parser" % circeVersion,
-    "io.circe" %% "circe-yaml" % circeVersion)
+    "io.circe" %% "circe-yaml" % "0.12.0")
 
-  lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.8.0"
+  lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.6.0"
 
   lazy val jodaTime = "joda-time" % "joda-time" % "2.10.5"
 
