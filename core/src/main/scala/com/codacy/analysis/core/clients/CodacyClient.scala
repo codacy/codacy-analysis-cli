@@ -21,9 +21,9 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
   private val logger: Logger = getLogger
 
   private implicit val levelEncoder: Encoder[com.codacy.plugins.api.results.Result.Level.Value] =
-    Encoder.enumEncoder(com.codacy.plugins.api.results.Result.Level)
+    Encoder.encodeEnumeration(com.codacy.plugins.api.results.Result.Level)
   private implicit val categoryEncoder: Encoder[com.codacy.plugins.api.results.Pattern.Category.Value] =
-    Encoder.enumEncoder(com.codacy.plugins.api.results.Pattern.Category)
+    Encoder.encodeEnumeration(com.codacy.plugins.api.results.Pattern.Category)
   private implicit val pathEncoder: Encoder[Path] = Encoder[String].contramap(_.toString)
   private implicit val languageDecoder: Decoder[Language] =
     Decoder[String].emap(lang =>

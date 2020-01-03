@@ -48,7 +48,7 @@ class CodacyConfigurationFileLoader {
     for {
       json <- parser.parse(yamlString).left.map(_.show)
       cursor = HCursor.fromJson(json)
-      configurationEither = Decoder[CodacyConfigurationFile].accumulating(cursor).toEither
+      configurationEither = Decoder[CodacyConfigurationFile].decodeAccumulating(cursor).toEither
       configuration <- configurationEither.left.map(_.toList.map(_.show).mkString(Properties.lineSeparator))
     } yield configuration
   }

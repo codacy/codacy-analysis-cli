@@ -3,20 +3,20 @@ import sbt._
 object Dependencies {
 
   val codacyPluginsVersion = "8.9.4_play_2.6"
-  val circeVersion = "0.9.3"
-  val specs2Version = "4.0.2"
+  val circeVersion = "0.12.0"
+  val specs2Version = "4.8.1"
 
   lazy val circe = List(
     "io.circe" %% "circe-core" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
     "io.circe" %% "circe-parser" % circeVersion,
-    "io.circe" %% "circe-yaml" % "0.9.0")
+    "io.circe" %% "circe-yaml" % circeVersion)
 
-  lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.6.0"
+  lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.8.0"
 
-  lazy val jodaTime = "joda-time" % "joda-time" % "2.10"
+  lazy val jodaTime = "joda-time" % "joda-time" % "2.10.5"
 
-  lazy val log4s = Seq("ch.qos.logback" % "logback-classic" % "1.2.3", "org.log4s" %% "log4s" % "1.5.0")
+  lazy val log4s = Seq("ch.qos.logback" % "logback-classic" % "1.2.3", "org.log4s" %% "log4s" % "1.8.2")
 
   lazy val specs2 =
     Seq(
@@ -30,13 +30,13 @@ object Dependencies {
     Seq("com.codacy" %% "codacy-plugins", "com.codacy" %% "codacy-plugins-runner-binary")
       .map(_ % codacyPluginsVersion withSources ())
 
-  lazy val fansi = "com.lihaoyi" %% "fansi" % "0.2.5"
+  lazy val fansi = "com.lihaoyi" %% "fansi" % "0.2.7"
 
-  lazy val pprint = "com.lihaoyi" %% "pprint" % "0.5.3"
+  lazy val pprint = "com.lihaoyi" %% "pprint" % "0.5.7"
 
-  lazy val scalajHttp = "org.scalaj" %% "scalaj-http" % "2.3.0"
+  lazy val scalajHttp = "org.scalaj" %% "scalaj-http" % "2.4.2"
 
-  lazy val cats = "org.typelevel" %% "cats-core" % "1.0.1"
+  lazy val cats = "org.typelevel" %% "cats-core" % "2.1.0"
 
-  lazy val jGit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.0.0.201806131550-r"
+  lazy val jGit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.6.0.201912101111-r"
 }
