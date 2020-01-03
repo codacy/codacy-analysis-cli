@@ -14,8 +14,8 @@ object Common {
   val genericSettings: Seq[Def.Setting[_]] = Seq(
     resolvers in ThisBuild += "Codacy Public Mvn bucket" at "https://s3-eu-west-1.amazonaws.com/public.mvn.codacy.com",
     scalacOptions.in(Compile, console) --= Seq("-Ywarn-unused", "-Ywarn-unused:imports", "-Xfatal-warnings"),
-    sources.in(Compile,doc) := Seq.empty)
-    
+    sources.in(Compile, doc) := Seq.empty)
+
   val dockerSettings: Seq[Def.Setting[_]] = Seq(
     packageName in Docker := packageName.value,
     dockerAlias := DockerAlias(None, Some("codacy"), name.value, Some(version.value)),

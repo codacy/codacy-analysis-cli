@@ -2,4 +2,4 @@
 
 set -e
 
-sbt "scalafmtCheckAll;scapegoat;scalafixEnable;scalafix --test"
+sbt "scalafmtCheckAll;scalafmtSbtCheck;scapegoat;scalafixEnable;scalafix --test"

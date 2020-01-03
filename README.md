@@ -294,8 +294,7 @@ sbt test
 ### Format Code
 
 ```sh
-sbt scalafmtCheck
-sbt scalafmt
+sbt scalafmtAll scalafmtSbt
 ```
 
 ### Dependency Updates
