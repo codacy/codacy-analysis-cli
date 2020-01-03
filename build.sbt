@@ -124,4 +124,4 @@ lazy val codacyAnalysisCli = project
 scalaVersion in ThisBuild := scalaVersionNumber
 scalaBinaryVersion in ThisBuild := scalaBinaryVersionNumber
 scapegoatDisabledInspections in ThisBuild := Seq()
-scapegoatVersion in ThisBuild := "1.3.7"
+scapegoatVersion in ThisBuild := "1.4.1"
