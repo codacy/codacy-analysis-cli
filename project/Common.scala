@@ -61,7 +61,7 @@ object Common {
     "-language:postfixOps",
     "-unchecked", // Enable additional warnings where generated code depends on assumptions.
     "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
-    // Disabled because of zing bug: https://github.com/sbt/zinc/issues/688
+    // Disabled because of zinc bug: https://github.com/sbt/zinc/issues/688
     // "-Xfatal-warnings", // Fail the compilation if there are any warnings.
     "-Xfuture", // Turn on future language features.
     "-Xlint",
