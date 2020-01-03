@@ -2,5 +2,4 @@
 
 set -e
 
-# sbt scalafmtCheck scapegoat scalafixEnable "scalafixCli --test"
-sbt scalafmtCheckAll scapegoat
+sbt "scalafmtCheckAll;scapegoat;scalafixEnable;scalafix --test"

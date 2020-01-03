@@ -13,17 +13,17 @@ object ExitStatus {
   case class ExitCode(value: Int) extends AnyVal
 
   object ExitCodes {
-    val success = ExitCode(0)
-    val genericError = ExitCode(1)
-    val timeout = ExitCode(2)
-    val failedUpload = ExitCode(10)
-    val uncommittedChanges = ExitCode(11)
-    val commitsDoNotMatch = ExitCode(12)
-    val nonExistentTool = ExitCode(13)
-    val invalidConfigurationFile = ExitCode(14)
-    val failedAnalysis = ExitCode(100)
-    val partiallyFailedAnalysis = ExitCode(101)
-    val maxAllowedIssuesExceeded = ExitCode(102)
+    val success: ExitCode = ExitCode(0)
+    val genericError: ExitCode = ExitCode(1)
+    val timeout: ExitCode = ExitCode(2)
+    val failedUpload: ExitCode = ExitCode(10)
+    val uncommittedChanges: ExitCode = ExitCode(11)
+    val commitsDoNotMatch: ExitCode = ExitCode(12)
+    val nonExistentTool: ExitCode = ExitCode(13)
+    val invalidConfigurationFile: ExitCode = ExitCode(14)
+    val failedAnalysis: ExitCode = ExitCode(100)
+    val partiallyFailedAnalysis: ExitCode = ExitCode(101)
+    val maxAllowedIssuesExceeded: ExitCode = ExitCode(102)
   }
 
 }

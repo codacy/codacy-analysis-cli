@@ -308,7 +308,7 @@ sbt dependencyUpdates
 
 ```sh
 sbt scapegoat
-sbt scalafix sbtfix
+sbt scalafix
 ```
 
 ### Coverage

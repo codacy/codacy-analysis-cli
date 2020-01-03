@@ -29,7 +29,7 @@ final case class CodacyConfigurationFile(engines: Option[Map[String, EngineConfi
 
 class CodacyConfigurationFileLoader {
 
-  val filenames = Set(".codacy.yaml", ".codacy.yml")
+  val filenames: Set[String] = Set(".codacy.yaml", ".codacy.yml")
 
   def load(directory: File): Either[String, CodacyConfigurationFile] = {
     search(directory).flatMap(configDir => parse(configDir.contentAsString))
