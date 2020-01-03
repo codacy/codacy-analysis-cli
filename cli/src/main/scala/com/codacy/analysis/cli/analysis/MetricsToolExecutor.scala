@@ -33,7 +33,7 @@ object MetricsToolExecutor {
   private def reduceFileMetricsByFile(fileMetrics: Set[FileMetrics]): Set[FileMetrics] = {
     fileMetrics
       .groupBy(_.filename)
-      .map {
+      .flatMap {
         case (filePath, fMetrics) =>
           fMetrics.reduceOption { (fMetricsAccumulator, fMetricsElement) =>
             FileMetrics(
