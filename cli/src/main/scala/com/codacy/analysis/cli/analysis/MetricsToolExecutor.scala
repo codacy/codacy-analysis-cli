@@ -35,7 +35,7 @@ object MetricsToolExecutor {
       .groupBy(_.filename)
       .map {
         case (filePath, fMetrics) =>
-          fMetrics.reduce { (fMetricsAccumulator, fMetricsElement) =>
+          fMetrics.reduceOption { (fMetricsAccumulator, fMetricsElement) =>
             FileMetrics(
               filePath,
               fMetricsAccumulator.complexity.orElse(fMetricsElement.complexity),
