@@ -21,7 +21,7 @@ object Common {
     dockerAlias := DockerAlias(None, Some("codacy"), name.value, Some(version.value)),
     version in Docker := version.value,
     maintainer in Docker := "Rodrigo Fernandes <rodrigo@codacy.com>",
-    dockerBaseImage := "library/openjdk:8-jre-alpine",
+    dockerBaseImage := "openjdk:8-jre-alpine",
     dockerUpdateLatest := true,
     defaultLinuxInstallLocation in Docker := defaultDockerInstallationPath,
     daemonUser in Docker := "root",

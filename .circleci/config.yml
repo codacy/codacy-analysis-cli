@@ -23,9 +23,9 @@ references:
   restore_dependencies: &restore_dependencies
     restore_cache:
       keys:
-      - sbt-ivy2-dependencies-1.0.11-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
-      - sbt-ivy2-dependencies-1.0.11-{{ checksum "/tmp/dependencies.cache.tmp" }}
-      - sbt-ivy2-dependencies-1.0.11
+      - sbt-ivy2-dependencies-1.0.12-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
+      - sbt-ivy2-dependencies-1.0.12-{{ checksum "/tmp/dependencies.cache.tmp" }}
+      - sbt-ivy2-dependencies-1.0.12
 
   clean_sbt_dependencies_cache: &clean_sbt_dependencies_cache
     run:
@@ -47,8 +47,8 @@ references:
   restore_maven_dependencies: &restore_maven_dependencies
     restore_cache:
       keys:
-      - maven-dependencies-1.0.11-{{ checksum "pom.xml" }}
-      - maven-dependencies-1.0.11
+      - maven-dependencies-1.0.12-{{ checksum "pom.xml" }}
+      - maven-dependencies-1.0.12
 
   run_integration_tests: &run_integration_tests
     machine: true
@@ -164,7 +164,7 @@ jobs:
         - ~/.sbt
         - ~/.m2
         - ~/.coursier
-        key: sbt-ivy2-dependencies-1.0.11-{{ checksum "/tmp/dependencies.cache.tmp" }}
+        key: sbt-ivy2-dependencies-1.0.12-{{ checksum "/tmp/dependencies.cache.tmp" }}
     - persist_to_workspace:
         root: ~/workdir
         paths:
@@ -230,7 +230,7 @@ jobs:
         - ~/.sbt
         - ~/.m2
         - ~/.coursier
-        key: sbt-ivy2-dependencies-1.0.11-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
+        key: sbt-ivy2-dependencies-1.0.12-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
 
   publish_lib:
     <<: *default_java_job
@@ -350,7 +350,7 @@ jobs:
         name: Compile tests
         command: mvn test-compile
     - save_cache:
-        key: maven-dependencies-1.0.11-{{ checksum "pom.xml" }}
+        key: maven-dependencies-1.0.12-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
 
