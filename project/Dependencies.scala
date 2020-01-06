@@ -22,7 +22,7 @@ object Dependencies {
     Seq(
       "org.specs2" %% "specs2-core" % specs2Version,
       "org.specs2" %% "specs2-mock" % specs2Version,
-      "org.specs2" %% "specs2-matcher-extra" % specs2Version)
+      "org.specs2" %% "specs2-matcher-extra" % specs2Version).map(_ % Test)
 
   lazy val caseApp = "com.github.alexarchambault" %% "case-app" % "1.2.0"
 

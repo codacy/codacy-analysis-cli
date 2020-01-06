@@ -9,11 +9,22 @@ import scala.util.Properties
 object Common {
 
   private val defaultDockerInstallationPath = "/opt/codacy"
-  private val dockerVersion = "docker-17.09.0-ce"
+  val scalaBinaryVersionNumber = "2.12"
+  val scalaVersionNumber = s"$scalaBinaryVersionNumber.10"
 
-  val genericSettings: Seq[Def.Setting[_]] = Seq(
-    scalacOptions.in(Compile, console) --= Seq("-Ywarn-unused", "-Ywarn-unused:imports", "-Xfatal-warnings"),
-    sources.in(Compile, doc) := Seq.empty)
+  val genericSettings = Seq(
+    //Credentials for sonatype
+    credentials += Credentials(
+      "Sonatype Nexus Repository Manager",
+      "oss.sonatype.org",
+      sys.env.getOrElse("SONATYPE_USER", "username"),
+      sys.env.getOrElse("SONATYPE_PASSWORD", "password")),
+    scalaVersion := scalaVersionNumber,
+    organization := "com.codacy",
+    scalacOptions ++= Common.compilerFlags,
+    Test / scalacOptions += "-Yrangepos",
+    Compile / console / scalacOptions --= Seq("-Ywarn-unused", "-Ywarn-unused:imports", "-Xfatal-warnings"),
+    Compile / doc / sources := Seq.empty)
 
   val dockerSettings: Seq[Def.Setting[_]] = Seq(
     packageName in Docker := packageName.value,
@@ -28,22 +39,7 @@ object Common {
     dockerCmd := Seq(),
     dockerCommands := dockerCommands.value.flatMap {
       case cmd @ Cmd("WORKDIR", _) =>
-        List(
-          Cmd(
-            "RUN",
-            s"""|apk add --no-cache -t .deps --update wget ca-certificates tar &&
-                |apk add --no-cache --update bash &&
-                |wget https://download.docker.com/linux/static/stable/x86_64/$dockerVersion.tgz &&
-                |tar -xvf $dockerVersion.tgz --strip-components 1 docker/docker &&
-                |rm -rf $dockerVersion.tgz &&
-                |mv docker /usr/bin/docker &&
-                |chmod +x /usr/bin/docker &&
-                |ln -s /usr/bin/docker /usr/local/bin/docker &&
-                |chmod +x /usr/local/bin/docker &&
-                |apk del .deps &&
-                |rm -rf /tmp/*""".stripMargin.replaceAllLiterally(Properties.lineSeparator, " ")),
-          cmd)
-
+        Seq(Cmd("RUN", "apk add --no-cache --update bash docker"), cmd)
       case other => List(other)
     })
 
