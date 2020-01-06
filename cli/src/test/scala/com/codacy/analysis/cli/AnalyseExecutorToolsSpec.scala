@@ -131,7 +131,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
     """return an informative error message if the user selects a tool that needs access
       |to the network but doesn't provide the needed argument""".stripMargin in {
-      val toolName = "gendarme"
+      val toolName = "findbugs"
       val toolConfigs = Left("some error")
       val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path), Set.empty)
       val toolConfiguration =

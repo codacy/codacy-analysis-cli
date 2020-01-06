@@ -12,16 +12,15 @@ object Common {
   private val dockerVersion = "docker-17.09.0-ce"
 
   val genericSettings: Seq[Def.Setting[_]] = Seq(
-    resolvers in ThisBuild += "Codacy Public Mvn bucket" at "https://s3-eu-west-1.amazonaws.com/public.mvn.codacy.com",
-    //addCompilerPlugin("org.scalameta" % "semanticdb-scalac" % "4.0.0-M8" cross CrossVersion.full),
-    scalacOptions.in(Compile, console) --= Seq("-Ywarn-unused", "-Ywarn-unused:imports", "-Xfatal-warnings"))
+    scalacOptions.in(Compile, console) --= Seq("-Ywarn-unused", "-Ywarn-unused:imports", "-Xfatal-warnings"),
+    sources.in(Compile, doc) := Seq.empty)
 
   val dockerSettings: Seq[Def.Setting[_]] = Seq(
     packageName in Docker := packageName.value,
     dockerAlias := DockerAlias(None, Some("codacy"), name.value, Some(version.value)),
     version in Docker := version.value,
     maintainer in Docker := "Rodrigo Fernandes <rodrigo@codacy.com>",
-    dockerBaseImage := "library/openjdk:8-jre-alpine",
+    dockerBaseImage := "openjdk:8-jre-alpine",
     dockerUpdateLatest := true,
     defaultLinuxInstallLocation in Docker := defaultDockerInstallationPath,
     daemonUser in Docker := "root",
@@ -61,7 +60,8 @@ object Common {
     "-language:postfixOps",
     "-unchecked", // Enable additional warnings where generated code depends on assumptions.
     "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
-    "-Xfatal-warnings", // Fail the compilation if there are any warnings.
+    // Disabled because of zinc bug: https://github.com/sbt/zinc/issues/688
+    // "-Xfatal-warnings", // Fail the compilation if there are any warnings.
     "-Xfuture", // Turn on future language features.
     "-Xlint",
     "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.

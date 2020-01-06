@@ -34,6 +34,7 @@ class Commit(repository: JGitRepository, revCommit: RevCommit) {
 }
 
 object Commit {
+
   final case class Uuid(value: String) extends AnyVal {
     override def toString: String = value
   }

@@ -33,9 +33,9 @@ object MetricsToolExecutor {
   private def reduceFileMetricsByFile(fileMetrics: Set[FileMetrics]): Set[FileMetrics] = {
     fileMetrics
       .groupBy(_.filename)
-      .map {
+      .flatMap {
         case (filePath, fMetrics) =>
-          fMetrics.reduce { (fMetricsAccumulator, fMetricsElement) =>
+          fMetrics.reduceOption { (fMetricsAccumulator, fMetricsElement) =>
             FileMetrics(
               filePath,
               fMetricsAccumulator.complexity.orElse(fMetricsElement.complexity),

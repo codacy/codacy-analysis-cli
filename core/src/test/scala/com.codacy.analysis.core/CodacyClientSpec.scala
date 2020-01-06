@@ -25,6 +25,7 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
   private val commitUuid = Commit.Uuid("some_commitUuid")
   private val remoteUrl = "codacy.com/2.0"
   private val tool = "eslint"
+
   private val apiCredentials: Credentials =
     APIToken(apiTokenStr, Some(remoteUrl), UserName(username), ProjectName(project))
   private val projectCredentials: Credentials = ProjectToken(projectTokenStr, Some(remoteUrl))
