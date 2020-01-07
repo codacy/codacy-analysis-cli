@@ -9,7 +9,7 @@ VERSION=$(cat ../.version)
 
 echo "Publishing version ${VERSION}"
 if [[ -n "$CI" ]] && [[ "$CURRENT_BRANCH" == "$PUBLISH_BRANCH" || "$CIRCLE_BRANCH" == "$PUBLISH_BRANCH" ]]; then
-  sbt 'set version in codacyAnalysisCore := "'"${VERSION}"'"' 'set pgpPassphrase := Some("'"$SONATYPE_GPG_PASSPHRASE"'".toCharArray)' codacyAnalysisCore/publishSigned sonatypeBundleRelease
+  sbt 'set codacyAnalysisCore / version := "'"${VERSION}"'"' 'set pgpPassphrase := Some("'"$SONATYPE_GPG_PASSPHRASE"'".toCharArray)' codacyAnalysisCore/publishSigned sonatypeBundleRelease
 else
-  sbt 'set version in codacyAnalysisCore := "'"${VERSION}"'"' codacyAnalysisCore/publishLocal
+  sbt 'set codacyAnalysisCore / version := "'"${VERSION}"'"' codacyAnalysisCore/publishLocal
 fi

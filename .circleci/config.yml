@@ -239,9 +239,9 @@ workflows:
       - codacy/sbt:
           name: publish_docker_locally
           cmd: |
-            sbt "set codacyAnalysisCli / Docker / version := \"dev-snapshot\";
+            sbt "set codacyAnalysisCli / version := \"dev-snapshot\";
                  codacyAnalysisCli/docker:publishLocal"
-            docker save --output ~/workdir/docker-image.tar $CIRCLE_PROJECT_REPONAME:dev-snapshot
+            docker save --output ~/workdir/docker-image.tar codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot
           persist_to_workspace: true
           requires:
             - compile
@@ -266,8 +266,8 @@ workflows:
           cmd: |
             docker load --input ~/workdir/docker-image.tar
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag $CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:$(cat .version)
-            docker tag $CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:latest
+            docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:$(cat .version)
+            docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:latest
             docker push codacy/$CIRCLE_PROJECT_REPONAME:$(cat .version)
             docker push codacy/$CIRCLE_PROJECT_REPONAME:latest
           requires:
@@ -297,7 +297,7 @@ workflows:
           cmd: |
             docker load --input ~/workdir/docker-image.tar
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag $CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:stable
+            docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:stable
             docker push codacy/$CIRCLE_PROJECT_REPONAME:stable
           requires:
             - publish_dockerhub_stable_hold

@@ -28,6 +28,7 @@ object Common {
 
   val dockerSettings: Seq[Def.Setting[_]] = Seq(
     packageName in Docker := packageName.value,
+    dockerAlias := DockerAlias(None, Some("codacy"), name.value, Some(version.value)),
     version in Docker := version.value,
     maintainer in Docker := "Rodrigo Fernandes <rodrigo@codacy.com>",
     dockerBaseImage := "openjdk:8-jre-alpine",
