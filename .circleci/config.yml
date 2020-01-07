@@ -234,7 +234,7 @@ workflows:
             - codacy/checkout_and_version
       - codacy/sbt:
           name: lint
-          cmd: sbt "scalafmtCheckAll;scalafmtSbtCheck;scapegoat;scalafixEnable;scalafix --test"
+          cmd: ./scripts/lint.sh
           requires:
             - compile
       - test:
