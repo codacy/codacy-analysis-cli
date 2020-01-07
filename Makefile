@@ -25,4 +25,4 @@ build: compile lint test
 	scripts/deploy.sh
 
 clean:
-	scripts/clean.sh
+	sbt clean

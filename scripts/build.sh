@@ -4,6 +4,6 @@ set -e
 
 current_directory="$( cd "$( dirname "$0" )" && pwd )"
 
-${current_directory}/compile.sh
-${current_directory}/lint.sh
-${current_directory}/test.sh
+"$current_directory"/compile.sh
+"$current_directory"/lint.sh
+"$current_directory"/test.sh

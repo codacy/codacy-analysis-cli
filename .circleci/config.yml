@@ -1,21 +1,23 @@
-# CircleCI 2.0 configuration file
-version: 2
+version: 2.1
+
+orbs:
+  codacy: codacy/base@1.2.1
 
 # Re-usable blocks to reduce boilerplate in job definitions.
 references:
-  host_environment_defaults: &host_environment_defaults
-    # Customize the JVM maximum heap limit
+  host_environment_defaults:
+    &host_environment_defaults # Customize the JVM maximum heap limit
     JAVA_OPTS: -Xmx3200m
 
-  docker_environment_defaults: &docker_environment_defaults
-    # Customize the JVM to read correct memory values
-    JAVA_OPTS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1'
+  docker_environment_defaults:
+    &docker_environment_defaults # Customize the JVM to read correct memory values
+    JAVA_OPTS: "-XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0"
 
   default_java_job: &default_java_job
     docker:
-    - image: circleci/openjdk:8-jdk
-      environment:
-        <<: *docker_environment_defaults
+      - image: circleci/openjdk:8-jdk
+        environment:
+          <<: *docker_environment_defaults
     environment:
       <<: *host_environment_defaults
     working_directory: ~/workdir
@@ -23,9 +25,9 @@ references:
   restore_dependencies: &restore_dependencies
     restore_cache:
       keys:
-      - sbt-ivy2-dependencies-1.0.12-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
-      - sbt-ivy2-dependencies-1.0.12-{{ checksum "/tmp/dependencies.cache.tmp" }}
-      - sbt-ivy2-dependencies-1.0.12
+        - sbt-ivy2-dependencies-1.0.13-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
+        - sbt-ivy2-dependencies-1.0.13-{{ checksum "/tmp/dependencies.cache.tmp" }}
+        - sbt-ivy2-dependencies-1.0.13
 
   clean_sbt_dependencies_cache: &clean_sbt_dependencies_cache
     run:
@@ -47,312 +49,159 @@ references:
   restore_maven_dependencies: &restore_maven_dependencies
     restore_cache:
       keys:
-      - maven-dependencies-1.0.12-{{ checksum "pom.xml" }}
-      - maven-dependencies-1.0.12
+        - maven-dependencies-1.0.13-{{ checksum "pom.xml" }}
+        - maven-dependencies-1.0.13
 
   run_integration_tests: &run_integration_tests
     machine: true
     working_directory: ~/integration-tests
     steps:
-    - add_ssh_keys:
-        fingerprints:
-        - "df:83:d7:c7:d5:79:06:c2:3b:d1:fd:e2:a3:d1:12:c5"
-    - run:
-        name: Checkout integration tests
-        working_directory: ~/
-        command: |
-          ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation-tests.git ~/integration-tests master
-    - *restore_maven_dependencies
-    - attach_workspace:
-        at: /tmp/workspace
-    # Clean CODACY_PROJECT_TOKEN is needed to make sure tests are run in a clean state without
-    # influence from the build server environment
-    # (e.g.: to avoid tests picking the CODACY_PROJECT_TOKEN used to send coverage
-    # and incorrectly using it to obtain remote configurations)
-    - run:
-        name: Clean CODACY_PROJECT_TOKEN
-        command: echo 'unset CODACY_PROJECT_TOKEN' >> $BASH_ENV
-    - run:
-        name: Load docker from file
-        command: |
-          if [[ "$CODACY_ANALYSIS_CLI_VERSION" != "latest" ]]
-          then
-            docker load --input /tmp/workspace/codacy-analysis-cli.tar
-          else
-            echo "Skipping load of docker when testing latest"
-          fi
-    - run:
-        name: Setup codacy-analysis-cli version for integration tests
-        command: |
-          if [[ -z "$CODACY_ANALYSIS_CLI_VERSION" ]]
-          then
-            echo 'export CODACY_ANALYSIS_CLI_VERSION="dev-snapshot"' >> $BASH_ENV
-          fi
-    - run:
-        name: Install codacy-analysis-cli
-        command: |
-          curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
-          cd codacy-analysis-cli-* && sudo make install
-          rm -rf codacy-analysis-cli-*
-    - run:
-        name: Run tests
-        command: |
-          export EXECUTION_TIME=`date +%F_%Hh%M-%Z`
-          mvn test -DsuiteFile=$TEST_PATH -Drp.description=$EXECUTION_TIME -Drp.uuid=$RP_CIRCLECI_UUID -Drp.launch=$LAUNCH_NAME -Drp.project=$PROJECT_NAME -Drp.mode=DEFAULT -Drp.endpoint=$RP_ENDPOINT -Drp.tags=$LAUNCH_TAG
-    - run:
-        name: Save test results
-        command: |
-          mkdir -p ~/junit/
-          find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
-        when: always
-    - store_test_results:
-        path: ~/junit
-    - store_artifacts:
-        path: ~/junit
-    - store_artifacts:
-        path: ExtentReports/
-
-  export_docker_publish_version: &export_docker_publish_version
-    run:
-      name: Export publish version
-      command: echo 'export PUBLISH_VERSION="0.1.0-alpha3.$CIRCLE_BUILD_NUM"' >> $BASH_ENV
-
-  load_docker_file: &load_docker_file
-    run:
-      name: Load docker from file
-      command: docker load --input /tmp/workspace/codacy-analysis-cli.tar
-
-  dockerhub_login: &dockerhub_login
-    run:
-      name: Dockerhub login
-      command: docker login -u $DOCKER_USER -p $DOCKER_PASS
-
-  dockerhub_tag: &dockerhub_tag
-    run:
-      name: Docker tag
-      command: |
-        if [ "${CIRCLE_BRANCH}" == "master" ]; then
-          docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:$DOCKER_TAG
-          docker push codacy/$CIRCLE_PROJECT_REPONAME:$DOCKER_TAG
-        else
-          echo "Can only tag master branch as stable. Branch attempted: ${CIRCLE_BRANCH}"
-          exit 1
-        fi
+      - add_ssh_keys:
+          fingerprints:
+            - "df:83:d7:c7:d5:79:06:c2:3b:d1:fd:e2:a3:d1:12:c5"
+      - run:
+          name: Checkout integration tests
+          working_directory: ~/
+          command: |
+            ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+            bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation-tests.git ~/integration-tests master
+      - *restore_maven_dependencies
+      - attach_workspace:
+          at: /tmp/workspace
+      # Clean CODACY_PROJECT_TOKEN is needed to make sure tests are run in a clean state without
+      # influence from the build server environment
+      # (e.g.: to avoid tests picking the CODACY_PROJECT_TOKEN used to send coverage
+      # and incorrectly using it to obtain remote configurations)
+      - run:
+          name: Clean CODACY_PROJECT_TOKEN
+          command: echo 'unset CODACY_PROJECT_TOKEN' >> $BASH_ENV
+      - run:
+          name: Load docker from file
+          command: |
+            if [[ "$CODACY_ANALYSIS_CLI_VERSION" != "latest" ]]
+            then
+              docker load --input /tmp/workspace/workdir/docker-image.tar
+            else
+              echo "Skipping load of docker when testing latest"
+            fi
+      - run:
+          name: Setup codacy-analysis-cli version for integration tests
+          command: |
+            if [[ -z "$CODACY_ANALYSIS_CLI_VERSION" ]]
+            then
+              echo 'export CODACY_ANALYSIS_CLI_VERSION="dev-snapshot"' >> $BASH_ENV
+            fi
+      - run:
+          name: Install codacy-analysis-cli
+          command: |
+            curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
+            cd codacy-analysis-cli-* && sudo make install
+            rm -rf codacy-analysis-cli-*
+      - run:
+          name: Run tests
+          command: |
+            export EXECUTION_TIME=`date +%F_%Hh%M-%Z`
+            mvn test -DsuiteFile=$TEST_PATH -Drp.description=$EXECUTION_TIME -Drp.uuid=$RP_CIRCLECI_UUID -Drp.launch=$LAUNCH_NAME -Drp.project=$PROJECT_NAME -Drp.mode=DEFAULT -Drp.endpoint=$RP_ENDPOINT -Drp.tags=$LAUNCH_TAG
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
+      - store_artifacts:
+          path: ExtentReports/
 
 jobs:
-  checkout_compile:
-    <<: *default_java_job
-    steps:
-    - checkout
-    - attach_workspace:
-        at: ~/workdir
-    - *setup_dependencies_key
-    - *restore_dependencies
-    - run:
-        name: Resolve dependencies
-        command: |
-          sbt update
-    - run:
-        name: Compile
-        command: ./scripts/compile.sh
-    - *clean_sbt_dependencies_cache
-    - save_cache:
-        paths:
-        - ~/.cache/coursier/v1
-        - ~/.ivy2
-        - ~/.sbt
-        - ~/.m2
-        - ~/.coursier
-        key: sbt-ivy2-dependencies-1.0.12-{{ checksum "/tmp/dependencies.cache.tmp" }}
-    - persist_to_workspace:
-        root: ~/workdir
-        paths:
-        - target
-        - cli/target
-        - core/target
-        - project/target
-        - project/project/target
-
   test:
     machine: true
     environment:
       <<: *host_environment_defaults
     working_directory: ~/workdir
     steps:
-    - checkout
-    - attach_workspace:
-        at: ~/workdir
-    - *setup_dependencies_key
-    - *restore_dependencies
-    - run:
-        name: Configure git
-        command: |
-          git config --global user.email "team@codacy.com"
-          git config --global user.name "Codacy Team"
-    - run:
-        name: Test
-        command: ./scripts/test.sh
-    - run:
-        name: Store test reports
-        working_directory: ~/
-        command: |
-          mkdir -p ~/coverage-reports/junit
-          cp -rf ~/workdir/cli/target/test-reports ~/coverage-reports/junit/cli
-          cp -rf ~/workdir/core/target/test-reports ~/coverage-reports/junit/core
-    - store_test_results:
-        path: ~/coverage-reports
-    - store_artifacts:
-        path: ~/workdir/target/scala-2.12/coverage-report
-    - store_artifacts:
-        path: ~/workdir/target/scala-2.12/scoverage-report
-    - store_artifacts:
-        path: ~/workdir/target/scala-2.12/scoverage-data
-    - store_artifacts:
-        path: ~/workdir/target/test-reports
-
-  lint:
-    <<: *default_java_job
-    steps:
-    - checkout
-    - attach_workspace:
-        at: ~/workdir
-    - *setup_dependencies_key
-    - *restore_dependencies
-    - run:
-        name: Lint
-        command: ./scripts/lint.sh
-    - *clean_sbt_dependencies_cache
-    - save_cache:
-        paths:
-        - ~/.cache/coursier/v1
-        - ~/.ivy2
-        - ~/.sbt
-        - ~/.m2
-        - ~/.coursier
-        key: sbt-ivy2-dependencies-1.0.12-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
+      - attach_workspace:
+          at: ~/
+      - *setup_dependencies_key
+      - *restore_dependencies
+      - run:
+          name: Configure git
+          command: |
+            git config --global user.email "team@codacy.com"
+            git config --global user.name "Codacy Team"
+      - run:
+          name: Test
+          command: ./scripts/test.sh
+      - run:
+          name: Store test reports
+          working_directory: ~/
+          command: |
+            mkdir -p ~/coverage-reports/junit
+            cp -rf ~/workdir/cli/target/test-reports ~/coverage-reports/junit/cli
+            cp -rf ~/workdir/core/target/test-reports ~/coverage-reports/junit/core
+      - store_test_results:
+          path: ~/coverage-reports
+      - store_artifacts:
+          path: ~/workdir/target/scala-2.12/coverage-report
+      - store_artifacts:
+          path: ~/workdir/target/scala-2.12/scoverage-report
+      - store_artifacts:
+          path: ~/workdir/target/scala-2.12/scoverage-data
+      - store_artifacts:
+          path: ~/workdir/target/test-reports
 
   publish_lib:
     <<: *default_java_job
     steps:
-    - checkout
-    - attach_workspace:
-        at: ~/workdir
-    - *setup_dependencies_key
-    - *restore_dependencies
-    - *export_docker_publish_version
-    - run:
-        name: Install AWS CLI
-        command: |
-          sudo apt -y update
-          sudo apt -y install python3-pip
-          sudo python3 -m pip install awscli
-    - run:
-        name: Setup AWS Credentials
-        command: ./scripts/setup-aws-credentials.sh
-    - run:
-        name: Retrieve GPG Keys
-        command: |
-          mkdir -p ~/.gnupg
-          aws s3 sync --profile shared-services --include '*.gpg' s3://$AWS_CREDENTIALS_BUCKET/gnupg/ ~/.gnupg
-    - run:
-        name: Publish to Sonatype
-        command: ./scripts/publish_lib.sh $PUBLISH_VERSION
-
-  publish_docker_locally:
-    machine: true
-    environment:
-      <<: *host_environment_defaults
-    working_directory: ~/workdir
-    steps:
-    - checkout
-    - attach_workspace:
-        at: ~/workdir
-    - *setup_dependencies_key
-    - *restore_dependencies
-    - run:
-        name: Publish local docker
-        command: ./scripts/publish_docker.sh dev-snapshot
-    - run:
-        name: Save docker to file
-        command: |
-          mkdir workspace
-          docker save --output workspace/codacy-analysis-cli.tar codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot
-    - persist_to_workspace:
-        root: workspace
-        paths:
-        - codacy-analysis-cli.tar
-
-  publish_dockerhub:
-    machine: true
-    environment:
-      <<: *host_environment_defaults
-    working_directory: ~/workdir
-    steps:
-    - *export_docker_publish_version
-    - attach_workspace:
-        at: /tmp/workspace
-    - *load_docker_file
-    - *export_docker_publish_version
-    - *dockerhub_login
-    - run:
-        name: Publish tag
-        command: echo 'export DOCKER_TAG=$PUBLISH_VERSION' >> $BASH_ENV
-    - *dockerhub_tag
-
-  publish_dockerhub_latest:
-    machine: true
-    environment:
-      <<: *host_environment_defaults
-    working_directory: ~/workdir
-    steps:
-    - attach_workspace:
-        at: /tmp/workspace
-    - *load_docker_file
-    - *export_docker_publish_version
-    - *dockerhub_login
-    - run:
-        name: Publish tag
-        command: echo 'export DOCKER_TAG="latest"' >> $BASH_ENV
-    - *dockerhub_tag
-
-  publish_dockerhub_stable:
-    machine: true
-    environment:
-      <<: *host_environment_defaults
-    working_directory: ~/workdir
-    steps:
-    - attach_workspace:
-        at: /tmp/workspace
-    - *load_docker_file
-    - *export_docker_publish_version
-    - *dockerhub_login
-    - run:
-        name: Publish tag
-        command: echo 'export DOCKER_TAG="stable"' >> $BASH_ENV
-    - *dockerhub_tag
+      - attach_workspace:
+          at: ~/
+      - *setup_dependencies_key
+      - *restore_dependencies
+      - run:
+          name: Install AWS CLI
+          command: |
+            sudo apt -y update
+            sudo apt -y install python3-pip
+            sudo python3 -m pip install awscli
+      - run:
+          name: Setup AWS Credentials
+          command: ./scripts/setup-aws-credentials.sh
+      - run:
+          name: Retrieve GPG Keys
+          command: |
+            mkdir -p ~/.gnupg
+            aws s3 sync --profile shared-services --include '*.gpg' s3://$AWS_CREDENTIALS_BUCKET/gnupg/ ~/.gnupg
+      - run:
+          name: Publish to Sonatype
+          command: |
+            sbt "set codacyAnalysisCore / version := \"$(cat .version)\";
+                 set pgpPassphrase := Some(\"$SONATYPE_GPG_PASSPHRASE\".toCharArray)';
+                 codacyAnalysisCore/publishSigned;
+                 sonatypeBundleRelease"
 
   maven_dependencies:
     <<: *default_java_job
     working_directory: ~/integration-tests
     steps:
-    - add_ssh_keys:
-        fingerprints:
-        - "df:83:d7:c7:d5:79:06:c2:3b:d1:fd:e2:a3:d1:12:c5"
-    - run:
-        name: Checkout integration tests
-        command: |
-          ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-          bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation-tests.git ~/integration-tests master
-    - *restore_maven_dependencies
-    - run: mvn dependency:go-offline
-    - run:
-        name: Compile tests
-        command: mvn test-compile
-    - save_cache:
-        key: maven-dependencies-1.0.12-{{ checksum "pom.xml" }}
-        paths:
-        - ~/.m2
+      - add_ssh_keys:
+          fingerprints:
+            - "df:83:d7:c7:d5:79:06:c2:3b:d1:fd:e2:a3:d1:12:c5"
+      - run:
+          name: Checkout integration tests
+          command: |
+            ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+            bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation-tests.git ~/integration-tests master
+      - *restore_maven_dependencies
+      - run: mvn dependency:go-offline
+      - run:
+          name: Compile tests
+          command: mvn test-compile
+      - save_cache:
+          key: maven-dependencies-1.0.13-{{ checksum "pom.xml" }}
+          paths:
+            - ~/.m2
 
   test_staging:
     <<: *run_integration_tests
@@ -376,80 +225,97 @@ workflows:
   version: 2
   test-and-publish:
     jobs:
-    - checkout_compile
-    - test:
-        requires:
-        - checkout_compile
-    - lint:
-        requires:
-        - checkout_compile
-    - publish_docker_locally:
-        requires:
-        - checkout_compile
-    - publish_lib:
-        context: CodacyAWS
-        requires:
-        - test
-        - lint
-        - test_staging
-        filters:
-          branches:
-            only:
-            - master
-    - publish_dockerhub:
-        context: CodacyDocker
-        requires:
-        - test
-        - lint
-        - publish_docker_locally
-        - test_staging
-        filters:
-          branches:
-            only:
-            - master
-    - publish_dockerhub_latest:
-        context: CodacyDocker
-        requires:
-        - test
-        - lint
-        - publish_docker_locally
-        - test_staging
-        filters:
-          branches:
-            only:
-            - master
-    - publish_dockerhub_stable_hold:
-        context: CodacyDocker
-        type: approval
-        requires:
-        - test
-        - lint
-        - publish_docker_locally
-        - test_staging
-        filters:
-          branches:
-            only:
-            - master
-    - publish_dockerhub_stable:
-        context: CodacyDocker
-        requires:
-        - publish_dockerhub_stable_hold
-    - maven_dependencies
-    - test_staging:
-        requires:
-        - maven_dependencies
-        - publish_docker_locally
+      - codacy/checkout_and_version:
+          write_sbt_version: true
+      - codacy/sbt:
+          name: compile
+          cmd: ./scripts/compile.sh
+          requires:
+            - codacy/checkout_and_version
+      - codacy/sbt:
+          name: lint
+          cmd: ./scripts/lint.sh
+          requires:
+            - compile
+      - test:
+          requires:
+            - compile
+      - codacy/sbt:
+          name: publish_docker_locally
+          cmd: |
+            sbt "set codacyAnalysisCli / version := \"dev-snapshot\";
+                 codacyAnalysisCli/docker:publishLocal"
+            docker save --output ~/workdir/docker-image.tar codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot
+          persist_to_workspace: true
+          requires:
+            - compile
+      - publish_lib:
+          context: CodacyAWS
+          requires:
+            - test
+            - lint
+            - test_staging
+          filters:
+            branches:
+              only:
+                - master
+      - maven_dependencies
+      - test_staging:
+          requires:
+            - maven_dependencies
+            - publish_docker_locally
+      - codacy/shell:
+          name: publish_dockerhub
+          context: CodacyDocker
+          cmd: |
+            docker load --input ~/workdir/docker-image.tar
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:$(cat .version)
+            docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:latest
+            docker push codacy/$CIRCLE_PROJECT_REPONAME:$(cat .version)
+            docker push codacy/$CIRCLE_PROJECT_REPONAME:latest
+          requires:
+            - test
+            - lint
+            - publish_docker_locally
+            - test_staging
+          filters:
+            branches:
+              only:
+                - master
+      - publish_dockerhub_stable_hold:
+          context: CodacyDocker
+          type: approval
+          requires:
+            - test
+            - lint
+            - publish_docker_locally
+            - test_staging
+          filters:
+            branches:
+              only:
+                - master
+      - codacy/shell:
+          name: publish_dockerhub
+          context: CodacyDocker
+          cmd: |
+            docker load --input ~/workdir/docker-image.tar
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:stable
+            docker push codacy/$CIRCLE_PROJECT_REPONAME:stable
+          requires:
+            - publish_dockerhub_stable_hold
 
   nightly:
     triggers:
-    - schedule:
-        cron: "0 0 * * *" # Every day “At minute 00:00”
-        filters:
-          branches:
-            only:
-            - master
+      - schedule:
+          cron: "0 0 * * *" # Every day “At minute 00:00”
+          filters:
+            branches:
+              only:
+                - master
     jobs:
-    - maven_dependencies
-    - test_production:
-        requires:
-        - maven_dependencies
+      - maven_dependencies
+      - test_production:
+          requires:
+            - maven_dependencies
