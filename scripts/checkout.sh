@@ -13,19 +13,20 @@ BRANCH="${3:-master}"
 
 # Workaround old docker images with incorrect $HOME
 # check https://github.com/docker/docker/issues/2968 for details
-if [ "${HOME}" = "/" ]
+if [ "$HOME" = "/" ]
 then
-  export HOME=$(getent passwd $(id -un) | cut -d: -f6)
+  HOME=$(getent passwd "$(id -un)" | cut -d: -f6)
+  export HOME
 fi
 
-if [ -e ${TARGET_DIRECTORY}/.git ]
+if [ -e "$TARGET_DIRECTORY"/.git ]
 then
-  cd ${TARGET_DIRECTORY}
+  cd "$TARGET_DIRECTORY"
   git remote set-url origin "$REPO_URL" || true
 else
-  mkdir -p ${TARGET_DIRECTORY}
-  cd ${TARGET_DIRECTORY}
-  git clone -b $BRANCH "$REPO_URL" .
+  mkdir -p "$TARGET_DIRECTORY"
+  cd "$TARGET_DIRECTORY"
+  git clone -b "$BRANCH" "$REPO_URL" .
 fi
 
 git fetch --force origin "$BRANCH:remotes/origin/$BRANCH"

@@ -177,7 +177,7 @@ jobs:
           name: Publish to Sonatype
           command: |
             sbt "set codacyAnalysisCore / version := \"$(cat .version)\";
-                 set pgpPassphrase := Some(\"$SONATYPE_GPG_PASSPHRASE\".toCharArray)';
+                 set pgpPassphrase := Some(\"$SONATYPE_GPG_PASSPHRASE\".toCharArray);
                  codacyAnalysisCore/publishSigned;
                  sonatypeBundleRelease"
 
