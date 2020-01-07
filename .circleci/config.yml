@@ -175,7 +175,11 @@ jobs:
             aws s3 sync --profile shared-services --include '*.gpg' s3://$AWS_CREDENTIALS_BUCKET/gnupg/ ~/.gnupg
       - run:
           name: Publish to Sonatype
-          command: ./scripts/publish_lib.sh $(cat .version)
+          command: |
+            sbt "set codacyAnalysisCore / version := \"$(cat .version)\";
+                 set pgpPassphrase := Some(\"$SONATYPE_GPG_PASSPHRASE\".toCharArray)';
+                 codacyAnalysisCore/publishSigned;
+                 sonatypeBundleRelease"
 
   maven_dependencies:
     <<: *default_java_job
