@@ -283,6 +283,10 @@ workflows:
             branches:
               only:
                 - master
+      - codacy/tag_version:
+          context: CodacyAWS
+          requires:
+            - publish_dockerhub
       - publish_dockerhub_stable_hold:
           context: CodacyDocker
           type: approval
@@ -296,7 +300,7 @@ workflows:
               only:
                 - master
       - codacy/shell:
-          name: publish_dockerhub
+          name: publish_dockerhub_stable
           context: CodacyDocker
           cmd: |
             docker load --input ~/workdir/docker-image.tar
