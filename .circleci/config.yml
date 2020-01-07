@@ -11,7 +11,7 @@ references:
 
   docker_environment_defaults: &docker_environment_defaults
     # Customize the JVM to read correct memory values
-    JAVA_OPTS: '-XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1'
+    JAVA_OPTS: '-XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0'
 
   default_java_job: &default_java_job
     docker:
@@ -80,7 +80,7 @@ references:
         command: |
           if [[ "$CODACY_ANALYSIS_CLI_VERSION" != "latest" ]]
           then
-            docker load --input /tmp/workspace/codacy-analysis-cli.tar
+            docker load --input /tmp/workspace/workdir/docker-image.tar
           else
             echo "Skipping load of docker when testing latest"
           fi
@@ -239,8 +239,9 @@ workflows:
       - codacy/sbt:
           name: publish_docker_locally
           cmd: |
-            sbt "set version in Docker := \"dev-snapshot\"; docker:publishLocal"
-            docker save --output ~/workdir/docker-image.tar codacy/codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot
+            sbt "set codacyAnalysisCli / Docker / version := \"dev-snapshot\";
+                 codacyAnalysisCli/docker:publishLocal"
+            docker save --output ~/workdir/docker-image.tar $CIRCLE_PROJECT_REPONAME:dev-snapshot
           persist_to_workspace: true
           requires:
           - compile
@@ -263,10 +264,10 @@ workflows:
           name: publish_dockerhub
           context: CodacyDocker
           cmd: |
-            docker load --input /tmp/workspace/codacy-analysis-cli.tar
+            docker load --input ~/workdir/docker-image.tar
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:$(cat .version)
-            docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:latest
+            docker tag $CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:$(cat .version)
+            docker tag $CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:latest
             docker push codacy/$CIRCLE_PROJECT_REPONAME:$(cat .version)
             docker push codacy/$CIRCLE_PROJECT_REPONAME:latest
           requires:
@@ -294,9 +295,9 @@ workflows:
           name: publish_dockerhub
           context: CodacyDocker
           cmd: |
-            docker load --input /tmp/workspace/codacy-analysis-cli.tar
+            docker load --input ~/workdir/docker-image.tar
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:stable
+            docker tag $CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:stable
             docker push codacy/$CIRCLE_PROJECT_REPONAME:stable
           requires:
             - publish_dockerhub_stable_hold
