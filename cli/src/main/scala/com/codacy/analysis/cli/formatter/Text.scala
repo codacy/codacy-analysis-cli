@@ -5,7 +5,7 @@ import java.nio.file.Path
 
 import com.codacy.analysis.core.model._
 import com.codacy.plugins.api.results
-import com.codacy.plugins.duplication.api.DuplicationCloneFile
+import com.codacy.plugins.api.duplication.DuplicationCloneFile
 
 object Text extends FormatterCompanion {
   val name: String = "text"

@@ -6,9 +6,8 @@ import better.files.File
 import com.codacy.analysis.core.model.DuplicationClone
 import com.codacy.plugins.api.duplication.DuplicationTool.CodacyConfiguration
 import com.codacy.plugins.api.languages.Language
-import com.codacy.plugins.duplication.api.{DuplicationCloneFile, DuplicationRequest}
-import com.codacy.plugins.duplication.traits.DuplicationRunner
-import com.codacy.plugins.duplication.{api, _}
+import com.codacy.plugins.api
+import com.codacy.plugins.duplication.traits
 import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
 import com.codacy.plugins.utils.PluginHelper
 import org.log4s.getLogger
@@ -24,15 +23,12 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
   def run(directory: File,
           files: Set[Path],
           timeout: Option[Duration] = Option.empty[Duration]): Try[Set[DuplicationClone]] = {
-
-    val request = DuplicationRequest(directory.pathAsString)
-
-    val dockerRunner = new BinaryDockerRunner[api.DuplicationClone](duplicationTool)()
-    val runner = new DuplicationRunner(duplicationTool, dockerRunner)
+    val dockerRunner = new BinaryDockerRunner[api.duplication.DuplicationClone](duplicationTool)()
+    val runner = new traits.DuplicationRunner(duplicationTool, dockerRunner)
 
     for {
       duplicationClones <- runner.run(
-        request,
+        directory.toJava,
         CodacyConfiguration(Option(languageToRun), Option.empty),
         timeout.getOrElse(DockerRunner.defaultRunTimeout),
         None)
@@ -43,9 +39,9 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
     }
   }
 
-  private def filterDuplicationClones(duplicationClones: List[api.DuplicationClone],
+  private def filterDuplicationClones(duplicationClones: List[api.duplication.DuplicationClone],
                                       files: Set[Path],
-                                      minCloneLines: Int = 5): List[api.DuplicationClone] = {
+                                      minCloneLines: Int = 5): List[api.duplication.DuplicationClone] = {
     // The duplication files should be more than 1. If it is one, then it means
     // that the other clone was in an ignored file. This is based on the assumption
     // that the duplication results will contain more than one entry for files
@@ -58,8 +54,8 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
     }.collect { case (clone, nrCloneFiles) if nrCloneFiles > 1 => clone }
   }
 
-  private def filterUnignoredFiles(duplicated: Seq[DuplicationCloneFile],
-                                   expectedFiles: Set[String]): Seq[DuplicationCloneFile] = {
+  private def filterUnignoredFiles(duplicated: Seq[api.duplication.DuplicationCloneFile],
+                                   expectedFiles: Set[String]): Seq[api.duplication.DuplicationCloneFile] = {
     duplicated.collect {
       case cloneFile if expectedFiles.contains(cloneFile.filePath) =>
         cloneFile
