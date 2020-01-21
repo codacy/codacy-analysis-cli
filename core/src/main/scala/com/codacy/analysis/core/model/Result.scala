@@ -4,7 +4,7 @@ import java.nio.file.Path
 
 import com.codacy.plugins.api.metrics.LineComplexity
 import com.codacy.plugins.api.results
-import com.codacy.plugins.duplication.api.DuplicationCloneFile
+import com.codacy.plugins.api.duplication.DuplicationCloneFile
 
 sealed trait Result
 
