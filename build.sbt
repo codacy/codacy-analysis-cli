@@ -1,47 +1,22 @@
-import sbt.Keys._
 import sbt._
 
 Global / useGpg := false
 
-lazy val root = project
-  .in(file("."))
-  .settings(name := "root", Common.genericSettings)
-  .aggregate(codacyAnalysisCore, codacyAnalysisCli)
-  .settings(publish := {}, publishLocal := {}, publishArtifact := false)
+// Sonatype repository settings
+val sonatypePublishConfig = Seq(
+  publishMavenStyle := true,
+  Test / publishArtifact := false,
+  Docker / publish := {},
+  Docker / publishLocal := {},
+  pomIncludeRepository := (_ => false),
+  publishTo := sonatypePublishToBundle.value)
 
-lazy val codacyAnalysisCore = project
-  .in(file("core"))
-  .settings(name := "codacy-analysis-core")
-  .settings(coverageExcludedPackages := "<empty>;com\\.codacy\\..*Error.*")
-  .settings(Common.genericSettings)
-  .settings(
-    // App Dependencies
-    libraryDependencies ++= Seq(
-      Dependencies.caseApp,
-      Dependencies.betterFiles,
-      Dependencies.jodaTime,
-      Dependencies.fansi,
-      Dependencies.scalajHttp,
-      Dependencies.jGit,
-      Dependencies.cats) ++
-      Dependencies.circe ++
-      Dependencies.log4s ++
-      Dependencies.codacyPlugins,
-    // Test Dependencies
-    libraryDependencies ++= Dependencies.specs2)
-  .settings(
-    // Sonatype repository settings
-    publishMavenStyle := true,
-    Test / publishArtifact := false,
-    Docker / publish := {},
-    Docker / publishLocal := {},
-    pomIncludeRepository := (_ => false),
-    publishTo := sonatypePublishToBundle.value)
-  .settings(
+def sonatypeInformation(desc: String) =
+  Seq(
     organizationName := "Codacy",
     organizationHomepage := Some(new URL("https://www.codacy.com")),
     startYear := Some(2018),
-    description := "Library to analyse projects",
+    description := desc,
     licenses := Seq("AGPL-3.0" -> url("https://opensource.org/licenses/AGPL-3.0")),
     homepage := Some(url("https://github.com/codacy/codacy-analysis-cli")),
     pomExtra := <scm>
@@ -75,6 +50,35 @@ lazy val codacyAnalysisCore = project
           <url>https://github.com/pedrocodacy</url>
         </developer>
       </developers>)
+
+lazy val root = project
+  .in(file("."))
+  .settings(name := "root", Common.genericSettings)
+  .aggregate(codacyAnalysisCore, codacyAnalysisCli)
+  .settings(publish := {}, publishLocal := {}, publishArtifact := false)
+
+lazy val codacyAnalysisCore = project
+  .in(file("core"))
+  .settings(name := "codacy-analysis-core")
+  .settings(coverageExcludedPackages := "<empty>;com\\.codacy\\..*Error.*")
+  .settings(Common.genericSettings)
+  .settings(
+    // App Dependencies
+    libraryDependencies ++= Seq(
+      Dependencies.caseApp,
+      Dependencies.betterFiles,
+      Dependencies.jodaTime,
+      Dependencies.fansi,
+      Dependencies.scalajHttp,
+      Dependencies.jGit,
+      Dependencies.cats) ++
+      Dependencies.circe ++
+      Dependencies.log4s ++
+      Dependencies.codacyPlugins,
+    // Test Dependencies
+    libraryDependencies ++= Dependencies.specs2)
+  .settings(sonatypePublishConfig)
+  .settings(sonatypeInformation("Library to analyse projects"))
   .dependsOn(codacyAnalysisModels)
 
 lazy val codacyAnalysisCli = project
@@ -103,6 +107,8 @@ lazy val codacyAnalysisModels = project
     publishTo := sonatypePublishToBundle.value,
     libraryDependencies ++=
       Dependencies.circe ++ Seq(Dependencies.pluginsApi) ++ Dependencies.specs2)
+  .settings(sonatypePublishConfig)
+  .settings(sonatypeInformation("Library with analysis models"))
   .enablePlugins(JavaAppPackaging)
 
 // Scapegoat

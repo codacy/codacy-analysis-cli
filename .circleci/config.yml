@@ -179,6 +179,7 @@ jobs:
             sbt "set codacyAnalysisCore / version := \"$(cat .version)\";
                  set pgpPassphrase := Some(\"$SONATYPE_GPG_PASSPHRASE\".toCharArray);
                  codacyAnalysisCore/publishSigned;
+                 codacyAnalysisModels/publishSigned;
                  sonatypeBundleRelease"
 
   maven_dependencies:

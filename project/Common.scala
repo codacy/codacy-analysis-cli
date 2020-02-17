@@ -105,7 +105,7 @@ object Common {
         "-Ywarn-nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
         "-Ywarn-nullary-unit", // Warn when nullary methods return Unit.
         "-Ywarn-unused-import")
-    } else if (version.startsWith(scala213)) {
+    } else if (version.startsWith(scalaBinaryVersionNumber)) {
       compilerFlagsDefault
     } else {
       compilerFlagsDefault

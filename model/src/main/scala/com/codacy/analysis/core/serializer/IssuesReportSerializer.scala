@@ -5,10 +5,11 @@ import java.nio.file.Path
 import com.codacy.analysis.core.model.IssuesAnalysis.FileResults
 import com.codacy.analysis.core.model.{Issue, IssuesAnalysis, Location, ToolResult, ToolResults}
 import com.codacy.plugins.api.results
+import io.circe.{Encoder, Printer}
+import io.circe.generic.semiauto.deriveEncoder
+import io.circe.syntax._
 
 object IssuesReportSerializer {
-
-  import io.circe.{Encoder, Printer}, io.circe.generic.semiauto.deriveEncoder, io.circe.syntax._
 
   private[IssuesReportSerializer] implicit val levelEncoder: Encoder[results.Result.Level.Value] =
     Encoder.encodeEnumeration(results.Result.Level)
