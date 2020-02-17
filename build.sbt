@@ -1,9 +1,6 @@
 import sbt.Keys._
 import sbt._
 
-val scalaBinaryVersionNumber = "2.12"
-val scalaVersionNumber = s"$scalaBinaryVersionNumber.10"
-
 Global / useGpg := false
 
 lazy val root = project
@@ -78,6 +75,7 @@ lazy val codacyAnalysisCore = project
           <url>https://github.com/pedrocodacy</url>
         </developer>
       </developers>)
+  .dependsOn(codacyAnalysisModels)
 
 lazy val codacyAnalysisCli = project
   .in(file("cli"))
@@ -95,6 +93,17 @@ lazy val codacyAnalysisCli = project
   .enablePlugins(DockerPlugin)
   .dependsOn(codacyAnalysisCore % "compile->compile;test->test")
   .aggregate(codacyAnalysisCore)
+
+lazy val codacyAnalysisModels = project
+  .in(file("model"))
+  .settings(
+    crossScalaVersions := Common.supportedScalaVersions,
+    name := "codacy-analysis-cli-model",
+    Common.genericSettings,
+    publishTo := sonatypePublishToBundle.value,
+    libraryDependencies ++=
+      Dependencies.circe ++ Seq(Dependencies.pluginsApi) ++ Dependencies.specs2)
+  .enablePlugins(JavaAppPackaging)
 
 // Scapegoat
 ThisBuild / scalaVersion := Common.scalaVersionNumber
