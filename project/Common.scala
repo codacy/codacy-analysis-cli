@@ -12,8 +12,8 @@ object Common {
   val scalaBinaryVersionNumber = "2.12"
   val scalaVersionNumber = s"$scalaBinaryVersionNumber.10"
 
-  val scala213VersionNumber = "2.13.1"
-
+  val scala213 = "2.13"
+  val scala213VersionNumber = s"$scala213.1"
   lazy val supportedScalaVersions = List(Common.scalaVersionNumber, Common.scala213VersionNumber)
 
   val genericSettings = Seq(
@@ -94,7 +94,7 @@ object Common {
   )
 
   def compilerFlags(version: String) = {
-    if (version.startsWith("2.12")) {
+    if (version.startsWith(scalaBinaryVersionNumber)) {
       compilerFlagsDefault ++ Seq(
         "-Xlint:by-name-right-associative", // By-name parameter of right associative operator.
         "-Xlint:unsound-match", // Pattern match may not be typesafe.
@@ -105,7 +105,7 @@ object Common {
         "-Ywarn-nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
         "-Ywarn-nullary-unit", // Warn when nullary methods return Unit.
         "-Ywarn-unused-import")
-    } else if (version.startsWith("2.13")) {
+    } else if (version.startsWith(scala213)) {
       compilerFlagsDefault
     } else {
       compilerFlagsDefault
