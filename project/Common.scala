@@ -12,8 +12,8 @@ object Common {
   val scalaBinaryVersionNumber = "2.12"
   val scalaVersionNumber = s"$scalaBinaryVersionNumber.10"
 
-  val scala213 = "2.13"
-  val scala213VersionNumber = s"$scala213.1"
+  val scala213BinaryVersionNumber = "2.13"
+  val scala213VersionNumber = s"$scala213BinaryVersionNumber.1"
   lazy val supportedScalaVersions = List(Common.scalaVersionNumber, Common.scala213VersionNumber)
 
   val genericSettings = Seq(
@@ -105,7 +105,7 @@ object Common {
         "-Ywarn-nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
         "-Ywarn-nullary-unit", // Warn when nullary methods return Unit.
         "-Ywarn-unused-import")
-    } else if (version.startsWith(scalaBinaryVersionNumber)) {
+    } else if (version.startsWith(scala213BinaryVersionNumber)) {
       compilerFlagsDefault
     } else {
       compilerFlagsDefault

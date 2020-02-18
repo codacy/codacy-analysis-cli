@@ -3,7 +3,7 @@ import sbt._
 Global / useGpg := false
 
 // Sonatype repository settings
-val sonatypePublishConfig = Seq(
+val sonatypePublishSettings = Seq(
   publishMavenStyle := true,
   Test / publishArtifact := false,
   Docker / publish := {},
@@ -11,12 +11,11 @@ val sonatypePublishConfig = Seq(
   pomIncludeRepository := (_ => false),
   publishTo := sonatypePublishToBundle.value)
 
-def sonatypeInformation(desc: String) =
+val sonatypeInformation =
   Seq(
     organizationName := "Codacy",
     organizationHomepage := Some(new URL("https://www.codacy.com")),
     startYear := Some(2018),
-    description := desc,
     licenses := Seq("AGPL-3.0" -> url("https://opensource.org/licenses/AGPL-3.0")),
     homepage := Some(url("https://github.com/codacy/codacy-analysis-cli")),
     pomExtra := <scm>
@@ -77,8 +76,9 @@ lazy val codacyAnalysisCore = project
       Dependencies.codacyPlugins,
     // Test Dependencies
     libraryDependencies ++= Dependencies.specs2)
-  .settings(sonatypePublishConfig)
-  .settings(sonatypeInformation("Library to analyse projects"))
+  .settings(sonatypePublishSettings)
+  .settings(sonatypeInformation ++
+    Seq(description := "Library to analyse projects"))
   .dependsOn(codacyAnalysisModels)
 
 lazy val codacyAnalysisCli = project
@@ -107,8 +107,9 @@ lazy val codacyAnalysisModels = project
     publishTo := sonatypePublishToBundle.value,
     libraryDependencies ++=
       Dependencies.circe ++ Seq(Dependencies.pluginsApi) ++ Dependencies.specs2)
-  .settings(sonatypePublishConfig)
-  .settings(sonatypeInformation("Library with analysis models"))
+  .settings(sonatypePublishSettings)
+  .settings(sonatypeInformation ++
+    Seq(description := "Library with analysis models"))
   .enablePlugins(JavaAppPackaging)
 
 // Scapegoat
