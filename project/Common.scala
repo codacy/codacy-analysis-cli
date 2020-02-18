@@ -12,6 +12,10 @@ object Common {
   val scalaBinaryVersionNumber = "2.12"
   val scalaVersionNumber = s"$scalaBinaryVersionNumber.10"
 
+  val scala213BinaryVersionNumber = "2.13"
+  val scala213VersionNumber = s"$scala213BinaryVersionNumber.1"
+  lazy val supportedScalaVersions = List(Common.scalaVersionNumber, Common.scala213VersionNumber)
+
   val genericSettings = Seq(
     //Credentials for sonatype
     credentials += Credentials(
@@ -21,7 +25,7 @@ object Common {
       sys.env.getOrElse("SONATYPE_PASSWORD", "password")),
     scalaVersion := scalaVersionNumber,
     organization := "com.codacy",
-    scalacOptions ++= Common.compilerFlags,
+    scalacOptions ++= Common.compilerFlags(scalaVersion.value),
     Test / scalacOptions += "-Yrangepos",
     Compile / console / scalacOptions --= Seq("-Ywarn-unused", "-Ywarn-unused:imports", "-Xfatal-warnings"),
     Compile / doc / sources := Seq.empty)
@@ -42,7 +46,7 @@ object Common {
       case other => List(other)
     })
 
-  val compilerFlags: Seq[String] = Seq(
+  val compilerFlagsDefault: Seq[String] = Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
     "-encoding",
     "utf-8", // Specify character encoding used by source files.
@@ -60,7 +64,6 @@ object Common {
     "-Xfuture", // Turn on future language features.
     "-Xlint",
     "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.
-    "-Xlint:by-name-right-associative", // By-name parameter of right associative operator.
     "-Xlint:constant", // Evaluation of a constant arithmetic expression results in an error.
     "-Xlint:delayedinit-select", // Selecting member of DelayedInit.
     "-Xlint:doc-detached", // A Scaladoc comment appears to be detached from its element.
@@ -75,18 +78,10 @@ object Common {
     "-Xlint:private-shadow", // A private field (or class parameter) shadows a superclass field.
     "-Xlint:stars-align", // Pattern sequence wildcard must align with sequence component.
     "-Xlint:type-parameter-shadow", // A local type parameter shadows a type already in scope.
-    "-Xlint:unsound-match", // Pattern match may not be typesafe.
-    "-Yno-adapted-args", // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
-    "-Ypartial-unification", // Enable partial unification in type constructor inference
     "-Ywarn-dead-code", // Warn when dead code is identified.
     "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
-    "-Ywarn-inaccessible", // Warn about inaccessible types in method signatures.
-    "-Ywarn-infer-any", // Warn when a type argument is inferred to be `Any`.
-    "-Ywarn-nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
-    "-Ywarn-nullary-unit", // Warn when nullary methods return Unit.
     "-Ywarn-numeric-widen", // Warn when numerics are widened.
     "-Ywarn-unused",
-    "-Ywarn-unused-import",
     "-Ywarn-macros:after",
     "-Ywarn-unused:implicits", // Warn if an implicit parameter is unused.
     "-Ywarn-unused:imports", // Warn if an import selector is not referenced.
@@ -98,4 +93,22 @@ object Common {
     // "-Yrangepos" // Removed due to slow compilation times
   )
 
+  def compilerFlags(version: String) = {
+    if (version.startsWith(scalaBinaryVersionNumber)) {
+      compilerFlagsDefault ++ Seq(
+        "-Xlint:by-name-right-associative", // By-name parameter of right associative operator.
+        "-Xlint:unsound-match", // Pattern match may not be typesafe.
+        "-Yno-adapted-args", // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
+        "-Ypartial-unification", // Enable partial unification in type constructor inference
+        "-Ywarn-inaccessible", // Warn about inaccessible types in method signatures.
+        "-Ywarn-infer-any", // Warn when a type argument is inferred to be `Any`.
+        "-Ywarn-nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
+        "-Ywarn-nullary-unit", // Warn when nullary methods return Unit.
+        "-Ywarn-unused-import")
+    } else if (version.startsWith(scala213BinaryVersionNumber)) {
+      compilerFlagsDefault
+    } else {
+      compilerFlagsDefault
+    }
+  }
 }
