@@ -6,26 +6,12 @@
 [![Docker Version](https://images.microbadger.com/badges/version/codacy/codacy-analysis-cli.svg)](https://microbadger.com/images/codacy/codacy-analysis-cli "Get your own version badge on microbadger.com")
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.codacy/codacy-analysis-core_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.codacy/codacy-analysis-core_2.12)
 
-Small command line interface to execute Codacy code analysis locally.
+Command line interface to execute Codacy code analysis locally.
 
-## :warning: This project is under development and not production ready
-
-## Features
-
-- (P) Invoke a tool
-  - (D) Local tool configuration file
-  - (D) Remote Codacy patterns, ignored files and language extensions
-  - ( ) Default settings
-- (P) Invoke multiple tools
-  - (D) Using remote configurations
-  - ( ) Using local configurations
-- (D) Invoke tools in parallel
-- (D) Post results to Codacy
-- (P) Exit with status
-  - (D) Absolute issues value
-  - ( ) Codacy quality settings
-
-> (D) - Done | (P) - Partially Done | ( ) - Not Started
+With a single command you can:
+  - Get static code analysis issues, complexity, duplication and other code metrics
+  - Run a tool or the whole suite of supported tools by Codacy
+  - Use the tools' default patterns, your configuration files or your settings saved on Codacy
 
 ## Prerequisites
 
@@ -348,12 +334,12 @@ sbt codacyCoverage
 ### Among Codacy’s features
 
 - Identify new Static Analysis issues
-- Commit and Pull Request Analysis with GitHub, BitBucket/Stash, GitLab (and also direct git repositories)
+- Commit and Pull Request Analysis with GitHub, BitBucket, GitLab (and also direct git repositories)
 - Auto-comments on Commits and Pull Requests
-- Integrations with Slack, HipChat, Jira, YouTrack
+- Integrations with Slack, Jira
 - Track issues in Code Style, Security, Error Proneness, Performance, Unused Code and other categories
 
-Codacy also helps keep track of Code Coverage, Code Duplication, and Code Complexity.
+Codacy also helps keep track of Code coverage, Code duplication, and Code complexity.
 
 Codacy supports PHP, Python, Ruby, Java, JavaScript, and Scala, among others.
 
