@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
 
-  val codacyPluginsVersion = "9.1.0_play_2.6"
+  val codacyPluginsVersion = "11.0.5_play_2.6"
   val circeVersion = "0.12.3"
   val specs2Version = "4.8.1"
 
@@ -31,8 +31,6 @@ object Dependencies {
       .map(_ % codacyPluginsVersion withSources ())
 
   lazy val pluginsApi = "com.codacy" %% "codacy-plugins-api" % "4.0.2"
-
-  lazy val fansi = "com.lihaoyi" %% "fansi" % "0.2.7"
 
   lazy val pprint = "com.lihaoyi" %% "pprint" % "0.5.7"
 
