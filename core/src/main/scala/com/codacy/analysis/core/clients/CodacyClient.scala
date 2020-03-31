@@ -194,10 +194,16 @@ object CodacyClient {
   def apply(credentials: Credentials)(implicit context: ExecutionContext): CodacyClient = {
     credentials match {
       case ProjectToken(token, baseUrl) =>
-        val headers: Map[String, String] = Map(("project_token", token))
+        val headers: Map[String, String] = Map(
+          ("project-token", token),
+          // This is deprecated and is kept for backward compatibility. It will removed in the context of CY-1272
+          ("project_token", token))
         new CodacyClient(credentials, new HttpHelper(baseUrl, headers))
       case APIToken(token, baseUrl, _, _) =>
-        val headers: Map[String, String] = Map(("api_token", token))
+        val headers: Map[String, String] = Map(
+          ("api-token", token),
+          // This is deprecated and is kept for backward compatibility. It will removed in the context of CY-1272
+          ("api_token", token))
         new CodacyClient(credentials, new HttpHelper(baseUrl, headers))
     }
   }
