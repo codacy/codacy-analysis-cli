@@ -33,18 +33,15 @@ class FallbackFileCollectorSpec extends Specification with NoLanguageFeatures {
 
   "FallbackFileCollectorSpec" should {
     "not fallback" in {
-      new FallbackFileCollector(List(successfulCompanion, failingCompanion))
-        .list(File("")) must beSuccessfulTry
+      new FallbackFileCollector(List(successfulCompanion, failingCompanion)).list(File("")) must beSuccessfulTry
     }
 
     "fallback" in {
-      new FallbackFileCollector(List(failingCompanion, successfulCompanion))
-        .list(File("")) must beSuccessfulTry
+      new FallbackFileCollector(List(failingCompanion, successfulCompanion)).list(File("")) must beSuccessfulTry
     }
 
     "fail when all fail" in {
-      new FallbackFileCollector(List(failingCompanion, failingCompanion))
-        .list(File("")) must beFailedTry
+      new FallbackFileCollector(List(failingCompanion, failingCompanion)).list(File("")) must beFailedTry
     }
   }
 }

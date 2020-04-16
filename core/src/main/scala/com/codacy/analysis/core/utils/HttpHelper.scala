@@ -15,10 +15,7 @@ class HttpHelper(apiUrl: Option[String], extraHeaders: Map[String, String]) {
     val headers: Map[String, String] = Map("Content-Type" -> "application/json") ++ extraHeaders
 
     val response: HttpResponse[String] =
-      Http(s"$remoteUrl$endpoint")
-        .headers(headers)
-        .timeout(connectionTimeoutMs, readTimeoutMs)
-        .asString
+      Http(s"$remoteUrl$endpoint").headers(headers).timeout(connectionTimeoutMs, readTimeoutMs).asString
 
     parse(response.body)
   }

@@ -15,9 +15,7 @@ import org.log4s.getLogger
 import scala.concurrent.duration._
 import scala.util.Try
 
-class DuplicationTool(private val duplicationTool: traits.DuplicationTool,
-                      val languageToRun: Language)
-    extends ITool {
+class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val languageToRun: Language) extends ITool {
 
   override def name: String = "duplication"
   override def supportedLanguages: Set[Language] = duplicationTool.languages.to[Set]
@@ -36,16 +34,14 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool,
         None)
       clones = filterDuplicationClones(duplicationClones, files)
     } yield {
-      clones.map(clone =>
-        DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files.to[Set]))(
+      clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files.to[Set]))(
         collection.breakOut): Set[DuplicationClone]
     }
   }
 
-  private def filterDuplicationClones(
-    duplicationClones: List[api.duplication.DuplicationClone],
-    files: Set[Path],
-    minCloneLines: Int = 5): List[api.duplication.DuplicationClone] = {
+  private def filterDuplicationClones(duplicationClones: List[api.duplication.DuplicationClone],
+                                      files: Set[Path],
+                                      minCloneLines: Int = 5): List[api.duplication.DuplicationClone] = {
     // The duplication files should be more than 1. If it is one, then it means
     // that the other clone was in an ignored file. This is based on the assumption
     // that the duplication results will contain more than one entry for files
@@ -58,9 +54,8 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool,
     }.collect { case (clone, nrCloneFiles) if nrCloneFiles > 1 => clone }
   }
 
-  private def filterUnignoredFiles(
-    duplicated: Seq[api.duplication.DuplicationCloneFile],
-    expectedFiles: Set[String]): Seq[api.duplication.DuplicationCloneFile] = {
+  private def filterUnignoredFiles(duplicated: Seq[api.duplication.DuplicationCloneFile],
+                                   expectedFiles: Set[String]): Seq[api.duplication.DuplicationCloneFile] = {
     duplicated.collect {
       case cloneFile if expectedFiles.contains(cloneFile.filePath) =>
         cloneFile

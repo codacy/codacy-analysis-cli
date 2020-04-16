@@ -31,16 +31,14 @@ final case class Directory(sourceDirectory: String) extends SourceDirectory {
   def removePrefix(filename: String): String = filename
 }
 
-final case class SubDirectory(sourceDirectory: String, protected val subDirectory: String)
-    extends SourceDirectory {
+final case class SubDirectory(sourceDirectory: String, protected val subDirectory: String) extends SourceDirectory {
   def appendPrefix(filename: String): String = subDirectory + java.io.File.separator + filename
 
   def removePrefix(filename: String): String =
     filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: DockerTool,
-                                                            val languageToRun: Language)
+class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: DockerTool, val languageToRun: Language)
     extends ITool {
 
   private val logger: Logger = getLogger
@@ -131,10 +129,7 @@ object Tool {
 
   def apply(plugin: DockerTool, languageToRun: Language): Tool = {
     val dockerRunner = new BinaryDockerRunner[Result](plugin)
-    val runner = new ToolRunner(
-      plugin,
-      new DockerToolDocumentation(plugin, new BinaryDockerHelper()),
-      dockerRunner)
+    val runner = new ToolRunner(plugin, new DockerToolDocumentation(plugin, new BinaryDockerHelper()), dockerRunner)
     new Tool(runner, DockerRunner.defaultRunTimeout)(plugin, languageToRun)
   }
 }
@@ -155,13 +150,11 @@ class ToolCollector(allowNetwork: Boolean) {
     availableTools.find(_.uuid == uuid)
   }
 
-  def fromNameOrUUID(toolInput: String,
-                     languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
+  def fromNameOrUUID(toolInput: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
     from(toolInput, languages)
   }
 
-  def fromToolUUIDs(toolUuids: Set[String],
-                    languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
+  def fromToolUUIDs(toolUuids: Set[String], languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
     if (toolUuids.isEmpty) {
       Left(Analyser.Error.NoActiveToolInConfiguration)
     } else {
@@ -195,8 +188,7 @@ class ToolCollector(allowNetwork: Boolean) {
   }
 
   def from(value: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
-    find(value).map(dockerTool =>
-      dockerTool.languages.intersect(languages).map(Tool(dockerTool, _)))
+    find(value).map(dockerTool => dockerTool.languages.intersect(languages).map(Tool(dockerTool, _)))
   }
 
   private def find(value: String): Either[Analyser.Error, DockerTool] = {

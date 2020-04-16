@@ -17,8 +17,7 @@ import org.log4s.getLogger
 import scala.concurrent.duration.Duration
 import scala.util.Try
 
-class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun: Language)
-    extends ITool {
+class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun: Language) extends ITool {
   override def name: String = "metrics"
 
   override def supportedLanguages: Set[Language] = metricsTool.languages.to[Set]

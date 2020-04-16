@@ -43,11 +43,7 @@ object AnalyseCommand {
       Formatter(configuration.analysis.output.format, configuration.analysis.output.file)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
     val analyseExecutor: AnalyseExecutor =
-      new AnalyseExecutor(
-        formatter,
-        Analyser(analyse.extras.analyser),
-        fileCollector,
-        configuration.analysis)
+      new AnalyseExecutor(formatter, Analyser(analyse.extras.analyser), fileCollector, configuration.analysis)
     val uploaderOpt: Either[String, Option[ResultsUploader]] =
       ResultsUploader(codacyClientOpt, configuration.upload.upload, configuration.upload.commitUuid)
 
@@ -79,8 +75,7 @@ class AnalyseCommand(analyse: Analyse,
       .exitCode(analysisAndUpload)
   }
 
-  private def validate(analyse: Analyse,
-                       configuration: CLIConfiguration): Either[CLIError, Unit] = {
+  private def validate(analyse: Analyse, configuration: CLIConfiguration): Either[CLIError, Unit] = {
     Git
       .repository(configuration.analysis.projectDirectory)
       .fold(
@@ -94,8 +89,7 @@ class AnalyseCommand(analyse: Analyse,
         })
   }
 
-  private def validateNoUncommitedChanges(repository: Repository,
-                                          upload: Boolean): Either[CLIError, Unit] = {
+  private def validateNoUncommitedChanges(repository: Repository, upload: Boolean): Either[CLIError, Unit] = {
     repository.uncommitedFiles.fold(
       { _ =>
         Right(())
@@ -128,9 +122,8 @@ class AnalyseCommand(analyse: Analyse,
     }).getOrElse(Right(()))
   }
 
-  private def upload(
-    configuration: CLIConfiguration.Upload,
-    analysisResults: Seq[AnalyseExecutor.ExecutorResult[_]]): Either[CLIError, Unit] = {
+  private def upload(configuration: CLIConfiguration.Upload,
+                     analysisResults: Seq[AnalyseExecutor.ExecutorResult[_]]): Either[CLIError, Unit] = {
     if (configuration.upload) {
       val uploadResultFut: Future[Either[String, Unit]] =
         uploadResults(analysisResults)
@@ -149,15 +142,12 @@ class AnalyseCommand(analyse: Analyse,
     } else Right(())
   }
 
-  private def uploadResults(
-    executorResults: Seq[ExecutorResult[_]]): Future[Either[String, Unit]] = {
+  private def uploadResults(executorResults: Seq[ExecutorResult[_]]): Future[Either[String, Unit]] = {
     uploaderOpt match {
       case Right(Some(uploader)) =>
         val (issuesToolExecutorResult, metricsToolExecutorResult, duplicationToolExecutorResult) =
-          executorResults.partitionSubtypes[
-            IssuesToolExecutorResult,
-            MetricsToolExecutorResult,
-            DuplicationToolExecutorResult]
+          executorResults
+            .partitionSubtypes[IssuesToolExecutorResult, MetricsToolExecutorResult, DuplicationToolExecutorResult]
 
         val issuesResultsSeq = issuesToUpload(issuesToolExecutorResult)
         val metricsResultsSeq = metricsToUpload(metricsToolExecutorResult)
@@ -182,8 +172,7 @@ class AnalyseCommand(analyse: Analyse,
     }
   }
 
-  private def metricsToUpload(
-    languageAndToolResultSeq: Seq[MetricsToolExecutorResult]): Seq[MetricsResult] = {
+  private def metricsToUpload(languageAndToolResultSeq: Seq[MetricsToolExecutorResult]): Seq[MetricsResult] = {
     languageAndToolResultSeq.map {
       case MetricsToolExecutorResult(language, files, Success(fileMetrics)) =>
         MetricsResult(language, MetricsAnalysis.Success(fileWithMetrics(files, fileMetrics)))
@@ -192,8 +181,7 @@ class AnalyseCommand(analyse: Analyse,
     }(collection.breakOut)
   }
 
-  private def fileWithMetrics(allFiles: Set[Path],
-                              fileMetrics: Set[FileMetrics]): Set[MetricsAnalysis.FileResults] = {
+  private def fileWithMetrics(allFiles: Set[Path], fileMetrics: Set[FileMetrics]): Set[MetricsAnalysis.FileResults] = {
     allFiles.map { file =>
       val metrics = fileMetrics.find(_.filename == file).map { metrics =>
         Metrics(
@@ -208,8 +196,7 @@ class AnalyseCommand(analyse: Analyse,
     }
   }
 
-  private def issuesToUpload(
-    toolAndIssuesResults: Seq[IssuesToolExecutorResult]): Seq[ResultsUploader.ToolResults] = {
+  private def issuesToUpload(toolAndIssuesResults: Seq[IssuesToolExecutorResult]): Seq[ResultsUploader.ToolResults] = {
     toolAndIssuesResults.map {
       case IssuesToolExecutorResult(toolName, files, Success(issues)) =>
         ResultsUploader.ToolResults(toolName, files, Right(issues))

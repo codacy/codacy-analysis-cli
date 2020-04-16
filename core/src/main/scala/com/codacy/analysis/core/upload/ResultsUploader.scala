@@ -75,12 +75,13 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
       Future.successful(().asRight[String])
     }
 
-    val res: Future[Either[String, Unit]] = (sendIssuesFut, sendMetricsFut, sendDuplicationFut).mapN {
-      case eithers =>
-        EitherOps.sequenceFoldingLeft(new TupleOps(eithers).toList)(_ + '\n' + _)
-    }.flatMap { _ =>
-      endUpload()
-    }
+    val res: Future[Either[String, Unit]] =
+      (sendIssuesFut, sendMetricsFut, sendDuplicationFut).mapN {
+        case eithers =>
+          EitherOps.sequenceFoldingLeft(new TupleOps(eithers).toList)(_ + '\n' + _)
+      }.flatMap { _ =>
+        endUpload()
+      }
 
     res.onComplete {
       case Success(_) =>
@@ -94,7 +95,8 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
 
   private def sendIssues(toolResults: Seq[ResultsUploader.ToolResults]): Future[Either[String, Unit]] = {
     val uploadResultsBatches = toolResults.map { toolResult =>
-      val fileResults = toolResult.results.map(results => groupResultsByFile(toolResult.files, results))
+      val fileResults =
+        toolResult.results.map(results => groupResultsByFile(toolResult.files, results))
       uploadResultsBatch(toolResult.tool, batchSize, fileResults)
     }
 

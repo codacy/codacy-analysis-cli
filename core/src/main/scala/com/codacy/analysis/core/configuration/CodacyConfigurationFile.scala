@@ -39,8 +39,8 @@ class CodacyConfigurationFileLoader {
     filenames
       .map(root / _)
       .find(f => f.exists && f.isRegularFile)
-      .fold[Either[String, File]](Left(
-        s"Could not find Codacy configuration file. Make sure you have a file named like one of ${filenames
+      .fold[Either[String, File]](
+        Left(s"Could not find Codacy configuration file. Make sure you have a file named like one of ${filenames
           .mkString(", ")}."))(Right(_))
   }
 
@@ -49,8 +49,7 @@ class CodacyConfigurationFileLoader {
       json <- parser.parse(yamlString).left.map(_.show)
       cursor = HCursor.fromJson(json)
       configurationEither = Decoder[CodacyConfigurationFile].decodeAccumulating(cursor).toEither
-      configuration <- configurationEither.left.map(
-        _.toList.map(_.show).mkString(Properties.lineSeparator))
+      configuration <- configurationEither.left.map(_.toList.map(_.show).mkString(Properties.lineSeparator))
     } yield configuration
   }
 
@@ -60,17 +59,15 @@ object CodacyConfigurationFile {
 
   implicit val globDecoder: Decoder[Glob] = (c: HCursor) => c.as[String].map(Glob)
 
-  implicit val languageKeyDecoder: KeyDecoder[Language] = (languageStr: String) =>
-    Languages.fromName(languageStr)
+  implicit val languageKeyDecoder: KeyDecoder[Language] = (languageStr: String) => Languages.fromName(languageStr)
 
   implicit val decodeEngineConfiguration: Decoder[EngineConfiguration] =
     new Decoder[EngineConfiguration] {
       val engineConfigurationKeys = Set("enabled", "exclude_paths", "base_sub_dir")
 
       def apply(c: HCursor): Decoder.Result[EngineConfiguration] = {
-        val extraKeys = c.keys
-          .fold(List.empty[String])(_.to[List])
-          .filter(key => !engineConfigurationKeys.contains(key))
+        val extraKeys =
+          c.keys.fold(List.empty[String])(_.to[List]).filter(key => !engineConfigurationKeys.contains(key))
         for {
           excludePaths <- c.downField("exclude_paths").as[Option[Set[Glob]]]
           baseSubDir <- c.downField("base_sub_dir").as[Option[String]]
@@ -86,10 +83,7 @@ object CodacyConfigurationFile {
               .map(value => (extraKey, value))
           }(collection.breakOut)
 
-          EngineConfiguration(
-            excludePaths,
-            baseSubDir,
-            Option(extraToolConfigurations).filter(_.nonEmpty))
+          EngineConfiguration(excludePaths, baseSubDir, Option(extraToolConfigurations).filter(_.nonEmpty))
         }
       }
     }

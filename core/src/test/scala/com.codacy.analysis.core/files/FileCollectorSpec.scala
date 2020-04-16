@@ -12,9 +12,7 @@ import org.specs2.mutable.Specification
 import scala.sys.process.Process
 import scala.util.{Success, Try}
 
-abstract class FileCollectorSpec(fileCollector: FileCollector[Try])
-    extends Specification
-    with NoLanguageFeatures {
+abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Specification with NoLanguageFeatures {
 
   val toolCollector = new ToolCollector(false)
 
@@ -336,8 +334,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try])
     "src/main/resources/docs/directory-tests/rails4/config/initializers/wrap_parameters.rb",
     "src/main/resources/docs/directory-tests/rails4/config/initializers/session_store.rb")
 
-  val expectedConfigFiles = List(
-    "src/main/resources/docs/directory-tests/rails3/config/brakeman.yml")
+  val expectedConfigFiles = List("src/main/resources/docs/directory-tests/rails3/config/brakeman.yml")
 
   fileCollector.getClass.getName should {
     "list files and filter files per tool" in {
@@ -345,15 +342,8 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try])
         directory <- File.temporaryDirectory()
       } yield {
 
-        Process(
-          Seq(
-            "git",
-            "clone",
-            "git://github.com/qamine-test/codacy-brakeman",
-            directory.pathAsString)).!
-        Process(
-          Seq("git", "reset", "--hard", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38"),
-          directory.toJava).!
+        Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
+        Process(Seq("git", "reset", "--hard", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38"), directory.toJava).!
 
         val emptyExclusionRules =
           FileExclusionRules(None, Set.empty, ExcludePaths(Set.empty, Map.empty), Map.empty)
@@ -370,13 +360,11 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try])
         result must beLike {
           case Success((filesTargetGlobal, filesTargetTool)) =>
             filesTargetGlobal.directory must be(directory)
-            filesTargetGlobal.readableFiles.to[List].map(_.toString) must containTheSameElementsAs(
-              expectedFiles)
+            filesTargetGlobal.readableFiles.to[List].map(_.toString) must containTheSameElementsAs(expectedFiles)
             fileCollector.hasConfigurationFiles(tool, filesTargetGlobal) must beTrue
 
             filesTargetTool.directory must be(directory)
-            filesTargetTool.readableFiles.map(_.toString) must containTheSameElementsAs(
-              expectedToolFiles)
+            filesTargetTool.readableFiles.map(_.toString) must containTheSameElementsAs(expectedToolFiles)
             fileCollector.hasConfigurationFiles(tool, filesTargetTool) must beFalse
         }
       }).get()
@@ -399,8 +387,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try])
 
       val allFilesTarget = FilesTarget(
         directory,
-        expectedToolFiles ++ expectedFiles.map(Paths.get(_)) + Paths.get(
-          "src/main/scala/codacy/brakeman/Test2.scala"),
+        expectedToolFiles ++ expectedFiles.map(Paths.get(_)) + Paths.get("src/main/scala/codacy/brakeman/Test2.scala"),
         Set.empty[Path])
 
       val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
@@ -431,9 +418,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try])
       val exclusionRules = FileExclusionRules(
         None,
         Set(FilePath("src/main/scala/codacy/brakeman/Test2.scala")),
-        ExcludePaths(
-          Set(Glob("**/Test1.scala")),
-          Map("scalastyle" -> Set(Glob("**/brakeman/Test2.scala")))),
+        ExcludePaths(Set(Glob("**/Test1.scala")), Map("scalastyle" -> Set(Glob("**/brakeman/Test2.scala")))),
         Map(Languages.Scala -> Set(".sc")))
 
       val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
@@ -495,9 +480,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try])
       val exclusionRules = FileExclusionRules(
         None, //because local configuration exists default ignores will be instantiated as None
         Set(FilePath("src/main/scala/codacy/brakeman/Test2.scala")),
-        ExcludePaths(
-          Set(Glob("**/Test1.scala")),
-          Map("scalastyle" -> Set(Glob("**/brakeman/Test2.scala")))),
+        ExcludePaths(Set(Glob("**/Test1.scala")), Map("scalastyle" -> Set(Glob("**/brakeman/Test2.scala")))),
         Map(Languages.Scala -> Set(".sc")))
 
       val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head

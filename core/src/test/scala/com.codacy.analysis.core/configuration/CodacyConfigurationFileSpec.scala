@@ -16,10 +16,7 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
       val expected = CodacyConfigurationFile(
         Option(
           Map(
-            "rubocop" -> EngineConfiguration(
-              Some(Set(Glob("config/engines.yml"))),
-              Some("test/baseDir"),
-              None),
+            "rubocop" -> EngineConfiguration(Some(Set(Glob("config/engines.yml"))), Some("test/baseDir"), None),
             "duplication" -> EngineConfiguration(
               Some(Set(Glob("config/engines.yml"))),
               None,
@@ -50,10 +47,7 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
       val expected = CodacyConfigurationFile(
         Option(
           Map(
-            "rubocop" -> EngineConfiguration(
-              Some(Set(Glob("config/engines.yml"))),
-              Some("test/baseDir"),
-              None),
+            "rubocop" -> EngineConfiguration(Some(Set(Glob("config/engines.yml"))), Some("test/baseDir"), None),
             "duplication" -> EngineConfiguration(
               Some(Set(Glob("config/engines.yml"))),
               None,

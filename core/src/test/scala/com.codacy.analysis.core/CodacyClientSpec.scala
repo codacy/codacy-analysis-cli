@@ -16,11 +16,7 @@ import org.specs2.mutable.Specification
 
 import scala.concurrent.duration._
 
-class CodacyClientSpec
-    extends Specification
-    with NoLanguageFeatures
-    with Mockito
-    with FutureMatchers {
+class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
   private val apiTokenStr = "RandomApiToken"
   private val projectTokenStr = "RandomProjectToken"
@@ -43,11 +39,9 @@ class CodacyClientSpec
           "with successful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsTest(success = true, apiCredentials)
             // scalafix:off NoInfer.any
-            codacyClient.sendRemoteIssues(tool, commitUuid, Right(Set())) must beRight.awaitFor(
-              Int.MaxValue.seconds)
+            codacyClient.sendRemoteIssues(tool, commitUuid, Right(Set())) must beRight.awaitFor(Int.MaxValue.seconds)
             // scalafix:on NoInfer.any NoInfer.any
-            there was one(httpHelper)
-              .post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
+            there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
           "with unsuccessful return" in {
             val (codacyClient, httpHelper) = setupRemoteResultsTest(success = false, apiCredentials)
@@ -59,19 +53,16 @@ class CodacyClientSpec
               case Left(errorMsg) =>
                 errorMsg mustEqual "Error: Endpoint for sending results replied with an error : failed!"
             }.awaitFor(Int.MaxValue.seconds)
-            there was one(httpHelper)
-              .post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
+            there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
         }
         "with Project Token with successful return" in {
           val (codacyClient, httpHelper) =
             setupRemoteResultsTest(success = true, projectCredentials)
           // scalafix:off NoInfer.any
-          codacyClient.sendRemoteIssues(tool, commitUuid, Right(Set())) must beRight.awaitFor(
-            Int.MaxValue.seconds)
+          codacyClient.sendRemoteIssues(tool, commitUuid, Right(Set())) must beRight.awaitFor(Int.MaxValue.seconds)
           // scalafix:on NoInfer.any
-          there was one(httpHelper)
-            .post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
+          there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
         }
       }
 
@@ -83,8 +74,7 @@ class CodacyClientSpec
             // scalafix:off NoInfer.any
             codacyClient.sendEndOfResults(commitUuid) must beRight.awaitFor(Int.MaxValue.seconds)
             // scalafix:on NoInfer.any
-            there was one(httpHelper)
-              .post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
+            there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
           "with unsuccessful return" in {
             val (codacyClient, httpHelper) =
@@ -97,8 +87,7 @@ class CodacyClientSpec
               case Left(errorMsg) =>
                 errorMsg mustEqual "Error: Endpoint for end of results replied with an error : failed!"
             }.awaitFor(Int.MaxValue.seconds)
-            there was one(httpHelper)
-              .post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
+            there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
           }
         }
         "with Project Token with successful return" in {
@@ -107,8 +96,7 @@ class CodacyClientSpec
           // scalafix:off NoInfer.any
           codacyClient.sendEndOfResults(commitUuid) must beRight.awaitFor(Int.MaxValue.seconds)
           // scalafix:on NoInfer.any
-          there was one(httpHelper)
-            .post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
+          there was one(httpHelper).post(ArgumentMatchers.any[String], ArgumentMatchers.any[Option[Json]])
         }
       }
 
@@ -142,8 +130,7 @@ class CodacyClientSpec
     }
   }
 
-  private def setupRemoteResultsTest(success: Boolean,
-                                     credentials: Credentials): (CodacyClient, HttpHelper) = {
+  private def setupRemoteResultsTest(success: Boolean, credentials: Credentials): (CodacyClient, HttpHelper) = {
 
     val mockedHttpHelper = mock[HttpHelper]
 
@@ -168,8 +155,7 @@ class CodacyClientSpec
     (new CodacyClient(credentials, mockedHttpHelper), mockedHttpHelper)
   }
 
-  private def setupRemoteResultsEndTest(success: Boolean,
-                                        credentials: Credentials): (CodacyClient, HttpHelper) = {
+  private def setupRemoteResultsEndTest(success: Boolean, credentials: Credentials): (CodacyClient, HttpHelper) = {
 
     val mockedHttpHelper = mock[HttpHelper]
 
@@ -194,30 +180,27 @@ class CodacyClientSpec
     (new CodacyClient(credentials, mockedHttpHelper), mockedHttpHelper)
   }
 
-  private def setupGetRemoteConfigurationTest(
-    success: Boolean,
-    credentials: Credentials): (CodacyClient, HttpHelper) = {
+  private def setupGetRemoteConfigurationTest(success: Boolean,
+                                              credentials: Credentials): (CodacyClient, HttpHelper) = {
 
     val mockedHttpHelper = mock[HttpHelper]
     val response: Either[ParsingFailure, Json] =
       if (success)
-        parse(
-          """{ "ignoredPaths": [], "defaultIgnores": [], "projectExtensions": [], "toolConfiguration": [] }""")
+        parse("""{ "ignoredPaths": [], "defaultIgnores": [], "projectExtensions": [], "toolConfiguration": [] }""")
       else parse("""{ "error": "failed!"}""")
 
-    when(mockedHttpHelper.get(ArgumentMatchers.any[String]))
-      .thenAnswer((invocation: InvocationOnMock) => {
-        invocation.getArguments.toList match {
-          case (endpoint: String) :: Nil =>
-            val actualEndpoint = credentials match {
-              case _: ProjectToken => "/project/analysis/configuration"
-              case _: APIToken     => s"/project/$username/$project/analysis/configuration"
-            }
-            endpoint must beEqualTo(actualEndpoint)
-          case _ =>
-        }
-        response
-      })
+    when(mockedHttpHelper.get(ArgumentMatchers.any[String])).thenAnswer((invocation: InvocationOnMock) => {
+      invocation.getArguments.toList match {
+        case (endpoint: String) :: Nil =>
+          val actualEndpoint = credentials match {
+            case _: ProjectToken => "/project/analysis/configuration"
+            case _: APIToken     => s"/project/$username/$project/analysis/configuration"
+          }
+          endpoint must beEqualTo(actualEndpoint)
+        case _ =>
+      }
+      response
+    })
 
     (new CodacyClient(credentials, mockedHttpHelper), mockedHttpHelper)
   }

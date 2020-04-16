@@ -19,9 +19,7 @@ class RepositorySpec extends Specification with NoLanguageFeatures {
           temporaryFile <- File.temporaryFile(parent = Some(temporaryDirectory))
         } yield {
           Process(Seq("git", "init"), temporaryDirectory.toJava).!
-          Process(
-            Seq("git", "add", temporaryDirectory.relativize(temporaryFile).toString),
-            temporaryDirectory.toJava).!
+          Process(Seq("git", "add", temporaryDirectory.relativize(temporaryFile).toString), temporaryDirectory.toJava).!
           Process(Seq("git", "commit", "-m", "tmp"), temporaryDirectory.toJava).!
 
           Git.repository(temporaryDirectory).flatMap(_.latestCommit) must beSuccessfulTry

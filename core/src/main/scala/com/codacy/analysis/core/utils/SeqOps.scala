@@ -6,8 +6,7 @@ object SeqOps {
 
   implicit class SeqOps[T](seq: Seq[T]) {
 
-    def partitionSubtypes[A <: T: ClassTag, B <: T: ClassTag, C <: T: ClassTag]
-      : (Seq[A], Seq[B], Seq[C]) = {
+    def partitionSubtypes[A <: T: ClassTag, B <: T: ClassTag, C <: T: ClassTag]: (Seq[A], Seq[B], Seq[C]) = {
       seq.foldLeft((Seq.empty[A], Seq.empty[B], Seq.empty[C])) {
         case ((aSeq, bSeq, cSeq), t) =>
           t match {

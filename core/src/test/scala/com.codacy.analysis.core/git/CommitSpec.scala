@@ -20,9 +20,7 @@ class CommitSpec extends Specification with NoLanguageFeatures {
         } yield {
 
           def addFile(file: File) = {
-            Process(
-              Seq("git", "add", temporaryDirectory.relativize(file).toString),
-              temporaryDirectory.toJava).!
+            Process(Seq("git", "add", temporaryDirectory.relativize(file).toString), temporaryDirectory.toJava).!
           }
           addFile(tempFile1)
           addFile(tempFile2)

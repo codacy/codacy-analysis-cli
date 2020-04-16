@@ -8,8 +8,7 @@ object LanguagesHelper {
 
   private val logger: org.log4s.Logger = getLogger
 
-  def fromFileTarget(filesTarget: FilesTarget,
-                     languageCustomExtensions: Map[Language, Set[String]]): Set[Language] = {
+  def fromFileTarget(filesTarget: FilesTarget, languageCustomExtensions: Map[Language, Set[String]]): Set[Language] = {
     for {
       path <- filesTarget.readableFiles
       extensionsList = languageCustomExtensions.mapValues(_.toList).toList

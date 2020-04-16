@@ -32,11 +32,10 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
     result
   }
 
-  override def metrics(
-    metricsTool: MetricsTool,
-    directory: File,
-    files: Option[Set[Path]],
-    timeout: Option[Duration] = Option.empty[Duration]): Try[Set[FileMetrics]] = {
+  override def metrics(metricsTool: MetricsTool,
+                       directory: File,
+                       files: Option[Set[Path]],
+                       timeout: Option[Duration] = Option.empty[Duration]): Try[Set[FileMetrics]] = {
 
     val srcFiles = files.map(_.map(filePath => Source.File(filePath.toString)))
 
@@ -52,11 +51,10 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
     result.map(_.to[Set])
   }
 
-  override def duplication(
-    duplicationTool: DuplicationTool,
-    directory: File,
-    files: Set[Path],
-    timeout: Option[Duration] = Option.empty[Duration]): Try[Set[DuplicationClone]] = {
+  override def duplication(duplicationTool: DuplicationTool,
+                           directory: File,
+                           files: Set[Path],
+                           timeout: Option[Duration] = Option.empty[Duration]): Try[Set[DuplicationClone]] = {
 
     val result = duplicationTool.run(directory, files, timeout)
 
@@ -64,8 +62,7 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
       case Success(res) =>
         logger.info(s"Completed duplication for ${duplicationTool.name} with ${res.size} results")
       case Failure(e) =>
-        logger.error(e)(
-          Analyser.Error.ToolExecutionFailure("duplication", duplicationTool.name).message)
+        logger.error(e)(Analyser.Error.ToolExecutionFailure("duplication", duplicationTool.name).message)
     }
 
     result.map(_.to[Set])

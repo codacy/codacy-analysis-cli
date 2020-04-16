@@ -13,8 +13,7 @@ class Environment(variables: Map[String, String]) {
   private val logger: Logger = getLogger
 
   def codeDirectoryEnvironmentVariable(): Option[String] = {
-    validate("Project directory", "environment variable", "CODACY_CODE")(
-      variables.get("CODACY_CODE"))
+    validate("Project directory", "environment variable", "CODACY_CODE")(variables.get("CODACY_CODE"))
   }
 
   def projectTokenArgument(projectTokenFromArguments: Option[String]): Option[String] = {
@@ -22,8 +21,7 @@ class Environment(variables: Map[String, String]) {
   }
 
   def projectTokenEnvironmentVariable(): Option[String] = {
-    validate("Project token", "environment variable", "CODACY_PROJECT_TOKEN")(
-      variables.get("CODACY_PROJECT_TOKEN"))
+    validate("Project token", "environment variable", "CODACY_PROJECT_TOKEN")(variables.get("CODACY_PROJECT_TOKEN"))
   }
 
   def apiTokenArgument(apiTokenFromArguments: Option[String]): Option[String] = {
@@ -31,8 +29,7 @@ class Environment(variables: Map[String, String]) {
   }
 
   def apiTokenEnvironmentVariable(): Option[String] = {
-    validate("API token", "environment variable", "CODACY_API_TOKEN")(
-      variables.get("CODACY_API_TOKEN"))
+    validate("API token", "environment variable", "CODACY_API_TOKEN")(variables.get("CODACY_API_TOKEN"))
   }
 
   def apiBaseUrlArgument(codacyApiBaseURLFromArguments: Option[String]): Option[String] = {
@@ -43,15 +40,13 @@ class Environment(variables: Map[String, String]) {
 
   def apiBaseUrlEnvironmentVariable(): Option[String] = {
     val apiURL =
-      validate("API base URL", "environment variable", "CODACY_API_BASE_URL")(
-        variables.get("CODACY_API_BASE_URL"))
+      validate("API base URL", "environment variable", "CODACY_API_BASE_URL")(variables.get("CODACY_API_BASE_URL"))
     validateApiBaseUrl(apiURL)
   }
 
   def baseProjectDirectory(directory: Option[File]): File =
-    directory.fold(
-      codeDirectoryEnvironmentVariable().map(File(_)).getOrElse(File.currentWorkingDirectory))(
-      dir => if (dir.isDirectory) dir else dir.parent)
+    directory.fold(codeDirectoryEnvironmentVariable().map(File(_)).getOrElse(File.currentWorkingDirectory))(dir =>
+      if (dir.isDirectory) dir else dir.parent)
 
   private def validateApiBaseUrl(apiURL: Option[String]): Option[String] = {
     apiURL.flatMap { url =>
@@ -73,8 +68,7 @@ class Environment(variables: Map[String, String]) {
     }
   }
 
-  private def validate(name: String, paramType: String, param: String)(
-    value: Option[String]): Option[String] = {
+  private def validate(name: String, paramType: String, param: String)(value: Option[String]): Option[String] = {
     value.ifEmpty(logger.info(s"$name not passed through $paramType `$param`")).flatMap {
       case t if t.trim.nonEmpty =>
         logger.info(s"$name found in $paramType `$param`")

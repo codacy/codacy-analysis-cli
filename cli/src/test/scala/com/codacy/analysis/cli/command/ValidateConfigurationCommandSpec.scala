@@ -6,10 +6,7 @@ import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.FileMatchers
 import org.specs2.mutable.Specification
 
-class ValidateConfigurationCommandSpec
-    extends Specification
-    with NoLanguageFeatures
-    with FileMatchers {
+class ValidateConfigurationCommandSpec extends Specification with NoLanguageFeatures with FileMatchers {
 
   "ValidateConfigurationExecutor" should {
     "find configuration file" in {

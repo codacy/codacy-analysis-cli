@@ -18,8 +18,7 @@ import scala.util.{Failure, Success, Try}
 abstract class CLIApp extends CommandAppWithBaseCommand[DefaultCommand, CommandOptions] {
   def run(command: CommandOptions): ExitStatus.ExitCode
 
-  override final def run(command: CommandOptions,
-                         remainingArgs: RemainingArgs): ExitStatus.ExitCode = {
+  override final def run(command: CommandOptions, remainingArgs: RemainingArgs): ExitStatus.ExitCode = {
     run(command)
   }
 
@@ -118,8 +117,7 @@ final case class APIOptions(@ValueDescription("The project token.")
                             codacyApiBaseUrl: Option[String] = Option.empty)
 
 final case class ExtraOptions(
-  @Hidden @ValueDescription(
-    s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")
+  @Hidden @ValueDescription(s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")
   analyser: String = Analyser.defaultAnalyser.name)
 
 final case class Analyse(
@@ -127,13 +125,11 @@ final case class Analyse(
   options: CommonOptions,
   @Recurse
   api: APIOptions,
-  @ExtraName("t") @ValueDescription(
-    s"The tool to analyse the code. (${Tool.allToolShortNames.mkString(", ")})")
+  @ExtraName("t") @ValueDescription(s"The tool to analyse the code. (${Tool.allToolShortNames.mkString(", ")})")
   tool: Option[String],
   @ExtraName("d") @ValueDescription("The directory to analyse.")
   directory: Option[File],
-  @ExtraName("f") @ValueDescription(
-    s"The output format. (${Formatter.allFormatters.map(_.name).mkString(", ")})")
+  @ExtraName("f") @ValueDescription(s"The output format. (${Formatter.allFormatters.map(_.name).mkString(", ")})")
   format: String = Formatter.defaultFormatter.name,
   @ExtraName("o") @ValueDescription("The output destination file.")
   output: Option[File] = Option.empty,
@@ -143,16 +139,14 @@ final case class Analyse(
   upload: Int @@ Counter = Tag.of(0),
   @ExtraName("p") @ValueDescription("The number of tools to run in parallel")
   parallel: Option[Int] = Option.empty,
-  @ValueDescription(
-    s"""If the access to the network is allowed, the cli will run tools that need it.
+  @ValueDescription(s"""If the access to the network is allowed, the cli will run tools that need it.
     Supported tools that need network access: (${Tool.internetToolShortNames.mkString(", ")})""")
   allowNetwork: Int @@ Counter = Tag.of(0),
   @ValueDescription("The maximum number of issues allowed for the analysis to succeed")
   maxAllowedIssues: Int = 0,
   @ValueDescription("Fail the analysis if any tool fails to run")
   failIfIncomplete: Int @@ Counter = Tag.of(0),
-  @ValueDescription(
-    "Force files to be readable by changing the permissions before running the analysis")
+  @ValueDescription("Force files to be readable by changing the permissions before running the analysis")
   forceFilePermissions: Int @@ Counter = Tag.of(0),
   @ValueDescription("Maximum time each tool has to execute")
   toolTimeout: Option[Duration],

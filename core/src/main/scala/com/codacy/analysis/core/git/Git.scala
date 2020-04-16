@@ -12,9 +12,8 @@ object Git {
   private val logger: Logger = getLogger
 
   def repository(directory: File): Try[Repository] = {
-    Try((directory / ".git").toJava)
-      .filter(d => new FileRepository(d.getPath).getObjectDatabase.exists())
-      .flatMap { gitDir =>
+    Try((directory / ".git").toJava).filter(d => new FileRepository(d.getPath).getObjectDatabase.exists()).flatMap {
+      gitDir =>
         Try {
           val builder = new FileRepositoryBuilder
 
@@ -22,7 +21,7 @@ object Git {
 
           new Repository(repository)
         }
-      }
+    }
   }
 
   def currentCommitUuid(directory: File): Option[Commit.Uuid] = {

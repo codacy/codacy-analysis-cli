@@ -27,8 +27,7 @@ class ValidateConfigurationCommand(validateConfiguration: ValidateConfiguration,
         ExitCodes.invalidConfigurationFile
 
       case Right((file, cfgFile)) =>
-        Console.out.println(
-          s"Successfully loaded the Codacy configuration file in ${file.pathAsString}")
+        Console.out.println(s"Successfully loaded the Codacy configuration file in ${file.pathAsString}")
         pprint.pprintln(cfgFile)
         ExitCodes.success
     }
