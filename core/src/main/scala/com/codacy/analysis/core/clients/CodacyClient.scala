@@ -3,7 +3,11 @@ package com.codacy.analysis.core.clients
 import java.nio.file.Path
 
 import cats.implicits._
-import com.codacy.analysis.core.clients.api.{CodacyError, ProjectConfiguration, RemoteResultResponse}
+import com.codacy.analysis.core.clients.api.{
+  CodacyError,
+  ProjectConfiguration,
+  RemoteResultResponse
+}
 import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.IssuesAnalysis.FileResults
 import com.codacy.analysis.core.model._
@@ -23,13 +27,17 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
   private implicit val levelEncoder: Encoder[com.codacy.plugins.api.results.Result.Level.Value] =
     Encoder.encodeEnumeration(com.codacy.plugins.api.results.Result.Level)
 
-  private implicit val categoryEncoder: Encoder[com.codacy.plugins.api.results.Pattern.Category.Value] =
+  private implicit val categoryEncoder
+    : Encoder[com.codacy.plugins.api.results.Pattern.Category.Value] =
     Encoder.encodeEnumeration(com.codacy.plugins.api.results.Pattern.Category)
   private implicit val pathEncoder: Encoder[Path] = Encoder[String].contramap(_.toString)
 
   private implicit val languageDecoder: Decoder[Language] =
-    Decoder[String].emap(lang =>
-      Languages.fromName(lang).fold[Either[String, Language]](Left(s"Failed to parse language $lang"))(Right(_)))
+    Decoder[String].emap(
+      lang =>
+        Languages
+          .fromName(lang)
+          .fold[Either[String, Language]](Left(s"Failed to parse language $lang"))(Right(_)))
 
   def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
     credentials match {
@@ -47,21 +55,25 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
           s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/issuesRemoteResults",
           tool,
           results)
-      case _: ProjectToken => sendRemoteResultsTo(s"/commit/${commitUuid.value}/issuesRemoteResults", tool, results)
+      case _: ProjectToken =>
+        sendRemoteResultsTo(s"/commit/${commitUuid.value}/issuesRemoteResults", tool, results)
     }
   }
 
-  def sendRemoteMetrics(commitUuid: Commit.Uuid, results: Seq[MetricsResult]): Future[Either[String, Unit]] = {
+  def sendRemoteMetrics(commitUuid: Commit.Uuid,
+                        results: Seq[MetricsResult]): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
         sendRemoteMetricsTo(
           s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/metricsRemoteResults",
           results)
-      case _: ProjectToken => sendRemoteMetricsTo(s"/commit/${commitUuid.value}/metricsRemoteResults", results)
+      case _: ProjectToken =>
+        sendRemoteMetricsTo(s"/commit/${commitUuid.value}/metricsRemoteResults", results)
     }
   }
 
-  def sendRemoteDuplication(commitUuid: Commit.Uuid, results: Seq[DuplicationResult]): Future[Either[String, Unit]] = {
+  def sendRemoteDuplication(commitUuid: Commit.Uuid,
+                            results: Seq[DuplicationResult]): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
         sendRemoteDuplicationTo(
@@ -75,7 +87,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
   def sendEndOfResults(commitUuid: Commit.Uuid): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
-        sendEndOfResultsTo(s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/resultsFinal")
+        sendEndOfResultsTo(
+          s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/resultsFinal")
       case _: ProjectToken => sendEndOfResultsTo(s"/commit/${commitUuid.value}/resultsFinal")
     }
   }
@@ -84,48 +97,58 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     getProjectConfigurationFrom("/project/analysis/configuration")
   }
 
-  private def getProjectConfiguration(username: UserName,
-                                      projectName: ProjectName): Either[String, ProjectConfiguration] = {
+  private def getProjectConfiguration(
+    username: UserName,
+    projectName: ProjectName): Either[String, ProjectConfiguration] = {
     getProjectConfigurationFrom(s"/project/$username/$projectName/analysis/configuration")
   }
 
-  private def sendRemoteMetricsTo(endpoint: String, metrics: Seq[MetricsResult]): Future[Either[String, Unit]] =
+  private def sendRemoteMetricsTo(endpoint: String,
+                                  metrics: Seq[MetricsResult]): Future[Either[String, Unit]] =
     Future {
       http.post(endpoint, Some(metrics.asJson)) match {
         case Left(error) =>
           logger.error(error)(s"Error posting data to endpoint $endpoint")
           Left(error.message)
         case Right(json) =>
-          logger.info(s"""Success posting batch of ${metrics.size} files metrics to endpoint "$endpoint" """)
+          logger.info(
+            s"""Success posting batch of ${metrics.size} files metrics to endpoint "$endpoint" """)
           validateRemoteResultsResponse(json)
       }
     }
 
-  private def sendRemoteDuplicationTo(endpoint: String,
-                                      duplication: Seq[DuplicationResult]): Future[Either[String, Unit]] =
+  private def sendRemoteDuplicationTo(
+    endpoint: String,
+    duplication: Seq[DuplicationResult]): Future[Either[String, Unit]] =
     Future {
       http.post(endpoint, Some(duplication.asJson)) match {
         case Left(error) =>
           logger.error(error)(s"Error posting data to endpoint $endpoint")
           Left(error.message)
         case Right(json) =>
-          logger.info(s"""Success posting batch of ${duplication.size} duplication clones to endpoint "$endpoint" """)
+          logger.info(
+            s"""Success posting batch of ${duplication.size} duplication clones to endpoint "$endpoint" """)
           validateRemoteResultsResponse(json)
       }
     }
 
-  private def sendRemoteResultsTo(endpoint: String,
-                                  tool: String,
-                                  results: Either[String, Set[FileResults]]): Future[Either[String, Unit]] =
+  private def sendRemoteResultsTo(
+    endpoint: String,
+    tool: String,
+    resultsEither: Either[String, Set[FileResults]]): Future[Either[String, Unit]] =
     Future {
-      http.post(
-        endpoint,
-        Some(Seq(ToolResults(tool, results.fold(IssuesAnalysis.Failure, IssuesAnalysis.Success))).asJson)) match {
+      http
+        .post(
+          endpoint,
+          Some(
+            Seq(ToolResults(
+              tool,
+              resultsEither.fold(IssuesAnalysis.Failure, IssuesAnalysis.Success))).asJson)) match {
         case Left(error) =>
           logger.error(error)(s"Error posting data to endpoint $endpoint")
           Left(error.message)
         case Right(json) =>
-          results.fold(
+          resultsEither.fold(
             error => logger.info(s"Success posting analysis error $error"),
             results =>
               logger.info(s"""Success posting batch of ${results.size} files with ${results
@@ -165,7 +188,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
-  private def validateRemoteResultsResponse(json: Json, isEnd: Boolean = false): Either[String, Unit] = {
+  private def validateRemoteResultsResponse(json: Json,
+                                            isEnd: Boolean = false): Either[String, Unit] = {
     val action = if (isEnd) "end of results" else "sending results"
     val message = s"Endpoint for $action replied with an error"
     parse[RemoteResultResponse](message, json).map { _ =>
@@ -174,7 +198,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     }
   }
 
-  private def parse[T](message: String, json: Json)(implicit decoder: Decoder[T]): Either[String, T] = {
+  private def parse[T](message: String, json: Json)(
+    implicit decoder: Decoder[T]): Either[String, T] = {
     json.as[T].leftMap { error =>
       json.as[CodacyError] match {
         case Right(codacyError) =>

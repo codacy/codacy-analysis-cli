@@ -52,12 +52,13 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
   private val defaultEnvironment = new Environment(Map.empty)
   private val httpHelper = new HttpHelper(Option(remoteUrl), Map.empty)
 
-  private val noRemoteConfigCodacyClient = new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {
+  private val noRemoteConfigCodacyClient =
+    new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {
 
-    override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
-      Left("no remote config")
+      override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
+        Left("no remote config")
+      }
     }
-  }
 
   "CLIConfiguration" should {
 
@@ -106,7 +107,11 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
           result = CLIConfiguration.Result(maxAllowedIssues = 5, failIfIncomplete = true))
 
         val actualConfiguration =
-          CLIConfiguration(Option(noRemoteConfigCodacyClient), defaultEnvironment, analyse, noLocalConfig)
+          CLIConfiguration(
+            Option(noRemoteConfigCodacyClient),
+            defaultEnvironment,
+            analyse,
+            noLocalConfig)
 
         actualConfiguration must beEqualTo(expectedConfiguration)
       }).get
@@ -147,7 +152,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
           fileExclusionRules = CLIConfiguration.FileExclusionRules(
             defaultIgnores = Option(defaultIgnores),
             ignoredPaths = ignoredPaths,
-            excludePaths = CLIConfiguration.FileExclusionRules.ExcludePaths(global = Set.empty, byTool = Map.empty),
+            excludePaths = CLIConfiguration.FileExclusionRules
+              .ExcludePaths(global = Set.empty, byTool = Map.empty),
             allowedExtensionsByLanguage = Map(Languages.Scala -> Set(".scala", ".alacs"))),
           toolConfiguration = CLIConfiguration.Tool(
             toolTimeout = Option.empty,
@@ -161,7 +167,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
                   CLIConfiguration.IssuesTool.Pattern(
                     id = pattern.internalId,
                     parameters = pattern.parameters.map(parameter =>
-                      CLIConfiguration.IssuesTool.Parameter(name = parameter.name, value = parameter.value))))))),
+                      CLIConfiguration.IssuesTool
+                        .Parameter(name = parameter.name, value = parameter.value))))))),
             extraToolConfigurations = Option.empty,
             extensionsByLanguage = Map.empty)),
         upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
@@ -189,8 +196,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
             CodacyConfigurationFile(
               engines = Option(Map("engine no. 9" -> engineConfig)),
               excludePaths = Option(globalExcludes),
-              languages =
-                Option(Map(Languages.Scala -> LanguageConfiguration(extensions = Option(Set(".scala", ".alacs")))))))
+              languages = Option(Map(Languages.Scala -> LanguageConfiguration(
+                extensions = Option(Set(".scala", ".alacs")))))))
         }
       }
 
@@ -204,22 +211,29 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
           fileExclusionRules = CLIConfiguration.FileExclusionRules(
             defaultIgnores = Option.empty,
             ignoredPaths = Set.empty,
-            excludePaths = CLIConfiguration.FileExclusionRules
-              .ExcludePaths(global = globalExcludes, byTool = Map("engine no. 9" -> engine9Excludes)),
+            excludePaths = CLIConfiguration.FileExclusionRules.ExcludePaths(
+              global = globalExcludes,
+              byTool = Map("engine no. 9" -> engine9Excludes)),
             allowedExtensionsByLanguage = Map(Languages.Scala -> Set(".scala", ".alacs"))),
           toolConfiguration = CLIConfiguration.Tool(
             toolTimeout = Option.empty,
             allowNetwork = false,
             toolConfigurations = Left("no remote config"),
             extraToolConfigurations = Option(
-              Map("engine no. 9" -> CLIConfiguration.IssuesTool
-                .Extra(baseSubDir = engineConfig.baseSubDir, extraValues = engineConfig.extraValues))),
+              Map(
+                "engine no. 9" -> CLIConfiguration.IssuesTool.Extra(
+                  baseSubDir = engineConfig.baseSubDir,
+                  extraValues = engineConfig.extraValues))),
             extensionsByLanguage = Map(Languages.Scala -> Set(".scala", ".alacs")))),
         upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
       val actualConfiguration =
-        CLIConfiguration(Option(noRemoteConfigCodacyClient), defaultEnvironment, defaultAnalyse, localConfig)
+        CLIConfiguration(
+          Option(noRemoteConfigCodacyClient),
+          defaultEnvironment,
+          defaultAnalyse,
+          localConfig)
       println(actualConfiguration)
       actualConfiguration must beEqualTo(expectedConfiguration)
 
@@ -239,7 +253,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
           fileExclusionRules = CLIConfiguration.FileExclusionRules(
             defaultIgnores = Option.empty,
             ignoredPaths = Set.empty,
-            excludePaths = CLIConfiguration.FileExclusionRules.ExcludePaths(global = Set.empty, byTool = Map.empty),
+            excludePaths = CLIConfiguration.FileExclusionRules
+              .ExcludePaths(global = Set.empty, byTool = Map.empty),
             allowedExtensionsByLanguage = Map.empty),
           toolConfiguration = CLIConfiguration.Tool(
             toolTimeout = Option.empty,
@@ -251,7 +266,11 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
       val actualConfiguration =
-        CLIConfiguration(Option(noRemoteConfigCodacyClient), environment, defaultAnalyse, noLocalConfig)
+        CLIConfiguration(
+          Option(noRemoteConfigCodacyClient),
+          environment,
+          defaultAnalyse,
+          noLocalConfig)
       actualConfiguration must beEqualTo(expectedConfiguration)
     }
 
@@ -270,7 +289,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
             CodacyConfigurationFile(
               engines = Option(Map("engine no. 9" -> engineConfig)),
               excludePaths = Option(globalExcludes),
-              languages = Option(Map(Languages.Scala -> LanguageConfiguration(extensions = Option(Set(".sc")))))))
+              languages = Option(
+                Map(Languages.Scala -> LanguageConfiguration(extensions = Option(Set(".sc")))))))
         }
       }
       val toolConfig = ToolConfiguration(
@@ -306,8 +326,9 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
             //although remote config has default ignores they should be discarded since there is a local config present
             defaultIgnores = Option.empty,
             ignoredPaths = ignoredPaths,
-            excludePaths = CLIConfiguration.FileExclusionRules
-              .ExcludePaths(global = globalExcludes, byTool = Map("engine no. 9" -> engine9Excludes)),
+            excludePaths = CLIConfiguration.FileExclusionRules.ExcludePaths(
+              global = globalExcludes,
+              byTool = Map("engine no. 9" -> engine9Excludes)),
             allowedExtensionsByLanguage = Map(Languages.Scala -> Set(".scala", ".alacs", ".sc"))),
           toolConfiguration = CLIConfiguration.Tool(
             toolTimeout = Option.empty,
@@ -321,15 +342,19 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
                   CLIConfiguration.IssuesTool.Pattern(
                     id = pattern.internalId,
                     parameters = pattern.parameters.map(parameter =>
-                      CLIConfiguration.IssuesTool.Parameter(name = parameter.name, value = parameter.value))))))),
+                      CLIConfiguration.IssuesTool
+                        .Parameter(name = parameter.name, value = parameter.value))))))),
             extraToolConfigurations = Option(
-              Map("engine no. 9" -> CLIConfiguration.IssuesTool
-                .Extra(baseSubDir = engineConfig.baseSubDir, extraValues = engineConfig.extraValues))),
+              Map(
+                "engine no. 9" -> CLIConfiguration.IssuesTool.Extra(
+                  baseSubDir = engineConfig.baseSubDir,
+                  extraValues = engineConfig.extraValues))),
             extensionsByLanguage = Map(Languages.Scala -> Set(".sc")))),
         upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
-      val actualConfiguration = CLIConfiguration(Option(codacyClient), defaultEnvironment, defaultAnalyse, localConfig)
+      val actualConfiguration =
+        CLIConfiguration(Option(codacyClient), defaultEnvironment, defaultAnalyse, localConfig)
       actualConfiguration must beEqualTo(expectedConfiguration)
     }
   }

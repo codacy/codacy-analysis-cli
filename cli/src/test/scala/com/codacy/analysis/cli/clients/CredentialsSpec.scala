@@ -8,7 +8,11 @@ import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-class CredentialsSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
+class CredentialsSpec
+    extends Specification
+    with NoLanguageFeatures
+    with Mockito
+    with FutureMatchers {
 
   private val environment = new Environment(Map.empty)
   private val apiTokenStr = "RandomApiToken"
@@ -46,7 +50,9 @@ class CredentialsSpec extends Specification with NoLanguageFeatures with Mockito
 
       "with Project Token" in {
 
-        val apiOptions = APIOptions(projectToken = Option(projectTokenStr), codacyApiBaseUrl = Option("codacy.com"))
+        val apiOptions = APIOptions(
+          projectToken = Option(projectTokenStr),
+          codacyApiBaseUrl = Option("codacy.com"))
         val credentials = Credentials.get(environment, apiOptions)
 
         credentials must beSome[Credentials]

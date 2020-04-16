@@ -74,14 +74,18 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
     s"Found [$levelColored$categoryColored] `$message` in $filename:$location ($patternColored)"
   }
 
-  private def prettyMessage(nrTokens: Int, nrLines: Int, files: Set[DuplicationCloneFile]): String = {
+  private def prettyMessage(nrTokens: Int,
+                            nrLines: Int,
+                            files: Set[DuplicationCloneFile]): String = {
     val coloredCloneFound = Console.CYAN + "Clone" + Console.RESET
     val duplicatedFilesMsg = files
       .groupBy(_.filePath)
       .map {
         case (filePath, cloneFiles) =>
           val lineNumbers =
-            cloneFiles.map(cloneFile => s"    l. ${cloneFile.startLine} - ${cloneFile.endLine}").mkString("\n")
+            cloneFiles
+              .map(cloneFile => s"    l. ${cloneFile.startLine} - ${cloneFile.endLine}")
+              .mkString("\n")
           s"  ${Console.BOLD}$filePath${Console.RESET}\n$lineNumbers"
       }
       .mkString("\n")

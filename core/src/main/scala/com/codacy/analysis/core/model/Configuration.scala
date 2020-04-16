@@ -13,9 +13,11 @@ final case class Pattern(id: String, parameters: Set[Parameter])
 
 final case class CodacyCfg(patterns: Set[Pattern],
                            baseSubDir: Option[String] = Option.empty[String],
-                           extraValues: Option[Map[String, JsValue]] = Option.empty[Map[String, JsValue]])
+                           extraValues: Option[Map[String, JsValue]] =
+                             Option.empty[Map[String, JsValue]])
     extends Configuration
 
 final case class FileCfg(baseSubDir: Option[String] = Option.empty[String],
-                         extraValues: Option[Map[String, JsValue]] = Option.empty[Map[String, JsValue]])
+                         extraValues: Option[Map[String, JsValue]] =
+                           Option.empty[Map[String, JsValue]])
     extends Configuration

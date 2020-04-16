@@ -12,19 +12,17 @@ object Git {
   private val logger: Logger = getLogger
 
   def repository(directory: File): Try[Repository] = {
-    Try {
-      (directory / ".git").toJava
-    }.filter { gitDir =>
-      new FileRepository(gitDir.getPath).getObjectDatabase.exists()
-    }.flatMap { gitDir =>
-      Try {
-        val builder = new FileRepositoryBuilder
+    Try((directory / ".git").toJava)
+      .filter(d => new FileRepository(d.getPath).getObjectDatabase.exists())
+      .flatMap { gitDir =>
+        Try {
+          val builder = new FileRepositoryBuilder
 
-        val repository = builder.setGitDir(gitDir).readEnvironment.findGitDir.build
+          val repository = builder.setGitDir(gitDir).readEnvironment.findGitDir.build
 
-        new Repository(repository)
+          new Repository(repository)
+        }
       }
-    }
   }
 
   def currentCommitUuid(directory: File): Option[Commit.Uuid] = {

@@ -20,7 +20,8 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
     "find python tools" in {
 
       val toolConfiguration =
-        CLIConfiguration.Tool(Option.empty, allowNetwork = false, Left("no config"), Option.empty, Map.empty)
+        CLIConfiguration
+          .Tool(Option.empty, allowNetwork = false, Left("no config"), Option.empty, Map.empty)
       val pythonTools = AnalyseExecutor.allTools(None, toolConfiguration, Set(Languages.Ruby))
 
       pythonTools should beRight
@@ -38,9 +39,12 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
       val expectedToolName = "pylint"
       val toolConfigs =
-        Set(CLIConfiguration.IssuesTool("InvalidToolName", enabled = true, notEdited = false, Set.empty))
+        Set(
+          CLIConfiguration
+            .IssuesTool("InvalidToolName", enabled = true, notEdited = false, Set.empty))
       val toolConfiguration =
-        CLIConfiguration.Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
+        CLIConfiguration
+          .Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
       val userInput = Some(expectedToolName)
 
       val toolEither =
@@ -60,10 +64,14 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val userInput = Some(expectedToolName)
       val toolConfigs =
         Set(
-          CLIConfiguration
-            .IssuesTool("34225275-f79e-4b85-8126-c7512c987c0d", enabled = true, notEdited = false, Set.empty))
+          CLIConfiguration.IssuesTool(
+            "34225275-f79e-4b85-8126-c7512c987c0d",
+            enabled = true,
+            notEdited = false,
+            Set.empty))
       val toolConfiguration =
-        CLIConfiguration.Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
+        CLIConfiguration
+          .Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(emptyFilesTarget, Map.empty)
 
       val toolEither =
@@ -79,12 +87,17 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val userInput = None
       val toolConfigs =
         Set(
-          CLIConfiguration.IssuesTool(expectedToolUuid1, enabled = true, notEdited = false, Set.empty),
-          CLIConfiguration.IssuesTool(expectedToolUuid2, enabled = true, notEdited = false, Set.empty),
-          CLIConfiguration.IssuesTool("someRandomTool", enabled = false, notEdited = false, Set.empty),
-          CLIConfiguration.IssuesTool("anotherRandomTool", enabled = false, notEdited = false, Set.empty))
+          CLIConfiguration
+            .IssuesTool(expectedToolUuid1, enabled = true, notEdited = false, Set.empty),
+          CLIConfiguration
+            .IssuesTool(expectedToolUuid2, enabled = true, notEdited = false, Set.empty),
+          CLIConfiguration
+            .IssuesTool("someRandomTool", enabled = false, notEdited = false, Set.empty),
+          CLIConfiguration
+            .IssuesTool("anotherRandomTool", enabled = false, notEdited = false, Set.empty))
       val toolConfiguration =
-        CLIConfiguration.Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
+        CLIConfiguration
+          .Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
 
       val toolEither =
         AnalyseExecutor.tools(userInput, toolConfiguration, Set(Javascript, Python))
@@ -92,7 +105,9 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       toolEither must beLike {
         case Right(toolSet) =>
           toolSet.size mustEqual 2
-          toolSet.collect { case tool: Tool => tool.uuid } mustEqual Set(expectedToolUuid1, expectedToolUuid2)
+          toolSet.collect { case tool: Tool => tool.uuid } mustEqual Set(
+            expectedToolUuid1,
+            expectedToolUuid2)
       }
     }
 
@@ -101,7 +116,8 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val toolConfigs = Left("some error")
       val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rb").path), Set.empty)
       val toolConfiguration =
-        CLIConfiguration.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
+        CLIConfiguration
+          .Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
       val toolEither = AnalyseExecutor.tools(userInput, toolConfiguration, languages)
@@ -118,14 +134,21 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rawr").path), Set.empty)
       val languageExtensions: Map[Language, Set[String]] = Map(Languages.Java -> Set("rawr"))
       val toolConfiguration =
-        CLIConfiguration.Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, languageExtensions)
+        CLIConfiguration
+          .Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, languageExtensions)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, languageExtensions)
 
       val toolEither = AnalyseExecutor.tools(userInput, toolConfiguration, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
-          toolSet.map(_.name) mustEqual Set("spotbugs", "checkstyle", "findbugs", "findbugssec", "pmd", "pmd-legacy")
+          toolSet.map(_.name) mustEqual Set(
+            "spotbugs",
+            "checkstyle",
+            "findbugs",
+            "findbugssec",
+            "pmd",
+            "pmd-legacy")
       }
     }
 
@@ -135,7 +158,8 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val toolConfigs = Left("some error")
       val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path), Set.empty)
       val toolConfiguration =
-        CLIConfiguration.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
+        CLIConfiguration
+          .Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
       val toolEither =
@@ -146,9 +170,11 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
     "list tools that need access to the network if this argument is provided" in {
       val toolConfigs = Left("some error")
-      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
+      val filesTarget =
+        FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
       val toolConfiguration =
-        CLIConfiguration.Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, Map.empty)
+        CLIConfiguration
+          .Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
       val toolEither =
@@ -163,9 +189,11 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
     "not list tools that need access to the network if this argument is not provided" in {
       val toolConfigs = Left("some error")
-      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
+      val filesTarget =
+        FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
       val toolConfiguration =
-        CLIConfiguration.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
+        CLIConfiguration
+          .Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
       val toolEither =

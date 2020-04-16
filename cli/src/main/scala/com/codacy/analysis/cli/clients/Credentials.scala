@@ -12,7 +12,9 @@ object Credentials {
 
   def get(environment: Environment, options: APIOptions): Option[Credentials] = {
     val apiURL =
-      environment.apiBaseUrlArgument(options.codacyApiBaseUrl).orElse(environment.apiBaseUrlEnvironmentVariable())
+      environment
+        .apiBaseUrlArgument(options.codacyApiBaseUrl)
+        .orElse(environment.apiBaseUrlEnvironmentVariable())
 
     environment
       .projectTokenArgument(options.projectToken)
@@ -33,10 +35,11 @@ object Credentials {
       .ifEmpty(logger.warn("Could not retrieve credentials"))
   }
 
-  private def getCredentialsWithAdditionalParams(apiToken: String,
-                                                 apiUrlOpt: Option[String],
-                                                 projectOpt: Option[ProjectName],
-                                                 userNameOpt: Option[UserName]): Option[Credentials] = {
+  private def getCredentialsWithAdditionalParams(
+    apiToken: String,
+    apiUrlOpt: Option[String],
+    projectOpt: Option[ProjectName],
+    userNameOpt: Option[UserName]): Option[Credentials] = {
     (for {
       project <- projectOpt
       userName <- userNameOpt

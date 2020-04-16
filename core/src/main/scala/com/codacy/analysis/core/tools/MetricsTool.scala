@@ -17,7 +17,8 @@ import org.log4s.getLogger
 import scala.concurrent.duration.Duration
 import scala.util.Try
 
-class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun: Language) extends ITool {
+class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun: Language)
+    extends ITool {
   override def name: String = "metrics"
 
   override def supportedLanguages: Set[Language] = metricsTool.languages.to[Set]
@@ -32,7 +33,8 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
 
     val configuration = CodacyConfiguration(files, Some(languageToRun), None)
 
-    val toolFileMetrics = runner.run(request, configuration, timeout.getOrElse(DockerRunner.defaultRunTimeout), None)
+    val toolFileMetrics =
+      runner.run(request, configuration, timeout.getOrElse(DockerRunner.defaultRunTimeout), None)
 
     toolFileMetrics.map {
       _.collect {

@@ -16,8 +16,9 @@ class MainImpl(analyseCommand: Analyse => AnalyseCommand = AnalyseCommand(_, sys
 
   def runCommand(command: CommandOptions): ExitStatus.ExitCode = {
     command match {
-      case analyse: Analyse                             => analyseCommand(analyse).run()
-      case validateConfiguration: ValidateConfiguration => validateConfigurationCommand(validateConfiguration).run()
+      case analyse: Analyse => analyseCommand(analyse).run()
+      case validateConfiguration: ValidateConfiguration =>
+        validateConfigurationCommand(validateConfiguration).run()
     }
   }
 

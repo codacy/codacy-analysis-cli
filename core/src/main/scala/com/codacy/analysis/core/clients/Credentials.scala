@@ -4,7 +4,8 @@ sealed trait Credentials {
   val baseUrl: Option[String]
 }
 
-final case class ProjectToken(token: String, baseUrl: Option[String] = Option.empty[String]) extends Credentials
+final case class ProjectToken(token: String, baseUrl: Option[String] = Option.empty[String])
+    extends Credentials
 
 final case class APIToken(token: String,
                           baseUrl: Option[String] = Option.empty[String],

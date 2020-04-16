@@ -39,7 +39,8 @@ abstract class CommandAppWithBaseCommand[D, T](implicit
   }
 
   def commandHelpAsked(command: String): Unit = {
-    println(commandsMessages.messagesMap(command).helpMessage(beforeCommandMessages.progName, command))
+    println(
+      commandsMessages.messagesMap(command).helpMessage(beforeCommandMessages.progName, command))
     exit(ExitCodes.success)
   }
 
@@ -51,7 +52,8 @@ abstract class CommandAppWithBaseCommand[D, T](implicit
   }
 
   def commandUsageAsked(command: String): Unit = {
-    println(commandsMessages.messagesMap(command).usageMessage(beforeCommandMessages.progName, command))
+    println(
+      commandsMessages.messagesMap(command).usageMessage(beforeCommandMessages.progName, command))
     exit(ExitCodes.success)
   }
 
@@ -60,7 +62,8 @@ abstract class CommandAppWithBaseCommand[D, T](implicit
   def progName: String = Messages[D].progName
 
   def parse(args: Array[String])
-    : Either[String, (D, Seq[String], Option[Either[String, (String, T, Seq[String], Seq[String])]])] = {
+    : Either[String,
+             (D, Seq[String], Option[Either[String, (String, T, Seq[String], Seq[String])]])] = {
     commandParser.detailedParse(args)
   }
 

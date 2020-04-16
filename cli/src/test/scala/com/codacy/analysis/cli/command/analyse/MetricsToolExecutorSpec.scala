@@ -99,9 +99,17 @@ class MetricsToolExecutorSpec extends Specification {
       val testJsPath = Paths.get("test.js")
       val failedJsMetricsToolExecRes =
         MetricsToolExecutorResult(Javascript.name, Set(test1JsPath, testJsPath), Failure(throwable))
-      val test1JsFileMetrics = FileMetrics(test1JsPath, Some(13), None, None, None, None, Set(LineComplexity(37, 1)))
+      val test1JsFileMetrics =
+        FileMetrics(test1JsPath, Some(13), None, None, None, None, Set(LineComplexity(37, 1)))
       val testJsFileMetrics =
-        FileMetrics(testJsPath, Some(33), None, None, None, None, Set(LineComplexity(697, 2), LineComplexity(605, 3)))
+        FileMetrics(
+          testJsPath,
+          Some(33),
+          None,
+          None,
+          None,
+          None,
+          Set(LineComplexity(697, 2), LineComplexity(605, 3)))
       val jsResults = List(
         MetricsToolExecutorResult(
           Javascript.name,
@@ -111,15 +119,24 @@ class MetricsToolExecutorSpec extends Specification {
 
       val testPyPath = Paths.get("test.py")
       val testPyFileMetrics = FileMetrics(testPyPath, None, None, None, Some(0), None, Set())
-      val failedPyMetricsToolExecRes = MetricsToolExecutorResult(Python.name, Set(testPyPath), Failure(throwable))
+      val failedPyMetricsToolExecRes =
+        MetricsToolExecutorResult(Python.name, Set(testPyPath), Failure(throwable))
       val pythonResults = List(
         MetricsToolExecutorResult(Python.name, Set(testPyPath), Success(Set(testPyFileMetrics))),
         failedPyMetricsToolExecRes)
 
       val testRbPath = Paths.get("test.rb")
-      val failedRbMetricsToolExecRes = MetricsToolExecutorResult(Ruby.name, Set(testRbPath), Failure(throwable))
+      val failedRbMetricsToolExecRes =
+        MetricsToolExecutorResult(Ruby.name, Set(testRbPath), Failure(throwable))
       val testRbFileMetrics =
-        FileMetrics(testRbPath, Some(48), None, None, None, None, Set(LineComplexity(97, 4), LineComplexity(82, 2)))
+        FileMetrics(
+          testRbPath,
+          Some(48),
+          None,
+          None,
+          None,
+          None,
+          Set(LineComplexity(97, 4), LineComplexity(82, 2)))
       val rubyResults = List(
         MetricsToolExecutorResult(Ruby.name, Set(testRbPath), Success(Set(testRbFileMetrics))),
         failedRbMetricsToolExecRes)
@@ -148,15 +165,24 @@ class MetricsToolExecutorSpec extends Specification {
         MetricsToolExecutorResult(
           Javascript.name,
           Set(test1JsPath, testJsPath),
-          Success(Set(test1JsFileMetrics.copy(loc = Some(43)), testJsFileMetrics.copy(loc = Some(1355))))),
+          Success(
+            Set(
+              test1JsFileMetrics.copy(loc = Some(43)),
+              testJsFileMetrics.copy(loc = Some(1355))))),
         failedJsMetricsToolExecRes)
 
       val expectedPyResults = List(
-        MetricsToolExecutorResult(Python.name, Set(testPyPath), Success(Set(testPyFileMetrics.copy(loc = Some(73))))),
+        MetricsToolExecutorResult(
+          Python.name,
+          Set(testPyPath),
+          Success(Set(testPyFileMetrics.copy(loc = Some(73))))),
         failedPyMetricsToolExecRes)
 
       val expectedRbResults = List(
-        MetricsToolExecutorResult(Ruby.name, Set(testRbPath), Success(Set(testRbFileMetrics.copy(loc = Some(742))))),
+        MetricsToolExecutorResult(
+          Ruby.name,
+          Set(testRbPath),
+          Success(Set(testRbFileMetrics.copy(loc = Some(742))))),
         failedRbMetricsToolExecRes)
 
       val expectedGoResults = List(
@@ -177,14 +203,23 @@ class MetricsToolExecutorSpec extends Specification {
       val fileName = "test.go"
       val filePath = Paths.get(fileName)
       val goCycloFileMetrics =
-        FileMetrics(filePath, Some(2), None, None, Some(2), None, Set(LineComplexity(18, 2), LineComplexity(24, 1)))
+        FileMetrics(
+          filePath,
+          Some(2),
+          None,
+          None,
+          Some(2),
+          None,
+          Set(LineComplexity(18, 2), LineComplexity(24, 1)))
 
       //When
       val resultsWithMissingMetrics = MetricsToolExecutor.calculateMissingFileMetrics(
         File("cli/src/test/resources/com/codacy/analysis/cli/samples"),
         Seq(
-          AnalyseExecutor
-            .MetricsToolExecutorResult(Languages.Go.name, Set(filePath), Success(Set(goCycloFileMetrics)))))
+          AnalyseExecutor.MetricsToolExecutorResult(
+            Languages.Go.name,
+            Set(filePath),
+            Success(Set(goCycloFileMetrics)))))
 
       //Then
       resultsWithMissingMetrics must containTheSameElementsAs(

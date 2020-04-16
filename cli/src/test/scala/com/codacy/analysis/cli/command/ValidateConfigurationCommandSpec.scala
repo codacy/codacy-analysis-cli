@@ -6,7 +6,10 @@ import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.FileMatchers
 import org.specs2.mutable.Specification
 
-class ValidateConfigurationCommandSpec extends Specification with NoLanguageFeatures with FileMatchers {
+class ValidateConfigurationCommandSpec
+    extends Specification
+    with NoLanguageFeatures
+    with FileMatchers {
 
   "ValidateConfigurationExecutor" should {
     "find configuration file" in {
@@ -16,7 +19,8 @@ class ValidateConfigurationCommandSpec extends Specification with NoLanguageFeat
           val resource = Resource.getAsString("com/codacy/analysis/core/configuration/codacy.yaml")
           (directory / ".codacy.yaml").write(resource)
 
-          val command = ValidateConfigurationCommand(ValidateConfiguration(CommonOptions(), Option(directory)))
+          val command =
+            ValidateConfigurationCommand(ValidateConfiguration(CommonOptions(), Option(directory)))
 
           command.run() mustEqual ExitCodes.success
         }
@@ -27,7 +31,8 @@ class ValidateConfigurationCommandSpec extends Specification with NoLanguageFeat
       File
         .temporaryDirectory()
         .map { directory =>
-          val command = ValidateConfigurationCommand(ValidateConfiguration(CommonOptions(), Option(directory)))
+          val command =
+            ValidateConfigurationCommand(ValidateConfiguration(CommonOptions(), Option(directory)))
 
           command.run() mustEqual ExitCodes.invalidConfigurationFile
         }

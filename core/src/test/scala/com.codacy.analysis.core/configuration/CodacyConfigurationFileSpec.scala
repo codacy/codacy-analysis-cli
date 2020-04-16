@@ -16,7 +16,10 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
       val expected = CodacyConfigurationFile(
         Option(
           Map(
-            "rubocop" -> EngineConfiguration(Some(Set(Glob("config/engines.yml"))), Some("test/baseDir"), None),
+            "rubocop" -> EngineConfiguration(
+              Some(Set(Glob("config/engines.yml"))),
+              Some("test/baseDir"),
+              None),
             "duplication" -> EngineConfiguration(
               Some(Set(Glob("config/engines.yml"))),
               None,
@@ -47,7 +50,10 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
       val expected = CodacyConfigurationFile(
         Option(
           Map(
-            "rubocop" -> EngineConfiguration(Some(Set(Glob("config/engines.yml"))), Some("test/baseDir"), None),
+            "rubocop" -> EngineConfiguration(
+              Some(Set(Glob("config/engines.yml"))),
+              Some("test/baseDir"),
+              None),
             "duplication" -> EngineConfiguration(
               Some(Set(Glob("config/engines.yml"))),
               None,
@@ -57,7 +63,8 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
         Option(Set(Glob(".bundle/"), Glob("spec/**/*"), Glob("benchmarks/**/*"))),
         Some(Map((Languages.CSS, LanguageConfiguration(Some(Set("-css.resource")))))))
 
-      val resource = Resource.getAsString("com/codacy/analysis/core/configuration/codacy-langs.yaml")
+      val resource =
+        Resource.getAsString("com/codacy/analysis/core/configuration/codacy-langs.yaml")
       val codacyConfigurationFile = codacyConfigurationFileLoader.parse(resource)
 
       codacyConfigurationFile must beEqualTo(Right(expected))

@@ -17,11 +17,11 @@ trait FileCollectorCompanion[T[_]] {
   def apply(): FileCollector[T]
 }
 
-case class FileExclusionRules(defaultIgnores: Option[Set[PathRegex]],
-                              ignoredPaths: Set[FilePath],
-                              excludePaths: ExcludePaths,
-                              allowedExtensionsByLanguage: Map[Language, Set[String]])
-case class ExcludePaths(global: Set[Glob], byTool: Map[String, Set[Glob]])
+final case class FileExclusionRules(defaultIgnores: Option[Set[PathRegex]],
+                                    ignoredPaths: Set[FilePath],
+                                    excludePaths: ExcludePaths,
+                                    allowedExtensionsByLanguage: Map[Language, Set[String]])
+final case class ExcludePaths(global: Set[Glob], byTool: Map[String, Set[Glob]])
 
 trait FileCollector[T[_]] {
 
@@ -32,7 +32,8 @@ trait FileCollector[T[_]] {
   def filterGlobal(target: FilesTarget, exclusionRules: FileExclusionRules): FilesTarget = {
 
     val autoIgnoresFilter: Set[Path] => Set[Path] =
-      exclusionRules.defaultIgnores.fold(identity[Set[Path]] _)(autoIgnores => filterByExpression(_, autoIgnores))
+      exclusionRules.defaultIgnores.fold(identity[Set[Path]] _)(autoIgnores =>
+        filterByExpression(_, autoIgnores))
 
     val filters: Set[Set[Path] => Set[Path]] =
       Set(
@@ -49,7 +50,9 @@ trait FileCollector[T[_]] {
     filesTarget.readableFiles.exists(f => tool.configFilenames.exists(cf => f.endsWith(cf)))
   }
 
-  def filterTool(tool: ITool, target: FilesTarget, exclusionRules: FileExclusionRules): FilesTarget = {
+  def filterTool(tool: ITool,
+                 target: FilesTarget,
+                 exclusionRules: FileExclusionRules): FilesTarget = {
 
     val filters =
       Set[Set[Path] => Set[Path]](
@@ -83,19 +86,23 @@ trait FileCollector[T[_]] {
     }
   }
 
-  private def filterByLanguage(language: Language, extensionsByLanguage: Map[Language, Set[String]])(
-    files: Set[Path]): Set[Path] = {
+  private def filterByLanguage(
+    language: Language,
+    extensionsByLanguage: Map[Language, Set[String]])(files: Set[Path]): Set[Path] = {
     Languages.filter(files.map(_.toString), Set(language), extensionsByLanguage).map(Paths.get(_))
   }
 
   protected def checkPermissions(directory: File, files: Set[Path]): CheckedFiles = {
-    files.map(path => (path, directory / path.toString)).foldLeft(CheckedFiles(Set.empty[Path], Set.empty[Path])) {
-      case (checkedFiles, (path, file)) if file.isRegularFile && file.testPermission(PosixFilePermission.OTHERS_READ) =>
-        checkedFiles.copy(readableFiles = checkedFiles.readableFiles + path)
-      case (checkedFiles, (path, file)) =>
-        logger.error(s"Could not read file $file, make sure it is readable by everybody.")
-        checkedFiles.copy(unreadableFiles = checkedFiles.unreadableFiles + path)
-    }
+    files
+      .map(path => (path, directory / path.toString))
+      .foldLeft(CheckedFiles(Set.empty[Path], Set.empty[Path])) {
+        case (checkedFiles, (path, file))
+            if file.isRegularFile && file.testPermission(PosixFilePermission.OTHERS_READ) =>
+          checkedFiles.copy(readableFiles = checkedFiles.readableFiles + path)
+        case (checkedFiles, (path, file)) =>
+          logger.error(s"Could not read file $file, make sure it is readable by everybody.")
+          checkedFiles.copy(unreadableFiles = checkedFiles.unreadableFiles + path)
+      }
   }
 }
 
@@ -106,11 +113,13 @@ object FileCollector {
   val defaultCollector: FileCollectorCompanion[Try] = new FallbackFileCollectorCompanion(
     List(GitFileCollector, FileSystemFileCollector))
 
-  val allCollectors: Set[FileCollectorCompanion[Try]] = Set(GitFileCollector, FileSystemFileCollector)
+  val allCollectors: Set[FileCollectorCompanion[Try]] =
+    Set(GitFileCollector, FileSystemFileCollector)
 
   def apply(name: String): FileCollector[Try] = {
     val builder = allCollectors.find(_.name.equalsIgnoreCase(name)).getOrElse {
-      logger.warn(s"Could not find file collector for name $name. Using ${defaultCollector.name} as fallback.")
+      logger.warn(
+        s"Could not find file collector for name $name. Using ${defaultCollector.name} as fallback.")
       defaultCollector
     }
 

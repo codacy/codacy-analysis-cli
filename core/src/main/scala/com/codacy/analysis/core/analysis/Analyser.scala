@@ -45,7 +45,8 @@ object Analyser {
 
   def apply(name: String): Analyser[Try] = {
     val builder = allAnalysers.find(_.name.equalsIgnoreCase(name)).getOrElse {
-      logger.warn(s"Could not find analyser for name $name. Using ${defaultAnalyser.name} as fallback.")
+      logger.warn(
+        s"Could not find analyser for name $name. Using ${defaultAnalyser.name} as fallback.")
       defaultAnalyser
     }
 
@@ -66,8 +67,11 @@ object Analyser {
       override val message: String = s"The tool $toolName needs network access to execute."
     }
 
-    final case class NonExistingToolInput(toolName: String, availableTools: Set[String]) extends Error {
-      override val message: String = s"""The selected tool "$toolName" is not supported or does not exist.
+    final case class NonExistingToolInput(toolName: String, availableTools: Set[String])
+        extends Error {
+
+      override val message: String =
+        s"""The selected tool "$toolName" is not supported or does not exist.
                                         |The tool should be one of (${availableTools.mkString(", ")})""".stripMargin
     }
 

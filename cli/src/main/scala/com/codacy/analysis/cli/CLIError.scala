@@ -30,7 +30,9 @@ object CLIError {
   }
 
   final case class NonExistingToolInput(toolName: String) extends CLIError {
-    override val message: String = s"""The selected tool "$toolName" is not supported or does not exist.
+
+    override val message: String =
+      s"""The selected tool "$toolName" is not supported or does not exist.
                                       |Use the --help option to get more information about available tools""".stripMargin
   }
 
@@ -92,7 +94,8 @@ object CLIError {
     override val message: String = s"Missing upload requisites: $reason"
   }
 
-  final case class CommitUuidsDoNotMatch(paramCommit: Commit.Uuid, gitCommit: Commit.Uuid) extends CLIError {
+  final case class CommitUuidsDoNotMatch(paramCommit: Commit.Uuid, gitCommit: Commit.Uuid)
+      extends CLIError {
     override val message: String = s"""The commit uuid provided by parameter (${paramCommit.value})
       | does not match the one from your current git branch (${gitCommit.value}""".stripMargin
   }

@@ -40,7 +40,8 @@ object Formatter {
             printStream: Option[PrintStream] = Option.empty): Formatter = {
 
     val builder = allFormatters.find(_.name.equalsIgnoreCase(name)).getOrElse {
-      logger.warn(s"Could not find formatter for name $name. Using ${defaultFormatter.name} as fallback.")
+      logger.warn(
+        s"Could not find formatter for name $name. Using ${defaultFormatter.name} as fallback.")
       defaultFormatter
     }
 

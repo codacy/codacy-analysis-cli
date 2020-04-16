@@ -10,7 +10,7 @@ import com.codacy.analysis.cli.analysis.AnalyseExecutor.{
 
 object ExitStatus {
 
-  case class ExitCode(value: Int) extends AnyVal
+  final case class ExitCode(value: Int) extends AnyVal
 
   object ExitCodes {
     val success: ExitCode = ExitCode(0)

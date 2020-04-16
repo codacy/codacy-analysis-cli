@@ -12,11 +12,15 @@ class LanguagesHelperSpec extends Specification with NoLanguageFeatures {
     "detect the languages from a given set of files" in {
 
       val filesTarget =
-        FilesTarget(File(""), Set(File("test.js").path, File("Test.java").path, File("SomeClazz.rb").path), Set.empty)
+        FilesTarget(
+          File(""),
+          Set(File("test.js").path, File("Test.java").path, File("SomeClazz.rb").path),
+          Set.empty)
 
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
-      languages should containTheSameElementsAs(Seq(Languages.Java, Languages.Ruby, Languages.Javascript))
+      languages should containTheSameElementsAs(
+        Seq(Languages.Java, Languages.Ruby, Languages.Javascript))
     }
 
     "detect the languages from a given set of files, considering custom extensions for some of them" in {
@@ -35,14 +39,17 @@ class LanguagesHelperSpec extends Specification with NoLanguageFeatures {
           Languages.Ruby -> Set("-rb.resource", "-1.java-that_will_be_ruby"),
           Languages.Kotlin -> Set(".js-that_will_be_kotlin")))
 
-      languages should containTheSameElementsAs(Seq(Languages.Kotlin, Languages.Ruby, Languages.CSS))
+      languages should containTheSameElementsAs(
+        Seq(Languages.Kotlin, Languages.Ruby, Languages.CSS))
     }
 
     "return an empty set of languages for extensions that do not match any language" in {
       val filesTarget =
         FilesTarget(
           File(""),
-          Set(File("test.exotericLanguage").path, File("test-rb.anotherLanguageThatNoOneUses").path),
+          Set(
+            File("test.exotericLanguage").path,
+            File("test-rb.anotherLanguageThatNoOneUses").path),
           Set.empty)
 
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)

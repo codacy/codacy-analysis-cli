@@ -16,7 +16,8 @@ object Dependencies {
 
   lazy val jodaTime = "joda-time" % "joda-time" % "2.10.5"
 
-  lazy val log4s = Seq("ch.qos.logback" % "logback-classic" % "1.2.3", "org.log4s" %% "log4s" % "1.8.2")
+  lazy val log4s =
+    Seq("ch.qos.logback" % "logback-classic" % "1.2.3", "org.log4s" %% "log4s" % "1.8.2")
 
   lazy val specs2 =
     Seq(
@@ -27,7 +28,8 @@ object Dependencies {
   lazy val caseApp = "com.github.alexarchambault" %% "case-app" % "1.2.0"
 
   val codacyPlugins =
-    Seq("com.codacy" %% "codacy-plugins", "com.codacy" %% "codacy-plugins-runner-binary").map(_ % codacyPluginsVersion)
+    Seq("com.codacy" %% "codacy-plugins", "com.codacy" %% "codacy-plugins-runner-binary")
+      .map(_ % codacyPluginsVersion)
 
   lazy val pluginsApi = "com.codacy" %% "codacy-plugins-api" % "4.0.2"
 

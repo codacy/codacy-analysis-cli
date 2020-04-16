@@ -15,11 +15,14 @@ object TestUtils {
 
   implicit val categoryDecoder: Decoder[results.Pattern.Category.Value] =
     Decoder.decodeEnumeration(results.Pattern.Category)
-  implicit val levelDecoder: Decoder[results.Result.Level.Value] = Decoder.decodeEnumeration(results.Result.Level)
+
+  implicit val levelDecoder: Decoder[results.Result.Level.Value] =
+    Decoder.decodeEnumeration(results.Result.Level)
   implicit val fileDecoder: Decoder[Path] = Decoder[String].map(Paths.get(_))
   implicit val executionEnv: ExecutionEnv = ExecutionEnv.fromGlobalExecutionContext
 
-  def withClonedRepo[T](gitUrl: String, commitUUid: String)(block: (File, File) => MatchResult[T]): MatchResult[T] =
+  def withClonedRepo[T](gitUrl: String, commitUUid: String)(
+    block: (File, File) => MatchResult[T]): MatchResult[T] =
     (for {
       directory <- File.temporaryDirectory()
       file <- File.temporaryFile()
@@ -41,7 +44,9 @@ object TestUtils {
       temporaryDirectory <- File.temporaryDirectory()
     } yield {
       Process(Seq("git", "init"), temporaryDirectory.toJava).!
-      Process(Seq("git", "commit", "--allow-empty", "-m", "initial commit"), temporaryDirectory.toJava).!
+      Process(
+        Seq("git", "commit", "--allow-empty", "-m", "initial commit"),
+        temporaryDirectory.toJava).!
       fn(temporaryDirectory)
     }).get
 

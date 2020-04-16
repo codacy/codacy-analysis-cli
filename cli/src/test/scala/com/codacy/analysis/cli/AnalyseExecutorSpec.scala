@@ -19,7 +19,11 @@ import org.specs2.mutable.Specification
 import scala.concurrent.duration._
 import scala.util.Try
 
-class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
+class AnalyseExecutorSpec
+    extends Specification
+    with NoLanguageFeatures
+    with Mockito
+    with FutureMatchers {
 
   "AnalyseExecutor" should {
 
@@ -72,44 +76,46 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       }
     }
 
-    val esLintPatternsInternalIds = Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
+    val esLintPatternsInternalIds =
+      Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
 
     s"""|analyse a javascript project with eslint, using a remote project configuration retrieved with an api token
         | that considers just patterns ${esLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
-      withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
-        val toolPatterns = esLintPatternsInternalIds.map { patternId =>
-          CLIConfiguration.IssuesTool.Pattern(patternId, Set.empty)
-        }
-        val configuration = analysisConfiguration(
-          directory,
-          file,
-          Option("eslint"),
-          Set(
-            CLIConfiguration.IssuesTool(
-              uuid = "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
-              enabled = true,
-              notEdited = false,
-              toolPatterns)),
-          Set.empty)
+      withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) {
+        (file, directory) =>
+          val toolPatterns = esLintPatternsInternalIds.map { patternId =>
+            CLIConfiguration.IssuesTool.Pattern(patternId, Set.empty)
+          }
+          val configuration = analysisConfiguration(
+            directory,
+            file,
+            Option("eslint"),
+            Set(
+              CLIConfiguration.IssuesTool(
+                uuid = "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
+                enabled = true,
+                notEdited = false,
+                toolPatterns)),
+            Set.empty)
 
-        runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
+          runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
 
-        val result = for {
-          responseJson <- parser.parse(file.contentAsString)
-          response <- responseJson.as[Set[Result]]
-        } yield response
+          val result = for {
+            responseJson <- parser.parse(file.contentAsString)
+            response <- responseJson.as[Set[Result]]
+          } yield response
 
-        result must beRight
-        result must beLike {
-          case Right(response: Set[Result]) =>
-            response.size must beGreaterThan(0)
+          result must beRight
+          result must beLike {
+            case Right(response: Set[Result]) =>
+              response.size must beGreaterThan(0)
 
-            response.forall {
-              case i: Issue => esLintPatternsInternalIds.contains(i.patternId.value)
-              case _        => true
-            } must beTrue
-        }
+              response.forall {
+                case i: Issue => esLintPatternsInternalIds.contains(i.patternId.value)
+                case _        => true
+              } must beTrue
+          }
       }
     }
 
@@ -117,44 +123,45 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
     "analyse a javascript and css project" in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
-      withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
-        val configuration = analysisConfiguration(
-          directory,
-          file,
-          Option.empty,
-          Set(
-            CLIConfiguration.IssuesTool(
-              uuid = "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
-              enabled = true,
-              notEdited = false,
-              patterns = esLintPatternsInternalIds.map { patternId =>
-                CLIConfiguration.IssuesTool.Pattern(patternId, Set.empty)
-              }),
-            CLIConfiguration.IssuesTool(
-              uuid = "997201eb-0907-4823-87c0-a8f7703531e7",
-              enabled = true,
-              notEdited = true,
-              patterns = cssLintPatternsInternalIds.map { patternId =>
-                CLIConfiguration.IssuesTool.Pattern(patternId, Set.empty)
-              })),
-          Set.empty)
+      withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) {
+        (file, directory) =>
+          val configuration = analysisConfiguration(
+            directory,
+            file,
+            Option.empty,
+            Set(
+              CLIConfiguration.IssuesTool(
+                uuid = "cf05f3aa-fd23-4586-8cce-5368917ec3e5",
+                enabled = true,
+                notEdited = false,
+                patterns = esLintPatternsInternalIds.map { patternId =>
+                  CLIConfiguration.IssuesTool.Pattern(patternId, Set.empty)
+                }),
+              CLIConfiguration.IssuesTool(
+                uuid = "997201eb-0907-4823-87c0-a8f7703531e7",
+                enabled = true,
+                notEdited = true,
+                patterns = cssLintPatternsInternalIds.map { patternId =>
+                  CLIConfiguration.IssuesTool.Pattern(patternId, Set.empty)
+                })),
+            Set.empty)
 
-        runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
+          runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
 
-        val result = for {
-          responseJson <- parser.parse(file.contentAsString)
-          response <- responseJson.as[Set[Result]]
-        } yield response
+          val result = for {
+            responseJson <- parser.parse(file.contentAsString)
+            response <- responseJson.as[Set[Result]]
+          } yield response
 
-        result must beRight
-        result must beLike {
-          case Right(response: Set[Result]) =>
-            response.size must beGreaterThan(0)
+          result must beRight
+          result must beLike {
+            case Right(response: Set[Result]) =>
+              response.size must beGreaterThan(0)
 
-            response.collect {
-              case i: Issue => i.patternId.value
-            } must containAllOf((esLintPatternsInternalIds ++ cssLintPatternsInternalIds).toSeq)
-        }
+              response.collect {
+                case i: Issue => i.patternId.value
+              } must containAllOf((esLintPatternsInternalIds ++ cssLintPatternsInternalIds).toSeq)
+          }
       }
     }
   }
@@ -179,7 +186,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       Map.empty)
 
     val toolConfiguration =
-      CLIConfiguration.Tool(Option(15.minutes), allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
+      CLIConfiguration
+        .Tool(Option(15.minutes), allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
     CLIConfiguration.Analysis(
       directory,
       CLIConfiguration.Output(Json.name, Option(outputFile)),
