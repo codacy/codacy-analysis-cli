@@ -80,7 +80,7 @@ references:
           command: |
             if [[ "$CODACY_ANALYSIS_CLI_VERSION" != "latest" ]]
             then
-              docker load --input docker-image.tar
+              docker load --input /tmp/workspace/workdir/docker-image.tar
             else
               echo "Skipping load of docker when testing latest"
             fi
@@ -231,6 +231,7 @@ workflows:
       - codacy/sbt:
           name: compile
           cmd: ./scripts/compile.sh
+          persist_to_workspace: true
           requires:
             - codacy/checkout_and_version
       - codacy/sbt:
