@@ -8,6 +8,7 @@ import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.IssuesAnalysis.FileResults
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.utils.EitherOps
+import com.codacy.analysis.core.configuration.AppConfiguration
 import org.log4s.{Logger, getLogger}
 import shapeless.syntax.std.TupleOps
 
@@ -18,8 +19,7 @@ object ResultsUploader {
 
   final case class ToolResults(tool: String, files: Set[Path], results: Either[String, Set[ToolResult]])
 
-  //TODO: Make this a config
-  val defaultBatchSize = 50000
+  val defaultBatchSize = AppConfiguration.batchSize
 
   private val logger: Logger = getLogger
 
@@ -75,12 +75,13 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
       Future.successful(().asRight[String])
     }
 
-    val res: Future[Either[String, Unit]] = (sendIssuesFut, sendMetricsFut, sendDuplicationFut).mapN {
-      case eithers =>
-        EitherOps.sequenceFoldingLeft(new TupleOps(eithers).toList)(_ + '\n' + _)
-    }.flatMap { _ =>
-      endUpload()
-    }
+    val res: Future[Either[String, Unit]] =
+      (sendIssuesFut, sendMetricsFut, sendDuplicationFut).mapN {
+        case eithers =>
+          EitherOps.sequenceFoldingLeft(new TupleOps(eithers).toList)(_ + '\n' + _)
+      }.flatMap { _ =>
+        endUpload()
+      }
 
     res.onComplete {
       case Success(_) =>
@@ -94,7 +95,8 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
 
   private def sendIssues(toolResults: Seq[ResultsUploader.ToolResults]): Future[Either[String, Unit]] = {
     val uploadResultsBatches = toolResults.map { toolResult =>
-      val fileResults = toolResult.results.map(results => groupResultsByFile(toolResult.files, results))
+      val fileResults =
+        toolResult.results.map(results => groupResultsByFile(toolResult.files, results))
       uploadResultsBatch(toolResult.tool, batchSize, fileResults)
     }
 

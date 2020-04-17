@@ -17,7 +17,7 @@ class Commit(repository: JGitRepository, revCommit: RevCommit) {
 
       treeWalk.addTree(new RevWalk(repository).parseTree(revCommit))
 
-      val pathBuffer = collection.mutable.HashSet[Path]()
+      val pathBuffer = Set.newBuilder[Path]
 
       while (treeWalk.next) {
         val path = treeWalk.getPathString
@@ -26,7 +26,7 @@ class Commit(repository: JGitRepository, revCommit: RevCommit) {
 
       treeWalk.close()
 
-      pathBuffer.toSet
+      pathBuffer.result()
     }
   }
 

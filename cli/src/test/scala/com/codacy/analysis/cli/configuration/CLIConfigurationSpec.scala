@@ -52,12 +52,13 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
   private val defaultEnvironment = new Environment(Map.empty)
   private val httpHelper = new HttpHelper(Option(remoteUrl), Map.empty)
 
-  private val noRemoteConfigCodacyClient = new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {
+  private val noRemoteConfigCodacyClient =
+    new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {
 
-    override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
-      Left("no remote config")
+      override def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
+        Left("no remote config")
+      }
     }
-  }
 
   "CLIConfiguration" should {
 
@@ -329,7 +330,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
         upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
-      val actualConfiguration = CLIConfiguration(Option(codacyClient), defaultEnvironment, defaultAnalyse, localConfig)
+      val actualConfiguration =
+        CLIConfiguration(Option(codacyClient), defaultEnvironment, defaultAnalyse, localConfig)
       actualConfiguration must beEqualTo(expectedConfiguration)
     }
   }

@@ -99,7 +99,8 @@ class MetricsToolExecutorSpec extends Specification {
       val testJsPath = Paths.get("test.js")
       val failedJsMetricsToolExecRes =
         MetricsToolExecutorResult(Javascript.name, Set(test1JsPath, testJsPath), Failure(throwable))
-      val test1JsFileMetrics = FileMetrics(test1JsPath, Some(13), None, None, None, None, Set(LineComplexity(37, 1)))
+      val test1JsFileMetrics =
+        FileMetrics(test1JsPath, Some(13), None, None, None, None, Set(LineComplexity(37, 1)))
       val testJsFileMetrics =
         FileMetrics(testJsPath, Some(33), None, None, None, None, Set(LineComplexity(697, 2), LineComplexity(605, 3)))
       val jsResults = List(
@@ -111,13 +112,15 @@ class MetricsToolExecutorSpec extends Specification {
 
       val testPyPath = Paths.get("test.py")
       val testPyFileMetrics = FileMetrics(testPyPath, None, None, None, Some(0), None, Set())
-      val failedPyMetricsToolExecRes = MetricsToolExecutorResult(Python.name, Set(testPyPath), Failure(throwable))
+      val failedPyMetricsToolExecRes =
+        MetricsToolExecutorResult(Python.name, Set(testPyPath), Failure(throwable))
       val pythonResults = List(
         MetricsToolExecutorResult(Python.name, Set(testPyPath), Success(Set(testPyFileMetrics))),
         failedPyMetricsToolExecRes)
 
       val testRbPath = Paths.get("test.rb")
-      val failedRbMetricsToolExecRes = MetricsToolExecutorResult(Ruby.name, Set(testRbPath), Failure(throwable))
+      val failedRbMetricsToolExecRes =
+        MetricsToolExecutorResult(Ruby.name, Set(testRbPath), Failure(throwable))
       val testRbFileMetrics =
         FileMetrics(testRbPath, Some(48), None, None, None, None, Set(LineComplexity(97, 4), LineComplexity(82, 2)))
       val rubyResults = List(

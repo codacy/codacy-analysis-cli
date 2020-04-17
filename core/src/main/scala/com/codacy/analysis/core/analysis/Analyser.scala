@@ -67,7 +67,9 @@ object Analyser {
     }
 
     final case class NonExistingToolInput(toolName: String, availableTools: Set[String]) extends Error {
-      override val message: String = s"""The selected tool "$toolName" is not supported or does not exist.
+
+      override val message: String =
+        s"""The selected tool "$toolName" is not supported or does not exist.
                                         |The tool should be one of (${availableTools.mkString(", ")})""".stripMargin
     }
 

@@ -47,7 +47,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
           s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/issuesRemoteResults",
           tool,
           results)
-      case _: ProjectToken => sendRemoteResultsTo(s"/commit/${commitUuid.value}/issuesRemoteResults", tool, results)
+      case _: ProjectToken =>
+        sendRemoteResultsTo(s"/commit/${commitUuid.value}/issuesRemoteResults", tool, results)
     }
   }
 
@@ -57,7 +58,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
         sendRemoteMetricsTo(
           s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/metricsRemoteResults",
           results)
-      case _: ProjectToken => sendRemoteMetricsTo(s"/commit/${commitUuid.value}/metricsRemoteResults", results)
+      case _: ProjectToken =>
+        sendRemoteMetricsTo(s"/commit/${commitUuid.value}/metricsRemoteResults", results)
     }
   }
 
@@ -116,16 +118,16 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   private def sendRemoteResultsTo(endpoint: String,
                                   tool: String,
-                                  results: Either[String, Set[FileResults]]): Future[Either[String, Unit]] =
+                                  resultsEither: Either[String, Set[FileResults]]): Future[Either[String, Unit]] =
     Future {
       http.post(
         endpoint,
-        Some(Seq(ToolResults(tool, results.fold(IssuesAnalysis.Failure, IssuesAnalysis.Success))).asJson)) match {
+        Some(Seq(ToolResults(tool, resultsEither.fold(IssuesAnalysis.Failure, IssuesAnalysis.Success))).asJson)) match {
         case Left(error) =>
           logger.error(error)(s"Error posting data to endpoint $endpoint")
           Left(error.message)
         case Right(json) =>
-          results.fold(
+          resultsEither.fold(
             error => logger.info(s"Success posting analysis error $error"),
             results =>
               logger.info(s"""Success posting batch of ${results.size} files with ${results

@@ -27,7 +27,8 @@ class CommitSpec extends Specification with NoLanguageFeatures {
           addFile(tempFile3)
           Process(Seq("git", "commit", "-m", "tmp"), temporaryDirectory.toJava).!
 
-          val expectedFiles = List(tempFile1, tempFile2, tempFile3).map(temporaryDirectory.relativize)
+          val expectedFiles =
+            List(tempFile1, tempFile2, tempFile3).map(temporaryDirectory.relativize)
           Git.repository(temporaryDirectory).flatMap(_.latestCommit).flatMap(_.files) must beLike {
             case Success(fileSet) => fileSet must containTheSameElementsAs(expectedFiles)
           }

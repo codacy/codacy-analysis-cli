@@ -175,7 +175,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
 
   private def testBatchSize(
     exampleResults: Set[ToolResult])(batchSize: Int, message: String, expectedNrOfBatches: Int): Fragment = {
-    val esLintPatternsInternalIds = Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
+    val esLintPatternsInternalIds =
+      Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
 
     s"analyse a javascript project with eslint, $message".stripMargin in {
       val toolPatterns = esLintPatternsInternalIds.map { patternId =>

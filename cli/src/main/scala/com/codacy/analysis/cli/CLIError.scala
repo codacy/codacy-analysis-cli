@@ -30,7 +30,9 @@ object CLIError {
   }
 
   final case class NonExistingToolInput(toolName: String) extends CLIError {
-    override val message: String = s"""The selected tool "$toolName" is not supported or does not exist.
+
+    override val message: String =
+      s"""The selected tool "$toolName" is not supported or does not exist.
                                       |Use the --help option to get more information about available tools""".stripMargin
   }
 

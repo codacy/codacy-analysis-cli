@@ -10,7 +10,7 @@ import com.codacy.plugins.api
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.results
 import com.codacy.plugins.api.results.Result
-import com.codacy.plugins.results.traits.{DockerTool, DockerToolDocumentation, DockerToolWithConfig, ToolRunner}
+import com.codacy.plugins.results.traits.{DockerTool, DockerToolDocumentation, ToolRunner}
 import com.codacy.plugins.results.{PatternRequest, PluginConfiguration, PluginRequest}
 import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
 import com.codacy.plugins.utils.{BinaryDockerHelper, PluginHelper}
@@ -33,7 +33,9 @@ final case class Directory(sourceDirectory: String) extends SourceDirectory {
 
 final case class SubDirectory(sourceDirectory: String, protected val subDirectory: String) extends SourceDirectory {
   def appendPrefix(filename: String): String = subDirectory + java.io.File.separator + filename
-  def removePrefix(filename: String): String = filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
+
+  def removePrefix(filename: String): String =
+    filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
 class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: DockerTool, val languageToRun: Language)
@@ -44,17 +46,10 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
   override def name: String = plugin.shortName
   def uuid: String = plugin.uuid
 
-  def needsPatternsToRun: Boolean = plugin.needsPatternsToRun
-  def allowsUIConfiguration: Boolean = plugin.hasUIConfiguration
-
   override def supportedLanguages: Set[Language] = plugin.languages
 
-  def configFilenames: Set[String] = plugin match {
-    case plugin: DockerToolWithConfig =>
-      plugin.configFilename.to[Set]
-    case _ =>
-      Set.empty[String]
-  }
+  def configFilenames: Set[String] =
+    if (plugin.hasConfigFile) plugin.configFilename.toSet else Set.empty
 
   def run(directory: File,
           files: Set[Path],
@@ -63,7 +58,8 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
     val pluginConfiguration = config match {
       case CodacyCfg(patterns, _, extraValues) =>
         val pts: List[PatternRequest] = patterns.map { pt =>
-          val pms: Map[String, String] = pt.parameters.map(pm => (pm.name, pm.value))(collection.breakOut)
+          val pms: Map[String, String] =
+            pt.parameters.map(pm => (pm.name, pm.value))(collection.breakOut)
           PatternRequest(pt.id, pms)
         }(collection.breakOut)
         PluginConfiguration(Option(pts), convertExtraValues(extraValues))
@@ -132,7 +128,7 @@ object Tool {
   val allToolShortNames: Set[String] = internetToolShortNames ++ availableTools.map(_.shortName)
 
   def apply(plugin: DockerTool, languageToRun: Language): Tool = {
-    val dockerRunner = new BinaryDockerRunner[Result](plugin)()
+    val dockerRunner = new BinaryDockerRunner[Result](plugin)
     val runner = new ToolRunner(plugin, new DockerToolDocumentation(plugin, new BinaryDockerHelper()), dockerRunner)
     new Tool(runner, DockerRunner.defaultRunTimeout)(plugin, languageToRun)
   }

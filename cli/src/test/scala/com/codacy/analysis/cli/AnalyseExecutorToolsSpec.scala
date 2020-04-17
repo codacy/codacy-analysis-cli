@@ -146,7 +146,8 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
     "list tools that need access to the network if this argument is provided" in {
       val toolConfigs = Left("some error")
-      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
+      val filesTarget =
+        FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
       val toolConfiguration =
         CLIConfiguration.Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
@@ -163,7 +164,8 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
 
     "not list tools that need access to the network if this argument is not provided" in {
       val toolConfigs = Left("some error")
-      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
+      val filesTarget =
+        FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
       val toolConfiguration =
         CLIConfiguration.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)

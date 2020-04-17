@@ -8,6 +8,7 @@ final case class PathRegex(value: String)
 
 final case class ToolParameter(name: String, value: String)
 final case class ToolPattern(internalId: String, parameters: Set[ToolParameter])
+
 final case class ToolConfiguration(uuid: String, isEnabled: Boolean, notEdited: Boolean, patterns: Set[ToolPattern])
 
 final case class ProjectConfiguration(ignoredPaths: Set[FilePath],

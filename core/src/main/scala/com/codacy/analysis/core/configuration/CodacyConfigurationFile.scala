@@ -61,30 +61,32 @@ object CodacyConfigurationFile {
 
   implicit val languageKeyDecoder: KeyDecoder[Language] = (languageStr: String) => Languages.fromName(languageStr)
 
-  implicit val decodeEngineConfiguration: Decoder[EngineConfiguration] = new Decoder[EngineConfiguration] {
-    val engineConfigurationKeys = Set("enabled", "exclude_paths", "base_sub_dir")
+  implicit val decodeEngineConfiguration: Decoder[EngineConfiguration] =
+    new Decoder[EngineConfiguration] {
+      val engineConfigurationKeys = Set("enabled", "exclude_paths", "base_sub_dir")
 
-    final def apply(c: HCursor): Decoder.Result[EngineConfiguration] = {
-      val extraKeys = c.keys.fold(List.empty[String])(_.to[List]).filter(key => !engineConfigurationKeys.contains(key))
-      for {
-        excludePaths <- c.downField("exclude_paths").as[Option[Set[Glob]]]
-        baseSubDir <- c.downField("base_sub_dir").as[Option[String]]
-      } yield {
-        val extraToolConfigurations: Map[String, JsValue] = extraKeys.flatMap { extraKey =>
-          c.downField(extraKey)
-            .as[Json]
-            .fold[Option[JsValue]]({ _ =>
-              Option.empty
-            }, { json =>
-              Try(play.api.libs.json.Json.parse(json.noSpaces)).toOption
-            })
-            .map(value => (extraKey, value))
-        }(collection.breakOut)
+      def apply(c: HCursor): Decoder.Result[EngineConfiguration] = {
+        val extraKeys =
+          c.keys.fold(List.empty[String])(_.to[List]).filter(key => !engineConfigurationKeys.contains(key))
+        for {
+          excludePaths <- c.downField("exclude_paths").as[Option[Set[Glob]]]
+          baseSubDir <- c.downField("base_sub_dir").as[Option[String]]
+        } yield {
+          val extraToolConfigurations: Map[String, JsValue] = extraKeys.flatMap { extraKey =>
+            c.downField(extraKey)
+              .as[Json]
+              .fold[Option[JsValue]]({ _ =>
+                Option.empty
+              }, { json =>
+                Try(play.api.libs.json.Json.parse(json.noSpaces)).toOption
+              })
+              .map(value => (extraKey, value))
+          }(collection.breakOut)
 
-        EngineConfiguration(excludePaths, baseSubDir, Option(extraToolConfigurations).filter(_.nonEmpty))
+          EngineConfiguration(excludePaths, baseSubDir, Option(extraToolConfigurations).filter(_.nonEmpty))
+        }
       }
     }
-  }
 
   implicit val decodeCodacyConfigurationFile: Decoder[CodacyConfigurationFile] =
     Decoder.forProduct3("engines", "exclude_paths", "languages")(CodacyConfigurationFile.apply)

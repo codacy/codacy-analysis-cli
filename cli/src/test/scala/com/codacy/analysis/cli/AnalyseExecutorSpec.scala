@@ -72,7 +72,8 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       }
     }
 
-    val esLintPatternsInternalIds = Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
+    val esLintPatternsInternalIds =
+      Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
 
     s"""|analyse a javascript project with eslint, using a remote project configuration retrieved with an api token
         | that considers just patterns ${esLintPatternsInternalIds.mkString(", ")}""".stripMargin in {

@@ -14,7 +14,8 @@ import scala.util.Success
 
 class MetricsToolSpec extends Specification with NoLanguageFeatures {
 
-  val jsTest2Metrics = FileMetrics(Paths.get("test2.js"), None, Some(25), Some(0), None, None, Set())
+  val jsTest2Metrics =
+    FileMetrics(Paths.get("test2.js"), None, Some(25), Some(0), None, None, Set())
   val jsTestMetrics = FileMetrics(Paths.get("test.js"), None, Some(60), Some(0), None, None, Set())
 
   "MetricsTool" should {

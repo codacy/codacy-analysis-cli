@@ -73,7 +73,9 @@ object ArgumentParsers {
 }
 
 object Version {
-  val version: String = Option(getClass.getPackage.getImplementationVersion).getOrElse("0.1.0-SNAPSHOT")
+
+  val version: String =
+    Option(getClass.getPackage.getImplementationVersion).getOrElse("0.1.0-SNAPSHOT")
 }
 
 @AppName("Codacy Analysis Cli")

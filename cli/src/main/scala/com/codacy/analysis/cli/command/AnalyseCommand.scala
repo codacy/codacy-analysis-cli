@@ -35,10 +35,12 @@ object AnalyseCommand {
 
   def apply(analyse: Analyse, env: Map[String, String]): AnalyseCommand = {
     val environment: Environment = new Environment(env)
-    val codacyClientOpt: Option[CodacyClient] = Credentials.get(environment, analyse.api).map(CodacyClient.apply)
+    val codacyClientOpt: Option[CodacyClient] =
+      Credentials.get(environment, analyse.api).map(CodacyClient.apply)
     val configuration: CLIConfiguration =
       CLIConfiguration(codacyClientOpt, environment, analyse, new CodacyConfigurationFileLoader)
-    val formatter: Formatter = Formatter(configuration.analysis.output.format, configuration.analysis.output.file)
+    val formatter: Formatter =
+      Formatter(configuration.analysis.output.format, configuration.analysis.output.file)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
     val analyseExecutor: AnalyseExecutor =
       new AnalyseExecutor(formatter, Analyser(analyse.extras.analyser), fileCollector, configuration.analysis)

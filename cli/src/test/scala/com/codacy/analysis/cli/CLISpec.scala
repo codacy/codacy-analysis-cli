@@ -130,7 +130,9 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           } yield (response, expected)
 
           result must beRight
-          result must beLike { case Right((response, expected)) => response must containTheSameElementsAs(expected) }
+          result must beLike {
+            case Right((response, expected)) => response must containTheSameElementsAs(expected)
+          }
       }
     }
 
@@ -187,7 +189,9 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           } yield (response, expected)
 
           result must beRight
-          result must beLike { case Right((response, expected)) => response must containTheSameElementsAs(expected) }
+          result must beLike {
+            case Right((response, expected)) => response must containTheSameElementsAs(expected)
+          }
       }
     }
 
@@ -217,7 +221,8 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
 
           result must beRight
           result must beLike {
-            case Right((response, expected)) => response must containTheSameElementsAs(expected.to[Seq])
+            case Right((response, expected)) =>
+              response must containTheSameElementsAs(expected.to[Seq])
           }
       }
     }

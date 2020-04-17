@@ -57,7 +57,8 @@ class CodacyConfigurationFileSpec extends Specification with NoLanguageFeatures 
         Option(Set(Glob(".bundle/"), Glob("spec/**/*"), Glob("benchmarks/**/*"))),
         Some(Map((Languages.CSS, LanguageConfiguration(Some(Set("-css.resource")))))))
 
-      val resource = Resource.getAsString("com/codacy/analysis/core/configuration/codacy-langs.yaml")
+      val resource =
+        Resource.getAsString("com/codacy/analysis/core/configuration/codacy-langs.yaml")
       val codacyConfigurationFile = codacyConfigurationFileLoader.parse(resource)
 
       codacyConfigurationFile must beEqualTo(Right(expected))

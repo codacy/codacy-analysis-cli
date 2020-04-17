@@ -16,7 +16,8 @@ class ValidateConfigurationCommandSpec extends Specification with NoLanguageFeat
           val resource = Resource.getAsString("com/codacy/analysis/core/configuration/codacy.yaml")
           (directory / ".codacy.yaml").write(resource)
 
-          val command = ValidateConfigurationCommand(ValidateConfiguration(CommonOptions(), Option(directory)))
+          val command =
+            ValidateConfigurationCommand(ValidateConfiguration(CommonOptions(), Option(directory)))
 
           command.run() mustEqual ExitCodes.success
         }
@@ -27,7 +28,8 @@ class ValidateConfigurationCommandSpec extends Specification with NoLanguageFeat
       File
         .temporaryDirectory()
         .map { directory =>
-          val command = ValidateConfigurationCommand(ValidateConfiguration(CommonOptions(), Option(directory)))
+          val command =
+            ValidateConfigurationCommand(ValidateConfiguration(CommonOptions(), Option(directory)))
 
           command.run() mustEqual ExitCodes.invalidConfigurationFile
         }

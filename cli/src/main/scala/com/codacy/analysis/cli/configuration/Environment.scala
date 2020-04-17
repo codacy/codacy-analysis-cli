@@ -33,7 +33,8 @@ class Environment(variables: Map[String, String]) {
   }
 
   def apiBaseUrlArgument(codacyApiBaseURLFromArguments: Option[String]): Option[String] = {
-    val apiURL = validate("API base URL", "argument", "--codacy-api-base-url")(codacyApiBaseURLFromArguments)
+    val apiURL =
+      validate("API base URL", "argument", "--codacy-api-base-url")(codacyApiBaseURLFromArguments)
     validateApiBaseUrl(apiURL)
   }
 

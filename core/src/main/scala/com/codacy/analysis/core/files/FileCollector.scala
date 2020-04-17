@@ -17,11 +17,11 @@ trait FileCollectorCompanion[T[_]] {
   def apply(): FileCollector[T]
 }
 
-case class FileExclusionRules(defaultIgnores: Option[Set[PathRegex]],
-                              ignoredPaths: Set[FilePath],
-                              excludePaths: ExcludePaths,
-                              allowedExtensionsByLanguage: Map[Language, Set[String]])
-case class ExcludePaths(global: Set[Glob], byTool: Map[String, Set[Glob]])
+final case class FileExclusionRules(defaultIgnores: Option[Set[PathRegex]],
+                                    ignoredPaths: Set[FilePath],
+                                    excludePaths: ExcludePaths,
+                                    allowedExtensionsByLanguage: Map[Language, Set[String]])
+final case class ExcludePaths(global: Set[Glob], byTool: Map[String, Set[Glob]])
 
 trait FileCollector[T[_]] {
 
@@ -106,7 +106,8 @@ object FileCollector {
   val defaultCollector: FileCollectorCompanion[Try] = new FallbackFileCollectorCompanion(
     List(GitFileCollector, FileSystemFileCollector))
 
-  val allCollectors: Set[FileCollectorCompanion[Try]] = Set(GitFileCollector, FileSystemFileCollector)
+  val allCollectors: Set[FileCollectorCompanion[Try]] =
+    Set(GitFileCollector, FileSystemFileCollector)
 
   def apply(name: String): FileCollector[Try] = {
     val builder = allCollectors.find(_.name.equalsIgnoreCase(name)).getOrElse {

@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  codacy: codacy/base@1.2.1
+  codacy: codacy/base@2.14.8
 
 # Re-usable blocks to reduce boilerplate in job definitions.
 references:
@@ -67,7 +67,7 @@ references:
             bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation-tests.git ~/integration-tests master
       - *restore_maven_dependencies
       - attach_workspace:
-          at: /tmp/workspace
+          at: /tmp/workspace/workdir
       # Clean CODACY_PROJECT_TOKEN is needed to make sure tests are run in a clean state without
       # influence from the build server environment
       # (e.g.: to avoid tests picking the CODACY_PROJECT_TOKEN used to send coverage
@@ -123,7 +123,7 @@ jobs:
     working_directory: ~/workdir
     steps:
       - attach_workspace:
-          at: ~/
+          at: ~/workdir
       - *setup_dependencies_key
       - *restore_dependencies
       - run:
@@ -156,7 +156,7 @@ jobs:
     <<: *default_java_job
     steps:
       - attach_workspace:
-          at: ~/
+          at: ~/workdir
       - *setup_dependencies_key
       - *restore_dependencies
       - run:
@@ -231,6 +231,7 @@ workflows:
       - codacy/sbt:
           name: compile
           cmd: ./scripts/compile.sh
+          persist_to_workspace: true
           requires:
             - codacy/checkout_and_version
       - codacy/sbt:
@@ -246,7 +247,7 @@ workflows:
           cmd: |
             sbt "set codacyAnalysisCli / version := \"dev-snapshot\";
                  codacyAnalysisCli/docker:publishLocal"
-            docker save --output ~/workdir/docker-image.tar codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot
+            docker save --output docker-image.tar codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot
           persist_to_workspace: true
           requires:
             - compile
@@ -269,7 +270,7 @@ workflows:
           name: publish_dockerhub
           context: CodacyDocker
           cmd: |
-            docker load --input ~/workdir/docker-image.tar
+            docker load --input docker-image.tar
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:$(cat .version)
             docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:latest
@@ -304,7 +305,7 @@ workflows:
           name: publish_dockerhub_stable
           context: CodacyDocker
           cmd: |
-            docker load --input ~/workdir/docker-image.tar
+            docker load --input docker-image.tar
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:stable
             docker push codacy/$CIRCLE_PROJECT_REPONAME:stable

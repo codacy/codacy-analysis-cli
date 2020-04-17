@@ -69,7 +69,8 @@ lazy val codacyAnalysisCore = project
       Dependencies.jodaTime,
       Dependencies.scalajHttp,
       Dependencies.jGit,
-      Dependencies.cats) ++
+      Dependencies.cats,
+      Dependencies.typesafeConfig) ++
       Dependencies.circe ++
       Dependencies.log4s ++
       Dependencies.codacyPlugins,
@@ -115,4 +116,4 @@ lazy val codacyAnalysisModels = project
 ThisBuild / scalaVersion := Common.scalaVersionNumber
 ThisBuild / scalaBinaryVersion := Common.scalaBinaryVersionNumber
 ThisBuild / scapegoatDisabledInspections := Seq()
-ThisBuild / scapegoatVersion := "1.4.1"
+ThisBuild / scapegoatVersion := "1.4.3"

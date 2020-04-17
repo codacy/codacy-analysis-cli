@@ -12,7 +12,8 @@ object MetricsToolExecutor {
   import com.codacy.analysis.cli.analysis.AnalyseExecutor._
 
   def reduceMetricsToolResultsByFile(metricsResults: Seq[MetricsToolExecutorResult]): Seq[MetricsToolExecutorResult] = {
-    val (successfulMetricsResults, failedMetricsResults) = metricsResults.partition(_.analysisResults.isSuccess)
+    val (successfulMetricsResults, failedMetricsResults) =
+      metricsResults.partition(_.analysisResults.isSuccess)
 
     successfulMetricsResults
       .groupBy(_.language)

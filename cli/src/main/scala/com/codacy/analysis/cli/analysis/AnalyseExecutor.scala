@@ -55,7 +55,8 @@ class AnalyseExecutor(formatter: Formatter,
           tool match {
             case tool: Tool =>
               val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
-              val analysisResults = issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles)
+              val analysisResults =
+                issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles)
               IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, analysisResults)
             case metricsTool: MetricsTool =>
               val analysisResults =
@@ -115,7 +116,8 @@ class AnalyseExecutor(formatter: Formatter,
   private def getToolConfiguration(tool: Tool,
                                    hasConfigFiles: Boolean,
                                    configuration: CLIConfiguration.Tool): Try[Configuration] = {
-    val (baseSubDir, extraValues) = getExtraConfiguration(configuration.extraToolConfigurations, tool)
+    val (baseSubDir, extraValues) =
+      getExtraConfiguration(configuration.extraToolConfigurations, tool)
     (for {
       allToolsConfiguration <- configuration.toolConfigurations
       toolConfiguration <- allToolsConfiguration
@@ -123,16 +125,16 @@ class AnalyseExecutor(formatter: Formatter,
         .toRight[String](s"Could not find configuration for tool ${tool.name}")
     } yield {
       val shouldUseConfigFile = toolConfiguration.notEdited && hasConfigFiles
-      val shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile && tool.allowsUIConfiguration && toolConfiguration.patterns.nonEmpty
+      val shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile && toolConfiguration.patterns.nonEmpty
       // TODO: Review isEnabled condition when running multiple tools since we might want to force this for single tools
-      // val shouldRun = toolConfiguration.isEnabled && (!tool.needsPatternsToRun || shouldUseConfigFile || shouldUseRemoteConfiguredPatterns)
-      val shouldRun = !tool.needsPatternsToRun || shouldUseConfigFile || shouldUseRemoteConfiguredPatterns
+      // val shouldRun = toolConfiguration.isEnabled && (shouldUseConfigFile || shouldUseRemoteConfiguredPatterns)
+      val shouldRun = shouldUseConfigFile || shouldUseRemoteConfiguredPatterns
 
       if (!shouldRun) {
         logger.error(s"""Could not find conditions to run tool ${tool.name} with:
              |shouldUseConfigFile:$shouldUseConfigFile = notEdited:${toolConfiguration.notEdited} && foundToolConfigFile:$hasConfigFiles
-             |shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile:$shouldUseConfigFile && allowsUIConfiguration:${tool.allowsUIConfiguration} && hasPatterns:${toolConfiguration.patterns.nonEmpty}
-             |shouldRun:$shouldRun = !needsPatternsToRun:${tool.needsPatternsToRun} || shouldUseConfigFile:$shouldUseConfigFile || shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns
+             |shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile:$shouldUseConfigFile && hasPatterns:${toolConfiguration.patterns.nonEmpty}
+             |shouldRun:$shouldRun = shouldUseConfigFile:$shouldUseConfigFile || shouldUseRemoteConfiguredPatterns:$shouldUseRemoteConfiguredPatterns
            """.stripMargin)
         Failure(new Exception(s"Could not find conditions to run tool ${tool.name}"))
       } else if (shouldUseConfigFile) {
