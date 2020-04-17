@@ -5,6 +5,6 @@ object AppConfiguration {
 
   private val conf: Config = ConfigFactory.load()
 
-  val batchSize = conf.getInt("batchSize");
+  val batchSize: Int = conf.getInt("batchSize");
 
 }
