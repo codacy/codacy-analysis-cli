@@ -231,7 +231,6 @@ workflows:
       - codacy/sbt:
           name: compile
           cmd: ./scripts/compile.sh
-          cache_prefix: sbt-cache-042020
           persist_to_workspace: true
           requires:
             - codacy/checkout_and_version
