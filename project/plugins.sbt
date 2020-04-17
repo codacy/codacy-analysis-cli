@@ -3,7 +3,7 @@ addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.8.1")
 addSbtPlugin("com.jsuereth" % "sbt-pgp" % "2.0.1")
 
 // Packaging (Docker)
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.15")
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.3.25")
 
 // Coverage
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
