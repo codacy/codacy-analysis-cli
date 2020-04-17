@@ -10,7 +10,7 @@ object Dependencies {
     "io.circe" %% "circe-core" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
     "io.circe" %% "circe-parser" % circeVersion,
-    "io.circe" %% "circe-yaml" % "0.12.0")
+    "io.circe" %% "circe-yaml" % "0.13.0")
 
   lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.6.0"
 
