@@ -36,7 +36,7 @@ object Dependencies {
 
   lazy val scalajHttp = "org.scalaj" %% "scalaj-http" % "2.4.2"
 
-  lazy val cats = "org.typelevel" %% "cats-core" % "2.1.0"
+  lazy val cats = "org.typelevel" %% "cats-core" % "2.1.1"
 
   lazy val jGit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.6.0.201912101111-r"
 
