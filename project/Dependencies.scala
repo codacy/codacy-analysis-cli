@@ -38,7 +38,7 @@ object Dependencies {
 
   lazy val cats = "org.typelevel" %% "cats-core" % "2.1.1"
 
-  lazy val jGit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.6.1.202002131546-r"
+  lazy val jGit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.7.0.202003110725-r"
 
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.0"
 }
