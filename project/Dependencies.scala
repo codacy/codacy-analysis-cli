@@ -2,9 +2,9 @@ import sbt._
 
 object Dependencies {
 
-  val codacyPluginsVersion = "14.0.2_play_2.7"
+  val codacyPluginsVersion = "14.0.4_play_2.7"
   val circeVersion = "0.12.3"
-  val specs2Version = "4.8.1"
+  val specs2Version = "4.8.3"
 
   lazy val circe = List(
     "io.circe" %% "circe-core" % circeVersion,
@@ -32,13 +32,13 @@ object Dependencies {
 
   lazy val pluginsApi = "com.codacy" %% "codacy-plugins-api" % "4.0.2"
 
-  lazy val pprint = "com.lihaoyi" %% "pprint" % "0.5.7"
+  lazy val pprint = "com.lihaoyi" %% "pprint" % "0.5.9"
 
   lazy val scalajHttp = "org.scalaj" %% "scalaj-http" % "2.4.2"
 
-  lazy val cats = "org.typelevel" %% "cats-core" % "2.1.0"
+  lazy val cats = "org.typelevel" %% "cats-core" % "2.1.1"
 
-  lazy val jGit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.6.0.201912101111-r"
+  lazy val jGit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.6.1.202002131546-r"
 
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.0"
 }

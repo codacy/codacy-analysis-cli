@@ -251,21 +251,22 @@ workflows:
           persist_to_workspace: true
           requires:
             - compile
-      - publish_lib:
-          context: CodacyAWS
-          requires:
-            - test
-            - lint
-            - test_staging
+      - maven_dependencies:
           filters:
             branches:
               only:
                 - master
-      - maven_dependencies
+          requires:
+            - test
+            - lint
+            - publish_docker_locally
       - test_staging:
           requires:
             - maven_dependencies
-            - publish_docker_locally
+      - publish_lib:
+          context: CodacyAWS
+          requires:
+            - test_staging
       - codacy/shell:
           name: publish_dockerhub
           context: CodacyDocker
@@ -277,14 +278,7 @@ workflows:
             docker push codacy/$CIRCLE_PROJECT_REPONAME:$(cat .version)
             docker push codacy/$CIRCLE_PROJECT_REPONAME:latest
           requires:
-            - test
-            - lint
-            - publish_docker_locally
             - test_staging
-          filters:
-            branches:
-              only:
-                - master
       - codacy/tag_version:
           context: CodacyAWS
           requires:
@@ -293,14 +287,7 @@ workflows:
           context: CodacyDocker
           type: approval
           requires:
-            - test
-            - lint
-            - publish_docker_locally
             - test_staging
-          filters:
-            branches:
-              only:
-                - master
       - codacy/shell:
           name: publish_dockerhub_stable
           context: CodacyDocker
