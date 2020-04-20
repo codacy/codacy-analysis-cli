@@ -32,7 +32,7 @@ object Dependencies {
 
   lazy val pluginsApi = "com.codacy" %% "codacy-plugins-api" % "4.0.2"
 
-  lazy val pprint = "com.lihaoyi" %% "pprint" % "0.5.7"
+  lazy val pprint = "com.lihaoyi" %% "pprint" % "0.5.9"
 
   lazy val scalajHttp = "org.scalaj" %% "scalaj-http" % "2.4.2"
 
