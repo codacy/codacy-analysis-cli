@@ -7,7 +7,6 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.7.0")
 
 // Coverage
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
-addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.3.15")
 
 // Static Analysis
 addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.1.0")
