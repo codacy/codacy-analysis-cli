@@ -186,8 +186,6 @@ jobs:
     <<: *default_java_job
     working_directory: ~/integration-tests
     steps:
-      - attach_workspace:
-          at: /tmp/workspace/workdir
       - add_ssh_keys:
           fingerprints:
             - "df:83:d7:c7:d5:79:06:c2:3b:d1:fd:e2:a3:d1:12:c5"
