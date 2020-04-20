@@ -123,7 +123,7 @@ jobs:
     working_directory: ~/workdir
     steps:
       - attach_workspace:
-          at: /tmp/workspace/workdir
+          at: ~/workdir
       - *setup_dependencies_key
       - *restore_dependencies
       - run:
@@ -261,10 +261,10 @@ workflows:
           requires:
             - test
             - lint
+            - publish_docker_locally
       - test_staging:
           requires:
             - maven_dependencies
-            - publish_docker_locally
       - publish_lib:
           context: CodacyAWS
           requires:
