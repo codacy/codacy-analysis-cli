@@ -1,6 +1,8 @@
 import sbt._
 
 Global / useGpg := false
+Global / cancelable := true
+
 
 // Sonatype repository settings
 val sonatypePublishSettings = Seq(

@@ -28,7 +28,8 @@ object Common {
     scalacOptions ++= Common.compilerFlags(scalaVersion.value),
     Test / scalacOptions += "-Yrangepos",
     Compile / console / scalacOptions --= Seq("-Ywarn-unused", "-Ywarn-unused:imports", "-Xfatal-warnings"),
-    Compile / doc / sources := Seq.empty)
+    Compile / doc / sources := Seq.empty,
+    Test / fork := true)
 
   val dockerSettings: Seq[Def.Setting[_]] = Seq(
     packageName in Docker := packageName.value,
