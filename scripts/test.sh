@@ -7,4 +7,4 @@ if [ -n "$1" ]; then
 fi
 
 sbt coverage +test coverageReport
-bash <(curl -Ls https://coverage.codacy.com/get.sh) --skip
+bash <(curl -Ls https://coverage.codacy.com/get.sh) report --skip
