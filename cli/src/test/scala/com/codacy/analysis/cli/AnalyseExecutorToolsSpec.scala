@@ -125,7 +125,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
-          toolSet.map(_.name) mustEqual Set("spotbugs", "checkstyle", "findbugs", "findbugssec", "pmd", "pmd-legacy")
+          toolSet.map(_.name) mustEqual Set("spotbugs", "checkstyle", "pmd", "pmd-legacy")
       }
     }
   }
