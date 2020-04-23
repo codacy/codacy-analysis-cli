@@ -14,8 +14,6 @@ import scala.util.{Success, Try}
 
 abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Specification with NoLanguageFeatures {
 
-  val toolCollector = new ToolCollector(false)
-
   val expectedFiles = List(
     "src/main/resources/docs/directory-tests/rails3/config/initializers/inflections.rb",
     "src/main/resources/docs/description/Render.md",

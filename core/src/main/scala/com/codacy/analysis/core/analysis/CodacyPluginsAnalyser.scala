@@ -74,21 +74,12 @@ object CodacyPluginsAnalyser extends AnalyserCompanion[Try] {
 
   val name: String = "codacy-plugins"
 
-  private val allToolShortNames = Tool.allToolShortNames
-
-  private val internetToolShortNames = Tool.internetToolShortNames
-
   override def apply(): Analyser[Try] = new CodacyPluginsAnalyser()
 
   object errors {
 
-    def missingTool(tool: String): Analyser.Error = {
-      if (internetToolShortNames.contains(tool)) {
-        Analyser.Error.ToolNeedsNetwork(tool)
-      } else {
-        Analyser.Error.NonExistingToolInput(tool, allToolShortNames)
-      }
-    }
+    def missingTool(tool: String): Analyser.Error =
+      Analyser.Error.NonExistingToolInput(tool, Tool.allToolShortNames)
   }
 
 }

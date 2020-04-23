@@ -219,12 +219,10 @@ object AnalyseExecutor {
             configuration: CLIConfiguration.Tool,
             languages: Set[Language]): Either[CLIError, Set[Tool]] = {
 
-    val toolCollector = new ToolCollector(configuration.allowNetwork)
-
     def fromRemoteConfig: Either[CLIError, Set[Tool]] = {
       configuration.toolConfigurations.left.map(CLIError.NoRemoteProjectConfiguration).flatMap { toolConfiguration =>
         val toolUuids = toolConfiguration.filter(_.enabled).map(_.uuid)
-        toolCollector
+        ToolCollector
           .fromToolUUIDs(toolUuids, languages)
           .left
           .map(_ => CLIError.NonExistentToolsFromRemoteConfiguration(toolUuids))
@@ -232,11 +230,11 @@ object AnalyseExecutor {
     }
 
     def fromLocalConfig: Either[CLIError, Set[Tool]] = {
-      toolCollector.fromLanguages(languages).left.map(CLIError.from)
+      ToolCollector.fromLanguages(languages).left.map(CLIError.from)
     }
 
     toolInput.map { toolStr =>
-      toolCollector.fromNameOrUUID(toolStr, languages).left.map(CLIError.from)
+      ToolCollector.fromNameOrUUID(toolStr, languages).left.map(CLIError.from)
     }.getOrElse {
       for {
         e1 <- fromRemoteConfig.left

@@ -122,10 +122,7 @@ object Tool {
 
   val availableTools: List[DockerTool] = PluginHelper.dockerPlugins
 
-  val internetToolShortNames: Set[String] =
-    PluginHelper.dockerEnterprisePlugins.map(_.shortName)(collection.breakOut)
-
-  val allToolShortNames: Set[String] = internetToolShortNames ++ availableTools.map(_.shortName)
+  val allToolShortNames: Set[String] = availableTools.map(_.shortName).toSet
 
   def apply(plugin: DockerTool, languageToRun: Language): Tool = {
     val dockerRunner = new BinaryDockerRunner[Result](plugin)
@@ -134,20 +131,12 @@ object Tool {
   }
 }
 
-class ToolCollector(allowNetwork: Boolean) {
+object ToolCollector {
 
   private val logger: Logger = getLogger
 
-  private val availableInternetTools: List[DockerTool] = if (allowNetwork) {
-    PluginHelper.dockerEnterprisePlugins
-  } else {
-    List.empty[DockerTool]
-  }
-
-  private val availableTools: List[DockerTool] = Tool.availableTools ++ availableInternetTools
-
   def fromUuid(uuid: String): Option[DockerTool] = {
-    availableTools.find(_.uuid == uuid)
+    Tool.availableTools.find(_.uuid == uuid)
   }
 
   def fromNameOrUUID(toolInput: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
@@ -175,7 +164,7 @@ class ToolCollector(allowNetwork: Boolean) {
 
   def fromLanguages(languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
     val collectedTools: Set[Tool] = (for {
-      tool <- availableTools
+      tool <- Tool.availableTools
       languagesToRun = tool.languages.intersect(languages)
       languageToRun <- languagesToRun
     } yield Tool(tool, languageToRun))(collection.breakOut)
@@ -192,7 +181,7 @@ class ToolCollector(allowNetwork: Boolean) {
   }
 
   private def find(value: String): Either[Analyser.Error, DockerTool] = {
-    availableTools
+    Tool.availableTools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
       .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
   }
