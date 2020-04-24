@@ -2,4 +2,4 @@
 
 set -e
 
-sbt +compile +test:compile
+sbt +test:compile

@@ -139,8 +139,7 @@ final case class Analyse(
   upload: Int @@ Counter = Tag.of(0),
   @ExtraName("p") @ValueDescription("The number of tools to run in parallel")
   parallel: Option[Int] = Option.empty,
-  @ValueDescription(s"""If the access to the network is allowed, the cli will run tools that need it.
-    Supported tools that need network access: (${Tool.internetToolShortNames.mkString(", ")})""")
+  @ValueDescription("Allow tools to access the network")
   allowNetwork: Int @@ Counter = Tag.of(0),
   @ValueDescription("The maximum number of issues allowed for the analysis to succeed")
   maxAllowedIssues: Int = 0,

@@ -125,60 +125,8 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
-          toolSet.map(_.name) mustEqual Set("spotbugs", "checkstyle", "findbugs", "findbugssec", "pmd", "pmd-legacy")
+          toolSet.map(_.name) mustEqual Set("spotbugs", "checkstyle", "pmd", "pmd-legacy")
       }
     }
-
-    """return an informative error message if the user selects a tool that needs access
-      |to the network but doesn't provide the needed argument""".stripMargin in {
-      val toolName = "findbugs"
-      val toolConfigs = Left("some error")
-      val filesTarget = FilesTarget(File(""), Set(File("Test.cs").path), Set.empty)
-      val toolConfiguration =
-        CLIConfiguration.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
-      val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
-
-      val toolEither =
-        AnalyseExecutor.tools(Some(toolName), toolConfiguration, languages)
-
-      toolEither must beLeft(CLIError.ToolNeedsNetwork(toolName))
-    }
-
-    "list tools that need access to the network if this argument is provided" in {
-      val toolConfigs = Left("some error")
-      val filesTarget =
-        FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
-      val toolConfiguration =
-        CLIConfiguration.Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, Map.empty)
-      val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
-
-      val toolEither =
-        AnalyseExecutor.tools(None, toolConfiguration, languages)
-
-      toolEither must beRight
-      toolEither must beLike {
-        case Right(toolSet) =>
-          Tool.internetToolShortNames must contain(toolSet.map(_.name))
-      }
-    }
-
-    "not list tools that need access to the network if this argument is not provided" in {
-      val toolConfigs = Left("some error")
-      val filesTarget =
-        FilesTarget(File(""), Set(File("Test.cs").path, File("Test.java").path), Set.empty)
-      val toolConfiguration =
-        CLIConfiguration.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
-      val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
-
-      val toolEither =
-        AnalyseExecutor.tools(None, toolConfiguration, languages)
-
-      toolEither must beRight
-      toolEither must beLike {
-        case Right(toolSet) =>
-          Tool.internetToolShortNames must not contain toolSet.map(_.name)
-      }
-    }
-
   }
 }
