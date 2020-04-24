@@ -3,49 +3,7 @@ version: 2.1
 orbs:
   codacy: codacy/base@2.14.8
 
-# Re-usable blocks to reduce boilerplate in job definitions.
 references:
-  host_environment_defaults:
-    &host_environment_defaults # Customize the JVM maximum heap limit
-    JAVA_OPTS: -Xmx3200m
-
-  docker_environment_defaults:
-    &docker_environment_defaults # Customize the JVM to read correct memory values
-    JAVA_OPTS: "-XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0"
-
-  default_java_job: &default_java_job
-    docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          <<: *docker_environment_defaults
-    environment:
-      <<: *host_environment_defaults
-    working_directory: ~/workdir
-
-  restore_dependencies: &restore_dependencies
-    restore_cache:
-      keys:
-        - sbt-ivy2-dependencies-1.0.13-{{ checksum "/tmp/dependencies.cache.tmp" }}-extras
-        - sbt-ivy2-dependencies-1.0.13-{{ checksum "/tmp/dependencies.cache.tmp" }}
-        - sbt-ivy2-dependencies-1.0.13
-
-  clean_sbt_dependencies_cache: &clean_sbt_dependencies_cache
-    run:
-      name: Clean sbt dependencies cache
-      command: |
-        find ~/.sbt -name "*.lock" -delete
-        find ~/.ivy2 -name "ivydata-*.properties" -delete
-
-  setup_dependencies_key: &setup_dependencies_key
-    run:
-      name: Generate cache key
-      command: |
-        shasum build.sbt \
-          project/plugins.sbt \
-          project/build.properties \
-          project/Common.scala \
-          project/Dependencies.scala > /tmp/dependencies.cache.tmp
-
   restore_maven_dependencies: &restore_maven_dependencies
     restore_cache:
       keys:
@@ -116,74 +74,13 @@ references:
           path: ExtentReports/
 
 jobs:
-  test:
-    machine: true
-    environment:
-      <<: *host_environment_defaults
-    working_directory: ~/workdir
-    steps:
-      - attach_workspace:
-          at: ~/workdir
-      - *setup_dependencies_key
-      - *restore_dependencies
-      - run:
-          name: Configure git
-          command: |
-            git config --global user.email "team@codacy.com"
-            git config --global user.name "Codacy Team"
-      - run:
-          name: Test
-          command: ./scripts/test.sh
-      - run:
-          name: Store test reports
-          working_directory: ~/
-          command: |
-            mkdir -p ~/coverage-reports/junit
-            cp -rf ~/workdir/cli/target/test-reports ~/coverage-reports/junit/cli
-            cp -rf ~/workdir/core/target/test-reports ~/coverage-reports/junit/core
-      - store_test_results:
-          path: ~/coverage-reports
-      - store_artifacts:
-          path: ~/workdir/target/scala-2.12/coverage-report
-      - store_artifacts:
-          path: ~/workdir/target/scala-2.12/scoverage-report
-      - store_artifacts:
-          path: ~/workdir/target/scala-2.12/scoverage-data
-      - store_artifacts:
-          path: ~/workdir/target/test-reports
-
-  publish_lib:
-    <<: *default_java_job
-    steps:
-      - attach_workspace:
-          at: ~/workdir
-      - *setup_dependencies_key
-      - *restore_dependencies
-      - run:
-          name: Install AWS CLI
-          command: |
-            sudo apt -y update
-            sudo apt -y install python3-pip
-            sudo python3 -m pip install awscli
-      - run:
-          name: Setup AWS Credentials
-          command: ./scripts/setup-aws-credentials.sh
-      - run:
-          name: Retrieve GPG Keys
-          command: |
-            mkdir -p ~/.gnupg
-            aws s3 sync --profile shared-services --include '*.gpg' s3://$AWS_CREDENTIALS_BUCKET/gnupg/ ~/.gnupg
-      - run:
-          name: Publish to Sonatype
-          command: |
-            sbt "set codacyAnalysisCore / version := \"$(cat .version)\";
-                 set pgpPassphrase := Some(\"$SONATYPE_GPG_PASSPHRASE\".toCharArray);
-                 codacyAnalysisCore/publishSigned;
-                 +codacyAnalysisModels/publishSigned;
-                 sonatypeBundleRelease"
-
   maven_dependencies:
-    <<: *default_java_job
+    docker:
+      - image: circleci/openjdk:8-jdk
+        environment:
+          JAVA_OPTS: "-XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0"
+    environment:
+      JAVA_OPTS: -Xmx3200m
     working_directory: ~/integration-tests
     steps:
       - add_ssh_keys:
@@ -203,7 +100,6 @@ jobs:
           key: maven-dependencies-1.0.13-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
-
   test_staging:
     <<: *run_integration_tests
     environment:
@@ -230,16 +126,23 @@ workflows:
           write_sbt_version: true
       - codacy/sbt:
           name: compile
-          cmd: ./scripts/compile.sh
+          cmd: sbt coverage +test:compile
           persist_to_workspace: true
           requires:
             - codacy/checkout_and_version
       - codacy/sbt:
           name: lint
-          cmd: ./scripts/lint.sh
+          cmd: |
+            sbt "scalafmtCheckAll;scalafmtSbtCheck;clean;scapegoat;scalafixEnable;scalafix --test"
           requires:
             - compile
-      - test:
+      - codacy/sbt:
+          name: test
+          cmd: |
+            git config --global user.email "team@codacy.com"
+            git config --global user.name "Codacy Team"
+            sbt coverage +test coverageReport
+            bash <(curl -Ls https://coverage.codacy.com/get.sh) report --skip
           requires:
             - compile
       - codacy/sbt:
@@ -247,7 +150,7 @@ workflows:
           cmd: |
             sbt "set codacyAnalysisCli / version := \"dev-snapshot\";
                  codacyAnalysisCli/docker:publishLocal"
-            docker save --output docker-image.tar codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot
+            docker save --output docker-image.tar $CIRCLE_PROJECT_REPONAME:dev-snapshot
           persist_to_workspace: true
           requires:
             - compile
@@ -263,20 +166,20 @@ workflows:
       - test_staging:
           requires:
             - maven_dependencies
-      - publish_lib:
+      - codacy/shell:
+          name: publish_lib
           context: CodacyAWS
+          cmd: |
+            set pgpPassphrase := Some(\"$SONATYPE_GPG_PASSPHRASE\".toCharArray);
+            codacyAnalysisCore/publishSigned;
+            +codacyAnalysisModels/publishSigned;
+            sonatypeBundleRelease"
           requires:
             - test_staging
-      - codacy/shell:
+      - codacy/publish_docker:
           name: publish_dockerhub
           context: CodacyDocker
-          cmd: |
-            docker load --input docker-image.tar
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:$(cat .version)
-            docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:latest
-            docker push codacy/$CIRCLE_PROJECT_REPONAME:$(cat .version)
-            docker push codacy/$CIRCLE_PROJECT_REPONAME:latest
+          docker_tag: dev-snapshot
           requires:
             - test_staging
       - codacy/tag_version:
