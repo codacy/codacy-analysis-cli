@@ -171,10 +171,10 @@ workflows:
           name: publish_lib
           context: CodacyAWS
           cmd: |
-            set pgpPassphrase := Some(\"$SONATYPE_GPG_PASSPHRASE\".toCharArray);
-            codacyAnalysisCore/publishSigned;
-            +codacyAnalysisModels/publishSigned;
-            sonatypeBundleRelease"
+            sbt "set pgpPassphrase := Some(\"$SONATYPE_GPG_PASSPHRASE\".toCharArray);
+                 codacyAnalysisCore/publishSigned;
+                 +codacyAnalysisModels/publishSigned;
+                 sonatypeBundleRelease"
           requires:
             - test_staging
       - codacy/publish_docker:
