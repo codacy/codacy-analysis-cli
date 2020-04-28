@@ -39,6 +39,7 @@ references:
             if [[ "$CODACY_ANALYSIS_CLI_VERSION" != "latest" ]]
             then
               docker load --input /tmp/workspace/workdir/docker-image.tar
+              docker tag codacy-analysis-cli:dev-snapshot codacy/codacy-analysis-cli:dev-snapshot
             else
               echo "Skipping load of docker when testing latest"
             fi
