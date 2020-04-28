@@ -167,7 +167,7 @@ workflows:
       - test_staging:
           requires:
             - maven_dependencies
-      - codacy/shell:
+      - codacy/sbt:
           name: publish_lib
           context: CodacyAWS
           cmd: |
