@@ -27,7 +27,8 @@ object Common {
     organization := "com.codacy",
     scalacOptions ++= Common.compilerFlags(scalaVersion.value),
     Test / scalacOptions += "-Yrangepos",
-    Compile / console / scalacOptions --= Seq("-Ywarn-unused", "-Ywarn-unused:imports", "-Xfatal-warnings"),
+    Compile / console / scalacOptions --= Seq("-Ywarn-unused", "-Ywarn-unused:imports"),
+    scalacOptions -= "-Xfatal-warnings",
     Compile / doc / sources := Seq.empty)
 
   val dockerSettings: Seq[Def.Setting[_]] = Seq(

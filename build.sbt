@@ -1,54 +1,16 @@
 import sbt._
 
-Global / useGpg := false
+Universal / javaOptions ++= Seq("-Xms1g", "-Xmx2g", "-Xss512m", "-XX:+UseG1GC", "-XX:+UseStringDeduplication")
 
-// Sonatype repository settings
-val sonatypePublishSettings = Seq(
-  publishMavenStyle := true,
-  Test / publishArtifact := false,
-  Docker / publish := {},
-  Docker / publishLocal := {},
-  pomIncludeRepository := (_ => false),
-  publishTo := sonatypePublishToBundle.value)
-
-val sonatypeInformation =
-  Seq(
-    organizationName := "Codacy",
-    organizationHomepage := Some(new URL("https://www.codacy.com")),
-    startYear := Some(2018),
-    licenses := Seq("AGPL-3.0" -> url("https://opensource.org/licenses/AGPL-3.0")),
-    homepage := Some(url("https://github.com/codacy/codacy-analysis-cli")),
-    pomExtra := <scm>
-      <url>https://github.com/codacy/codacy-analysis-cli</url>
-      <connection>scm:git:git@github.com:codacy/codacy-analysis-cli.git</connection>
-      <developerConnection>scm:git:https://github.com/codacy/codacy-analysis-cli.git</developerConnection>
-    </scm>
-      <developers>
-        <developer>
-          <id>rtfpessoa</id>
-          <name>Rodrigo Fernandes</name>
-          <email>rodrigo [at] codacy.com</email>
-          <url>https://github.com/rtfpessoa</url>
-        </developer>
-        <developer>
-          <id>bmbferreira</id>
-          <name>Bruno Ferreira</name>
-          <email>bruno.ferreira [at] codacy.com</email>
-          <url>https://github.com/bmbferreira</url>
-        </developer>
-        <developer>
-          <id>xplosunn</id>
-          <name>Hugo Sousa</name>
-          <email>hugo [at] codacy.com</email>
-          <url>https://github.com/xplosunn</url>
-        </developer>
-        <developer>
-          <id>pedrocodacy</id>
-          <name>Pedro Amaral</name>
-          <email>pamaral [at] codacy.com</email>
-          <url>https://github.com/pedrocodacy</url>
-        </developer>
-      </developers>)
+val sonatypeInformation = Seq(
+  startYear := Some(2018),
+  homepage := Some(url("https://github.com/codacy/codacy-analysis-cli")),
+  // HACK: This setting is not picked up properly from the plugin
+  pgpPassphrase := Option(System.getenv("SONATYPE_GPG_PASSPHRASE")).map(_.toCharArray),
+  scmInfo := Some(
+    ScmInfo(
+      url("https://github.com/codacy/codacy-analysis-cli"),
+      "scm:git:git@github.com:codacy/codacy-analysis-cli.git"))) ++ publicMvnPublish
 
 lazy val root = project
   .in(file("."))

@@ -171,7 +171,7 @@ workflows:
           name: publish_lib
           context: CodacyAWS
           cmd: |
-            sbt "set pgpPassphrase := Some(\"$SONATYPE_GPG_PASSPHRASE\".toCharArray);
+            sbt "retrieveGPGKeys;
                  codacyAnalysisCore/publishSigned;
                  +codacyAnalysisModels/publishSigned;
                  sonatypeBundleRelease"
