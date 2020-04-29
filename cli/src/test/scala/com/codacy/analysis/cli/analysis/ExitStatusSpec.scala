@@ -89,15 +89,19 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
     "send partial failure when some tools fail" in {
       new ExitStatus(10, failIfIncomplete = true).exitCode(Right(Seq(
         IssuesToolExecutorResult("MyTool", Set(), Success(Set())),
-        IssuesToolExecutorResult("MyTool", Set(Paths.get("Test.scala")), Failure(new Exception("Failed")))))) should beEqualTo(
-        ExitStatus.ExitCodes.partiallyFailedAnalysis)
+        IssuesToolExecutorResult(
+          "MyTool",
+          Set(Paths.get("Test.scala")),
+          Failure(new Exception("Failed")))))) should beEqualTo(ExitStatus.ExitCodes.partiallyFailedAnalysis)
     }
 
     "send ok when some tools fail and incomplete not requested" in {
       new ExitStatus(10, failIfIncomplete = false).exitCode(Right(Seq(
         IssuesToolExecutorResult("MyTool", Set(), Success(Set())),
-        IssuesToolExecutorResult("MyTool", Set(Paths.get("Test.scala")), Failure(new Exception("Failed")))))) should beEqualTo(
-        ExitStatus.ExitCodes.success)
+        IssuesToolExecutorResult(
+          "MyTool",
+          Set(Paths.get("Test.scala")),
+          Failure(new Exception("Failed")))))) should beEqualTo(ExitStatus.ExitCodes.success)
     }
 
     "send failedUpload when uploader has an error" in {

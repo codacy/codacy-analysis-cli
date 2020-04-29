@@ -53,8 +53,8 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
     }
 
     val exampleResultsEither = for {
-      resultsJson <- parser.parse(
-        Resource.getAsString("com/codacy/analysis/core/upload/cli-output-monogatari-eslint-1.json"))
+      resultsJson <-
+        parser.parse(Resource.getAsString("com/codacy/analysis/core/upload/cli-output-monogatari-eslint-1.json"))
       exampleResults <- resultsJson.as[Set[ToolResult]]
     } yield exampleResults
 

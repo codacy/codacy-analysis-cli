@@ -75,11 +75,13 @@ object CodacyConfigurationFile {
           val extraToolConfigurations: Map[String, JsValue] = extraKeys.flatMap { extraKey =>
             c.downField(extraKey)
               .as[Json]
-              .fold[Option[JsValue]]({ _ =>
-                Option.empty
-              }, { json =>
-                Try(play.api.libs.json.Json.parse(json.noSpaces)).toOption
-              })
+              .fold[Option[JsValue]](
+                { _ =>
+                  Option.empty
+                },
+                { json =>
+                  Try(play.api.libs.json.Json.parse(json.noSpaces)).toOption
+                })
               .map(value => (extraKey, value))
           }(collection.breakOut)
 

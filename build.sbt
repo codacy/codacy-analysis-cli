@@ -75,10 +75,10 @@ lazy val codacyAnalysisCore = project
       Dependencies.log4s ++
       Dependencies.codacyPlugins,
     // Test Dependencies
-    libraryDependencies ++= Dependencies.specs2)
-  .settings(sonatypePublishSettings)
-  .settings(sonatypeInformation ++
-    Seq(description := "Library to analyse projects"))
+    libraryDependencies ++= Dependencies.specs2,
+    sonatypeInformation,
+    description := "Library to analyse projects")
+  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisModels)
 
 lazy val codacyAnalysisCli = project
@@ -95,6 +95,7 @@ lazy val codacyAnalysisCli = project
     libraryDependencies ++= Dependencies.pprint +: Dependencies.specs2)
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
+  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisCore % "compile->compile;test->test")
   .aggregate(codacyAnalysisCore)
 
@@ -106,10 +107,10 @@ lazy val codacyAnalysisModels = project
     Common.genericSettings,
     publishTo := sonatypePublishToBundle.value,
     libraryDependencies ++=
-      Dependencies.circe ++ Seq(Dependencies.pluginsApi) ++ Dependencies.specs2)
-  .settings(sonatypePublishSettings)
-  .settings(sonatypeInformation ++
-    Seq(description := "Library with analysis models"))
+      Dependencies.circe ++ Seq(Dependencies.pluginsApi) ++ Dependencies.specs2,
+    description := "Library with analysis models")
+  .settings(sonatypeInformation)
+  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .enablePlugins(JavaAppPackaging)
 
 // Scapegoat

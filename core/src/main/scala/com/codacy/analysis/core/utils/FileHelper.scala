@@ -15,14 +15,16 @@ object FileHelper {
   def relativePath(filename: String): Path = File.currentWorkingDirectory.relativize(File(filename))
 
   def countLoc(filename: String): Option[Int] = {
-    Try(File(filename).lineIterator).fold({ t =>
-      logger.error(t)(s"Failed to read file $filename")
-      Option.empty[Int]
-    }, { lines =>
-      Some(lines.foldLeft(0) {
-        case (counter, line) if line.trim.length >= 3 => counter + 1
-        case (counter, _)                             => counter
+    Try(File(filename).lineIterator).fold(
+      { t =>
+        logger.error(t)(s"Failed to read file $filename")
+        Option.empty[Int]
+      },
+      { lines =>
+        Some(lines.foldLeft(0) {
+          case (counter, line) if line.trim.length >= 3 => counter + 1
+          case (counter, _)                             => counter
+        })
       })
-    })
   }
 }

@@ -138,16 +138,17 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
       }
     }
 
-  private def sendEndOfResultsTo(endpoint: String): Future[Either[String, Unit]] = Future {
-    http.post(endpoint, None) match {
-      case Left(error) =>
-        logger.error(error)(s"Error sending end of upload results to endpoint $endpoint")
-        Left(error.message)
-      case Right(json) =>
-        logger.info(s"""Success posting end of results to endpoint "$endpoint" """)
-        validateRemoteResultsResponse(json, isEnd = true)
+  private def sendEndOfResultsTo(endpoint: String): Future[Either[String, Unit]] =
+    Future {
+      http.post(endpoint, None) match {
+        case Left(error) =>
+          logger.error(error)(s"Error sending end of upload results to endpoint $endpoint")
+          Left(error.message)
+        case Right(json) =>
+          logger.info(s"""Success posting end of results to endpoint "$endpoint" """)
+          validateRemoteResultsResponse(json, isEnd = true)
+      }
     }
-  }
 
   private def getProjectConfigurationFrom(endpoint: String) = {
     http.get(endpoint) match {

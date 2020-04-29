@@ -12,23 +12,25 @@ class FallbackFileCollectorSpec extends Specification with NoLanguageFeatures {
   private val failingCompanion: FileCollectorCompanion[Try] = new FileCollectorCompanion[Try] {
     override def name: String = ""
 
-    override def apply(): FileCollector[Try] = new FileCollector[Try] {
+    override def apply(): FileCollector[Try] =
+      new FileCollector[Try] {
 
-      override def list(directory: File): Try[FilesTarget] = {
-        Failure(new Exception("because fail"))
+        override def list(directory: File): Try[FilesTarget] = {
+          Failure(new Exception("because fail"))
+        }
       }
-    }
   }
 
   private val successfulCompanion: FileCollectorCompanion[Try] = new FileCollectorCompanion[Try] {
     override def name: String = ""
 
-    override def apply(): FileCollector[Try] = new FileCollector[Try] {
+    override def apply(): FileCollector[Try] =
+      new FileCollector[Try] {
 
-      override def list(directory: File): Try[FilesTarget] = {
-        Success(FilesTarget(directory, Set.empty, Set.empty))
+        override def list(directory: File): Try[FilesTarget] = {
+          Success(FilesTarget(directory, Set.empty, Set.empty))
+        }
       }
-    }
   }
 
   "FallbackFileCollectorSpec" should {

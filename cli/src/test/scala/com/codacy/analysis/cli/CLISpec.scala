@@ -64,7 +64,15 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
         Right(errorMsg("Unrecognized argument: --bad-parameter")))
       cli.parse(Array("analyse", "analyse", "--tool-timeout", "1semilha")) must beEqualTo(
         Right(errorMsg("Invalid duration 1semilha (e.g. 20minutes, 10seconds, ...)")))
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--commit-uuid", "hold-my-flappy-folds")) must beEqualTo(
+      cli.parse(
+        Array(
+          "analyse",
+          "--directory",
+          "/tmp",
+          "--tool",
+          "pylint",
+          "--commit-uuid",
+          "hold-my-flappy-folds")) must beEqualTo(
         Right(errorMsg("Invalid commit uuid hold-my-flappy-folds - it must be a valid SHA hash")))
     }
 
@@ -183,8 +191,8 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           val result = for {
             responseJson <- parser.parse(file.contentAsString)
             response <- responseJson.as[Set[ToolResult]]
-            expectedJson <- parser.parse(
-              Resource.getAsString("com/codacy/analysis/cli/cli-output-brakeman-rails4.json"))
+            expectedJson <-
+              parser.parse(Resource.getAsString("com/codacy/analysis/cli/cli-output-brakeman-rails4.json"))
             expected <- expectedJson.as[Seq[ToolResult]]
           } yield (response, expected)
 
@@ -214,8 +222,8 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           val result = for {
             responseJson <- parser.parse(file.contentAsString)
             response <- responseJson.as[Set[Result]]
-            expectedJson <- parser.parse(
-              Resource.getAsString("com/codacy/analysis/cli/cli-output-brakeman-rails-metrics.json"))
+            expectedJson <-
+              parser.parse(Resource.getAsString("com/codacy/analysis/cli/cli-output-brakeman-rails-metrics.json"))
             expected <- expectedJson.as[Set[Result]]
           } yield (response, expected)
 
