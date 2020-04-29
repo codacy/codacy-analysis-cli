@@ -156,10 +156,10 @@ workflows:
           requires:
             - compile
       - maven_dependencies:
-          filters:
-            branches:
-              only:
-                - master
+          # filters:
+          #   branches:
+          #     only:
+          #       - master
           requires:
             - test
             - lint
