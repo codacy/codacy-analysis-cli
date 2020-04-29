@@ -114,7 +114,7 @@ final case class APIOptions(@ValueDescription("The project token.")
                             @ValueDescription("The project name.")
                             project: Option[ProjectName] = Option.empty,
                             @ValueDescription("The codacy api base url.")
-                            codacyApiBaseUrl: Option[String] = Option.empty)
+                            codacyApiBaseUrl: Option[String] = Some("https://api.codacy.com"))
 
 final case class ExtraOptions(
   @Hidden @ValueDescription(s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")
