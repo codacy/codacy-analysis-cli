@@ -26,8 +26,8 @@ object ResultsUploader {
   def apply(codacyClientOpt: Option[CodacyClient],
             upload: Boolean,
             commitUuidOpt: Option[Commit.Uuid],
-            batchSize: Option[Int] = Option.empty[Int])(
-    implicit context: ExecutionContext): Either[String, Option[ResultsUploader]] = {
+            batchSize: Option[Int] = Option.empty[Int])(implicit
+    context: ExecutionContext): Either[String, Option[ResultsUploader]] = {
     if (upload) {
       for {
         codacyClient <- codacyClientOpt.toRight("No credentials found.")
@@ -40,8 +40,8 @@ object ResultsUploader {
   }
 }
 
-class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClient, batchSizeOpt: Option[Int])(
-  implicit context: ExecutionContext) {
+class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClient, batchSizeOpt: Option[Int])(implicit
+  context: ExecutionContext) {
 
   private val logger: Logger = getLogger
 

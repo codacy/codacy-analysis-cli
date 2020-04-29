@@ -1,5 +1,0 @@
--Xms1g
--Xmx2g
--Xss512m
--XX:+UseG1GC
--XX:+UseStringDeduplication

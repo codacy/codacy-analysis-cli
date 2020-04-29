@@ -1,4 +1,5 @@
 package com.codacy.analysis.cli.analysis
+
 import java.nio.file.Path
 
 import better.files.File
@@ -21,8 +22,8 @@ object MetricsToolExecutor {
       .flatMap {
         _.foldLeft(Option.empty[MetricsToolExecutorResult]) {
           case (
-              Some(metricsExecutorResAcc @ MetricsToolExecutorResult(_, _, Success(fileMetricsAcc))),
-              metricsExecutorRes @ MetricsToolExecutorResult(_, _, Success(fileMetrics))) =>
+                Some(metricsExecutorResAcc @ MetricsToolExecutorResult(_, _, Success(fileMetricsAcc))),
+                metricsExecutorRes @ MetricsToolExecutorResult(_, _, Success(fileMetrics))) =>
             val allFiles = metricsExecutorResAcc.files ++ metricsExecutorRes.files
             val reducedFileMetrics = reduceFileMetricsByFile(fileMetrics ++ fileMetricsAcc)
             Some(metricsExecutorResAcc.copy(files = allFiles, analysisResults = Success(reducedFileMetrics)))

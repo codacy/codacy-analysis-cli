@@ -6,10 +6,10 @@ import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.analysis.ExitStatus.ExitCodes
 
 abstract class CommandAppWithBaseCommand[D, T](implicit
-                                               val beforeCommandParser: Parser[D],
-                                               baseBeforeCommandMessages: Messages[D],
-                                               val commandParser: CommandParser[T],
-                                               val commandsMessages: CommandsMessages[T]) {
+  val beforeCommandParser: Parser[D],
+  baseBeforeCommandMessages: Messages[D],
+  val commandParser: CommandParser[T],
+  val commandsMessages: CommandsMessages[T]) {
 
   def defaultCommand(options: D, remainingArgs: Seq[String]): Unit
 

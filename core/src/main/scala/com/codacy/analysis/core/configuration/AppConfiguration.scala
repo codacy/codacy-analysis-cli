@@ -1,4 +1,5 @@
 package com.codacy.analysis.core.configuration
+
 import com.typesafe.config.{Config, ConfigFactory}
 
 object AppConfiguration {

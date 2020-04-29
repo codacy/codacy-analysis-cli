@@ -167,9 +167,11 @@ object CLIConfiguration {
           enabled = toolConfig.isEnabled,
           notEdited = toolConfig.notEdited,
           patterns = toolConfig.patterns.map { pattern =>
-            CLIConfiguration.IssuesTool.Pattern(id = pattern.internalId, parameters = pattern.parameters.map { param =>
-              CLIConfiguration.IssuesTool.Parameter(param.name, param.value)
-            })
+            CLIConfiguration.IssuesTool.Pattern(
+              id = pattern.internalId,
+              parameters = pattern.parameters.map { param =>
+                CLIConfiguration.IssuesTool.Parameter(param.name, param.value)
+              })
           })
       }
     }

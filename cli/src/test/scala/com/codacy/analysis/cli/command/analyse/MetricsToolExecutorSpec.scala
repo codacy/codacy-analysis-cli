@@ -1,4 +1,5 @@
 package com.codacy.analysis.cli.command.analyse
+
 import java.nio.file.Paths
 
 import better.files.File

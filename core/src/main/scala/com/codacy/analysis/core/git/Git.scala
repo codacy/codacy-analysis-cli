@@ -28,10 +28,12 @@ object Git {
     Git
       .repository(directory)
       .flatMap(_.latestCommit)
-      .fold({ e =>
-        logger.warn(e)(e.getMessage)
-        None
-      }, commit => Some(commit.commitUuid))
+      .fold(
+        { e =>
+          logger.warn(e)(e.getMessage)
+          None
+        },
+        commit => Some(commit.commitUuid))
   }
 
 }
