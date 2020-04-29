@@ -40,6 +40,7 @@ lazy val codacyAnalysisCore = project
     libraryDependencies ++= Dependencies.specs2,
     sonatypeInformation,
     description := "Library to analyse projects")
+  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisModels)
 
@@ -57,6 +58,7 @@ lazy val codacyAnalysisCli = project
     libraryDependencies ++= Dependencies.pprint +: Dependencies.specs2)
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
+  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisCore % "compile->compile;test->test")
   .aggregate(codacyAnalysisCore)
@@ -72,6 +74,7 @@ lazy val codacyAnalysisModels = project
       Dependencies.circe ++ Seq(Dependencies.pluginsApi) ++ Dependencies.specs2,
     description := "Library with analysis models")
   .settings(sonatypeInformation)
+  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .enablePlugins(JavaAppPackaging)
 
