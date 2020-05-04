@@ -14,7 +14,7 @@ object Dependencies {
 
   lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.6.0"
 
-  lazy val jodaTime = "joda-time" % "joda-time" % "2.10.5"
+  lazy val jodaTime = "joda-time" % "joda-time" % "2.10.6"
 
   lazy val log4s =
     Seq("ch.qos.logback" % "logback-classic" % "1.2.3", "org.log4s" %% "log4s" % "1.8.2")
