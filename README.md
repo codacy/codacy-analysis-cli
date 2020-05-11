@@ -242,7 +242,7 @@ codacy-analysis-cli analyse \
 #### API Token
 
 You can find the project token in:
-* `Account -> API Tokens`
+* `Account -> Access Management`
 
 The username and project name can be retrieved from the URL in Codacy.
 
