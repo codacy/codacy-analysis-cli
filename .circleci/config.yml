@@ -77,7 +77,7 @@ references:
 jobs:
   maven_dependencies:
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: circleci/openjdk:14-jdk-buster
         environment:
           JAVA_OPTS: "-XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0"
     environment:
@@ -156,10 +156,10 @@ workflows:
           requires:
             - compile
       - maven_dependencies:
-          filters:
-            branches:
-              only:
-                - master
+          # filters:
+          #   branches:
+          #     only:
+          #       - master
           requires:
             - test
             - lint
@@ -177,12 +177,20 @@ workflows:
                  sonatypeBundleRelease"
           requires:
             - test_staging
+          filters:
+            branches:
+              only:
+                - master
       - codacy/publish_docker:
           name: publish_dockerhub
           context: CodacyDocker
           docker_tag: dev-snapshot
           requires:
             - test_staging
+          filters:
+            branches:
+              only:
+                - master
       - codacy/tag_version:
           context: CodacyAWS
           requires:
