@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
 
-  val codacyPluginsVersion = "15.1.12_play_2.7"
+  val codacyPluginsVersion = "15.1.13_play_2.7"
   val circeVersion = "0.12.3"
   val specs2Version = "4.8.1"
 
