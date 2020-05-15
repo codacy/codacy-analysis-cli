@@ -12,7 +12,7 @@ object Dependencies {
     "io.circe" %% "circe-parser" % circeVersion,
     "io.circe" %% "circe-yaml" % "0.13.1")
 
-  lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.6.0"
+  lazy val betterFiles = "com.github.pathikrit" %% "better-files" % "3.9.0"
 
   lazy val jodaTime = "joda-time" % "joda-time" % "2.10.6"
 
