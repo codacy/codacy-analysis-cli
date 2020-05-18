@@ -91,7 +91,7 @@ class IssuesReportSerializerSpec extends Specification with NoLanguageFeatures {
         )
       )
 
-      val expectedJSON = s"""[{"tool":"$toolName","issues":{"Failure":{"mesage":"$errorMsg"}}}]"""
+      val expectedJSON = s"""[{"tool":"$toolName","issues":{"Failure":{"message":"$errorMsg"}}}]"""
 
       expectedJSON mustEqual failureJson
     }
