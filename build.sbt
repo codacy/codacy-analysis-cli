@@ -12,12 +12,6 @@ val sonatypeInformation = Seq(
       url("https://github.com/codacy/codacy-analysis-cli"),
       "scm:git:git@github.com:codacy/codacy-analysis-cli.git"))) ++ publicMvnPublish
 
-lazy val root = project
-  .in(file("."))
-  .settings(name := "root", Common.genericSettings)
-  .aggregate(codacyAnalysisCore, codacyAnalysisCli)
-  .settings(publish := {}, publishLocal := {}, publishArtifact := false)
-
 lazy val codacyAnalysisCore = project
   .in(file("core"))
   .settings(name := "codacy-analysis-core")
