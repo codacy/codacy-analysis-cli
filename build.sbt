@@ -1,4 +1,5 @@
 import sbt._
+import codacy.libs._
 
 Universal / javaOptions ++= Seq("-Xms1g", "-Xmx2g", "-Xss512m", "-XX:+UseG1GC", "-XX:+UseStringDeduplication")
 
@@ -21,7 +22,7 @@ lazy val codacyAnalysisCore = project
     // App Dependencies
     libraryDependencies ++= Seq(
       Dependencies.caseApp,
-      Dependencies.betterFiles,
+      betterFiles,
       Dependencies.jodaTime,
       Dependencies.scalajHttp,
       Dependencies.jGit,
