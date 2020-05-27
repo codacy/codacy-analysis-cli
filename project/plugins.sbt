@@ -5,7 +5,7 @@ addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
 
 // Static Analysis
 addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.1.0")
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.11")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.16")
 
 // Formatting
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.3.2")
