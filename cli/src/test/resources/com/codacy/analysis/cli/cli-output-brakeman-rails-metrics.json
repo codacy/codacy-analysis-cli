@@ -1565,7 +1565,7 @@
   {
     "FileMetrics": {
       "filename": "src/main/resources/docs/directory-tests/rails4/app/assets/javascripts/application.js",
-      "complexity": null,
+      "complexity": 0,
       "loc": 0,
       "cloc": 16,
       "nrMethods": null,
@@ -1576,7 +1576,7 @@
   {
     "FileMetrics": {
       "filename": "src/main/resources/docs/directory-tests/rails3/public/javascripts/application.js",
-      "complexity": null,
+      "complexity": 0,
       "loc": 0,
       "cloc": 2,
       "nrMethods": null,
@@ -1687,7 +1687,7 @@
   {
     "FileMetrics": {
       "filename": "src/main/resources/docs/directory-tests/rails3/public/javascripts/dragdrop.js",
-      "complexity": null,
+      "complexity": 0,
       "loc": 786,
       "cloc": 26,
       "nrMethods": null,
