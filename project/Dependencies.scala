@@ -23,7 +23,7 @@ object Dependencies {
       "org.specs2" %% "specs2-mock" % specs2Version,
       "org.specs2" %% "specs2-matcher-extra" % specs2Version).map(_ % Test)
 
-  lazy val caseApp = "com.github.alexarchambault" %% "case-app" % "1.2.0"
+  lazy val caseApp = "com.github.alexarchambault" %% "case-app" % "2.0.1"
 
   val codacyPlugins =
     Seq("com.codacy" %% "codacy-plugins", "com.codacy" %% "codacy-plugins-runner-binary").map(_ % codacyPluginsVersion)
