@@ -39,4 +39,22 @@ object Dependencies {
   lazy val jGit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.6.0.201912101111-r"
 
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.0"
+
+  val akkaVersion = "2.5.26"
+  val akkaHttpVersion = "10.1.9"
+
+  val akka =
+    Seq(
+      "com.typesafe.akka" %% "akka-actor" % akkaVersion force,
+      "com.typesafe.akka" %% "akka-stream" % akkaVersion force,
+      "com.typesafe.akka" %% "akka-slf4j" % akkaVersion force,
+      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion)
+
+  val macroParadise = "org.scalamacros" %% "paradise" % "2.1.1"
+
+  val silencerVersion = "1.7.0"
+
+  val silencer = Seq(
+    compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
+    "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full)
 }

@@ -81,5 +81,9 @@ object Analyser {
       override val message: String = "No tools found for files provided"
     }
 
+    case object FailedToContactCodacyApi extends Error {
+      override val message: String = "Failed to contact Codacy API to fetch tools information"
+    }
+
   }
 }

@@ -75,11 +75,4 @@ object CodacyPluginsAnalyser extends AnalyserCompanion[Try] {
   val name: String = "codacy-plugins"
 
   override def apply(): Analyser[Try] = new CodacyPluginsAnalyser()
-
-  object errors {
-
-    def missingTool(tool: String): Analyser.Error =
-      Analyser.Error.NonExistingToolInput(tool, Tool.allToolShortNames)
-  }
-
 }

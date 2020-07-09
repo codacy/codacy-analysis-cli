@@ -125,7 +125,7 @@ final case class Analyse(
   options: CommonOptions,
   @Recurse
   api: APIOptions,
-  @ExtraName("t") @ValueDescription(s"The tool to analyse the code. (${Tool.allToolShortNames.mkString(", ")})")
+  @ExtraName("t") @ValueDescription(s"The tool to analyse the code.")
   tool: Option[String],
   @ExtraName("d") @ValueDescription("The directory to analyse.")
   directory: Option[File],

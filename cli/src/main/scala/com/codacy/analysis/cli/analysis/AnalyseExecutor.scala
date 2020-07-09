@@ -13,72 +13,78 @@ import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.tools._
 import com.codacy.analysis.core.utils.InheritanceOps.InheritanceOps
 import com.codacy.analysis.core.utils.SeqOps._
-import com.codacy.analysis.core.utils.TryOps._
 import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
 import com.codacy.plugins.api.languages.Language
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
 
 class AnalyseExecutor(formatter: Formatter,
                       analyser: Analyser[Try],
                       fileCollector: FileCollector[Try],
-                      configuration: CLIConfiguration.Analysis) {
+                      configuration: CLIConfiguration.Analysis,
+                      toolCollector: ToolCollector)(implicit val ec: ExecutionContext) {
 
   import com.codacy.analysis.cli.analysis.AnalyseExecutor._
 
   private val logger: Logger = getLogger
 
-  def run(): Either[CLIError, Seq[ExecutorResult[_]]] = {
+  def run(): Future[Either[CLIError, Seq[ExecutorResult[_]]]] = {
 
     if (configuration.forceFilePermissions) {
       overrideFilePermissions(configuration.projectDirectory)
     }
 
-    val filesTargetAndTool: Either[CLIError, (FilesTarget, FilesTarget, Set[ITool])] = for {
-      allFilesTarget <- fileCollector.list(configuration.projectDirectory).toRight(CLIError.FilesAccessError)
-      filesGlobalTarget = fileCollector.filterGlobal(allFilesTarget, configuration.fileExclusionRules)
-      tools <- allTools(
-        configuration.tool,
-        configuration.toolConfiguration,
-        LanguagesHelper.fromFileTarget(filesGlobalTarget, configuration.fileExclusionRules.allowedExtensionsByLanguage))
-    } yield (allFilesTarget, filesGlobalTarget, tools)
+    val filesTargetAndTool: Future[Either[CLIError, (FilesTarget, FilesTarget, Set[ITool])]] =
+      fileCollector.list(configuration.projectDirectory) match {
+        case Failure(_) => Future.successful(Left(CLIError.FilesAccessError))
+        case Success(allFilesTarget) =>
+          val filesGlobalTarget = fileCollector.filterGlobal(allFilesTarget, configuration.fileExclusionRules)
+          val toolsF = allTools(
+            configuration.tool,
+            configuration.toolConfiguration,
+            LanguagesHelper
+              .fromFileTarget(filesGlobalTarget, configuration.fileExclusionRules.allowedExtensionsByLanguage))
+          toolsF.map(_.map(tools => (allFilesTarget, filesGlobalTarget, tools)))
+      }
 
-    val analysisResult: Either[CLIError, Seq[ExecutorResult[_]]] = filesTargetAndTool.map {
+    val analysisResult = filesTargetAndTool.map(_.map {
       case (allFiles, globalFiles, tools) =>
-        SetOps.mapInParallel[ITool, ExecutorResult[_]](tools, configuration.parallel) { tool: ITool =>
-          val filteredFiles: FilesTarget =
-            fileCollector.filterTool(tool, globalFiles, configuration.fileExclusionRules)
+        SetOps.mapInParallel[ITool, ExecutorResult[_]](tools, configuration.parallel) {
+          tool: ITool =>
+            val filteredFiles: FilesTarget =
+              fileCollector.filterTool(tool, globalFiles, configuration.fileExclusionRules)
 
-          tool match {
-            case tool: Tool =>
-              val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
-              val analysisResults =
-                issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles)
-              IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, analysisResults)
-            case metricsTool: MetricsTool =>
-              val analysisResults =
-                analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles))
-              MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, analysisResults)
-            case duplicationTool: DuplicationTool =>
-              val analysisResults =
-                analyser.duplication(duplicationTool, filteredFiles.directory, filteredFiles.readableFiles)
-              DuplicationToolExecutorResult(
-                duplicationTool.languageToRun.name,
-                filteredFiles.readableFiles,
-                analysisResults)
-          }
+            tool match {
+              case tool: Tool =>
+                val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
+                val analysisResults =
+                  issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles)
+                IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, analysisResults)
+              case metricsTool: MetricsTool =>
+                val analysisResults =
+                  analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles))
+                MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, analysisResults)
+              case duplicationTool: DuplicationTool =>
+                val analysisResults =
+                  analyser.duplication(duplicationTool, filteredFiles.directory, filteredFiles.readableFiles)
+                DuplicationToolExecutorResult(
+                  duplicationTool.languageToRun.name,
+                  filteredFiles.readableFiles,
+                  analysisResults)
+            }
         }
-    }
+    })
 
     postProcess(analysisResult)
   }
 
-  private def postProcess(
-    analysisResult: Either[CLIError, Seq[ExecutorResult[_]]]): Either[CLIError, Seq[ExecutorResult[_]]] = {
-    analysisResult.map { result =>
+  private def postProcess(analysisResultF: Future[Either[CLIError, Seq[ExecutorResult[_]]]])
+    : Future[Either[CLIError, Seq[ExecutorResult[_]]]] = {
+    analysisResultF.map(_.map { result =>
       val (issuesResults, duplicationResults, metricsResults) =
         result.partitionSubtypes[IssuesToolExecutorResult, DuplicationToolExecutorResult, MetricsToolExecutorResult]
 
@@ -95,7 +101,7 @@ class AnalyseExecutor(formatter: Formatter,
       formatter.end()
 
       executorResults
-    }
+    })
   }
 
   private def issues(tool: Tool,
@@ -120,10 +126,9 @@ class AnalyseExecutor(formatter: Formatter,
       getExtraConfiguration(configuration.extraToolConfigurations, tool)
     (for {
       allToolsConfiguration <- configuration.toolConfigurations
-      toolConfiguration <-
-        allToolsConfiguration
-          .find(_.uuid.equalsIgnoreCase(tool.uuid))
-          .toRight[String](s"Could not find configuration for tool ${tool.name}")
+      toolConfiguration <- allToolsConfiguration
+        .find(_.uuid.equalsIgnoreCase(tool.uuid))
+        .toRight[String](s"Could not find configuration for tool ${tool.name}")
     } yield {
       val shouldUseConfigFile = toolConfiguration.notEdited && hasConfigFiles
       val shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile && toolConfiguration.patterns.nonEmpty
@@ -172,6 +177,63 @@ class AnalyseExecutor(formatter: Formatter,
     Process(Seq("find", sourceDirectory.pathAsString, "-type", "f", "-exec", "chmod", "ugo+r", "{}", ";")).!
   }
 
+  def allTools(toolInput: Option[String],
+               configuration: CLIConfiguration.Tool,
+               languages: Set[Language]): Future[Either[CLIError, Set[ITool]]] = {
+
+    def metricsTools = MetricsToolCollector.fromLanguages(languages)
+    def duplicationTools = DuplicationToolCollector.fromLanguages(languages)
+
+    toolInput match {
+      case None =>
+        val toolsF = tools(toolInput, configuration, languages)
+
+        toolsF.map(toolsEither => toolsEither.map(_ ++ metricsTools ++ duplicationTools))
+
+      case Some("metrics") =>
+        Future.successful(Right(metricsTools.map(_.to[ITool])))
+
+      case Some("duplication") =>
+        Future.successful(Right(duplicationTools.map(_.to[ITool])))
+
+      case Some(_) =>
+        val toolsF = tools(toolInput, configuration, languages)
+        toolsF.map(toolsEither => toolsEither.map(_.map(_.to[ITool])))
+    }
+  }
+
+  def tools(toolInput: Option[String],
+            configuration: CLIConfiguration.Tool,
+            languages: Set[Language]): Future[Either[CLIError, Set[Tool]]] = {
+
+    def fromRemoteConfig: Future[Either[CLIError, Set[Tool]]] = {
+      configuration.toolConfigurations match {
+        case Left(e) => Future.successful(Left(CLIError.NoRemoteProjectConfiguration(e)))
+        case Right(toolConfiguration) =>
+          val toolUuids = toolConfiguration.filter(_.enabled).map(_.uuid)
+          toolCollector
+            .fromToolUUIDs(toolUuids, languages)
+            .map(_.left.map(_ => CLIError.NonExistentToolsFromRemoteConfiguration(toolUuids)))
+      }
+    }
+
+    def fromLocalConfig: Future[Either[CLIError, Set[Tool]]] = {
+      toolCollector.fromLanguages(languages).map(_.left.map(CLIError.from))
+    }
+
+    toolInput.map { toolStr =>
+      toolCollector.fromNameOrUUID(toolStr, languages).map(_.left.map(CLIError.from))
+    }.getOrElse {
+      fromRemoteConfig.flatMap { remoteConfigEither =>
+        fromLocalConfig.map { localConfigEither =>
+          for {
+            e1 <- remoteConfigEither.left
+            e2 <- localConfigEither.left
+          } yield CLIError.CouldNotGetTools(s"${e1.message} and ${e2.message}")
+        }
+      }
+    }
+  }
 }
 
 object AnalyseExecutor {
@@ -190,57 +252,4 @@ object AnalyseExecutor {
                                                  files: Set[Path],
                                                  analysisResults: Try[Set[DuplicationClone]])
       extends ExecutorResult[DuplicationClone]
-
-  def allTools(toolInput: Option[String],
-               configuration: CLIConfiguration.Tool,
-               languages: Set[Language]): Either[CLIError, Set[ITool]] = {
-
-    def metricsTools = MetricsToolCollector.fromLanguages(languages)
-    def duplicationTools = DuplicationToolCollector.fromLanguages(languages)
-
-    toolInput match {
-      case None =>
-        val toolsEither = tools(toolInput, configuration, languages)
-
-        toolsEither.map(_ ++ metricsTools ++ duplicationTools)
-
-      case Some("metrics") =>
-        Right(metricsTools.map(_.to[ITool]))
-
-      case Some("duplication") =>
-        Right(duplicationTools.map(_.to[ITool]))
-
-      case Some(_) =>
-        val toolsEither = tools(toolInput, configuration, languages)
-        toolsEither.map(_.map(_.to[ITool]))
-    }
-  }
-
-  def tools(toolInput: Option[String],
-            configuration: CLIConfiguration.Tool,
-            languages: Set[Language]): Either[CLIError, Set[Tool]] = {
-
-    def fromRemoteConfig: Either[CLIError, Set[Tool]] = {
-      configuration.toolConfigurations.left.map(CLIError.NoRemoteProjectConfiguration).flatMap { toolConfiguration =>
-        val toolUuids = toolConfiguration.filter(_.enabled).map(_.uuid)
-        ToolCollector
-          .fromToolUUIDs(toolUuids, languages)
-          .left
-          .map(_ => CLIError.NonExistentToolsFromRemoteConfiguration(toolUuids))
-      }
-    }
-
-    def fromLocalConfig: Either[CLIError, Set[Tool]] = {
-      ToolCollector.fromLanguages(languages).left.map(CLIError.from)
-    }
-
-    toolInput.map { toolStr =>
-      ToolCollector.fromNameOrUUID(toolStr, languages).left.map(CLIError.from)
-    }.getOrElse {
-      for {
-        e1 <- fromRemoteConfig.left
-        e2 <- fromLocalConfig.left
-      } yield CLIError.CouldNotGetTools(s"${e1.message} and ${e2.message}")
-    }
-  }
 }
