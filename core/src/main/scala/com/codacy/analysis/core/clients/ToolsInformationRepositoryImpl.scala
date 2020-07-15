@@ -3,7 +3,7 @@ package com.codacy.analysis.core.clients
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import com.codacy.analysis.clientapi.definitions
-import com.codacy.analysis.clientapi.definitions.{PaginationInfo, Pattern, PatternsListResponse}
+import com.codacy.analysis.clientapi.definitions.{PaginationInfo, PatternListResponse}
 import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsResponse, ToolsClient}
 
 import scala.collection.immutable
@@ -51,7 +51,7 @@ class ToolsInformationRepositoryImpl(toolsClient: ToolsClient)(implicit val ec: 
       tool.sourceCodeUrl,
       tool.prefix,
       tool.needsCompilation,
-      tool.configFilenames,
+      tool.configurationFilenames,
       tool.description,
       tool.dockerImage,
       tool.languages.toSet,
@@ -69,7 +69,7 @@ class ToolsInformationRepositoryImpl(toolsClient: ToolsClient)(implicit val ec: 
       pattern.level,
       pattern.category,
       pattern.subCategory,
-      pattern.title,
+      pattern.title.getOrElse(pattern.id),
       pattern.shortDescription,
       pattern.description,
       pattern.enabledByDefault,
@@ -90,10 +90,10 @@ class ToolsInformationRepositoryImpl(toolsClient: ToolsClient)(implicit val ec: 
   override def toolPatterns(toolUuid: String): Future[immutable.Seq[CodacyToolPattern]] = {
     val source = PaginatedApiSourceFactory { cursor =>
       toolsClient.listPatterns(toolUuid, cursor).value.map {
-        case Right(ListPatternsResponse.OK(PatternsListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
+        case Right(ListPatternsResponse.OK(PatternListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
           (None, data)
         case Right(
-            ListPatternsResponse.OK(PatternsListResponse(data, Some(PaginationInfo(newCursor: Some[String], _, _))))) =>
+            ListPatternsResponse.OK(PatternListResponse(data, Some(PaginationInfo(newCursor: Some[String], _, _))))) =>
           (newCursor, data)
         case Right(ListPatternsResponse.NotFound(notFoundError))                  => throw new Exception
         case Right(ListPatternsResponse.BadRequest(badRequestErro))               => throw new Exception

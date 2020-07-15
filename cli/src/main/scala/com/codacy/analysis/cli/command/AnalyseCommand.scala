@@ -4,6 +4,7 @@ import java.nio.file.Path
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.settings.ConnectionPoolSettings
 import better.files.File
 import cats.implicits._
 import com.codacy.analysis.cli.CLIError
@@ -31,10 +32,9 @@ import com.codacy.analysis.core.utils.SeqOps._
 import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success, Try}
-import scala.concurrent.duration._
 
 object AnalyseCommand {
 
@@ -69,9 +69,12 @@ object AnalyseCommand {
     val actorSystem = ActorSystem("ToolsServiceActorSystem", defaultExecutionContext = Some(ec))
     val materializer = akka.stream.ActorMaterializer()(actorSystem)
     val httpExt = akka.http.scaladsl.Http(actorSystem)
-    val clientRequestToResponse: HttpRequest => Future[HttpResponse] = httpExt.singleRequest(_)
+    val connectionPoolSettings = ConnectionPoolSettings(actorSystem).withMaxRetries(2)
+    val clientRequestToResponse: HttpRequest => Future[HttpResponse] = { httpRequest =>
+      httpExt.singleRequest(httpRequest, settings = connectionPoolSettings)
+    }
 
-    val baseUrl = codacyApiUrl.getOrElse("https://app.codacy.com") + "/2.0"
+    val baseUrl = codacyApiUrl.getOrElse("https://app.codacy.com")
     val toolsClient = new ToolsClient(baseUrl)(clientRequestToResponse, ec, materializer)
     new ToolCollector(new ToolsInformationRepositoryImpl(toolsClient)(ec, materializer))
   }
@@ -102,7 +105,7 @@ class AnalyseCommand(analyse: Analyse,
 
     removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
 
-    val analysisAndUploadEither = Await.result(analysisAndUploadF, 1.minute)
+    val analysisAndUploadEither = Await.result(analysisAndUploadF, 5.minute)
 
     new ExitStatus(configuration.result.maxAllowedIssues, configuration.result.failIfIncomplete)
       .exitCode(analysisAndUploadEither)
@@ -114,7 +117,8 @@ class AnalyseCommand(analyse: Analyse,
       .fold(
         { _ =>
           Right(())
-        }, { repository =>
+        },
+        { repository =>
           for {
             _ <- validateNoUncommitedChanges(repository, configuration.upload.upload)
             _ <- validateGitCommitUuid(repository, analyse.commitUuid)
@@ -126,7 +130,8 @@ class AnalyseCommand(analyse: Analyse,
     repository.uncommitedFiles.fold(
       { _ =>
         Right(())
-      }, { uncommitedFiles =>
+      },
+      { uncommitedFiles =>
         if (uncommitedFiles.nonEmpty) {
           val error: CLIError = CLIError.UncommitedChanges(uncommitedFiles)
           if (upload) {

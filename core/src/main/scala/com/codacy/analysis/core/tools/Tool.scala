@@ -10,10 +10,9 @@ import com.codacy.plugins.api
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.{ParameterDescription, PatternDescription, results}
 import com.codacy.plugins.api.results.Result
-import com.codacy.plugins.results.traits.{CodacyToolDocumentation, DockerTool, ToolRunner}
+import com.codacy.plugins.results.traits.{DockerTool, ToolRunner}
 import com.codacy.plugins.results.{PatternRequest, PluginConfiguration, PluginRequest}
-import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
-import com.codacy.plugins.utils.PluginHelper
+import com.codacy.plugins.runners.{BinaryDockerRunner, DockerInformation, DockerRunner}
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
@@ -148,7 +147,9 @@ class CodacyDockerTool(dockerName: String,
       needsCompilation,
       configFilename,
       isClientSide,
-      hasUIConfiguration)
+      hasUIConfiguration) {
+  override val dockerImageName: String = this.dockerName
+}
 
 object Tool {
 
@@ -167,19 +168,6 @@ object Tool {
       configFilename = codacyTool.configFilenames,
       isClientSide = codacyTool.clientSide,
       hasUIConfiguration = codacyTool.configurable)
-
-    val patternsDescriptions = codacyPatterns.map { pattern =>
-      val parameters = pattern.parameters.map { parameter =>
-        ParameterDescription(results.Parameter.Name(parameter.name), parameter.description.getOrElse(""))
-      }.toSet
-      PatternDescription(
-        results.Pattern.Id(pattern.id),
-        pattern.title,
-        Some(parameters),
-        pattern.description,
-        pattern.timeToFix,
-        pattern.shortDescription)
-    }.toSet
 
     val patternsSpecification = codacyPatterns.map { pattern =>
       val patternLevel = Result.Level.withName(pattern.level)
@@ -201,12 +189,9 @@ object Tool {
       Some(results.Tool.Version(codacyTool.version)),
       patternsSpecification)
 
-    val codacyToolDocumentation =
-      new CodacyToolDocumentation(Some(toolSpecification), Some(patternsDescriptions), codacyTool.description)
-
     val dockerRunner = new BinaryDockerRunner[Result](codacyDockerTool)
     val runner =
-      new ToolRunner(codacyDockerTool, codacyToolDocumentation, dockerRunner)
+      new ToolRunner(Some(toolSpecification), codacyDockerTool.prefix, dockerRunner)
     new Tool(runner, DockerRunner.defaultRunTimeout)(codacyDockerTool, languageToRun)
   }
 }

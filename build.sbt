@@ -83,7 +83,7 @@ lazy val apiSwaggerFile: File =
 lazy val downloadCodacyToolsSwaggerFile = Def.task[Unit] {
   if (!Files.exists(apiSwaggerFile.toPath)) {
     val result: String = scala.io.Source
-      .fromURL(url(s"https://dl.bintray.com/codacy/Binaries/swagger.yaml"))
+      .fromURL(url(s"https://api.dev.codacy.org/api/api-docs/swagger.yaml"))
       .mkString
     IO.write(apiSwaggerFile, result)
   }
@@ -101,7 +101,7 @@ lazy val codacyApiClient = project
   .settings(libraryDependencies ++= Dependencies.akka ++ Dependencies.circe ++ Seq(Dependencies.typesafeConfig,
     Dependencies.cats,
     scalatest % Test))
-  .settings(Compile / guardrail := (Compile / guardrail)/*.dependsOn(downloadCodacyToolsSwaggerFile)*/.value,
+  .settings(Compile / guardrail := (Compile / guardrail).dependsOn(downloadCodacyToolsSwaggerFile).value,
     Compile / guardrailTasks := {
       List(
         ScalaClient(specPath = apiSwaggerFile,
