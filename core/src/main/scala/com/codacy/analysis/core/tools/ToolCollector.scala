@@ -9,8 +9,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ToolCollector(toolsInformationClient: ToolsInformationRepository)(implicit val ec: ExecutionContext) {
 
+  private lazy val cachedTools: Option[Seq[(CodacyTool, Seq[CodacyToolPattern])]] = ToolsCache.retrieve
+
   private lazy val toolsFuture: Future[Either[Analyser.Error, Set[CodacyTool]]] =
-    toolsInformationClient.toolsList.map(_.left.map(_ => Analyser.Error.FailedToContactCodacyApi))
+    listTools
 
   private val logger: Logger = getLogger
 
@@ -26,10 +28,13 @@ class ToolCollector(toolsInformationClient: ToolsInformationRepository)(implicit
         toolUuids.foldLeft[Future[Either[Analyser.Error, Set[Tool]]]](Future.successful(Right(Set.empty))) {
           case (accum, uuid) =>
             accum.flatMap { setEither =>
-              val newToolsF = from(uuid, languages).map(_.fold({ _ =>
-                logger.warn(s"Failed to get tool for uuid:$uuid")
-                Set.empty[Tool]
-              }, identity))
+              val newToolsF = from(uuid, languages).map(
+                _.fold(
+                  { _ =>
+                    logger.warn(s"Failed to get tool for uuid:$uuid")
+                    Set.empty[Tool]
+                  },
+                  identity))
 
               newToolsF.map { newTools =>
                 setEither.map { oldTools =>
@@ -79,11 +84,12 @@ class ToolCollector(toolsInformationClient: ToolsInformationRepository)(implicit
         val toolsAndPatterns =
           validTools.foldLeft[Future[Seq[(CodacyTool, Seq[CodacyToolPattern])]]](Future.successful(Seq.empty)) {
             case (accum, tool) =>
-              toolsInformationClient.toolPatterns(tool.uuid).flatMap { patterns =>
+              listToolPatterns(tool.uuid).flatMap { patterns =>
                 accum.map(x => (tool, patterns) +: x)
               }
           }
 
+        toolsAndPatterns.map(ToolsCache.save)
         toolsAndPatterns.map(Right(_))
     }
   }
@@ -101,12 +107,37 @@ class ToolCollector(toolsInformationClient: ToolsInformationRepository)(implicit
     codacyTool.languages.map(Languages.fromName).map(_.get)
   }
 
+  private def listToolPatterns(toolUuid: String) = {
+    toolsInformationClient.toolPatterns(toolUuid).recoverWith {
+      case _ =>
+        Future {
+          logger.info(s"Fetching patterns for tool ${toolUuid} from cache")
+          cachedTools.map(_.find(t => t._1.uuid == toolUuid).map(_._2).getOrElse(Seq.empty)).get
+        }
+    }
+  }
+
+  private def listTools = {
+    toolsInformationClient.toolsList.map(
+      toolsEither =>
+        toolsEither.fold(
+          _ => {
+            logger.info(s"Fetching cached tools")
+            cachedTools.map(_.map(_._1).toSet).toRight(Analyser.Error.FailedToContactCodacyApi)
+          },
+          tools => Right(tools)))
+  }
+
+  private def searchToolByShortnameOrUUID(toolIdentifier: String, tools: Set[CodacyTool]) = {
+    tools
+      .find(p => p.shortName.equalsIgnoreCase(toolIdentifier) || p.uuid.equalsIgnoreCase(toolIdentifier))
+      .toRight(Analyser.Error.NonExistingToolInput(toolIdentifier, tools.map(_.shortName)))
+  }
+
   private def find(value: String): Future[Either[Analyser.Error, CodacyTool]] = {
     toolsFuture.map { toolsEither =>
       toolsEither.flatMap { tools =>
-        tools
-          .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
-          .toRight(Analyser.Error.NonExistingToolInput(value, tools.map(_.shortName)))
+        searchToolByShortnameOrUUID(value, tools)
       }
     }
   }

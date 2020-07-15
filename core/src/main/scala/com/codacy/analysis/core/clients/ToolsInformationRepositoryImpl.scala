@@ -5,6 +5,8 @@ import akka.stream.scaladsl.Sink
 import com.codacy.analysis.clientapi.definitions
 import com.codacy.analysis.clientapi.definitions.{PaginationInfo, PatternListResponse}
 import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsResponse, ToolsClient}
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,6 +39,17 @@ case class CodacyToolPattern(id: String,
                              parameters: Seq[CodacyParameter] = Seq.empty)
 
 case class CodacyParameter(name: String, description: Option[String] = None)
+
+object CodacyToolJsonEncoders {
+  implicit val codacyToolDecoder: Decoder[CodacyTool] = deriveDecoder
+  implicit val codacyToolEncoder: Encoder[CodacyTool] = deriveEncoder
+
+  implicit val codacyToolPatternDecoder: Decoder[CodacyToolPattern] = deriveDecoder
+  implicit val codacyToolPatternEncoder: Encoder[CodacyToolPattern] = deriveEncoder
+
+  implicit val codacyParameterecoder: Decoder[CodacyParameter] = deriveDecoder
+  implicit val codacyParameterEncoder: Encoder[CodacyParameter] = deriveEncoder
+}
 
 class ToolsInformationRepositoryImpl(toolsClient: ToolsClient)(implicit val ec: ExecutionContext,
                                                                implicit val mat: Materializer)
@@ -93,7 +106,8 @@ class ToolsInformationRepositoryImpl(toolsClient: ToolsClient)(implicit val ec: 
         case Right(ListPatternsResponse.OK(PatternListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
           (None, data)
         case Right(
-            ListPatternsResponse.OK(PatternListResponse(data, Some(PaginationInfo(newCursor: Some[String], _, _))))) =>
+              ListPatternsResponse.OK(
+                PatternListResponse(data, Some(PaginationInfo(newCursor: Some[String], _, _))))) =>
           (newCursor, data)
         case Right(ListPatternsResponse.NotFound(notFoundError))                  => throw new Exception
         case Right(ListPatternsResponse.BadRequest(badRequestErro))               => throw new Exception
