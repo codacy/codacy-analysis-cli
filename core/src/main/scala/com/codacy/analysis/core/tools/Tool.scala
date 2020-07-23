@@ -8,11 +8,11 @@ import com.codacy.analysis.core.model.{Configuration, Issue, _}
 import com.codacy.analysis.core.utils.FileHelper
 import com.codacy.plugins.api
 import com.codacy.plugins.api.languages.Language
-import com.codacy.plugins.api.{ParameterDescription, PatternDescription, results}
+import com.codacy.plugins.api.results
 import com.codacy.plugins.api.results.Result
 import com.codacy.plugins.results.traits.{DockerTool, ToolRunner}
 import com.codacy.plugins.results.{PatternRequest, PluginConfiguration, PluginRequest}
-import com.codacy.plugins.runners.{BinaryDockerRunner, DockerInformation, DockerRunner}
+import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 

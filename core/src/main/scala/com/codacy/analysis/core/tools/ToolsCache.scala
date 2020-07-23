@@ -42,6 +42,7 @@ object ToolsCache {
       parser
         .decode[Seq[(CodacyTool, Seq[CodacyToolPattern])]](toolsCacheFile.contentAsString)
         .fold(_ => None, v => Some(v))
+        .filter(_.nonEmpty)
     } else {
       None
     }

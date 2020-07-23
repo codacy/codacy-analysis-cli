@@ -8,8 +8,8 @@ import akka.NotUsed
 
 object PaginatedApiSourceFactory {
 
-  def apply[T](doCall: Option[String] => Future[(Option[String], immutable.Seq[T])])(
-    implicit ec: ExecutionContext): Source[T, NotUsed] = {
+  def apply[T](doCall: Option[String] => Future[(Option[String], immutable.Seq[T])])(implicit
+    ec: ExecutionContext): Source[T, NotUsed] = {
 
     sealed trait State
     final case class Continue(cursor: Option[String]) extends State

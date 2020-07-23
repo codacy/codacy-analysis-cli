@@ -5,8 +5,8 @@ import com.codacy.analysis.cli.analysis.AnalyseExecutor
 import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.core.analysis.Analyser
-import com.codacy.analysis.core.clients.{CodacyTool, CodacyToolPattern, ToolsInformationRepository}
 import com.codacy.analysis.core.clients.api._
+import com.codacy.analysis.core.clients.{CodacyTool, CodacyToolPattern, ToolsInformationRepository}
 import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.model.{Issue, Result, ToolResult}
 import com.codacy.analysis.core.tools.ToolCollector
@@ -21,8 +21,8 @@ import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
 import scala.collection.immutable
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.util.Try
 
 class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
@@ -201,8 +201,9 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
     val toolCollector = new ToolCollector(toolsInformationRepository)
 
-    Await
-      .result(new AnalyseExecutor(formatter, analyser, fileCollector, configuration, toolCollector).run(), 5.seconds) must beRight
+    Await.result(
+      new AnalyseExecutor(formatter, analyser, fileCollector, configuration, toolCollector).run(),
+      5.seconds) must beRight
   }
 
   private def analysisConfiguration(directory: File,

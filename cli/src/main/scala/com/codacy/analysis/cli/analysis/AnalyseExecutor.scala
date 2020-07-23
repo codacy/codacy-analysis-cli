@@ -126,9 +126,10 @@ class AnalyseExecutor(formatter: Formatter,
       getExtraConfiguration(configuration.extraToolConfigurations, tool)
     (for {
       allToolsConfiguration <- configuration.toolConfigurations
-      toolConfiguration <- allToolsConfiguration
-        .find(_.uuid.equalsIgnoreCase(tool.uuid))
-        .toRight[String](s"Could not find configuration for tool ${tool.name}")
+      toolConfiguration <-
+        allToolsConfiguration
+          .find(_.uuid.equalsIgnoreCase(tool.uuid))
+          .toRight[String](s"Could not find configuration for tool ${tool.name}")
     } yield {
       val shouldUseConfigFile = toolConfiguration.notEdited && hasConfigFiles
       val shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile && toolConfiguration.patterns.nonEmpty

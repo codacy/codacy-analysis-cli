@@ -1,7 +1,7 @@
 import java.nio.file.Files
 
-import sbt._
 import codacy.libs._
+import sbt._
 
 Universal / javaOptions ++= Seq("-Xms1g", "-Xmx2g", "-Xss512m", "-XX:+UseG1GC", "-XX:+UseStringDeduplication")
 
@@ -78,37 +78,41 @@ lazy val codacyAnalysisModels = project
   .enablePlugins(JavaAppPackaging)
 
 lazy val apiSwaggerFile: File =
-  codacyApiClient.base / ".."/ "api.yml"
+  codacyApiClient.base / ".." / "api.yml"
 
 lazy val downloadCodacyToolsSwaggerFile = Def.task[Unit] {
   if (!Files.exists(apiSwaggerFile.toPath)) {
-    val result: String = scala.io.Source
-      .fromURL(url(s"https://api.dev.codacy.org/api/api-docs/swagger.yaml"))
-      .mkString
+    val result: String = scala.io.Source.fromURL(url(s"https://api.codacy.com/api/api-docs/swagger.yaml")).mkString
     IO.write(apiSwaggerFile, result)
   }
 }
 
-val silencerSettings = Seq(
-  libraryDependencies ++= Dependencies.silencer,
-  scalacOptions += "-P:silencer:pathFilters=src_managed"
-)
+val silencerSettings =
+  Seq(libraryDependencies ++= Dependencies.silencer, scalacOptions += "-P:silencer:pathFilters=src_managed")
 
 lazy val codacyApiClient = project
   .in(file("codacy-api-client"))
   .settings(name := "codacy-api-client", description := "Client library for codacy API")
-  .settings(addCompilerPlugin(Dependencies.macroParadise.cross(CrossVersion.full)), scalacOptions += "-Xexperimental") // Guardrail requirement
-  .settings(libraryDependencies ++= Dependencies.akka ++ Dependencies.circe ++ Seq(Dependencies.typesafeConfig,
-    Dependencies.cats,
-    scalatest % Test))
-  .settings(Compile / guardrail := (Compile / guardrail).dependsOn(downloadCodacyToolsSwaggerFile).value,
+  .settings(
+    addCompilerPlugin(Dependencies.macroParadise.cross(CrossVersion.full)),
+    scalacOptions += "-Xexperimental"
+  ) // Guardrail requirement
+  .settings(
+    libraryDependencies ++= Dependencies.akka ++ Dependencies.circe ++ Seq(
+      Dependencies.typesafeConfig,
+      Dependencies.cats,
+      scalatest % Test))
+  .settings(
+    Compile / guardrail := (Compile / guardrail).dependsOn(downloadCodacyToolsSwaggerFile).value,
     Compile / guardrailTasks := {
       List(
-        ScalaClient(specPath = apiSwaggerFile,
+        ScalaClient(
+          specPath = apiSwaggerFile,
           pkg = "com.codacy.analysis.clientapi",
           tracing = false,
           modules = List("circe", "akka-http")))
-    }, silencerSettings)
+    },
+    silencerSettings)
 
 // Scapegoat
 ThisBuild / scalaVersion := Common.scalaVersionNumber

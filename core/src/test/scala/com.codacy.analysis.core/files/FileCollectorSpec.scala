@@ -23,6 +23,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val toolsInformationRepoMock = new ToolsInformationRepository {
+
     override def toolsList: Future[Either[String, Set[CodacyTool]]] = {
       val tools = Set(Brakeman, ScalaStyle)
       val codacyTools = tools.map { tool =>

@@ -104,7 +104,15 @@ class ToolCollector(toolsInformationClient: ToolsInformationRepository)(implicit
   }
 
   private def toolLanguages(codacyTool: CodacyTool): Set[Language] = {
-    codacyTool.languages.map(Languages.fromName).map(_.get)
+    codacyTool.languages.map(Languages.fromName).foldLeft[Set[Language]](Set.empty) { (acc, current) =>
+      {
+        current match {
+          case Some(language) => acc + language
+          case None           => acc
+        }
+      }
+
+    }
   }
 
   private def listToolPatterns(toolUuid: String) = {
@@ -112,7 +120,7 @@ class ToolCollector(toolsInformationClient: ToolsInformationRepository)(implicit
       case _ =>
         Future {
           logger.info(s"Fetching patterns for tool ${toolUuid} from cache")
-          cachedTools.map(_.find(t => t._1.uuid == toolUuid).map(_._2).getOrElse(Seq.empty)).get
+          cachedTools.map(_.find(t => t._1.uuid == toolUuid).map(_._2).getOrElse(Seq.empty)).getOrElse(Seq.empty)
         }
     }
   }

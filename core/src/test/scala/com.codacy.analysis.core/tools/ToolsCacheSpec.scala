@@ -57,7 +57,7 @@ class ToolsCacheSpec extends Specification with NoLanguageFeatures {
     }
 
     "return empty" in {
-      val merged =  ToolsCache.mergeToolsSeq(Seq.empty, Seq.empty)
+      val merged = ToolsCache.mergeToolsSeq(Seq.empty, Seq.empty)
       merged mustEqual Seq.empty
     }
   }

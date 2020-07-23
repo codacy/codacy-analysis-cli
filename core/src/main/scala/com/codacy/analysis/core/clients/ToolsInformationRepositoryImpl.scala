@@ -54,6 +54,7 @@ object CodacyToolJsonEncoders {
 class ToolsInformationRepositoryImpl(toolsClient: ToolsClient)(implicit val ec: ExecutionContext,
                                                                implicit val mat: Materializer)
     extends ToolsInformationRepository {
+
   private def toolResponseToCodacyTool(tool: definitions.Tool) = {
     CodacyTool(
       tool.uuid,

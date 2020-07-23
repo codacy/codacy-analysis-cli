@@ -22,6 +22,8 @@ object CLIError {
         CLIError.NoActiveToolInConfiguration
       case Analyser.Error.NoToolsFoundForFiles =>
         CLIError.NoToolsFoundForFiles
+      case Analyser.Error.FailedToContactCodacyApi =>
+        CLIError.CouldNotGetTools("Failed to contact to Codacy API")
     }
   }
 

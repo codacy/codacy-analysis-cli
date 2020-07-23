@@ -1,4 +1,5 @@
 package com.codacy.analysis.core.clients
+
 import scala.collection.immutable
 import scala.concurrent.Future
 
