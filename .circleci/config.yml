@@ -134,6 +134,7 @@ workflows:
       - codacy/sbt:
           name: lint
           cmd: |
+            export JAVA_OPTS="-Xss256m -Xmx3072m"
             sbt "scalafmtCheckAll;scalafmtSbtCheck;scapegoat;scalafixEnable;scalafix --test"
           requires:
             - compile

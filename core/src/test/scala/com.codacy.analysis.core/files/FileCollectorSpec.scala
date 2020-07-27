@@ -526,7 +526,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         ExcludePaths(Set(Glob("**/Test1.scala")), Map("scalastyle" -> Set(Glob("**/brakeman/Test2.scala")))),
         Map(Languages.Scala -> Set(".sc")))
 
-      val toolEither = Await.result(toolCollector.fromNameOrUUID("scalastyle", Set(Languages.Scala)), 5.seconds)
+      val toolEither = Await.result(toolCollector.fromNameOrUUID("scalastyle", Set(Languages.Scala)), 30.seconds)
       val tool = toolEither.right.get.head
 
       val filesTargetGlobal = fileCollector.filterGlobal(allFilesTarget, exclusionRules)

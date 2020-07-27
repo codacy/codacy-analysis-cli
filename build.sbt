@@ -78,7 +78,7 @@ lazy val codacyAnalysisModels = project
   .enablePlugins(JavaAppPackaging)
 
 lazy val apiSwaggerFile: File =
-  codacyApiClient.base / ".." / "api.yml"
+  codacyApiClient.base / "target" / Dependencies.toolsVersion / "swagger.yaml"
 
 lazy val downloadCodacyToolsSwaggerFile = Def.task[Unit] {
   if (!Files.exists(apiSwaggerFile.toPath)) {

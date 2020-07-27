@@ -224,7 +224,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
     Await.result(
       new AnalyseExecutor(formatter, analyser, fileCollector, configuration, toolCollector).run(),
-      60.seconds) must beRight
+      120.seconds) must beRight
   }
 
   private def analysisConfiguration(directory: File,

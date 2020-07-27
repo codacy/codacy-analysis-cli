@@ -5,6 +5,7 @@ object Dependencies {
   val codacyPluginsVersion = "19.0.4_play_2.7"
   val circeVersion = "0.12.3"
   val specs2Version = "4.8.1"
+  val toolsVersion = "0.5.3"
 
   lazy val circe = List(
     "io.circe" %% "circe-core" % circeVersion,
