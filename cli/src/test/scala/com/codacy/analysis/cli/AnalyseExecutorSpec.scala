@@ -11,6 +11,7 @@ import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.model.{Issue, Result, ToolResult}
 import com.codacy.analysis.core.tools.ToolCollector
 import com.codacy.analysis.core.utils.TestUtils._
+import com.codacy.plugins.results.docker.css.csslint.CSSLint
 import com.codacy.plugins.results.docker.js.eslint.ESLint
 import com.codacy.plugins.results.docker.python.pylint.PyLint
 import io.circe.generic.auto._
@@ -20,16 +21,20 @@ import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-import scala.collection.immutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.util.Try
 
 class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
+  val pyLintPatternsInternalIds = Set("PyLint_C0111", "PyLint_E1101")
+
+  val esLintPatternsInternalIds =
+    Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
+
+  val cssLintPatternsInternalIds = Set("CSSLint_important")
 
   "AnalyseExecutor" should {
 
-    val pyLintPatternsInternalIds = Set("PyLint_C0111", "PyLint_E1101")
     val pathToIgnore = "lib/improver/tests/"
 
     s"""|analyse a python project with pylint, using a remote project configuration retrieved with a project token
@@ -78,9 +83,6 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       }
     }
 
-    val esLintPatternsInternalIds =
-      Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
-
     s"""|analyse a javascript project with eslint, using a remote project configuration retrieved with an api token
         | that considers just patterns ${esLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
@@ -119,8 +121,6 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
         }
       }
     }
-
-    val cssLintPatternsInternalIds = Set("CSSLint_important")
 
     "analyse a javascript and css project" in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
@@ -173,12 +173,12 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
     val toolsInformationRepository = new ToolsInformationRepository {
       override def toolsList: Future[Either[String, Set[CodacyTool]]] = {
-        val tools = Set(PyLint, ESLint)
+        val tools = Set(PyLint, ESLint, CSSLint)
         val codacyTools = tools.map { tool =>
           CodacyTool(
             tool.uuid,
             tool.name,
-            "version",
+            "",
             tool.shortName,
             Some(tool.documentationUrl),
             Some(tool.sourceCodeUrl),
@@ -195,15 +195,36 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
         Future.successful(Right(codacyTools))
       }
 
-      override def toolPatterns(toolUuid: String): Future[immutable.Seq[CodacyToolPattern]] =
-        Future.successful(immutable.Seq.empty)
+      override def toolPatterns(toolUuid: String): Future[Seq[CodacyToolPattern]] = {
+        val patternsIds = toolUuid match {
+          case PyLint.uuid  => pyLintPatternsInternalIds
+          case ESLint.uuid  => esLintPatternsInternalIds
+          case CSSLint.uuid => cssLintPatternsInternalIds
+        }
+
+        val patternsList = patternsIds.map(
+          patternId =>
+            CodacyToolPattern(
+              id = patternId,
+              level = "Info",
+              category = "CodeStyle",
+              subCategory = None,
+              title = patternId,
+              shortDescription = None,
+              description = None,
+              enabledByDefault = true,
+              timeToFix = None,
+              parameters = Seq.empty))
+
+        Future.successful(patternsList.toSeq)
+      }
     }
 
     val toolCollector = new ToolCollector(toolsInformationRepository)
 
     Await.result(
       new AnalyseExecutor(formatter, analyser, fileCollector, configuration, toolCollector).run(),
-      5.seconds) must beRight
+      60.seconds) must beRight
   }
 
   private def analysisConfiguration(directory: File,

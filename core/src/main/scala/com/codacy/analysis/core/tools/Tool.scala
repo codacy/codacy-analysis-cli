@@ -5,14 +5,14 @@ import java.nio.file.{Path, Paths}
 import better.files.File
 import com.codacy.analysis.core.clients.{CodacyTool, CodacyToolPattern}
 import com.codacy.analysis.core.model.{Configuration, Issue, _}
-import com.codacy.analysis.core.utils.FileHelper
+import com.codacy.analysis.core.utils.{FileHelper, LanguagesHelper}
 import com.codacy.plugins.api
-import com.codacy.plugins.api.languages.Language
+import com.codacy.plugins.api.languages.{Language, Languages}
 import com.codacy.plugins.api.results
 import com.codacy.plugins.api.results.Result
-import com.codacy.plugins.results.traits.{DockerTool, ToolRunner}
+import com.codacy.plugins.results.traits.ToolRunner
 import com.codacy.plugins.results.{PatternRequest, PluginConfiguration, PluginRequest}
-import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
+import com.codacy.plugins.runners.{BinaryDockerRunner, DockerInformation, DockerRunner}
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
@@ -37,7 +37,8 @@ final case class SubDirectory(sourceDirectory: String, protected val subDirector
     filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: DockerTool, val languageToRun: Language)
+class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: CodacyDockerTool,
+                                                            val languageToRun: Language)
     extends ITool {
 
   private val logger: Logger = getLogger
@@ -47,8 +48,7 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
 
   override def supportedLanguages: Set[Language] = plugin.languages
 
-  def configFilenames: Set[String] =
-    if (plugin.hasConfigFile) plugin.configFilename.toSet else Set.empty
+  def configFilenames: Set[String] = plugin.configFilename.toSet
 
   def run(directory: File,
           files: Set[Path],
@@ -121,43 +121,28 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
 
 }
 
-class CodacyDockerTool(dockerName: String,
-                       isDefault: Boolean,
-                       languages: Set[Language],
-                       name: String,
-                       shortName: String,
-                       uuid: String,
-                       documentationUrl: String,
-                       sourceCodeUrl: String,
-                       prefix: String = "",
-                       needsCompilation: Boolean = false,
-                       configFilename: Seq[String] = Seq.empty,
-                       isClientSide: Boolean = false,
-                       hasUIConfiguration: Boolean = true)
-    extends DockerTool(
-      dockerName,
-      isDefault,
-      languages,
-      name,
-      shortName,
-      uuid,
-      documentationUrl,
-      sourceCodeUrl,
-      prefix,
-      needsCompilation,
-      configFilename,
-      isClientSide,
-      hasUIConfiguration) {
-  override val dockerImageName: String = this.dockerName
-}
+case class CodacyDockerTool(dockerImage: String,
+                            isDefault: Boolean,
+                            languages: Set[Language],
+                            name: String,
+                            shortName: String,
+                            uuid: String,
+                            documentationUrl: String,
+                            sourceCodeUrl: String,
+                            prefix: String = "",
+                            override val needsCompilation: Boolean = false,
+                            configFilename: Seq[String] = Seq.empty,
+                            isClientSide: Boolean = false,
+                            hasUIConfiguration: Boolean = true)
+    extends DockerInformation(dockerImage, needsCompilation = needsCompilation)
 
 object Tool {
 
   def apply(codacyTool: CodacyTool, codacyPatterns: Seq[CodacyToolPattern], languageToRun: Language): Tool = {
-    val codacyDockerTool = new CodacyDockerTool(
-      dockerName = codacyTool.dockerImage,
+    val codacyDockerTool = CodacyDockerTool(
+      dockerImage = codacyTool.dockerImage,
       isDefault = codacyTool.enabledByDefault,
-      languages = Set.empty,
+      languages = LanguagesHelper.fromNames(codacyTool.languages),
       name = codacyTool.name,
       shortName = codacyTool.shortName,
       uuid = codacyTool.uuid,
@@ -185,7 +170,7 @@ object Tool {
     }.toSet
 
     val toolSpecification = results.Tool.Specification(
-      results.Tool.Name(codacyTool.name),
+      results.Tool.Name(codacyTool.shortName),
       Some(results.Tool.Version(codacyTool.version)),
       patternsSpecification)
 

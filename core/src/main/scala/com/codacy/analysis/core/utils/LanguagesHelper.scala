@@ -18,4 +18,13 @@ object LanguagesHelper {
       }
     } yield language
   }
+
+  def fromNames(names: Set[String]): Set[Language] = {
+    names.foldLeft[Set[Language]](Set.empty) { (acc, language) =>
+      Languages.fromName(language) match {
+        case Some(l) => acc + l
+        case None    => acc
+      }
+    }
+  }
 }
