@@ -130,7 +130,8 @@ object Tool {
 
   def apply(plugin: DockerTool, languageToRun: Language): Tool = {
     val dockerRunner = new BinaryDockerRunner[Result](plugin)
-    val runner = new ToolRunner(plugin, new DockerToolDocumentation(plugin, new BinaryDockerHelper()), dockerRunner)
+    val dockerToolDocumentation = new DockerToolDocumentation(plugin, new BinaryDockerHelper())
+    val runner = new ToolRunner(dockerToolDocumentation.prefixedSpecs, dockerToolDocumentation.toolPrefix, dockerRunner)
     new Tool(runner, DockerRunner.defaultRunTimeout)(plugin, languageToRun)
   }
 }
@@ -152,12 +153,10 @@ object ToolCollector {
       Left(Analyser.Error.NoActiveToolInConfiguration)
     } else {
       val toolsIdentified = toolUuids.flatMap { toolUuid =>
-        from(toolUuid, languages).fold(
-          { _ =>
-            logger.warn(s"Failed to get tool for uuid:$toolUuid")
-            Set.empty[Tool]
-          },
-          identity)
+        from(toolUuid, languages).fold({ _ =>
+          logger.warn(s"Failed to get tool for uuid:$toolUuid")
+          Set.empty[Tool]
+        }, identity)
       }
 
       if (toolsIdentified.size != toolUuids.size) {
