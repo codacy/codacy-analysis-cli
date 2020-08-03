@@ -201,8 +201,8 @@
     "FileMetrics": {
       "filename": "src/main/resources/docs/directory-tests/rails3/config/initializers/mime_types.rb",
       "complexity": 0,
-      "loc": 4,
-      "cloc": null,
+      "loc": 0,
+      "cloc": 4,
       "nrMethods": null,
       "nrClasses": null,
       "lineComplexities": []
@@ -289,8 +289,8 @@
     "FileMetrics": {
       "filename": "src/main/resources/docs/directory-tests/rails3/config/initializers/backtrace_silencers.rb",
       "complexity": 0,
-      "loc": 5,
-      "cloc": null,
+      "loc": 0,
+      "cloc": 5,
       "nrMethods": null,
       "nrClasses": null,
       "lineComplexities": []
@@ -759,7 +759,7 @@
       "filename": "src/main/resources/docs/directory-tests/rails3/app/helpers/application_helper.rb",
       "complexity": 0,
       "loc": 2,
-      "cloc": null,
+      "cloc": 0,
       "nrMethods": null,
       "nrClasses": null,
       "lineComplexities": []

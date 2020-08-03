@@ -130,7 +130,8 @@ object Tool {
 
   def apply(plugin: DockerTool, languageToRun: Language): Tool = {
     val dockerRunner = new BinaryDockerRunner[Result](plugin)
-    val runner = new ToolRunner(plugin, new DockerToolDocumentation(plugin, new BinaryDockerHelper()), dockerRunner)
+    val dockerToolDocumentation = new DockerToolDocumentation(plugin, new BinaryDockerHelper())
+    val runner = new ToolRunner(dockerToolDocumentation.prefixedSpecs, dockerToolDocumentation.toolPrefix, dockerRunner)
     new Tool(runner, DockerRunner.defaultRunTimeout)(plugin, languageToRun)
   }
 }
@@ -168,6 +169,16 @@ object ToolCollector {
     }
   }
 
+  def from(value: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
+    find(value).map(dockerTool => dockerTool.languages.intersect(languages).map(Tool(dockerTool, _)))
+  }
+
+  private def find(value: String): Either[Analyser.Error, DockerTool] = {
+    Tool.availableTools
+      .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
+      .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
+  }
+
   def fromLanguages(languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
     val collectedTools: Set[Tool] = (for {
       tool <- Tool.availableTools
@@ -180,16 +191,6 @@ object ToolCollector {
     } else {
       Right(collectedTools)
     }
-  }
-
-  def from(value: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
-    find(value).map(dockerTool => dockerTool.languages.intersect(languages).map(Tool(dockerTool, _)))
-  }
-
-  private def find(value: String): Either[Analyser.Error, DockerTool] = {
-    Tool.availableTools
-      .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
-      .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
   }
 
 }
