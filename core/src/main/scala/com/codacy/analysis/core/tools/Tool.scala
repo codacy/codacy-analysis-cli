@@ -153,10 +153,12 @@ object ToolCollector {
       Left(Analyser.Error.NoActiveToolInConfiguration)
     } else {
       val toolsIdentified = toolUuids.flatMap { toolUuid =>
-        from(toolUuid, languages).fold({ _ =>
-          logger.warn(s"Failed to get tool for uuid:$toolUuid")
-          Set.empty[Tool]
-        }, identity)
+        from(toolUuid, languages).fold(
+          { _ =>
+            logger.warn(s"Failed to get tool for uuid:$toolUuid")
+            Set.empty[Tool]
+          },
+          identity)
       }
 
       if (toolsIdentified.size != toolUuids.size) {
@@ -165,6 +167,16 @@ object ToolCollector {
 
       Right(toolsIdentified)
     }
+  }
+
+  def from(value: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
+    find(value).map(dockerTool => dockerTool.languages.intersect(languages).map(Tool(dockerTool, _)))
+  }
+
+  private def find(value: String): Either[Analyser.Error, DockerTool] = {
+    Tool.availableTools
+      .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
+      .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
   }
 
   def fromLanguages(languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
@@ -179,16 +191,6 @@ object ToolCollector {
     } else {
       Right(collectedTools)
     }
-  }
-
-  def from(value: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
-    find(value).map(dockerTool => dockerTool.languages.intersect(languages).map(Tool(dockerTool, _)))
-  }
-
-  private def find(value: String): Either[Analyser.Error, DockerTool] = {
-    Tool.availableTools
-      .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
-      .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
   }
 
 }
