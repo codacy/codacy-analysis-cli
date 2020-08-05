@@ -131,7 +131,8 @@ object Tool {
   def apply(plugin: DockerTool, languageToRun: Language): Tool = {
     val dockerRunner = new BinaryDockerRunner[Result](plugin)
     val dockerToolDocumentation = new DockerToolDocumentation(plugin, new BinaryDockerHelper())
-    val runner = new ToolRunner(dockerToolDocumentation.prefixedSpecs, dockerToolDocumentation.toolPrefix, dockerRunner)
+    val runner =
+      new ToolRunner(dockerToolDocumentation.toolSpecification, dockerToolDocumentation.toolPrefix, dockerRunner)
     new Tool(runner, DockerRunner.defaultRunTimeout)(plugin, languageToRun)
   }
 }
