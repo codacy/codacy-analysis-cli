@@ -198,7 +198,7 @@ workflows:
           cmd: |
             docker load --input docker-image.tar
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag codacy/$CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:stable
+            docker tag $CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:stable
             docker push codacy/$CIRCLE_PROJECT_REPONAME:stable
           requires:
             - publish_dockerhub_stable_hold
