@@ -4,32 +4,45 @@ orbs:
   codacy: codacy/base@2.14.8
 
 references:
-  restore_maven_dependencies: &restore_maven_dependencies
-    restore_cache:
-      keys:
-        - maven-dependencies-1.0.13-{{ checksum "pom.xml" }}
-        - maven-dependencies-1.0.13
+  qa_automation_image: &qa_automation_image
+    docker:
+      - image: codacy/qa-automation-test-runner:latest
+      - image: selenium/standalone-chrome:3.141.0
+        environment:
+          JAVA_OPTS: -Xss256m -Xmx512m
+          MAVEN_OPTS: -showversion -Xms256m -Xmx512m
+    working_directory: ~/workdir
 
+  integration_test_staging_environment: &integration_test_staging_environment
+    SELENIUM_DRIVER_URL: http://localhost:4444/wd/hub
+    HUB_URL: http://localhost:4444/wd/hub
+    PROJECT_NAME: codacy-analysis-cli
+    LAUNCH_DESCRIPTION: 'Automated Tests Ran by CircleCI'
+    RP_ENDPOINT: https://reportportal.dev.codacy.org
+    TEST_PATH: Suite/CLI/STAGING.xml
+    LAUNCH_TAG: CIRCLECI;CLI;STAGING
+    LAUNCH_NAME: CLI_STAGING
+
+  integration_test_production_environment: &integration_test_production_environment
+    SELENIUM_DRIVER_URL: http://localhost:4444/wd/hub
+    HUB_URL: http://localhost:4444/wd/hub
+    PROJECT_NAME: codacy-analysis-cli
+    LAUNCH_DESCRIPTION: 'Automated Tests Ran by CircleCI'
+    RP_ENDPOINT: https://reportportal.dev.codacy.org
+    TEST_PATH: Suite/CLI/PROD.xml
+    LAUNCH_TAG: CIRCLECI;CLI;PROD
+    LAUNCH_NAME: CLI_STAGING
+
+  attach_workspace: &attach_workspace
+    attach_workspace:
+      at: ~/workdir
+  
   run_integration_tests: &run_integration_tests
-    machine: true
-    working_directory: ~/integration-tests
     steps:
+      - <<: *attach_workspace
       - add_ssh_keys:
           fingerprints:
             - "df:83:d7:c7:d5:79:06:c2:3b:d1:fd:e2:a3:d1:12:c5"
-      - run:
-          name: Checkout integration tests
-          working_directory: ~/
-          command: |
-            ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-            bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation-tests.git ~/integration-tests master
-      - *restore_maven_dependencies
-      - attach_workspace:
-          at: /tmp/workspace/workdir
-      # Clean CODACY_PROJECT_TOKEN is needed to make sure tests are run in a clean state without
-      # influence from the build server environment
-      # (e.g.: to avoid tests picking the CODACY_PROJECT_TOKEN used to send coverage
-      # and incorrectly using it to obtain remote configurations)
       - run:
           name: Clean CODACY_PROJECT_TOKEN
           command: echo 'unset CODACY_PROJECT_TOKEN' >> $BASH_ENV
@@ -57,67 +70,24 @@ references:
             cd codacy-analysis-cli-* && sudo make install
             rm -rf codacy-analysis-cli-*
       - run:
-          name: Run tests
+          name: Run integration tests
           command: |
             export EXECUTION_TIME=`date +%F_%Hh%M-%Z`
-            mvn test -DsuiteFile=$TEST_PATH -Drp.description=$EXECUTION_TIME -Drp.uuid=$RP_CIRCLECI_UUID -Drp.launch=$LAUNCH_NAME -Drp.project=$PROJECT_NAME -Drp.mode=DEFAULT -Drp.endpoint=$RP_ENDPOINT -Drp.tags=$LAUNCH_TAG
-      - run:
-          name: Save test results
-          command: |
-            mkdir -p ~/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
-          when: always
-      - store_test_results:
-          path: ~/junit
-      - store_artifacts:
-          path: ~/junit
-      - store_artifacts:
-          path: ExtentReports/
+            sh /opt/tests/qa-automation-test-runner/build/run_tests.sh
 
 jobs:
-  maven_dependencies:
-    docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          JAVA_OPTS: "-XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0"
-    environment:
-      JAVA_OPTS: -Xmx3200m
-    working_directory: ~/integration-tests
-    steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "df:83:d7:c7:d5:79:06:c2:3b:d1:fd:e2:a3:d1:12:c5"
-      - run:
-          name: Checkout integration tests
-          command: |
-            ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-            bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation-tests.git ~/integration-tests master
-      - *restore_maven_dependencies
-      - run: mvn dependency:go-offline
-      - run:
-          name: Compile tests
-          command: mvn test-compile
-      - save_cache:
-          key: maven-dependencies-1.0.13-{{ checksum "pom.xml" }}
-          paths:
-            - ~/.m2
+
   test_staging:
-    <<: *run_integration_tests
+    <<: *qa_automation_image
     environment:
-      TEST_PATH: Suite/CLI/STAGING.xml
-      LAUNCH_TAG: CIRCLECI;CLI;STAGING
-      PROJECT_NAME: codacy-analysis-cli
-      LAUNCH_NAME: CLI_STAGING
-      RP_LAUNCH_URL: https://reportportal.staging.codacy.org/ui/#codacy-analysis-cli/launches
+      <<: *integration_test_staging_environment
+    <<: *run_integration_tests
+
   test_production:
-    <<: *run_integration_tests
+    <<: *qa_automation_image
     environment:
-      TEST_PATH: Suite/CLI/PROD.xml
-      CODACY_ANALYSIS_CLI_VERSION: latest
-      LAUNCH_TAG: CIRCLECI;CLI;PROD
-      PROJECT_NAME: codacy-analysis-cli
-      LAUNCH_NAME: CLI_PROD
-      RP_LAUNCH_URL: https://reportportal.staging.codacy.org/ui/#codacy-analysis-cli/launches
+      <<: *integration_test_production_environment
+    <<: *run_integration_tests
 
 workflows:
   version: 2
@@ -155,18 +125,7 @@ workflows:
           persist_to_workspace: true
           requires:
             - compile
-      - maven_dependencies:
-          filters:
-            branches:
-              only:
-                - master
-          requires:
-            - test
-            - lint
-            - publish_docker_locally
-      - test_staging:
-          requires:
-            - maven_dependencies
+      - test_staging
       - codacy/sbt:
           name: publish_lib
           context: CodacyAWS
@@ -212,7 +171,4 @@ workflows:
               only:
                 - master
     jobs:
-      - maven_dependencies
-      - test_production:
-          requires:
-            - maven_dependencies
+      - test_production
