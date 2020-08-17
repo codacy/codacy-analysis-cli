@@ -74,6 +74,15 @@ references:
           path: ~/junit
       - store_artifacts:
           path: ExtentReports/
+      - run:
+          name: Set right slack token
+          command: |
+            if [[ $ENVIRONMENT == "production" ]]
+            then
+              echo "export SLACK_TOKEN=$SLACK_TOKEN_PROD" >> $BASH_ENV
+            else
+              echo "export SLACK_TOKEN=$SLACK_TOKEN_STAGING" >> $BASH_ENV
+            fi
       - slack/status:
           fail_only: false
           only_for_branches: "master"
@@ -115,7 +124,7 @@ jobs:
       PROJECT_NAME: codacy-analysis-cli
       LAUNCH_NAME: CLI_STAGING
       RP_LAUNCH_URL: https://reportportal.staging.codacy.org/ui/#codacy-analysis-cli/launches
-      SLACK_TOKEN: $SLACK_TOKEN_STAGING
+      ENVIRONMENT: staging
   test_production:
     <<: *run_integration_tests
     environment:
@@ -125,7 +134,7 @@ jobs:
       PROJECT_NAME: codacy-analysis-cli
       LAUNCH_NAME: CLI_PROD
       RP_LAUNCH_URL: https://reportportal.staging.codacy.org/ui/#codacy-analysis-cli/launches
-      SLACK_TOKEN: $SLACK_TOKEN_PROD
+      ENVIRONMENT: production
 
 workflows:
   version: 2
