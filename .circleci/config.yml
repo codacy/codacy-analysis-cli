@@ -12,71 +12,25 @@ references:
         - maven-dependencies-1.0.13
 
   run_integration_tests: &run_integration_tests
-    machine: true
+    docker:
+      - image: circleci/openjdk:8-jdk
     working_directory: ~/integration-tests
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "df:83:d7:c7:d5:79:06:c2:3b:d1:fd:e2:a3:d1:12:c5"
       - run:
-          name: Checkout integration tests
-          working_directory: ~/
+          name: Check if token exists
           command: |
-            ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-            bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation-tests.git ~/integration-tests master
-      - *restore_maven_dependencies
-      - attach_workspace:
-          at: /tmp/workspace/workdir
-      # Clean CODACY_PROJECT_TOKEN is needed to make sure tests are run in a clean state without
-      # influence from the build server environment
-      # (e.g.: to avoid tests picking the CODACY_PROJECT_TOKEN used to send coverage
-      # and incorrectly using it to obtain remote configurations)
+            if [[ -z $SLACK_TOKEN ]]; then echo "Token is empty"; fi
       - run:
-          name: Clean CODACY_PROJECT_TOKEN
-          command: echo 'unset CODACY_PROJECT_TOKEN' >> $BASH_ENV
-      - run:
-          name: Load docker from file
+          name: Set right slack token
           command: |
-            if [[ "$CODACY_ANALYSIS_CLI_VERSION" != "latest" ]]
+            if [[ $ENVIRONMENT == "production" ]]
             then
-              docker load --input /tmp/workspace/workdir/docker-image.tar
-              docker tag codacy-analysis-cli:dev-snapshot codacy/codacy-analysis-cli:dev-snapshot
+              echo "export SLACK_TOKEN=$SLACK_TOKEN_PROD" >> $BASH_ENV
             else
-              echo "Skipping load of docker when testing latest"
+              echo "export SLACK_TOKEN=$SLACK_TOKEN_STAGING" >> $BASH_ENV
             fi
-      - run:
-          name: Setup codacy-analysis-cli version for integration tests
-          command: |
-            if [[ -z "$CODACY_ANALYSIS_CLI_VERSION" ]]
-            then
-              echo 'export CODACY_ANALYSIS_CLI_VERSION="dev-snapshot"' >> $BASH_ENV
-            fi
-      - run:
-          name: Install codacy-analysis-cli
-          command: |
-            curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
-            cd codacy-analysis-cli-* && sudo make install
-            rm -rf codacy-analysis-cli-*
-      - run:
-          name: Run tests
-          command: |
-            export EXECUTION_TIME=`date +%F_%Hh%M-%Z`
-            mvn test -DsuiteFile=$TEST_PATH -Drp.description=$EXECUTION_TIME -Drp.uuid=$RP_CIRCLECI_UUID -Drp.launch=$LAUNCH_NAME -Drp.project=$PROJECT_NAME -Drp.mode=DEFAULT -Drp.endpoint=$RP_ENDPOINT -Drp.tags=$LAUNCH_TAG
-      - run:
-          name: Save test results
-          command: |
-            mkdir -p ~/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
-          when: always
-      - store_test_results:
-          path: ~/junit
-      - store_artifacts:
-          path: ~/junit
-      - store_artifacts:
-          path: ExtentReports/
       - slack/status:
           fail_only: false
-          only_for_branches: "master"
           webhook: https://hooks.slack.com/services/$SLACK_TOKEN
           failure_message: ":red_circle: A $CIRCLE_JOB job has failed! See more on: $RP_LAUNCH_URL, login with the default user."
 
@@ -133,83 +87,7 @@ workflows:
     jobs:
       - codacy/checkout_and_version:
           write_sbt_version: true
-      - codacy/sbt:
-          name: compile
-          cmd: sbt coverage +test:compile
-          persist_to_workspace: true
-          requires:
-            - codacy/checkout_and_version
-      - codacy/sbt:
-          name: lint
-          cmd: |
-            sbt "scalafmtCheckAll;scalafmtSbtCheck;scapegoat;scalafixEnable;scalafix --test"
-          requires:
-            - compile
-      - codacy/sbt:
-          name: test
-          cmd: |
-            git config --global user.email "team@codacy.com"
-            git config --global user.name "Codacy Team"
-            sbt coverage +test coverageReport
-            bash <(curl -Ls https://coverage.codacy.com/get.sh) report --skip
-          requires:
-            - compile
-      - codacy/sbt:
-          name: publish_docker_locally
-          cmd: |
-            sbt "set codacyAnalysisCli / version := \"dev-snapshot\";
-                 codacyAnalysisCli/docker:publishLocal"
-            docker save --output docker-image.tar $CIRCLE_PROJECT_REPONAME:dev-snapshot
-          persist_to_workspace: true
-          requires:
-            - compile
-      - maven_dependencies:
-          filters:
-            branches:
-              only:
-                - master
-          requires:
-            - test
-            - lint
-            - publish_docker_locally
-      - test_staging:
-          requires:
-            - maven_dependencies
-      - codacy/sbt:
-          name: publish_lib
-          context: CodacyAWS
-          cmd: |
-            sbt "retrieveGPGKeys;
-                 codacyAnalysisCore/publishSigned;
-                 +codacyAnalysisModels/publishSigned;
-                 sonatypeBundleRelease"
-          requires:
-            - test_staging
-      - codacy/publish_docker:
-          name: publish_dockerhub
-          context: CodacyDocker
-          docker_tag: dev-snapshot
-          requires:
-            - test_staging
-      - codacy/tag_version:
-          context: CodacyAWS
-          requires:
-            - publish_dockerhub
-      - publish_dockerhub_stable_hold:
-          context: CodacyDocker
-          type: approval
-          requires:
-            - test_staging
-      - codacy/shell:
-          name: publish_dockerhub_stable
-          context: CodacyDocker
-          cmd: |
-            docker load --input docker-image.tar
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag $CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:stable
-            docker push codacy/$CIRCLE_PROJECT_REPONAME:stable
-          requires:
-            - publish_dockerhub_stable_hold
+      - test_staging
 
   nightly:
     triggers:
