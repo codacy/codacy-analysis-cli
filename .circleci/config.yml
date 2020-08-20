@@ -116,7 +116,7 @@ jobs:
           key: maven-dependencies-1.0.13-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
-  test_staging:
+  test_cli_staging:
     <<: *run_integration_tests
     environment:
       TEST_PATH: Suite/CLI/STAGING.xml
@@ -125,7 +125,7 @@ jobs:
       LAUNCH_NAME: CLI_STAGING
       RP_LAUNCH_URL: https://reportportal.staging.codacy.org/ui/#codacy-analysis-cli/launches
       ENVIRONMENT: staging
-  test_production:
+  test_cli_production:
     <<: *run_integration_tests
     environment:
       TEST_PATH: Suite/CLI/PROD.xml
@@ -181,7 +181,7 @@ workflows:
             - test
             - lint
             - publish_docker_locally
-      - test_staging:
+      - test_cli_staging:
           requires:
             - maven_dependencies
       - codacy/sbt:
@@ -193,13 +193,13 @@ workflows:
                  +codacyAnalysisModels/publishSigned;
                  sonatypeBundleRelease"
           requires:
-            - test_staging
+            - test_cli_staging
       - codacy/publish_docker:
           name: publish_dockerhub
           context: CodacyDocker
           docker_tag: dev-snapshot
           requires:
-            - test_staging
+            - test_cli_staging
       - codacy/tag_version:
           context: CodacyAWS
           requires:
@@ -208,7 +208,7 @@ workflows:
           context: CodacyDocker
           type: approval
           requires:
-            - test_staging
+            - test_cli_staging
       - codacy/shell:
           name: publish_dockerhub_stable
           context: CodacyDocker
@@ -230,6 +230,6 @@ workflows:
                 - master
     jobs:
       - maven_dependencies
-      - test_production:
+      - test_cli_production:
           requires:
             - maven_dependencies
