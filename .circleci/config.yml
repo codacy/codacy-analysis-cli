@@ -200,8 +200,9 @@ workflows:
           docker_tag: dev-snapshot
           requires:
             - test_cli_staging
-      - codacy/tag_version:
-          context: CodacyAWS
+      - codacy/publish_ghr:
+          context: CodacyGitHub
+          path: ~/
           requires:
             - publish_dockerhub
       - publish_dockerhub_stable_hold:
