@@ -10,8 +10,8 @@ import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.metrics.MetricsTool.CodacyConfiguration
 import com.codacy.plugins.metrics.traits
 import com.codacy.plugins.metrics.traits.{MetricsRequest, MetricsRunner}
+import com.codacy.plugins.metrics.utils.MetricsTools
 import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
-import com.codacy.plugins.utils.PluginHelper
 import org.log4s.getLogger
 
 import scala.concurrent.duration.Duration
@@ -59,7 +59,7 @@ object MetricsToolCollector {
 
   private val logger: org.log4s.Logger = getLogger
 
-  private val availableTools = PluginHelper.dockerMetricsPlugins
+  private val availableTools = MetricsTools.list
 
   def fromLanguages(languages: Set[Language]): Set[MetricsTool] = {
     languages.flatMap { lang =>
