@@ -8,8 +8,8 @@ import com.codacy.plugins.api.duplication.DuplicationTool.CodacyConfiguration
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api
 import com.codacy.plugins.duplication.traits
+import com.codacy.plugins.duplication.utils.DuplicationTools
 import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
-import com.codacy.plugins.utils.PluginHelper
 import org.log4s.getLogger
 
 import scala.concurrent.duration._
@@ -67,7 +67,7 @@ object DuplicationToolCollector {
 
   private val logger: org.log4s.Logger = getLogger
 
-  private val availableTools: List[traits.DuplicationTool] = PluginHelper.dockerDuplicationPlugins
+  private val availableTools: List[traits.DuplicationTool] = DuplicationTools.list
 
   def fromLanguages(languages: Set[Language]): Set[DuplicationTool] = {
     languages.flatMap { lang =>

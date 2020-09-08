@@ -13,7 +13,8 @@ import com.codacy.plugins.api.results.Result
 import com.codacy.plugins.results.traits.{DockerTool, DockerToolDocumentation, ToolRunner}
 import com.codacy.plugins.results.{PatternRequest, PluginConfiguration, PluginRequest}
 import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
-import com.codacy.plugins.utils.{BinaryDockerHelper, PluginHelper}
+import com.codacy.plugins.results.utils.ResultsTools
+import com.codacy.plugins.utils.BinaryDockerHelper
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
@@ -124,7 +125,7 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
 
 object Tool {
 
-  val availableTools: List[DockerTool] = PluginHelper.dockerPlugins
+  val availableTools: List[DockerTool] = ResultsTools.list
 
   val allToolShortNames: Set[String] = availableTools.map(_.shortName).toSet
 
