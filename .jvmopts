@@ -1,0 +1,6 @@
+-XX:+UnlockExperimentalVMOptions
+-XX:+UseCGroupMemoryLimitForHeap
+-XX:MaxRAMFraction=1
+-Xms1024M
+-Xss256M
+-Xmx3072M

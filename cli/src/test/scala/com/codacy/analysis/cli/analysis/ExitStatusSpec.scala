@@ -24,10 +24,12 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
 
     "send success code when issues do not exceed max issues number" in {
       new ExitStatus(10).exitCode(Right(Seq(IssuesToolExecutorResult(
-        "MyTool",
-        Set(Paths.get("Test.scala")),
+        toolName = "MyTool",
+        toolSpecification = None,
+        patternDescriptions = Set.empty,
+        files = Set(Paths.get("Test.scala")),
         // scalafmt: { binPack.defnSite = true }
-        Success(Set(
+        analysisResults = Success(Set(
           Issue(
             Pattern.Id("NoMutableVariables"),
             Paths.get("Test.scala"),
@@ -53,10 +55,12 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
 
     "send exceed max issues number code when issues do not exceed max issues number" in {
       new ExitStatus(2).exitCode(Right(Seq(IssuesToolExecutorResult(
-        "MyTool",
-        Set(Paths.get("Test.scala")),
+        toolName = "MyTool",
+        toolSpecification = None,
+        patternDescriptions = Set.empty,
+        files = Set(Paths.get("Test.scala")),
         // scalafmt: { binPack.defnSite = true }
-        Success(Set(
+        analysisResults = Success(Set(
           Issue(
             Pattern.Id("NoMutableVariables"),
             Paths.get("Test.scala"),
@@ -82,26 +86,47 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
 
     "send success code when no issues" in {
       new ExitStatus(10).exitCode(
-        Right(Seq(IssuesToolExecutorResult("MyTool", Set(Paths.get("Test.scala")), Success(Set()))))) should beEqualTo(
-        ExitStatus.ExitCodes.success)
+        Right(
+          Seq(
+            IssuesToolExecutorResult(
+              toolName = "MyTool",
+              toolSpecification = None,
+              patternDescriptions = Set.empty,
+              files = Set(Paths.get("Test.scala")),
+              analysisResults = Success(Set()))))) should beEqualTo(ExitStatus.ExitCodes.success)
     }
 
     "send partial failure when some tools fail" in {
       new ExitStatus(10, failIfIncomplete = true).exitCode(Right(Seq(
-        IssuesToolExecutorResult("MyTool", Set(), Success(Set())),
         IssuesToolExecutorResult(
-          "MyTool",
-          Set(Paths.get("Test.scala")),
-          Failure(new Exception("Failed")))))) should beEqualTo(ExitStatus.ExitCodes.partiallyFailedAnalysis)
+          toolName = "MyTool",
+          toolSpecification = None,
+          patternDescriptions = Set.empty,
+          files = Set(),
+          analysisResults = Success(Set())),
+        IssuesToolExecutorResult(
+          toolName = "MyTool",
+          toolSpecification = None,
+          patternDescriptions = Set.empty,
+          files = Set(Paths.get("Test.scala")),
+          analysisResults = Failure(new Exception("Failed")))))) should beEqualTo(
+        ExitStatus.ExitCodes.partiallyFailedAnalysis)
     }
 
     "send ok when some tools fail and incomplete not requested" in {
       new ExitStatus(10, failIfIncomplete = false).exitCode(Right(Seq(
-        IssuesToolExecutorResult("MyTool", Set(), Success(Set())),
         IssuesToolExecutorResult(
-          "MyTool",
-          Set(Paths.get("Test.scala")),
-          Failure(new Exception("Failed")))))) should beEqualTo(ExitStatus.ExitCodes.success)
+          toolName = "MyTool",
+          toolSpecification = None,
+          patternDescriptions = Set.empty,
+          files = Set(),
+          analysisResults = Success(Set())),
+        IssuesToolExecutorResult(
+          toolName = "MyTool",
+          toolSpecification = None,
+          patternDescriptions = Set.empty,
+          files = Set(Paths.get("Test.scala")),
+          analysisResults = Failure(new Exception("Failed")))))) should beEqualTo(ExitStatus.ExitCodes.success)
     }
 
     "send failedUpload when uploader has an error" in {

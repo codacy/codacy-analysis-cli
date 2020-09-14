@@ -3,6 +3,7 @@ package com.codacy.analysis.cli.formatter
 import java.io.PrintStream
 import java.nio.file.Path
 
+import better.files.File
 import com.codacy.analysis.core.model.Result
 import com.codacy.plugins.api.results
 import io.circe.Encoder
@@ -12,8 +13,8 @@ import io.circe.syntax._
 import scala.util.Properties
 
 object Json extends FormatterCompanion {
-  val name: String = "json"
-  def apply(stream: PrintStream): Formatter = new Json(stream)
+  override val name: String = "json"
+  override def apply(outputStream: PrintStream, executionDirectory: File): Formatter = new Json(outputStream)
 }
 
 private[formatter] class Json(val stream: PrintStream) extends Formatter {

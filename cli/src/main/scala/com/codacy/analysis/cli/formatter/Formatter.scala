@@ -4,11 +4,12 @@ import java.io.{FileOutputStream, PrintStream}
 
 import better.files.File
 import com.codacy.analysis.core.model.Result
+import com.codacy.plugins.api.PatternDescription
 import org.log4s.{Logger, getLogger}
 
 trait FormatterCompanion {
   def name: String
-  def apply(stream: PrintStream): Formatter
+  def apply(outputStream: PrintStream, executionDirectory: File): Formatter
 }
 
 trait Formatter {
@@ -19,7 +20,9 @@ trait Formatter {
 
   def add(element: Result): Unit
 
-  def addAll(elements: Seq[Result]): Unit = elements.foreach(add)
+  def addAll(toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
+             patternDescriptions: Set[PatternDescription],
+             elements: Seq[Result]): Unit = elements.foreach(add)
 
   def end(): Unit
 
@@ -33,20 +36,21 @@ object Formatter {
 
   val defaultFormatter: FormatterCompanion = Text
 
-  val allFormatters: Set[FormatterCompanion] = Set(defaultFormatter, Json)
+  val allFormatters: Set[FormatterCompanion] = Set(defaultFormatter, Json, Sarif)
 
-  def apply(name: String,
-            file: Option[File] = Option.empty,
+  def apply(formatterName: String,
+            executionDirectory: File,
+            outputFile: Option[File] = Option.empty,
             printStream: Option[PrintStream] = Option.empty): Formatter = {
 
-    val builder = allFormatters.find(_.name.equalsIgnoreCase(name)).getOrElse {
-      logger.warn(s"Could not find formatter for name $name. Using ${defaultFormatter.name} as fallback.")
+    val builder = allFormatters.find(_.name.equalsIgnoreCase(formatterName)).getOrElse {
+      logger.warn(s"Could not find formatter for name $formatterName. Using ${defaultFormatter.name} as fallback.")
       defaultFormatter
     }
 
-    val stream = file.map(asPrintStream).orElse(printStream).getOrElse(defaultPrintStream)
+    val stream = outputFile.map(asPrintStream).orElse(printStream).getOrElse(defaultPrintStream)
 
-    builder(stream)
+    builder(stream, executionDirectory)
   }
 
   private def asPrintStream(file: File) = {
