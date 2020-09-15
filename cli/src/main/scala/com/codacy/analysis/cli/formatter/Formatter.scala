@@ -18,11 +18,9 @@ trait Formatter {
 
   def begin(): Unit
 
-  def add(element: Result): Unit
-
   def addAll(toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
              patternDescriptions: Set[PatternDescription],
-             elements: Seq[Result]): Unit = elements.foreach(add)
+             elements: Seq[Result]): Unit
 
   def end(): Unit
 

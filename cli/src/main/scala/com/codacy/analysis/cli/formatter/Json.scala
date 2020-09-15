@@ -5,7 +5,7 @@ import java.nio.file.Path
 
 import better.files.File
 import com.codacy.analysis.core.model.Result
-import com.codacy.plugins.api.results
+import com.codacy.plugins.api.{PatternDescription, results}
 import io.circe.Encoder
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -38,7 +38,11 @@ private[formatter] class Json(val stream: PrintStream) extends Formatter {
     stream.flush()
   }
 
-  def add(element: Result): Unit = {
+  override def addAll(toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
+                      patternDescriptions: Set[PatternDescription],
+                      elements: Seq[Result]): Unit = elements.foreach(add)
+
+  private def add(element: Result): Unit = {
     if (alreadyPrinted) stream.print(",") else alreadyPrinted = true
     stream.print(element.asJson.noSpaces)
   }

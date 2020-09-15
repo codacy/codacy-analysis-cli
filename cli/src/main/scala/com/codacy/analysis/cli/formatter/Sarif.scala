@@ -13,7 +13,6 @@ import com.codacy.plugins.api.{PatternDescription, results}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import io.circe.{Encoder, Printer}
-import org.log4s.{Logger, getLogger}
 
 import scala.collection.JavaConverters._
 import scala.util.matching.Regex
@@ -34,8 +33,6 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
 
   private val spacesCompiledRegex: Regex = "\\s".r
 
-  private val logger: Logger = getLogger
-
   private implicit val levelEncoder: Encoder[SarifReport.Level.Value] = Encoder.encodeEnumeration(SarifReport.Level)
 
   private val runs: util.ArrayList[SarifReport.Run] = new util.ArrayList()
@@ -51,8 +48,6 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
 
     ()
   }
-
-  override def add(element: Result): Unit = ()
 
   override def addAll(toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
                       patternDescriptions: Set[PatternDescription],
@@ -85,7 +80,7 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
         val driver = SarifReport.Tool(
           SarifReport.Driver(
             name = s"${toolSpec.name.value.capitalize} (reported by Codacy)",
-            version = toolSpec.version.fold("1.0.0-unknown")(_.value.stripPrefix("v")),
+            version = toolSpec.version.fold("0.0.0-unknown")(_.value.stripPrefix("v")),
             rules = rules))
 
         val invocations =
@@ -128,6 +123,8 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
           SarifReport.Run(tool = driver, results = sarifResults, invocations = invocations, artifacts = artifacts))
 
         ()
+
+      case _ => // Do nothing
     }
   }
 

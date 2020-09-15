@@ -6,7 +6,7 @@ import java.nio.file.Path
 import better.files.File
 import com.codacy.analysis.core.model._
 import com.codacy.plugins.api.duplication.DuplicationCloneFile
-import com.codacy.plugins.api.results
+import com.codacy.plugins.api.{PatternDescription, results}
 
 object Text extends FormatterCompanion {
   override val name: String = "text"
@@ -26,7 +26,11 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
     stream.flush()
   }
 
-  override def add(element: Result): Unit = {
+  override def addAll(toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
+                      patternDescriptions: Set[PatternDescription],
+                      elements: Seq[Result]): Unit = elements.foreach(add)
+
+  private def add(element: Result): Unit = {
     element match {
       case Issue(patternId, filename, message, level, category, location) =>
         stream.println(prettyMessage(patternId, filename, message, level, category, location))
