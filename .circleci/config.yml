@@ -90,52 +90,15 @@ references:
           failure_message: ":red_circle: A $CIRCLE_JOB job has failed! See more on: $RP_LAUNCH_URL, login with the default user."
 
 jobs:
-  maven_dependencies:
-    docker:
-      - image: circleci/openjdk:8-jdk
-        environment:
-          JAVA_OPTS: "-XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0"
-    environment:
-      JAVA_OPTS: -Xmx3200m
-    working_directory: ~/integration-tests
+  store_art:
+    machine:
+      image: ubuntu-1604:202004-01    
+    working_directory: ~/workdir
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "df:83:d7:c7:d5:79:06:c2:3b:d1:fd:e2:a3:d1:12:c5"
-      - run:
-          name: Checkout integration tests
-          command: |
-            ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-            bash -c "`curl -fsSL https://raw.githubusercontent.com/codacy/codacy-analysis-cli/master/scripts/checkout.sh`" -s git@bitbucket.org:qamine/qa-automation-tests.git ~/integration-tests master
-      - *restore_maven_dependencies
-      - run: mvn dependency:go-offline
-      - run:
-          name: Compile tests
-          command: mvn test-compile
-      - save_cache:
-          key: maven-dependencies-1.0.13-{{ checksum "pom.xml" }}
-          paths:
-            - ~/.m2
-  test_cli_staging:
-    <<: *run_integration_tests
-    environment:
-      TEST_PATH: Suite/CLI/STAGING.xml
-      LAUNCH_TAG: CIRCLECI;CLI;STAGING
-      PROJECT_NAME: codacy-analysis-cli
-      LAUNCH_NAME: CLI_STAGING
-      RP_LAUNCH_URL: https://reportportal.staging.codacy.org/ui/#codacy-analysis-cli/launches
-      ENVIRONMENT: staging
-  test_cli_production:
-    <<: *run_integration_tests
-    environment:
-      TEST_PATH: Suite/CLI/PROD.xml
-      CODACY_ANALYSIS_CLI_VERSION: latest
-      LAUNCH_TAG: CIRCLECI;CLI;PROD
-      PROJECT_NAME: codacy-analysis-cli
-      LAUNCH_NAME: CLI_PROD
-      RP_LAUNCH_URL: https://reportportal.staging.codacy.org/ui/#codacy-analysis-cli/launches
-      ENVIRONMENT: production
-
+      - attach_workspace:
+          at: ~/workdir
+      - store_artifacts:
+          path: codacy-analysis-cli
 workflows:
   version: 2
   test-and-publish:
@@ -143,94 +106,13 @@ workflows:
       - codacy/checkout_and_version:
           write_sbt_version: true
       - codacy/sbt:
-          name: compile
-          cmd: sbt coverage +test:compile
+          name: native-image
+          cmd: |
+            sbt codacyAnalysisCli/nativeImage
+            mv cli/target/native-image/codacy-analysis-cli codacy-analysis-cli
           persist_to_workspace: true
           requires:
             - codacy/checkout_and_version
-      - codacy/sbt:
-          name: lint
-          cmd: |
-            sbt "scalafmtCheckAll;scalafmtSbtCheck;scapegoat;scalafixEnable;scalafix --test"
+      - store_art:
           requires:
-            - compile
-      - codacy/sbt:
-          name: test
-          cmd: |
-            git config --global user.email "team@codacy.com"
-            git config --global user.name "Codacy Team"
-            sbt coverage +test coverageReport
-            bash <(curl -Ls https://coverage.codacy.com/get.sh) report --skip
-          requires:
-            - compile
-      - codacy/sbt:
-          name: publish_docker_locally
-          cmd: |
-            sbt "set codacyAnalysisCli / version := \"dev-snapshot\";
-                 codacyAnalysisCli/docker:publishLocal"
-            docker save --output docker-image.tar $CIRCLE_PROJECT_REPONAME:dev-snapshot
-          persist_to_workspace: true
-          requires:
-            - compile
-      - maven_dependencies:
-          filters:
-            branches:
-              only:
-                - master
-          requires:
-            - test
-            - lint
-            - publish_docker_locally
-      - test_cli_staging:
-          requires:
-            - maven_dependencies
-      - codacy/sbt:
-          name: publish_lib
-          context: CodacyAWS
-          cmd: |
-            sbt "retrieveGPGKeys;
-                 codacyAnalysisCore/publishSigned;
-                 +codacyAnalysisModels/publishSigned;
-                 sonatypeBundleRelease"
-          requires:
-            - test_cli_staging
-      - codacy/publish_docker:
-          name: publish_dockerhub
-          context: CodacyDocker
-          docker_tag: dev-snapshot
-          requires:
-            - test_cli_staging
-      - codacy/publish_ghr:
-          context: CodacyGitHub
-          path: ~/
-          requires:
-            - publish_dockerhub
-      - publish_dockerhub_stable_hold:
-          context: CodacyDocker
-          type: approval
-          requires:
-            - test_cli_staging
-      - codacy/shell:
-          name: publish_dockerhub_stable
-          context: CodacyDocker
-          cmd: |
-            docker load --input docker-image.tar
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag $CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:stable
-            docker push codacy/$CIRCLE_PROJECT_REPONAME:stable
-          requires:
-            - publish_dockerhub_stable_hold
-
-  nightly:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *" # Every day “At minute 00:00”
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - maven_dependencies
-      - test_cli_production:
-          requires:
-            - maven_dependencies
+            - native-image

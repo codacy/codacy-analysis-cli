@@ -46,6 +46,7 @@ lazy val codacyAnalysisCli = project
     coverageExcludedPackages := "<empty>;com\\.codacy\\..*CLIError.*",
     Common.dockerSettings,
     Common.genericSettings,
+    Common.nativeImageSettings,
     Universal / javaOptions ++= Seq("-XX:MinRAMPercentage=60.0", "-XX:MaxRAMPercentage=90.0"),
     publish := (Docker / publish).value,
     publishLocal := (Docker / publishLocal).value,
@@ -53,6 +54,7 @@ lazy val codacyAnalysisCli = project
     libraryDependencies ++= Dependencies.pprint +: Dependencies.specs2)
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
+  .enablePlugins(NativeImagePlugin)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisCore % "compile->compile;test->test")

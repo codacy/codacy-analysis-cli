@@ -1,6 +1,7 @@
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport.Docker
 import com.typesafe.sbt.packager.docker.{Cmd, CmdLike, DockerAlias}
+import sbtnativeimage.NativeImagePlugin.autoImport.nativeImageOptions
 import sbt.Keys._
 import sbt.{Def, _}
 
@@ -44,6 +45,22 @@ object Common {
       case cmd @ Cmd("WORKDIR", _) =>
         Seq(Cmd("RUN", "apk add --no-cache --update bash docker"), cmd)
       case other => List(other)
+    })
+
+  val nativeImageSettings: Seq[Def.Setting[_]] = Seq(
+    nativeImageOptions ++= Seq(
+      "--enable-http",
+      "--enable-https",
+      "--enable-url-protocols=http,https",
+      "--enable-all-security-services",
+      "-H:+JNI",
+      "-H:+AllowIncompleteClasspath",
+      "-H:+ReportExceptionStackTraces",
+      "--no-fallback",
+      "--initialize-at-build-time",
+      "--report-unsupported-elements-at-runtime") ++ {
+      if (sys.props.get("os.name").contains("Mac OS X")) Seq.empty
+      else Seq("--static")
     })
 
   val compilerFlagsDefault: Seq[String] = Seq(
