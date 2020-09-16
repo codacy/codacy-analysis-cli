@@ -57,9 +57,14 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
           if toolSpec.patterns.exists(_.category == Pattern.Category.Security) =>
         val patternsMap: Map[String, PatternDescription] =
           patternDescriptions.map(pattern => (pattern.patternId.value, pattern))(collection.breakOut)
+        // HACK: Seems like the issues (`issue.category`) do not have the right category
+        //   while in the specification (`toolSpec.patterns[].category`) the pattern has the right category
+        val patternsCategoryMap: Map[String, Pattern.Category] =
+          toolSpec.patterns.map(pattern => (pattern.patternId.value, pattern.category))(collection.breakOut)
 
         val securityIssues = results.collect {
-          case issue: Issue if issue.category.contains(Pattern.Category.Security) => issue
+          case issue: Issue if patternsCategoryMap.get(issue.patternId.value).contains(Pattern.Category.Security) =>
+            issue
         }
 
         val rules = {
