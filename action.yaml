@@ -1,0 +1,59 @@
+# action.yml
+name: "codacy-analysis-cli"
+description: "Execute Codacy code analysis using your remote Codacy configuration"
+branding:
+  icon: 'check'
+  color: 'gray-dark'
+inputs:
+  verbose:
+    required: false
+  project-token:
+    required: true
+  codacy-api-base-url:
+    required: false
+    default: "https://api.codacy.com"
+  format:
+    required: false
+    default: "text"
+  output:
+    required: false
+  parallel:
+    required: false
+    default: 2
+  max-allowed-issues:
+    required: false
+    default: 0
+  tool:
+    required: false
+  tool-timeout:
+    required: false
+    default: "15minutes"
+  upload:
+    required: false
+  fail-if-incomplete:
+    required: false
+  allow-network:
+    required: false
+  force-file-permissions:
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - name: "Codacy CLI"
+      shell: bash
+      run: >-
+        ${{ github.action_path }}/bin/codacy-analysis-cli.sh
+        analyse
+        $(if [ ${{ inputs.verbose }} = true ]; then echo "--verbose"; fi)
+        --project-token ${{ inputs.project-token }}
+        --codacy-api-base-url ${{ inputs.codacy-api-base-url }}
+        --format ${{ inputs.format }}
+        $(if [ ${{ inputs.output }} ]; then echo "--output ${{ inputs.output }}"; fi)
+        --parallel ${{ inputs.parallel }}
+        --max-allowed-issues ${{ inputs.max-allowed-issues }}
+        $(if [ ${{ inputs.tool }} ]; then echo "--tool ${{ inputs.tool }}"; fi)
+        --tool-timeout ${{ inputs.tool-timeout }}
+        $(if [ ${{ inputs.upload }} = true ]; then echo "--upload"; fi)
+        $(if [ ${{ inputs.fail-if-incomplete }} = true ]; then echo "--fail-if-incomplete"; fi)
+        $(if [ ${{ inputs.allow-network }} = true ]; then echo "--allow-network"; fi)
+        $(if [ ${{ inputs.force-file-permissions }} = true ]; then echo "--force-file-permissions"; fi)
