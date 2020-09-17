@@ -15,7 +15,10 @@ import com.codacy.analysis.core.utils.InheritanceOps.InheritanceOps
 import com.codacy.analysis.core.utils.SeqOps._
 import com.codacy.analysis.core.utils.TryOps._
 import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
+import com.codacy.plugins.api.PatternDescription
 import com.codacy.plugins.api.languages.Language
+import com.codacy.plugins.results.traits.DockerToolDocumentation
+import com.codacy.plugins.utils.impl.CacheDockerHelper
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
@@ -54,10 +57,18 @@ class AnalyseExecutor(formatter: Formatter,
 
           tool match {
             case tool: Tool =>
+              val toolDocumentation = ToolCollector
+                .fromUuid(tool.uuid)
+                .map(dockerTool => new DockerToolDocumentation(dockerTool, new CacheDockerHelper()))
               val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
               val analysisResults =
                 issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles)
-              IssuesToolExecutorResult(tool.name, filteredFiles.readableFiles, analysisResults)
+              IssuesToolExecutorResult(
+                tool.name,
+                toolDocumentation.flatMap(_.toolSpecification),
+                toolDocumentation.flatMap(_.patternDescriptions).getOrElse(Set.empty[PatternDescription]),
+                filteredFiles.readableFiles,
+                analysisResults)
             case metricsTool: MetricsTool =>
               val analysisResults =
                 analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles))
@@ -91,7 +102,13 @@ class AnalyseExecutor(formatter: Formatter,
       val executorResults = issuesResults ++ duplicationResults ++ processedFileMetrics
 
       formatter.begin()
-      executorResults.foreach(_.analysisResults.foreach(results => formatter.addAll(results.to[List])))
+      executorResults.foreach {
+        case toolResults: IssuesToolExecutorResult =>
+          toolResults.analysisResults.foreach(results =>
+            formatter.addAll(toolResults.toolSpecification, toolResults.patternDescriptions, results.to[List]))
+        case toolResults =>
+          toolResults.analysisResults.foreach(results => formatter.addAll(None, Set.empty, results.to[List]))
+      }
       formatter.end()
 
       executorResults
@@ -180,7 +197,12 @@ object AnalyseExecutor {
     def analysisResults: Try[Set[T]]
   }
 
-  final case class IssuesToolExecutorResult(toolName: String, files: Set[Path], analysisResults: Try[Set[ToolResult]])
+  final case class IssuesToolExecutorResult(
+    toolName: String,
+    toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
+    patternDescriptions: Set[PatternDescription],
+    files: Set[Path],
+    analysisResults: Try[Set[ToolResult]])
       extends ExecutorResult[ToolResult]
 
   final case class MetricsToolExecutorResult(language: String, files: Set[Path], analysisResults: Try[Set[FileMetrics]])

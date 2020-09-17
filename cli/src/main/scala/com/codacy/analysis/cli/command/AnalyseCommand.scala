@@ -40,7 +40,10 @@ object AnalyseCommand {
     val configuration: CLIConfiguration =
       CLIConfiguration(codacyClientOpt, environment, analyse, new CodacyConfigurationFileLoader)
     val formatter: Formatter =
-      Formatter(configuration.analysis.output.format, configuration.analysis.output.file)
+      Formatter(
+        configuration.analysis.output.format,
+        environment.baseProjectDirectory(analyse.directory),
+        configuration.analysis.output.file)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
     val analyseExecutor: AnalyseExecutor =
       new AnalyseExecutor(formatter, Analyser(analyse.extras.analyser), fileCollector, configuration.analysis)
@@ -200,9 +203,9 @@ class AnalyseCommand(analyse: Analyse,
 
   private def issuesToUpload(toolAndIssuesResults: Seq[IssuesToolExecutorResult]): Seq[ResultsUploader.ToolResults] = {
     toolAndIssuesResults.map {
-      case IssuesToolExecutorResult(toolName, files, Success(issues)) =>
+      case IssuesToolExecutorResult(toolName, _, _, files, Success(issues)) =>
         ResultsUploader.ToolResults(toolName, files, Right(issues))
-      case IssuesToolExecutorResult(toolName, files, Failure(error)) =>
+      case IssuesToolExecutorResult(toolName, _, _, files, Failure(error)) =>
         ResultsUploader.ToolResults(toolName, files, Left(error.getMessage))
     }(collection.breakOut)
   }
