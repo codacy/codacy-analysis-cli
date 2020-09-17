@@ -1,5 +1,6 @@
 # action.yml
 name: "codacy-analysis-cli"
+author: "Codacy"
 description: "Execute Codacy code analysis using your remote Codacy configuration"
 branding:
   icon: 'check'
@@ -7,35 +8,46 @@ branding:
 inputs:
   verbose:
     required: false
+    description: "Run with verbose output"
   project-token:
-    required: true
+    required: false
+    description: "A token to fetch your remote Codacy configuration for the project being analysed"
   codacy-api-base-url:
     required: false
-    default: "https://api.codacy.com"
+    description: "Codacy's API URL, to retrieve the configuration."
   format:
     required: false
-    default: "text"
+    description: "Format of the output file"
   output:
     required: false
+    description: "Send analysis results to an output file"
+  directory:
+    required: false
+    description: "The directory to be analysed"
   parallel:
     required: false
-    default: 2
+    description: "Number of tools to run in parallel"
   max-allowed-issues:
     required: false
-    default: 0
+    description: "Maximum number of issues allowed for the analysis to succeed"
   tool:
     required: false
+    description: "The name of the tool to analyse the code"
   tool-timeout:
     required: false
-    default: "15minutes"
+    description: "Maximum time each tool has to execute"
   upload:
     required: false
+    description: "Upload analysis results to Codacy"
   fail-if-incomplete:
     required: false
+    description: "Fail the analysis if any tool fails to run"
   allow-network:
     required: false
+    description: "Allow network access for tools"
   force-file-permissions:
     required: false
+    description: "Force files to be readable by changing the permissions before running the analysis"
 runs:
   using: "composite"
   steps:
@@ -45,14 +57,15 @@ runs:
         ${{ github.action_path }}/bin/codacy-analysis-cli.sh
         analyse
         $(if [ ${{ inputs.verbose }} = true ]; then echo "--verbose"; fi)
-        --project-token ${{ inputs.project-token }}
-        --codacy-api-base-url ${{ inputs.codacy-api-base-url }}
-        --format ${{ inputs.format }}
+        $(if [ ${{ inputs.project-token }} ]; then echo "--project-token ${{ inputs.project-token }}"; fi)
+        $(if [ ${{ inputs.codacy-api-base-url }} ]; then echo "--codacy-api-base-url ${{ inputs.codacy-api-base-url }}"; fi)
+        $(if [ ${{ inputs.format }} ]; then echo "--format ${{ inputs.format }}"; fi)
         $(if [ ${{ inputs.output }} ]; then echo "--output ${{ inputs.output }}"; fi)
-        --parallel ${{ inputs.parallel }}
-        --max-allowed-issues ${{ inputs.max-allowed-issues }}
+        $(if [ ${{ inputs.directory }} ]; then echo "--directory ${{ inputs.directory }}"; fi)
+        $(if [ ${{ inputs.parallel }} ]; then echo "--parallel ${{ inputs.parallel }}"; fi)
+        $(if [ ${{ inputs.max-allowed-issues }} ]; then echo "--max-allowed-issues ${{ inputs.max-allowed-issues }}"; fi)
         $(if [ ${{ inputs.tool }} ]; then echo "--tool ${{ inputs.tool }}"; fi)
-        --tool-timeout ${{ inputs.tool-timeout }}
+        $(if [ ${{ inputs.tool-timeout }} ]; then echo "--tool-timeout ${{ inputs.tool-timeout }}"; fi)
         $(if [ ${{ inputs.upload }} = true ]; then echo "--upload"; fi)
         $(if [ ${{ inputs.fail-if-incomplete }} = true ]; then echo "--fail-if-incomplete"; fi)
         $(if [ ${{ inputs.allow-network }} = true ]; then echo "--allow-network"; fi)

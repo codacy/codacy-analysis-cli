@@ -260,7 +260,7 @@ codacy-analysis-cli analyse \
 ## GitHub Action
 
 The analysis CLI is available to be executed as a GitHub Action. The following is an example of a workflow
-using the CLI as an action, to analyse each commit and pull request, with your Codacy configuration.
+using the CLI as an action, to analyse each commit and pull request.
 
 ```yaml
 name: codacy-analysis-cli
@@ -272,22 +272,18 @@ jobs:
     runs-on: ubuntu-latest
     name: codacy-analysis-cli
     steps:
-      - uses: actions/checkout@master
+      - name: Checkout code
+        uses: actions/checkout@master
       - name: Run codacy-analysis-cli
         uses: codacy/codacy-analysis-cli@master
-        with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
 ```
 
 Running the action with the default configurations will:
 
-- Analyse the current commit or pull request, using your Codacy configurations, running all supported
-  tools for the languages you are using.
+- Analyse the current commit or pull request running all supported tools, with the default configuration,
+  for the languages you are using.
 - Print analysis results into the console (you can check them in GitHub's action workflow panel).
 - Fail the workflow if at least one issue is found in your code.
-
-To add `CODACY_PROJECT_TOKEN` to your GitHub repository as a secret, go to `Settings -> Secrets` and add
-the token there with the specified name.
 
 Check the next section to see how you can further configure this action.
 
@@ -295,13 +291,24 @@ Check the next section to see how you can further configure this action.
 
 This action supports all [CLI configuration options](#commands-and-configuration) with the following exceptions:
 
-- `--directory` -- **Not supported**. The action will always run from the root of your repository.
 - `--commit-uuid` -- **Not supported**. The action will only analyse the commit that triggered it.
 - `--api-token` -- **Not supported**. Use [`--project-token`](#project-token) instead.
 - `--username` -- **Not supported**. Use [`--project-token`](#project-token) instead.
 - `--project` -- **Not supported**. Use [`--project-token`](#project-token) instead.
 
-The command `validate-configuration` is also **not supported** since only remote configuration is allowed.
+The command `validate-configuration` is also **not supported**.
+
+When using `--project-token` make sure to use [GitHub security features](#https://docs.github.com/en/actions/reference/encrypted-secrets)
+to prevent you from committing a secret token to your code. For example, if you store your Codacy project
+token in GitHub, this is how you would use it in the action workflow.
+
+```yaml
+# ...
+uses: codacy/codacy-analysis-cli@master
+with:
+    project-token: ${{ secrets.<PROJECT_TOKEN_NAME> }}
+# ...
+```
 
 ## Build
 
