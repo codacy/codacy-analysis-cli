@@ -3,6 +3,7 @@ package com.codacy.analysis.cli.formatter
 import java.io.PrintStream
 import java.math.BigInteger
 import java.net.URI
+import java.nio.file.Path
 import java.security.MessageDigest
 import java.util
 
@@ -51,36 +52,13 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
 
   override def addAll(toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
                       patternDescriptions: Set[PatternDescription],
-                      results: Seq[Result]): Unit = {
+                      analysisResults: Seq[Result]): Unit = {
     toolSpecification.foreach {
       case toolSpec: com.codacy.plugins.api.results.Tool.Specification
           if toolSpec.patterns.exists(_.category == Pattern.Category.Security) =>
-        val patternsMap: Map[String, PatternDescription] =
-          patternDescriptions.map(pattern => (pattern.patternId.value, pattern))(collection.breakOut)
-        // HACK: Seems like the issues (`issue.category`) do not have the right category
-        //   while in the specification (`toolSpec.patterns[].category`) the pattern has the right category
-        val patternsCategoryMap: Map[String, Pattern.Category] =
-          toolSpec.patterns.map(pattern => (pattern.patternId.value, pattern.category))(collection.breakOut)
+        val securityIssues = filterSecurityIssues(toolSpec, analysisResults)
 
-        val securityIssues = results.collect {
-          case issue: Issue if patternsCategoryMap.get(issue.patternId.value).contains(Pattern.Category.Security) =>
-            issue
-        }
-
-        val rules = {
-          (for {
-            issue <- securityIssues.groupBy(_.patternId.value).collect { case (_, issue :: _) => issue }
-            modelPattern <- patternsMap.get(issue.patternId.value)
-          } yield SarifReport.Rule(
-            id = issue.patternId.value,
-            name = modelPattern.title,
-            shortDescription = SarifReport.Message(modelPattern.description.getOrElse(modelPattern.title)),
-            help = SarifReport.Message(
-              text = modelPattern.description.getOrElse(modelPattern.title),
-              markdown = modelPattern.explanation),
-            properties = SarifReport.RuleProperties(category =
-              issue.category.getOrElse(Pattern.Category.CodeStyle).toString))).toList
-        }
+        val rules = createRules(securityIssues, patternDescriptions)
 
         val driver = SarifReport.Tool(
           SarifReport.Driver(
@@ -100,36 +78,68 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
             collection.breakOut)
         }
 
-        val sarifResults: List[SarifReport.Result] = securityIssues
+        val results: List[SarifReport.Result] = securityIssues
           .groupBy(_.filename)
-          .flatMap {
-            case (filePath, issues) =>
-              val fileContents = executionDirectory./(filePath.toString).lines.toList
-              issues.map { issue =>
-                val message = SarifReport.Message(issue.message.text)
-                val filePath = s"$rootDirectory/${issue.filename.toString}"
-                val locations = List(SarifReport.Location(SarifReport.PhysicalLocation(
-                  artifactLocation = SarifReport
-                    .ArtifactLocationIndexed(index = artifacts.indexWhere(_.location.uri == filePath), uri = filePath),
-                  region = SarifReport.Region(startLine = issue.location.line))))
+          .flatMap { case (filePath, issues) => createResults(filePath, issues, artifacts, rules) }(collection.breakOut)
 
-                SarifReport.Result(
-                  ruleIndex = rules.indexWhere(_.id == issue.patternId.value),
-                  ruleId = issue.patternId.value,
-                  message = message,
-                  level = getSarifLevel(issue.level),
-                  locations = locations,
-                  partialFingerprints =
-                    SarifReport.PartialFingerprints("1", generatePrimaryLocationHash(issue, fileContents)))
-              }
-          }(collection.breakOut)
-
-        runs.add(
-          SarifReport.Run(tool = driver, results = sarifResults, invocations = invocations, artifacts = artifacts))
+        runs.add(SarifReport.Run(tool = driver, results = results, invocations = invocations, artifacts = artifacts))
 
         ()
 
       case _ => // Do nothing
+    }
+  }
+
+  private def filterSecurityIssues(toolSpec: com.codacy.plugins.api.results.Tool.Specification,
+                                   analysisResults: Seq[Result]): Seq[Issue] = {
+    // HACK: Seems like the issues (`issue.category`) do not have the right category
+    //   while in the specification (`toolSpec.patterns[].category`) the pattern has the right category
+    val patternsCategoryMap: Map[String, Pattern.Category] =
+      toolSpec.patterns.map(pattern => (pattern.patternId.value, pattern.category))(collection.breakOut)
+    analysisResults.collect {
+      case issue: Issue if patternsCategoryMap.get(issue.patternId.value).contains(Pattern.Category.Security) =>
+        issue
+    }
+  }
+
+  private def createRules(issues: Seq[Issue], patternDescriptions: Set[PatternDescription]): List[SarifReport.Rule] = {
+    val patternsMap: Map[String, PatternDescription] =
+      patternDescriptions.map(pattern => (pattern.patternId.value, pattern))(collection.breakOut)
+
+    (for {
+      issue <- issues.groupBy(_.patternId.value).collect { case (_, issue :: _) => issue }
+      modelPattern <- patternsMap.get(issue.patternId.value)
+    } yield SarifReport.Rule(
+      id = issue.patternId.value,
+      name = modelPattern.title,
+      shortDescription = SarifReport.Message(modelPattern.description.getOrElse(modelPattern.title)),
+      help = SarifReport
+        .Message(text = modelPattern.description.getOrElse(modelPattern.title), markdown = modelPattern.explanation),
+      properties =
+        SarifReport.RuleProperties(category = issue.category.getOrElse(Pattern.Category.CodeStyle).toString))).toList
+  }
+
+  private def createResults(filePath: Path,
+                            issues: Seq[Issue],
+                            artifacts: List[SarifReport.Artifact],
+                            rules: Seq[SarifReport.Rule]): Seq[SarifReport.Result] = {
+    val fileContents = executionDirectory./(filePath.toString).lines.toList
+    issues.map { issue =>
+      val message = SarifReport.Message(issue.message.text)
+      val filePath = s"$rootDirectory/${issue.filename.toString}"
+      val locations = List(
+        SarifReport.Location(SarifReport.PhysicalLocation(
+          artifactLocation = SarifReport
+            .ArtifactLocationIndexed(index = artifacts.indexWhere(_.location.uri == filePath), uri = filePath),
+          region = SarifReport.Region(startLine = issue.location.line))))
+
+      SarifReport.Result(
+        ruleIndex = rules.indexWhere(_.id == issue.patternId.value),
+        ruleId = issue.patternId.value,
+        message = message,
+        level = getSarifLevel(issue.level),
+        locations = locations,
+        partialFingerprints = SarifReport.PartialFingerprints("1", generatePrimaryLocationHash(issue, fileContents)))
     }
   }
 
