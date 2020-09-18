@@ -1,5 +1,5 @@
 # action.yml
-name: "codacy-analysis-cli"
+name: "Codacy Analysis CLI"
 author: "Codacy"
 description: "Execute Codacy code analysis using your remote Codacy configuration"
 branding:
