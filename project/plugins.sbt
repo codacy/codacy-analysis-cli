@@ -13,3 +13,6 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.3.2")
 // Dependencies
 addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.5.1")
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.10.0-RC1")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.6")
+
+addSbtPlugin("org.scalameta" % "sbt-native-image" % "0.2.1")

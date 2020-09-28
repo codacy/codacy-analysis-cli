@@ -46,13 +46,22 @@ lazy val codacyAnalysisCli = project
     coverageExcludedPackages := "<empty>;com\\.codacy\\..*CLIError.*",
     Common.dockerSettings,
     Common.genericSettings,
+    nativeImageSettings,
     Universal / javaOptions ++= Seq("-XX:MinRAMPercentage=60.0", "-XX:MaxRAMPercentage=90.0"),
     publish := (Docker / publish).value,
     publishLocal := (Docker / publishLocal).value,
     publishArtifact := false,
-    libraryDependencies ++= Dependencies.pprint +: Dependencies.specs2)
+    libraryDependencies ++= Dependencies.pprint +: Dependencies.specs2,
+    test in assembly := {},
+    assemblyMergeStrategy in assembly := {
+      case "META-INF/versions/9/module-info.class" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        oldStrategy(x)
+    })
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
+  .enablePlugins(NativeImagePlugin)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisCore % "compile->compile;test->test")
