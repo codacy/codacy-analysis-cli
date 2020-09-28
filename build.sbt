@@ -49,7 +49,7 @@ lazy val codacyAnalysisCli = project
     Universal / javaOptions ++= Seq("-XX:MinRAMPercentage=60.0", "-XX:MaxRAMPercentage=90.0"),
     publish := (Docker / publish).value,
     publishLocal := (Docker / publishLocal).value,
-    publishArtifact := false,
+    publishArtifact := true,
     libraryDependencies ++= Dependencies.pprint +: Dependencies.specs2)
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
