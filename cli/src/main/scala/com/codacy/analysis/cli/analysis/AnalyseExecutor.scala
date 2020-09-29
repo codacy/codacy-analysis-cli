@@ -62,7 +62,7 @@ class AnalyseExecutor(formatter: Formatter,
                 .map(dockerTool => new DockerToolDocumentation(dockerTool, new CacheDockerHelper()))
               val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
               val analysisResults =
-                issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles)
+                issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles, configuration.tmpDirectory.map(_.toJava))
               IssuesToolExecutorResult(
                 tool.name,
                 toolDocumentation.flatMap(_.toolSpecification),
@@ -71,11 +71,11 @@ class AnalyseExecutor(formatter: Formatter,
                 analysisResults)
             case metricsTool: MetricsTool =>
               val analysisResults =
-                analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles))
+                analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles), configuration.tmpDirectory.map(_.toJava))
               MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, analysisResults)
             case duplicationTool: DuplicationTool =>
               val analysisResults =
-                analyser.duplication(duplicationTool, filteredFiles.directory, filteredFiles.readableFiles)
+                analyser.duplication(duplicationTool, filteredFiles.directory, filteredFiles.readableFiles, configuration.tmpDirectory.map(_.toJava))
               DuplicationToolExecutorResult(
                 duplicationTool.languageToRun.name,
                 filteredFiles.readableFiles,
@@ -118,7 +118,8 @@ class AnalyseExecutor(formatter: Formatter,
   private def issues(tool: Tool,
                      analysisFilesTarget: FilesTarget,
                      configuration: CLIConfiguration.Tool,
-                     toolHasConfigFiles: Boolean): Try[Set[ToolResult]] = {
+                     toolHasConfigFiles: Boolean,
+                     tmpDirectory: Option[java.io.File]): Try[Set[ToolResult]] = {
     for {
       toolConfiguration <- getToolConfiguration(tool, toolHasConfigFiles, configuration)
       results <- analyser.analyse(
@@ -126,6 +127,7 @@ class AnalyseExecutor(formatter: Formatter,
         analysisFilesTarget.directory,
         analysisFilesTarget.readableFiles,
         toolConfiguration,
+        tmpDirectory,
         configuration.toolTimeout)
     } yield results
   }

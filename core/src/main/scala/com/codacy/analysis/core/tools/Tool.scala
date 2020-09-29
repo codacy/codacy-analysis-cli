@@ -55,6 +55,7 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
   def run(directory: File,
           files: Set[Path],
           config: Configuration,
+          tmpDirectory: Option[java.io.File] = None,
           timeout: Option[Duration] = Option.empty[Duration]): Try[Set[ToolResult]] = {
     val pluginConfiguration = config match {
       case CodacyCfg(patterns, _, extraValues) =>
@@ -76,11 +77,7 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
         files.to[List].map(f => sourceDirectory.removePrefix(f.toString)),
         pluginConfiguration)
 
-    val codacyTmpDir = sys.env.get("CODACY_TMP_DIRECTORY").map(new java.io.File(_))
-    logger.info("codacyTmpDir")
-    logger.info(codacyTmpDir.toString)
-
-    runner.run(request, timeout.getOrElse(defaultRunTimeout), configTmpDirectory = codacyTmpDir).map { res =>
+    runner.run(request, timeout.getOrElse(defaultRunTimeout), configTmpDirectory = tmpDirectory).map { res =>
       (res.results.map(r =>
         Issue(
           results.Pattern.Id(r.patternIdentifier),

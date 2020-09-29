@@ -35,14 +35,16 @@ object CLIConfiguration {
                             parallel: Option[Int],
                             forceFilePermissions: Boolean,
                             fileExclusionRules: CLIConfiguration.FileExclusionRules,
-                            toolConfiguration: CLIConfiguration.Tool)
+                            toolConfiguration: CLIConfiguration.Tool,
+                            tmpDirectory: Option[File] = None)
 
   object Analysis {
 
     def apply(projectDirectory: File,
               analyse: Analyse,
               localConfiguration: Either[String, CodacyConfigurationFile],
-              remoteProjectConfiguration: Either[String, ProjectConfiguration]): Analysis = {
+              remoteProjectConfiguration: Either[String, ProjectConfiguration],
+              tmpDirectory: Option[File]): Analysis = {
 
       val fileExclusionRules =
         CLIConfiguration.FileExclusionRules(localConfiguration, remoteProjectConfiguration)
@@ -56,7 +58,8 @@ object CLIConfiguration {
         analyse.parallel,
         analyse.forceFilePermissionsValue,
         fileExclusionRules,
-        toolConfiguration)
+        toolConfiguration,
+        tmpDirectory)
     }
   }
 
@@ -202,7 +205,7 @@ object CLIConfiguration {
       _.getRemoteConfiguration
     }
     val analysisConfiguration =
-      Analysis(projectDirectory, analyse, localConfiguration, remoteProjectConfiguration)
+      Analysis(projectDirectory, analyse, localConfiguration, remoteProjectConfiguration, analyse.tmpDirectory)
     val uploadConfiguration = Upload(commitUuid, analyse.uploadValue)
     val resultConfiguration = Result(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
 
