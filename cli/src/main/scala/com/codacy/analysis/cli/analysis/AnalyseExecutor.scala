@@ -62,7 +62,12 @@ class AnalyseExecutor(formatter: Formatter,
                 .map(dockerTool => new DockerToolDocumentation(dockerTool, new CacheDockerHelper()))
               val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
               val analysisResults =
-                issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles, configuration.tmpDirectory.map(_.toJava))
+                issues(
+                  tool,
+                  filteredFiles,
+                  configuration.toolConfiguration,
+                  toolHasConfigFiles,
+                  configuration.tmpDirectory.map(_.toJava))
               IssuesToolExecutorResult(
                 tool.name,
                 toolDocumentation.flatMap(_.toolSpecification),
@@ -71,11 +76,19 @@ class AnalyseExecutor(formatter: Formatter,
                 analysisResults)
             case metricsTool: MetricsTool =>
               val analysisResults =
-                analyser.metrics(metricsTool, filteredFiles.directory, Some(filteredFiles.readableFiles), configuration.tmpDirectory.map(_.toJava))
+                analyser.metrics(
+                  metricsTool,
+                  filteredFiles.directory,
+                  Some(filteredFiles.readableFiles),
+                  configuration.tmpDirectory.map(_.toJava))
               MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, analysisResults)
             case duplicationTool: DuplicationTool =>
               val analysisResults =
-                analyser.duplication(duplicationTool, filteredFiles.directory, filteredFiles.readableFiles, configuration.tmpDirectory.map(_.toJava))
+                analyser.duplication(
+                  duplicationTool,
+                  filteredFiles.directory,
+                  filteredFiles.readableFiles,
+                  configuration.tmpDirectory.map(_.toJava))
               DuplicationToolExecutorResult(
                 duplicationTool.languageToRun.name,
                 filteredFiles.readableFiles,
