@@ -26,12 +26,15 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
     val dockerRunner = new BinaryDockerRunner[api.duplication.DuplicationClone](duplicationTool)
     val runner = new traits.DuplicationRunner(duplicationTool, dockerRunner)
 
+    val codacyTmpDir = sys.env.get("CODACY_TMP_DIRECTORY").map(new java.io.File(_))
+
     for {
       duplicationClones <- runner.run(
         directory.toJava,
         CodacyConfiguration(Option(languageToRun), Option.empty),
         timeout.getOrElse(DockerRunner.defaultRunTimeout),
-        None)
+        None,
+        configTmpDirectory = codacyTmpDir)
       clones = filterDuplicationClones(duplicationClones, files)
     } yield {
       clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files.to[Set]))(
