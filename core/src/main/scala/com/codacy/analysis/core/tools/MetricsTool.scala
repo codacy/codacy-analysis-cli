@@ -24,7 +24,7 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
 
   def run(directory: File,
           files: Option[Set[Source.File]],
-          tmpDirectory: Option[java.io.File] = None,
+          tmpDirectory: Option[File] = None,
           timeout: Option[Duration] = Option.empty[Duration]): Try[List[FileMetrics]] = {
     val request = MetricsRequest(directory.pathAsString)
 
@@ -34,7 +34,12 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
     val configuration = CodacyConfiguration(files, Some(languageToRun), None)
 
     val toolFileMetrics =
-      runner.run(request, configuration, timeout.getOrElse(DockerRunner.defaultRunTimeout), None, tmpDirectory)
+      runner.run(
+        request,
+        configuration,
+        timeout.getOrElse(DockerRunner.defaultRunTimeout),
+        dockerConfig = None,
+        tmpDirectory.map(_.toJava))
 
     toolFileMetrics.map {
       _.collect {

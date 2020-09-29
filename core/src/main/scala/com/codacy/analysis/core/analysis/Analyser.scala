@@ -21,19 +21,19 @@ trait Analyser[T[_]] {
               directory: File,
               files: Set[Path],
               config: Configuration,
-              tmpDirectory: Option[java.io.File],
+              tmpDirectory: Option[File],
               timeout: Option[Duration] = Option.empty[Duration]): T[Set[ToolResult]]
 
   def metrics(metricsTool: MetricsTool,
               directory: File,
               files: Option[Set[Path]],
-              tmpDirectory: Option[java.io.File],
+              tmpDirectory: Option[File],
               timeout: Option[Duration] = Option.empty[Duration]): T[Set[FileMetrics]]
 
   def duplication(duplicationTool: DuplicationTool,
                   directory: File,
                   files: Set[Path],
-                  tmpDirectory: Option[java.io.File],
+                  tmpDirectory: Option[File],
                   timeout: Option[Duration] = Option.empty[Duration]): T[Set[DuplicationClone]]
 
 }

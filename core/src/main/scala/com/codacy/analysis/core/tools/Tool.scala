@@ -55,7 +55,7 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
   def run(directory: File,
           files: Set[Path],
           config: Configuration,
-          tmpDirectory: Option[java.io.File] = None,
+          tmpDirectory: Option[File] = None,
           timeout: Option[Duration] = Option.empty[Duration]): Try[Set[ToolResult]] = {
     val pluginConfiguration = config match {
       case CodacyCfg(patterns, _, extraValues) =>
@@ -77,20 +77,21 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
         files.to[List].map(f => sourceDirectory.removePrefix(f.toString)),
         pluginConfiguration)
 
-    runner.run(request, timeout.getOrElse(defaultRunTimeout), configTmpDirectory = tmpDirectory).map { res =>
-      (res.results.map(r =>
-        Issue(
-          results.Pattern.Id(r.patternIdentifier),
-          FileHelper.relativePath(sourceDirectory.appendPrefix(r.filename)),
-          Issue.Message(r.message),
-          r.level,
-          r.category,
-          LineLocation(r.line)))(collection.breakOut): Set[ToolResult]) ++
-        res.fileErrors.map(
-          fe =>
-            FileError(
-              FileHelper.relativePath(sourceDirectory.appendPrefix(fe.filename)),
-              fe.message.getOrElse("Failed to analyse file.")))
+    runner.run(request, timeout.getOrElse(defaultRunTimeout), configTmpDirectory = tmpDirectory.map(_.toJava)).map {
+      res =>
+        (res.results.map(r =>
+          Issue(
+            results.Pattern.Id(r.patternIdentifier),
+            FileHelper.relativePath(sourceDirectory.appendPrefix(r.filename)),
+            Issue.Message(r.message),
+            r.level,
+            r.category,
+            LineLocation(r.line)))(collection.breakOut): Set[ToolResult]) ++
+          res.fileErrors.map(
+            fe =>
+              FileError(
+                FileHelper.relativePath(sourceDirectory.appendPrefix(fe.filename)),
+                fe.message.getOrElse("Failed to analyse file.")))
     }
   }
 
