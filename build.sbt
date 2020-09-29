@@ -46,7 +46,7 @@ lazy val codacyAnalysisCli = project
     coverageExcludedPackages := "<empty>;com\\.codacy\\..*CLIError.*",
     Common.dockerSettings,
     Common.genericSettings,
-    nativeImageSettings,
+    Common.nativeImageSettings,
     Universal / javaOptions ++= Seq("-XX:MinRAMPercentage=60.0", "-XX:MaxRAMPercentage=90.0"),
     publish := (Docker / publish).value,
     publishLocal := (Docker / publishLocal).value,
