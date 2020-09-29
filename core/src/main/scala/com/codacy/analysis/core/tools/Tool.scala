@@ -76,7 +76,9 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
         files.to[List].map(f => sourceDirectory.removePrefix(f.toString)),
         pluginConfiguration)
 
-    runner.run(request, timeout.getOrElse(defaultRunTimeout)).map { res =>
+    val codacyTmpDir = sys.env.get("CODACY_TMP_DIRECTORY").map(new java.io.File(_))
+
+    runner.run(request, timeout.getOrElse(defaultRunTimeout), configTmpDirectory = codacyTmpDir).map { res =>
       (res.results.map(r =>
         Issue(
           results.Pattern.Id(r.patternIdentifier),
