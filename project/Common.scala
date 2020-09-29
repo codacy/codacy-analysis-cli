@@ -3,7 +3,6 @@ import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport.Docker
 import com.typesafe.sbt.packager.docker.{Cmd, CmdLike, DockerAlias}
 import sbt.Keys._
 import sbt.{Def, _}
-import sbtnativeimage.NativeImagePlugin.autoImport.nativeImageOptions
 
 import scala.util.Properties
 
@@ -112,21 +111,5 @@ object Common {
       compilerFlagsDefault
     }
   }
-
-  val nativeImageSettings: Seq[Def.Setting[_]] = Seq(
-    nativeImageOptions ++= Seq(
-      "--enable-http",
-      "--enable-https",
-      "--enable-url-protocols=http,https",
-      "--enable-all-security-services",
-      "-H:+JNI",
-      "-H:+AllowIncompleteClasspath",
-      "-H:+ReportExceptionStackTraces",
-      "--no-fallback",
-      "--initialize-at-build-time",
-      "--report-unsupported-elements-at-runtime") ++ {
-      if (sys.props.get("os.name").contains("Mac OS X")) Seq.empty
-      else Seq("--static")
-    })
 
 }
