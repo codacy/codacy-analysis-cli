@@ -1,7 +1,16 @@
-import sbt._
 import codacy.libs._
+import sbt._
 
 Universal / javaOptions ++= Seq("-Xms1g", "-Xmx2g", "-Xss512m", "-XX:+UseG1GC", "-XX:+UseStringDeduplication")
+
+val assemblyCommon = Seq(
+  test in assembly := {},
+  assemblyMergeStrategy in assembly := {
+    case "META-INF/versions/9/module-info.class" => MergeStrategy.discard
+    case x =>
+      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      oldStrategy(x)
+  })
 
 val sonatypeInformation = Seq(
   startYear := Some(2018),
@@ -35,6 +44,7 @@ lazy val codacyAnalysisCore = project
     libraryDependencies ++= Dependencies.specs2,
     sonatypeInformation,
     description := "Library to analyse projects")
+  .settings(assemblyCommon: _*)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisModels)
@@ -46,22 +56,14 @@ lazy val codacyAnalysisCli = project
     coverageExcludedPackages := "<empty>;com\\.codacy\\..*CLIError.*",
     Common.dockerSettings,
     Common.genericSettings,
-    Common.nativeImageSettings,
     Universal / javaOptions ++= Seq("-XX:MinRAMPercentage=60.0", "-XX:MaxRAMPercentage=90.0"),
     publish := (Docker / publish).value,
     publishLocal := (Docker / publishLocal).value,
     publishArtifact := false,
-    libraryDependencies ++= Dependencies.pprint +: Dependencies.specs2,
-    test in assembly := {},
-    assemblyMergeStrategy in assembly := {
-      case "META-INF/versions/9/module-info.class" => MergeStrategy.discard
-      case x =>
-        val oldStrategy = (assemblyMergeStrategy in assembly).value
-        oldStrategy(x)
-    })
+    libraryDependencies ++= Dependencies.pprint +: Dependencies.specs2)
+  .settings(assemblyCommon: _*)
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
-  .enablePlugins(NativeImagePlugin)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisCore % "compile->compile;test->test")
@@ -77,6 +79,7 @@ lazy val codacyAnalysisModels = project
     libraryDependencies ++=
       Dependencies.circe ++ Seq(Dependencies.pluginsApi) ++ Dependencies.specs2,
     description := "Library with analysis models")
+  .settings(assemblyCommon: _*)
   .settings(sonatypeInformation)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
