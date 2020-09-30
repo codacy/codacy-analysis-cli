@@ -205,11 +205,23 @@ workflows:
           docker_tag: dev-snapshot
           requires:
             - test_cli_staging
+      - codacy/sbt:
+          name: build_cli_jar
+          install_sbt_version: 1.3.12
+          cmd: |
+            sbt "set codacyAnalysisCli / version := \"$(cat .version)\";
+                 set test in assembly := {};
+                 codacyAnalysisCli/assembly"
+            mkdir -p ~/workdir/artifacts/
+            mv ./cli/target/scala-2.12/codacy-analysis-cli-assembly-$(cat .version).jar ~/workdir/artifacts/
+          requires:
+            - test_cli_staging
       - codacy/publish_ghr:
           context: CodacyGitHub
-          path: ~/
+          path: ~/workdir/artifacts/
           requires:
             - publish_dockerhub
+            - build_cli_jar
       - publish_dockerhub_stable_hold:
           context: CodacyDocker
           type: approval

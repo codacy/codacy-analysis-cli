@@ -149,6 +149,8 @@ final case class Analyse(
   forceFilePermissions: Int @@ Counter = Tag.of(0),
   @ValueDescription("Maximum time each tool has to execute")
   toolTimeout: Option[Duration],
+  @ValueDescription("The tmp directory location.")
+  tmpDirectory: Option[File] = None,
   @Recurse
   extras: ExtraOptions)
     extends CommandOptions {

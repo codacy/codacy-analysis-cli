@@ -19,8 +19,9 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
                        directory: File,
                        files: Set[Path],
                        config: Configuration,
+                       tmpDirectory: Option[File],
                        timeout: Option[Duration] = Option.empty[Duration]): Try[Set[ToolResult]] = {
-    val result = tool.run(directory, files, config, timeout)
+    val result = tool.run(directory, files, config, tmpDirectory, timeout)
 
     result match {
       case Success(res) =>
@@ -35,11 +36,12 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
   override def metrics(metricsTool: MetricsTool,
                        directory: File,
                        files: Option[Set[Path]],
+                       tmpDirectory: Option[File],
                        timeout: Option[Duration] = Option.empty[Duration]): Try[Set[FileMetrics]] = {
 
     val srcFiles = files.map(_.map(filePath => Source.File(filePath.toString)))
 
-    val result = metricsTool.run(directory, srcFiles, timeout)
+    val result = metricsTool.run(directory, srcFiles, tmpDirectory, timeout)
 
     result match {
       case Success(res) =>
@@ -54,9 +56,10 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
   override def duplication(duplicationTool: DuplicationTool,
                            directory: File,
                            files: Set[Path],
+                           tmpDirectory: Option[File],
                            timeout: Option[Duration] = Option.empty[Duration]): Try[Set[DuplicationClone]] = {
 
-    val result = duplicationTool.run(directory, files, timeout)
+    val result = duplicationTool.run(directory, files, tmpDirectory, timeout)
 
     result match {
       case Success(res) =>

@@ -1,7 +1,21 @@
-import sbt._
 import codacy.libs._
+import sbt._
 
 Universal / javaOptions ++= Seq("-Xms1g", "-Xmx2g", "-Xss512m", "-XX:+UseG1GC", "-XX:+UseStringDeduplication")
+
+val assemblyCommon = Seq(
+  test in assembly := {},
+  // Without this assembly merge strategy, gives the following error:
+  // (codacyAnalysisCli / assembly) deduplicate: different file contents found in the following:
+  // [error] org/bouncycastle/bcpg-jdk15on/1.64/bcpg-jdk15on-1.64.jar:META-INF/versions/9/module-info.class
+  // Workaround:
+  // https://stackoverflow.com/questions/54834125/sbt-assembly-deduplicate-module-info-class
+  assemblyMergeStrategy in assembly := {
+    case "META-INF/versions/9/module-info.class" => MergeStrategy.discard
+    case x =>
+      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      oldStrategy(x)
+  })
 
 val sonatypeInformation = Seq(
   startYear := Some(2018),
@@ -35,6 +49,7 @@ lazy val codacyAnalysisCore = project
     libraryDependencies ++= Dependencies.specs2,
     sonatypeInformation,
     description := "Library to analyse projects")
+  .settings(assemblyCommon: _*)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisModels)
@@ -51,6 +66,7 @@ lazy val codacyAnalysisCli = project
     publishLocal := (Docker / publishLocal).value,
     publishArtifact := false,
     libraryDependencies ++= Dependencies.pprint +: Dependencies.specs2)
+  .settings(assemblyCommon: _*)
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
@@ -68,6 +84,7 @@ lazy val codacyAnalysisModels = project
     libraryDependencies ++=
       Dependencies.circe ++ Seq(Dependencies.pluginsApi) ++ Dependencies.specs2,
     description := "Library with analysis models")
+  .settings(assemblyCommon: _*)
   .settings(sonatypeInformation)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)

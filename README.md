@@ -110,6 +110,15 @@ codacy-analysis-cli analyse \
   --directory <SOURCE-CODE-PATH>
 ```
 
+### Java
+
+```
+java -jar codacy-analysis-cli-assembly-{VERSION}.jar analyse \
+  --tool <TOOL-SHORT-NAME> \
+  --directory <SOURCE-CODE-PATH> \
+  # other options
+```
+
 ### Local
 
 ```sh
@@ -193,7 +202,7 @@ Found [Clone] 7 duplicated lines with 10 tokens:
 
 ### Commands and Configuration
 
-* `analyze` - Run a Codacy analysis over a directory/files
+* `analyse` - Run a Codacy analysis over a directory/files
     * `--verbose` - Run the tool with verbose output
     * `--tool` - Choose the tool to analyse the code (e.g. brakeman)
     * `--directory` - Choose the directory to be analysed
@@ -208,6 +217,7 @@ Found [Clone] 7 duplicated lines with 10 tokens:
     * `--allow-network` [default: false] - Allow network access, so tools that need it can execute (e.g. findbugs)
     * `--force-file-permissions` [default: false] - Force files to be readable by changing the permissions before running the analysis
     * `--tool-timeout` [default: 15minutes] - Maximum time each tool has to execute (e.g. 15minutes, 1hour)
+    * `--tmp-directory` [optional] - Temporary directory for analysis purposes
 * `validate-configuration` - Validate the Codacy configuration file
     * `--directory` - Choose the directory where to look for the Codacy configuration file
 
