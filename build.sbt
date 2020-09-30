@@ -63,6 +63,7 @@ lazy val codacyAnalysisCli = project
 lazy val toolRepositoryPlugins = project
   .in(file("toolRepository-plugins"))
   .settings(crossScalaVersions := Common.supportedScalaVersions, Common.genericSettings)
+  .settings(libraryDependencies ++= Dependencies.codacyPlugins)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisCore, codacyAnalysisModels)
