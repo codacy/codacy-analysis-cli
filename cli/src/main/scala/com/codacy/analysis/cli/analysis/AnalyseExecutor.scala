@@ -59,16 +59,15 @@ class AnalyseExecutor(formatter: Formatter,
 
           tool match {
             case tool: Tool =>
-              val toolDocumentation = toolCollector
-                .fromUuid(tool.uuid)
-                .map(dockerTool => new DockerToolDocumentation(dockerTool, new CacheDockerHelper()))
+              //TODO: Handle the either instead of .toOption
+              val fullToolSpec: Option[FullToolSpec] = toolCollector.fromUuid(tool.uuid).toOption
               val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
               val analysisResults =
                 issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles)
               IssuesToolExecutorResult(
                 tool.name,
-                toolDocumentation.flatMap(_.toolSpecification),
-                toolDocumentation.flatMap(_.patternDescriptions).getOrElse(Set.empty[PatternDescription]),
+                fullToolSpec.map(_.toolApiSpec),
+                fullToolSpec.map(_.patternDescriptions).getOrElse(Set.empty[PatternDescription]),
                 filteredFiles.readableFiles,
                 analysisResults)
             case metricsTool: MetricsTool =>
@@ -139,9 +138,10 @@ class AnalyseExecutor(formatter: Formatter,
       getExtraConfiguration(configuration.extraToolConfigurations, tool)
     (for {
       allToolsConfiguration <- configuration.toolConfigurations
-      toolConfiguration <- allToolsConfiguration
-        .find(_.uuid.equalsIgnoreCase(tool.uuid))
-        .toRight[String](s"Could not find configuration for tool ${tool.name}")
+      toolConfiguration <-
+        allToolsConfiguration
+          .find(_.uuid.equalsIgnoreCase(tool.uuid))
+          .toRight[String](s"Could not find configuration for tool ${tool.name}")
     } yield {
       val shouldUseConfigFile = toolConfiguration.notEdited && hasConfigFiles
       val shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile && toolConfiguration.patterns.nonEmpty
