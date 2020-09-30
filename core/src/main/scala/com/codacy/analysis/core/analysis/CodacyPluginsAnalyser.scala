@@ -26,7 +26,7 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
       case Success(res) =>
         logger.info(s"Completed analysis for ${tool.name} with ${res.size} results")
       case Failure(e) =>
-        logger.error(e)(Analyser.Error.ToolExecutionFailure("analysis", tool.name).message)
+        logger.error(e)(AnalyserError.ToolExecutionFailure("analysis", tool.name).message)
     }
 
     result
@@ -45,7 +45,7 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
       case Success(res) =>
         logger.info(s"Completed metrics for ${metricsTool.name} with ${res.size} results")
       case Failure(e) =>
-        logger.error(e)(Analyser.Error.ToolExecutionFailure("metrics", metricsTool.name).message)
+        logger.error(e)(AnalyserError.ToolExecutionFailure("metrics", metricsTool.name).message)
     }
 
     result.map(_.to[Set])
@@ -62,7 +62,7 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
       case Success(res) =>
         logger.info(s"Completed duplication for ${duplicationTool.name} with ${res.size} results")
       case Failure(e) =>
-        logger.error(e)(Analyser.Error.ToolExecutionFailure("duplication", duplicationTool.name).message)
+        logger.error(e)(AnalyserError.ToolExecutionFailure("duplication", duplicationTool.name).message)
     }
 
     result.map(_.to[Set])
@@ -78,8 +78,8 @@ object CodacyPluginsAnalyser extends AnalyserCompanion[Try] {
 
   object errors {
 
-    def missingTool(tool: String): Analyser.Error =
-      Analyser.Error.NonExistingToolInput(tool)
+    def missingTool(tool: String): AnalyserError =
+      AnalyserError.NonExistingToolInput(tool)
   }
 
 }

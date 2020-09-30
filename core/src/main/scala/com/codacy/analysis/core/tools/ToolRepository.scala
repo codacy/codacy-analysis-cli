@@ -1,11 +1,11 @@
 package com.codacy.analysis.core.tools
 
-import com.codacy.analysis.core.model.{PatternSpec, ToolSpec}
+import com.codacy.analysis.core.model.{AnalyserError, PatternSpec, ToolSpec}
 
 trait ToolRepository {
 
-  def list(): Either[String, Seq[ToolSpec]]
-  def get(uuid: String): Either[String, ToolSpec]
-  def listPatterns(toolUuid: String): Either[String, Seq[PatternSpec]]
+  def list(): Either[AnalyserError, Seq[ToolSpec]]
+  def get(uuid: String): Either[AnalyserError, ToolSpec]
+  def listPatterns(toolUuid: String): Either[AnalyserError, Seq[PatternSpec]]
 
 }
