@@ -3,18 +3,16 @@ package com.codacy.analysis.core.tools
 import java.nio.file.{Path, Paths}
 
 import better.files.File
-import com.codacy.analysis.core.analysis.{Analyser, CodacyPluginsAnalyser}
-import com.codacy.analysis.core.model.{Configuration, Issue, _}
+import com.codacy.analysis.core.analysis.CodacyPluginsAnalyser
+import com.codacy.analysis.core.model.{Configuration, Issue, ParameterSpec, _}
 import com.codacy.analysis.core.utils.FileHelper
 import com.codacy.plugins.api
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.results
 import com.codacy.plugins.api.results.Result
-import com.codacy.plugins.results.traits.{DockerTool, DockerToolDocumentation, ToolRunner}
+import com.codacy.plugins.results.traits.ToolRunner
 import com.codacy.plugins.results.{PatternRequest, PluginConfiguration, PluginRequest}
-import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
-import com.codacy.plugins.results.utils.ResultsTools
-import com.codacy.plugins.utils.BinaryDockerHelper
+import com.codacy.plugins.runners.{BinaryDockerRunner, DockerInformation, DockerRunner}
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
@@ -39,18 +37,18 @@ final case class SubDirectory(sourceDirectory: String, protected val subDirector
     filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: DockerTool, val languageToRun: Language)
+class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val tool: ToolSpec, val languageToRun: Language)
     extends ITool {
 
   private val logger: Logger = getLogger
 
-  override def name: String = plugin.shortName
-  def uuid: String = plugin.uuid
+  override def name: String = tool.shortName
+  def uuid: String = tool.uuid
 
-  override def supportedLanguages: Set[Language] = plugin.languages
+  override def supportedLanguages: Set[Language] = tool.languages
 
   def configFilenames: Set[String] =
-    if (plugin.hasConfigFile) plugin.configFilename.toSet else Set.empty
+    if (tool.hasConfigFile) tool.configFilenames else Set.empty
 
   def run(directory: File,
           files: Set[Path],
@@ -126,23 +124,31 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
 }
 
 object Tool {
-  def apply(plugin: DockerTool, languageToRun: Language): Tool = {
-    val dockerRunner = new BinaryDockerRunner[Result](plugin)
-    val dockerToolDocumentation = new DockerToolDocumentation(plugin, new BinaryDockerHelper())
+
+  def apply(fullToolSpec: FullToolSpec, languageToRun: Language): Tool = {
+    val dockerInformation = new DockerInformation(
+      dockerImageName = fullToolSpec.tool.dockerImage,
+      needsCompilation = fullToolSpec.tool.needsCompilation)
+
+    val dockerRunner = new BinaryDockerRunner[Result](dockerInformation)
+
     val runner =
-      new ToolRunner(dockerToolDocumentation.toolSpecification, dockerToolDocumentation.toolPrefix, dockerRunner)
-    new Tool(runner, DockerRunner.defaultRunTimeout)(plugin, languageToRun)
+      new ToolRunner(Option(fullToolSpec.toolApiSpec), fullToolSpec.tool.prefix, dockerRunner)
+    new Tool(runner, DockerRunner.defaultRunTimeout)(fullToolSpec.tool, languageToRun)
   }
 }
 
 class ToolCollector(toolRepository: ToolRepository) {
 
-  private val availableTools: List[DockerTool] = ResultsTools.list
-
   private val logger: Logger = getLogger
 
-  def fromUuid(uuid: String): Option[DockerTool] = {
-    availableTools.find(_.uuid == uuid)
+  def fromUuid(uuid: String): Either[AnalyserError, FullToolSpec] = {
+    for {
+      tool <- toolRepository.get(uuid)
+      patterns <- toolRepository.listPatterns(tool.uuid)
+    } yield {
+      FullToolSpec(tool, patterns)
+    }
   }
 
   def fromNameOrUUID(toolInput: String, languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
@@ -171,21 +177,31 @@ class ToolCollector(toolRepository: ToolRepository) {
   }
 
   def from(value: String, languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
-    find(value).map(dockerTool => dockerTool.languages.intersect(languages).map(Tool(dockerTool, _)))
+    for {
+      tool <- find(value)
+      patterns <- toolRepository.listPatterns(tool.uuid)
+    } yield {
+      tool.languages.intersect(languages).map(language => Tool(FullToolSpec(tool, patterns), language))
+    }
   }
 
-  private def find(value: String): Either[AnalyserError, DockerTool] = {
-    availableTools
-      .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
-      .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
+  private def find(value: String): Either[AnalyserError, ToolSpec] = {
+    toolRepository.list().flatMap { availableTools =>
+      availableTools
+        .find(tool => tool.shortName.equalsIgnoreCase(value) || tool.uuid.equalsIgnoreCase(value))
+        .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
+    }
   }
 
   def fromLanguages(languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
     val collectedTools: Set[Tool] = (for {
-      tool <- availableTools
+      //TODO: Handle and propagate the error instead of Seq.empty
+      tool <- toolRepository.list().getOrElse(Seq.empty)
+      //TODO: Handle and propagate the error instead of .toOption.toSeq
+      patterns <- toolRepository.listPatterns(tool.uuid).toOption.toSeq
       languagesToRun = tool.languages.intersect(languages)
       languageToRun <- languagesToRun
-    } yield Tool(tool, languageToRun))(collection.breakOut)
+    } yield Tool(FullToolSpec(tool, patterns), languageToRun))(collection.breakOut)
 
     if (collectedTools.isEmpty) {
       Left(AnalyserError.NoToolsFoundForFiles)

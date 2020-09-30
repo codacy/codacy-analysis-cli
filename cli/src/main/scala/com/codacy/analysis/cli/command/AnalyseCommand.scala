@@ -91,7 +91,8 @@ class AnalyseCommand(analyze: Analyze,
       .fold(
         { _ =>
           Right(())
-        }, { repository =>
+        },
+        { repository =>
           for {
             _ <- validateNoUncommitedChanges(repository, configuration.upload.upload)
             _ <- validateGitCommitUuid(repository, analyze.commitUuid)
@@ -103,7 +104,8 @@ class AnalyseCommand(analyze: Analyze,
     repository.uncommitedFiles.fold(
       { _ =>
         Right(())
-      }, { uncommitedFiles =>
+      },
+      { uncommitedFiles =>
         if (uncommitedFiles.nonEmpty) {
           val error: CLIError = CLIError.UncommitedChanges(uncommitedFiles)
           if (upload) {
