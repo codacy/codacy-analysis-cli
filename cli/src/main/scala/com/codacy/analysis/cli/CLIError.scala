@@ -1,7 +1,7 @@
 package com.codacy.analysis.cli
 
-import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.git.Commit
+import com.codacy.analysis.core.model.AnalyserError
 import com.codacy.plugins.api.languages.Language
 
 sealed trait CLIError {
@@ -10,17 +10,17 @@ sealed trait CLIError {
 
 object CLIError {
 
-  def from(coreError: Analyser.Error): CLIError = {
+  def from(coreError: AnalyserError): CLIError = {
     coreError match {
-      case Analyser.Error.ToolExecutionFailure(toolType, toolName) =>
+      case AnalyserError.ToolExecutionFailure(toolType, toolName) =>
         CLIError.ToolExecutionFailure(toolType, toolName)
-      case Analyser.Error.ToolNeedsNetwork(toolName) =>
+      case AnalyserError.ToolNeedsNetwork(toolName) =>
         CLIError.ToolNeedsNetwork(toolName)
-      case Analyser.Error.NonExistingToolInput(toolName) =>
+      case AnalyserError.NonExistingToolInput(toolName) =>
         CLIError.NonExistingToolInput(toolName)
-      case Analyser.Error.NoActiveToolInConfiguration =>
+      case AnalyserError.NoActiveToolInConfiguration =>
         CLIError.NoActiveToolInConfiguration
-      case Analyser.Error.NoToolsFoundForFiles =>
+      case AnalyserError.NoToolsFoundForFiles =>
         CLIError.NoToolsFoundForFiles
     }
   }

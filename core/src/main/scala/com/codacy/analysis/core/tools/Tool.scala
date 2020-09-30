@@ -145,13 +145,13 @@ class ToolCollector(toolRepository: ToolRepository) {
     availableTools.find(_.uuid == uuid)
   }
 
-  def fromNameOrUUID(toolInput: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
+  def fromNameOrUUID(toolInput: String, languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
     from(toolInput, languages)
   }
 
-  def fromToolUUIDs(toolUuids: Set[String], languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
+  def fromToolUUIDs(toolUuids: Set[String], languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
     if (toolUuids.isEmpty) {
-      Left(Analyser.Error.NoActiveToolInConfiguration)
+      Left(AnalyserError.NoActiveToolInConfiguration)
     } else {
       val toolsIdentified = toolUuids.flatMap { toolUuid =>
         from(toolUuid, languages).fold(
@@ -170,17 +170,17 @@ class ToolCollector(toolRepository: ToolRepository) {
     }
   }
 
-  def from(value: String, languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
+  def from(value: String, languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
     find(value).map(dockerTool => dockerTool.languages.intersect(languages).map(Tool(dockerTool, _)))
   }
 
-  private def find(value: String): Either[Analyser.Error, DockerTool] = {
+  private def find(value: String): Either[AnalyserError, DockerTool] = {
     availableTools
       .find(p => p.shortName.equalsIgnoreCase(value) || p.uuid.equalsIgnoreCase(value))
       .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
   }
 
-  def fromLanguages(languages: Set[Language]): Either[Analyser.Error, Set[Tool]] = {
+  def fromLanguages(languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
     val collectedTools: Set[Tool] = (for {
       tool <- availableTools
       languagesToRun = tool.languages.intersect(languages)
@@ -188,7 +188,7 @@ class ToolCollector(toolRepository: ToolRepository) {
     } yield Tool(tool, languageToRun))(collection.breakOut)
 
     if (collectedTools.isEmpty) {
-      Left(Analyser.Error.NoToolsFoundForFiles)
+      Left(AnalyserError.NoToolsFoundForFiles)
     } else {
       Right(collectedTools)
     }
