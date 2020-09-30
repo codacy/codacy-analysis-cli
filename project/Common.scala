@@ -10,7 +10,7 @@ object Common {
 
   private val defaultDockerInstallationPath = "/opt/codacy"
   val scalaBinaryVersionNumber = "2.12"
-  val scalaVersionNumber = s"$scalaBinaryVersionNumber.10"
+  val scalaVersionNumber = s"$scalaBinaryVersionNumber.11"
 
   val scala213BinaryVersionNumber = "2.13"
   val scala213VersionNumber = s"$scala213BinaryVersionNumber.1"
