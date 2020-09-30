@@ -16,7 +16,7 @@ object CLIError {
         CLIError.ToolExecutionFailure(toolType, toolName)
       case Analyser.Error.ToolNeedsNetwork(toolName) =>
         CLIError.ToolNeedsNetwork(toolName)
-      case Analyser.Error.NonExistingToolInput(toolName, _) =>
+      case Analyser.Error.NonExistingToolInput(toolName) =>
         CLIError.NonExistingToolInput(toolName)
       case Analyser.Error.NoActiveToolInConfiguration =>
         CLIError.NoActiveToolInConfiguration

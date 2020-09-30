@@ -28,11 +28,13 @@ import scala.util.{Failure, Success, Try}
 class AnalyseExecutor(formatter: Formatter,
                       analyser: Analyser[Try],
                       fileCollector: FileCollector[Try],
-                      configuration: CLIConfiguration.Analysis) {
+                      configuration: CLIConfiguration.Analysis,
+                      toolRepository: ToolRepository) {
 
   import com.codacy.analysis.cli.analysis.AnalyseExecutor._
 
   private val logger: Logger = getLogger
+  private val toolCollector = new ToolCollector(toolRepository)
 
   def run(): Either[CLIError, Seq[ExecutorResult[_]]] = {
 
@@ -57,7 +59,7 @@ class AnalyseExecutor(formatter: Formatter,
 
           tool match {
             case tool: Tool =>
-              val toolDocumentation = ToolCollector
+              val toolDocumentation = toolCollector
                 .fromUuid(tool.uuid)
                 .map(dockerTool => new DockerToolDocumentation(dockerTool, new CacheDockerHelper()))
               val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
@@ -137,10 +139,9 @@ class AnalyseExecutor(formatter: Formatter,
       getExtraConfiguration(configuration.extraToolConfigurations, tool)
     (for {
       allToolsConfiguration <- configuration.toolConfigurations
-      toolConfiguration <-
-        allToolsConfiguration
-          .find(_.uuid.equalsIgnoreCase(tool.uuid))
-          .toRight[String](s"Could not find configuration for tool ${tool.name}")
+      toolConfiguration <- allToolsConfiguration
+        .find(_.uuid.equalsIgnoreCase(tool.uuid))
+        .toRight[String](s"Could not find configuration for tool ${tool.name}")
     } yield {
       val shouldUseConfigFile = toolConfiguration.notEdited && hasConfigFiles
       val shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile && toolConfiguration.patterns.nonEmpty
@@ -189,30 +190,6 @@ class AnalyseExecutor(formatter: Formatter,
     Process(Seq("find", sourceDirectory.pathAsString, "-type", "f", "-exec", "chmod", "ugo+r", "{}", ";")).!
   }
 
-}
-
-object AnalyseExecutor {
-
-  sealed trait ExecutorResult[T <: Result] {
-    def analysisResults: Try[Set[T]]
-  }
-
-  final case class IssuesToolExecutorResult(
-    toolName: String,
-    toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
-    patternDescriptions: Set[PatternDescription],
-    files: Set[Path],
-    analysisResults: Try[Set[ToolResult]])
-      extends ExecutorResult[ToolResult]
-
-  final case class MetricsToolExecutorResult(language: String, files: Set[Path], analysisResults: Try[Set[FileMetrics]])
-      extends ExecutorResult[FileMetrics]
-
-  final case class DuplicationToolExecutorResult(language: String,
-                                                 files: Set[Path],
-                                                 analysisResults: Try[Set[DuplicationClone]])
-      extends ExecutorResult[DuplicationClone]
-
   def allTools(toolInput: Option[String],
                configuration: CLIConfiguration.Tool,
                languages: Set[Language]): Either[CLIError, Set[ITool]] = {
@@ -245,7 +222,7 @@ object AnalyseExecutor {
     def fromRemoteConfig: Either[CLIError, Set[Tool]] = {
       configuration.toolConfigurations.left.map(CLIError.NoRemoteProjectConfiguration).flatMap { toolConfiguration =>
         val toolUuids = toolConfiguration.filter(_.enabled).map(_.uuid)
-        ToolCollector
+        toolCollector
           .fromToolUUIDs(toolUuids, languages)
           .left
           .map(_ => CLIError.NonExistentToolsFromRemoteConfiguration(toolUuids))
@@ -253,11 +230,11 @@ object AnalyseExecutor {
     }
 
     def fromLocalConfig: Either[CLIError, Set[Tool]] = {
-      ToolCollector.fromLanguages(languages).left.map(CLIError.from)
+      toolCollector.fromLanguages(languages).left.map(CLIError.from)
     }
 
     toolInput.map { toolStr =>
-      ToolCollector.fromNameOrUUID(toolStr, languages).left.map(CLIError.from)
+      toolCollector.fromNameOrUUID(toolStr, languages).left.map(CLIError.from)
     }.getOrElse {
       for {
         e1 <- fromRemoteConfig.left
@@ -265,4 +242,29 @@ object AnalyseExecutor {
       } yield CLIError.CouldNotGetTools(s"${e1.message} and ${e2.message}")
     }
   }
+
+}
+
+object AnalyseExecutor {
+
+  sealed trait ExecutorResult[T <: Result] {
+    def analysisResults: Try[Set[T]]
+  }
+
+  final case class IssuesToolExecutorResult(
+    toolName: String,
+    toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
+    patternDescriptions: Set[PatternDescription],
+    files: Set[Path],
+    analysisResults: Try[Set[ToolResult]])
+      extends ExecutorResult[ToolResult]
+
+  final case class MetricsToolExecutorResult(language: String, files: Set[Path], analysisResults: Try[Set[FileMetrics]])
+      extends ExecutorResult[FileMetrics]
+
+  final case class DuplicationToolExecutorResult(language: String,
+                                                 files: Set[Path],
+                                                 analysisResults: Try[Set[DuplicationClone]])
+      extends ExecutorResult[DuplicationClone]
+
 }
