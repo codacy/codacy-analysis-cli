@@ -206,7 +206,7 @@ workflows:
           requires:
             - test_cli_staging
       - codacy/sbt:
-          name: publish_cli_jar
+          name: build_cli_jar
           install_sbt_version: 1.3.12
           cmd: |
             sbt "set codacyAnalysisCli / version := \"$(cat .version)\";
@@ -221,6 +221,7 @@ workflows:
           path: ~/workdir/artifacts/
           requires:
             - publish_dockerhub
+            - build_cli_jar
       - publish_dockerhub_stable_hold:
           context: CodacyDocker
           type: approval
