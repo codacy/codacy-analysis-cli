@@ -21,9 +21,11 @@ import com.codacy.analysis.core.configuration.CodacyConfigurationFileLoader
 import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.git.{Commit, Git, Repository}
 import com.codacy.analysis.core.model._
+import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.analysis.core.upload.ResultsUploader
 import com.codacy.analysis.core.utils.Logger
 import com.codacy.analysis.core.utils.SeqOps._
+import com.codacy.toolRepository.plugins.ToolRepositoryPlugins
 import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -42,8 +44,16 @@ object AnalyseCommand {
     val formatter: Formatter =
       Formatter(configuration.analysis.output, environment.baseProjectDirectory(analyze.directory))
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
+
+    //TODO: Create the correct repository based on the value of CODACY_TOOLS_FETCH_REMOTE
+    val toolRepository: ToolRepository = new com.codacy.toolRepository.plugins.ToolRepositoryPlugins()
     val analyseExecutor: AnalyseExecutor =
-      new AnalyseExecutor(formatter, Analyser(analyze.extras.analyser), fileCollector, configuration.analysis)
+      new AnalyseExecutor(
+        formatter,
+        Analyser(analyze.extras.analyser),
+        fileCollector,
+        configuration.analysis,
+        toolRepository)
     val uploaderOpt: Either[String, Option[ResultsUploader]] =
       ResultsUploader(codacyClientOpt, configuration.upload.upload, configuration.upload.commitUuid)
 
@@ -81,8 +91,7 @@ class AnalyseCommand(analyze: Analyze,
       .fold(
         { _ =>
           Right(())
-        },
-        { repository =>
+        }, { repository =>
           for {
             _ <- validateNoUncommitedChanges(repository, configuration.upload.upload)
             _ <- validateGitCommitUuid(repository, analyze.commitUuid)
@@ -94,8 +103,7 @@ class AnalyseCommand(analyze: Analyze,
     repository.uncommitedFiles.fold(
       { _ =>
         Right(())
-      },
-      { uncommitedFiles =>
+      }, { uncommitedFiles =>
         if (uncommitedFiles.nonEmpty) {
           val error: CLIError = CLIError.UncommitedChanges(uncommitedFiles)
           if (upload) {

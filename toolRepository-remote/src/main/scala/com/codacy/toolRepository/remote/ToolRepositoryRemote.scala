@@ -8,5 +8,7 @@ class ToolRepositoryRemote() extends ToolRepository {
 
   override def list(): Either[String, Seq[ToolSpec]] = ???
 
+  override def get(uuid: String): Either[String, ToolSpec] = ???
+
   override def listPatterns(toolUuid: String): Either[String, Seq[PatternSpec]] = ???
 }

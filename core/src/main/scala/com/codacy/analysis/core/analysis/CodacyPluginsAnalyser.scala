@@ -82,7 +82,7 @@ object CodacyPluginsAnalyser extends AnalyserCompanion[Try] {
   object errors {
 
     def missingTool(tool: String): Analyser.Error =
-      Analyser.Error.NonExistingToolInput(tool, Tool.allToolShortNames)
+      Analyser.Error.NonExistingToolInput(tool)
   }
 
 }

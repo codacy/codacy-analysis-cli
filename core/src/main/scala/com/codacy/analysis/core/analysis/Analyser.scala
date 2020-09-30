@@ -69,11 +69,11 @@ object Analyser {
       override val message: String = s"The tool $toolName needs network access to execute."
     }
 
-    final case class NonExistingToolInput(toolName: String, availableTools: Set[String]) extends Error {
+    //TODO: Consider if we want to list the tools, and how we want to show them
+    final case class NonExistingToolInput(toolName: String) extends Error {
 
       override val message: String =
-        s"""The selected tool "$toolName" is not supported or does not exist.
-                                        |The tool should be one of (${availableTools.mkString(", ")})""".stripMargin
+        s"""The selected tool "$toolName" is not supported or does not exist""".stripMargin
     }
 
     case object NoActiveToolInConfiguration extends Error {
