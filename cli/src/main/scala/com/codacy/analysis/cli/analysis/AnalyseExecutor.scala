@@ -11,14 +11,10 @@ import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.files.{FileCollector, FilesTarget}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.tools._
-import com.codacy.analysis.core.utils.InheritanceOps.InheritanceOps
 import com.codacy.analysis.core.utils.SeqOps._
 import com.codacy.analysis.core.utils.TryOps._
 import com.codacy.analysis.core.utils.{LanguagesHelper, SetOps}
 import com.codacy.plugins.api.PatternDescription
-import com.codacy.plugins.api.languages.Language
-import com.codacy.plugins.results.traits.DockerToolDocumentation
-import com.codacy.plugins.utils.impl.CacheDockerHelper
 import org.log4s.{Logger, getLogger}
 import play.api.libs.json.JsValue
 
@@ -29,12 +25,11 @@ class AnalyseExecutor(formatter: Formatter,
                       analyser: Analyser[Try],
                       fileCollector: FileCollector[Try],
                       configuration: CLIConfiguration.Analysis,
-                      toolRepository: ToolRepository) {
+                      toolSelector: ToolSelector) {
 
   import com.codacy.analysis.cli.analysis.AnalyseExecutor._
 
   private val logger: Logger = getLogger
-  private val toolCollector = new ToolCollector(toolRepository)
 
   def run(): Either[CLIError, Seq[ExecutorResult[_]]] = {
 
@@ -45,7 +40,7 @@ class AnalyseExecutor(formatter: Formatter,
     val filesTargetAndTool: Either[CLIError, (FilesTarget, FilesTarget, Set[ITool])] = for {
       allFilesTarget <- fileCollector.list(configuration.projectDirectory).toRight(CLIError.FilesAccessError)
       filesGlobalTarget = fileCollector.filterGlobal(allFilesTarget, configuration.fileExclusionRules)
-      tools <- allTools(
+      tools <- toolSelector.allTools(
         configuration.tool,
         configuration.toolConfiguration,
         LanguagesHelper.fromFileTarget(filesGlobalTarget, configuration.fileExclusionRules.allowedExtensionsByLanguage))
@@ -60,7 +55,7 @@ class AnalyseExecutor(formatter: Formatter,
           tool match {
             case tool: Tool =>
               //TODO: Handle the either instead of .toOption
-              val fullToolSpec: Option[FullToolSpec] = toolCollector.fromUuid(tool.uuid).toOption
+              val fullToolSpec: Option[FullToolSpec] = toolSelector.fromUuid(tool.uuid).toOption
               val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
               val analysisResults =
                 issues(tool, filteredFiles, configuration.toolConfiguration, toolHasConfigFiles)
@@ -188,59 +183,6 @@ class AnalyseExecutor(formatter: Formatter,
     Process(Seq("find", sourceDirectory.pathAsString, "-type", "d", "-exec", "chmod", "ugo+rx", "{}", ";")).!
     Process(Seq("find", sourceDirectory.pathAsString, "-type", "f", "-exec", "chmod", "u+rw", "{}", ";")).!
     Process(Seq("find", sourceDirectory.pathAsString, "-type", "f", "-exec", "chmod", "ugo+r", "{}", ";")).!
-  }
-
-  def allTools(toolInput: Option[String],
-               configuration: CLIConfiguration.Tool,
-               languages: Set[Language]): Either[CLIError, Set[ITool]] = {
-
-    def metricsTools = MetricsToolCollector.fromLanguages(languages)
-    def duplicationTools = DuplicationToolCollector.fromLanguages(languages)
-
-    toolInput match {
-      case None =>
-        val toolsEither = tools(toolInput, configuration, languages)
-
-        toolsEither.map(_ ++ metricsTools ++ duplicationTools)
-
-      case Some("metrics") =>
-        Right(metricsTools.map(_.to[ITool]))
-
-      case Some("duplication") =>
-        Right(duplicationTools.map(_.to[ITool]))
-
-      case Some(_) =>
-        val toolsEither = tools(toolInput, configuration, languages)
-        toolsEither.map(_.map(_.to[ITool]))
-    }
-  }
-
-  def tools(toolInput: Option[String],
-            configuration: CLIConfiguration.Tool,
-            languages: Set[Language]): Either[CLIError, Set[Tool]] = {
-
-    def fromRemoteConfig: Either[CLIError, Set[Tool]] = {
-      configuration.toolConfigurations.left.map(CLIError.NoRemoteProjectConfiguration).flatMap { toolConfiguration =>
-        val toolUuids = toolConfiguration.filter(_.enabled).map(_.uuid)
-        toolCollector
-          .fromToolUUIDs(toolUuids, languages)
-          .left
-          .map(_ => CLIError.NonExistentToolsFromRemoteConfiguration(toolUuids))
-      }
-    }
-
-    def fromLocalConfig: Either[CLIError, Set[Tool]] = {
-      toolCollector.fromLanguages(languages).left.map(CLIError.from)
-    }
-
-    toolInput.map { toolStr =>
-      toolCollector.fromNameOrUUID(toolStr, languages).left.map(CLIError.from)
-    }.getOrElse {
-      for {
-        e1 <- fromRemoteConfig.left
-        e2 <- fromLocalConfig.left
-      } yield CLIError.CouldNotGetTools(s"${e1.message} and ${e2.message}")
-    }
   }
 
 }
