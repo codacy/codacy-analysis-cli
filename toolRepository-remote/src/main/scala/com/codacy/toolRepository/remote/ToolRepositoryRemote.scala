@@ -5,17 +5,17 @@ import akka.stream.scaladsl.Sink
 import com.codacy.analysis.clientapi.definitions
 import com.codacy.analysis.clientapi.definitions.{PaginationInfo, PatternListResponse, ToolListResponse}
 import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsResponse, ToolsClient}
-import com.codacy.analysis.core.model.{ParameterSpec, PatternSpec, ToolSpec}
+import com.codacy.analysis.core.model.{AnalyserError, ParameterSpec, PatternSpec, ToolSpec}
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.plugins.api.languages.Languages
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionContext, implicit val mat: Materializer)
     extends ToolRepository {
 
-  override def list(): Seq[ToolSpec] = {
+  override lazy val list: Either[AnalyserError, Seq[ToolSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
       toolsClient.listTools(cursor).value.map {
         case Right(ListToolsResponse.OK(ToolListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
@@ -23,20 +23,31 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
         case Right(ListToolsResponse.OK(ToolListResponse(data, Some(PaginationInfo(newCursor: Some[String], _, _))))) =>
           (newCursor, data)
         case Right(ListToolsResponse.BadRequest(badRequest)) =>
-          throw new Exception(s"Failed to list tools with a Bad Request: ${badRequest.message}")
+          throw new Exception(s"Bad Request: ${badRequest.message}")
         case Right(ListToolsResponse.InternalServerError(internalServerError)) =>
-          throw new Exception(s"Failed to list tools with an Internal Server Error: ${internalServerError.message}")
+          throw new Exception(s"Internal Server Error: ${internalServerError.message}")
         case Left(Right(error)) => throw new Exception(s"Failed to list tools with ${error.status} status code")
         case Left(Left(throwable)) =>
-          throw new Exception(s"Failed to list tools failed: ${throwable.getMessage}", throwable)
+          throw new Exception(throwable.getMessage, throwable)
       }
     }
 
-    val toolsF = source.runWith(Sink.seq).map(_.map(toToolSpec))
+    val toolsF: Future[Either[AnalyserError, Seq[ToolSpec]]] =
+      source.runWith(Sink.seq).map(tools => Right(tools.map(toToolSpec))).recover {
+        case e: Exception => Left(AnalyserError.FailedToFetchTools(e.getMessage))
+      }
     Await.result(toolsF, 1 minute)
   }
 
-  override def listPatterns(toolUuid: String): Seq[PatternSpec] = {
+  override def get(uuid: String): Either[AnalyserError, ToolSpec] =
+    list.flatMap { toolsSpecs =>
+      toolsSpecs.find(_.uuid == uuid) match {
+        case None       => Left(AnalyserError.FailedToFindTool(uuid))
+        case Some(tool) => Right(tool)
+      }
+    }
+
+  override def listPatterns(toolUuid: String): Either[AnalyserError, Seq[PatternSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
       toolsClient.listPatterns(toolUuid, cursor = cursor).value.map {
         case Right(ListPatternsResponse.OK(PatternListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
@@ -46,25 +57,21 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
                 PatternListResponse(data, Some(PaginationInfo(newCursor: Some[String], _, _))))) =>
           (newCursor, data)
         case Right(ListPatternsResponse.NotFound(notFoundError)) =>
-          throw new Exception(
-            s"Failed to list patterns because tool with UUID $toolUuid does not exist: ${notFoundError.message}")
+          throw new Exception(s"Tool does not exist: ${notFoundError.message}")
         case Right(ListPatternsResponse.BadRequest(badRequestError)) =>
-          throw new Exception(
-            s"Failed to list patterns for tool with UUID $toolUuid with a Bad Request: ${badRequestError.message}")
+          throw new Exception(s"Bad Request: ${badRequestError.message}")
         case Right(ListPatternsResponse.InternalServerError(internalServerError)) =>
-          throw new Exception(
-            s"Failed to list patterns for tool with UUID $toolUuid with an Internal Server Error: ${internalServerError.message}")
+          throw new Exception(s"Internal Server Error: ${internalServerError.message}")
         case Left(Right(e)) =>
-          throw new Exception(
-            s"Failed to list patterns for tool with UUID $toolUuid. API returned status code: ${e.status.value}")
+          throw new Exception(s"API returned status code: ${e.status.value}")
         case Left(Left(t)) =>
-          throw new Exception(
-            s"Failed to list patterns for tool with UUID $toolUuid due to unexpected error: ${t.getMessage}",
-            t)
+          throw new Exception(t.getMessage, t)
       }
     }
 
-    val patternsF = source.runWith(Sink.seq).map(_.map(toPatternSpec))
+    val patternsF = source.runWith(Sink.seq).map(patterns => Right(patterns.map(toPatternSpec))).recover {
+      case e: Exception => Left(AnalyserError.FailedToListPatterns(toolUuid, e.getMessage))
+    }
     Await.result(patternsF, 1 minute)
   }
 
@@ -74,6 +81,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
       tool.uuid,
       tool.dockerImage,
       tool.enabledByDefault,
+      tool.version,
       languages,
       tool.name,
       tool.shortName,
@@ -81,7 +89,8 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
       tool.sourceCodeUrl.getOrElse(""), // TODO: Check if this should be an Option too
       tool.prefix.getOrElse(""), // TODO: Check if this should be an Option too
       tool.needsCompilation,
-      tool.configurationFilenames,
+      hasConfigFile = true, // TODO: Fill in with appropriate value
+      tool.configurationFilenames.toSet,
       tool.clientSide,
       tool.configurable)
   }
@@ -100,6 +109,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
       pattern.explanation,
       pattern.enabled,
       pattern.timeToFix,
-      parameterSpecs)
+      parameterSpecs,
+      languages = Set.empty) // TODO: This should come from the API
   }
 }
