@@ -27,8 +27,8 @@ class CodacyClientSpec extends Specification with NoLanguageFeatures with Mockit
   private val tool = "eslint"
 
   private val apiCredentials: Credentials =
-    APIToken(apiTokenStr, Some(remoteUrl), UserName(username), ProjectName(project))
-  private val projectCredentials: Credentials = ProjectToken(projectTokenStr, Some(remoteUrl))
+    APIToken(apiTokenStr, remoteUrl, UserName(username), ProjectName(project))
+  private val projectCredentials: Credentials = ProjectToken(projectTokenStr, remoteUrl)
 
   "CodacyClient" should {
 

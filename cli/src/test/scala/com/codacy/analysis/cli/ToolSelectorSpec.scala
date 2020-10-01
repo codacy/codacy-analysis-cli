@@ -1,7 +1,7 @@
 package com.codacy.analysis.cli
 
 import better.files.File
-import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ToolSelector}
+import com.codacy.analysis.cli.analysis.ToolSelector
 import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.core.files.FilesTarget
 import com.codacy.analysis.core.tools.Tool

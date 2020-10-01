@@ -36,8 +36,14 @@ object AnalyseCommand {
 
   def apply(analyse: Analyse, env: Map[String, String]): AnalyseCommand = {
     val environment: Environment = new Environment(env)
+    val apiUrl =
+      environment
+        .apiBaseUrlArgument(analyse.api.codacyApiBaseUrl)
+        .orElse(environment.apiBaseUrlEnvironmentVariable())
+        .getOrElse("https://api.codacy.com")
+
     val codacyClientOpt: Option[CodacyClient] =
-      Credentials.get(environment, analyse.api).map(CodacyClient.apply)
+      Credentials.get(environment, analyse.api, apiUrl).map(CodacyClient.apply)
     val configuration: CLIConfiguration =
       CLIConfiguration(codacyClientOpt, environment, analyse, new CodacyConfigurationFileLoader)
     val formatter: Formatter =
@@ -47,7 +53,7 @@ object AnalyseCommand {
         configuration.analysis.output.file)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    val toolSelector = new ToolSelector(ToolRepositoryFactory.build(analyse.fetchRemoteTools))
+    val toolSelector = new ToolSelector(ToolRepositoryFactory.build(apiUrl, analyse.fetchRemoteTools))
 
     val analyseExecutor: AnalyseExecutor =
       new AnalyseExecutor(

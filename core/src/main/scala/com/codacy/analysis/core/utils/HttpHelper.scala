@@ -4,12 +4,12 @@ import io.circe.parser.parse
 import io.circe.{Json, ParsingFailure}
 import scalaj.http.{Http, HttpRequest, HttpResponse}
 
-class HttpHelper(apiUrl: Option[String], extraHeaders: Map[String, String]) {
+class HttpHelper(apiUrl: String, extraHeaders: Map[String, String]) {
 
   private lazy val connectionTimeoutMs = 2000
   private lazy val readTimeoutMs = 5000
 
-  private val remoteUrl = apiUrl.getOrElse("https://api.codacy.com") + "/2.0"
+  private val remoteUrl = apiUrl + "/2.0"
 
   def get(endpoint: String): Either[ParsingFailure, Json] = {
     val headers: Map[String, String] = Map("Content-Type" -> "application/json") ++ extraHeaders

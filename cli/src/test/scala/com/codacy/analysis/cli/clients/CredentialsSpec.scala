@@ -15,6 +15,7 @@ class CredentialsSpec extends Specification with NoLanguageFeatures with Mockito
   private val projectTokenStr = "RandomProjectToken"
   private val username = "some_user"
   private val project = "some_project"
+  private val baseUrl = "codacy.com"
 
   "Credentials" should {
 
@@ -25,8 +26,8 @@ class CredentialsSpec extends Specification with NoLanguageFeatures with Mockito
             apiToken = Option(apiTokenStr),
             username = Option(UserName(username)),
             project = Option(ProjectName(project)),
-            codacyApiBaseUrl = Option("codacy.com"))
-          val credentials: Option[Credentials] = Credentials.get(environment, apiOptions)
+            codacyApiBaseUrl = Option(baseUrl))
+          val credentials: Option[Credentials] = Credentials.get(environment, apiOptions, baseUrl)
 
           credentials must beSome[Credentials]
           credentials must beLike { case Some(token) => token must beAnInstanceOf[APIToken] }
@@ -37,8 +38,8 @@ class CredentialsSpec extends Specification with NoLanguageFeatures with Mockito
             apiToken = Option(apiTokenStr),
             username = None,
             project = None,
-            codacyApiBaseUrl = Option("codacy.com"))
-          val credentials = Credentials.get(environment, apiOptions)
+            codacyApiBaseUrl = Option(baseUrl))
+          val credentials = Credentials.get(environment, apiOptions, baseUrl)
 
           credentials must beNone
         }
@@ -46,8 +47,8 @@ class CredentialsSpec extends Specification with NoLanguageFeatures with Mockito
 
       "with Project Token" in {
 
-        val apiOptions = APIOptions(projectToken = Option(projectTokenStr), codacyApiBaseUrl = Option("codacy.com"))
-        val credentials = Credentials.get(environment, apiOptions)
+        val apiOptions = APIOptions(projectToken = Option(projectTokenStr), codacyApiBaseUrl = Option(baseUrl))
+        val credentials = Credentials.get(environment, apiOptions, baseUrl)
 
         credentials must beSome[Credentials]
         credentials must beLike { case Some(token) => token must beAnInstanceOf[ProjectToken] }
