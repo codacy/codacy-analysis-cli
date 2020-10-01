@@ -1,21 +1,24 @@
 package com.codacy.toolRepository.plugins
 
-import com.codacy.analysis.core.model.{ParameterSpec, PatternSpec, ToolSpec}
+import com.codacy.analysis.core.model.{AnalyserError, ParameterSpec, PatternSpec, ToolSpec}
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.plugins.api.PatternDescription
 import com.codacy.plugins.api.results.Parameter
-import com.codacy.plugins.results.traits.DockerToolDocumentation
+import com.codacy.plugins.results.traits.{DockerTool, DockerToolDocumentation}
 import com.codacy.plugins.results.utils.ResultsTools
 import com.codacy.plugins.utils.BinaryDockerHelper
 
 class ToolRepositoryPlugins() extends ToolRepository {
 
-  override def list(): Seq[ToolSpec] = {
-    ResultsTools.list.map { tool =>
+  override lazy val list: Either[AnalyserError, Seq[ToolSpec]] = {
+    val toolSpecs = ResultsTools.list.map { tool =>
+      val dockerToolDocumentation = new DockerToolDocumentation(tool, new BinaryDockerHelper())
+      val version = dockerToolDocumentation.toolSpecification.flatMap(_.version.map(_.value)).getOrElse("")
       ToolSpec(
         tool.uuid,
         tool.dockerImageName,
         tool.isDefault,
+        version,
         tool.languages,
         tool.name,
         tool.shortName,
@@ -23,25 +26,35 @@ class ToolRepositoryPlugins() extends ToolRepository {
         tool.sourceCodeUrl,
         tool.prefix,
         tool.needsCompilation,
-        tool.configFilename,
+        hasConfigFile = false,
+        tool.configFilename.to[Set],
         tool.isClientSide,
         tool.hasUIConfiguration)
     }
+
+    Right(toolSpecs)
   }
 
-  override def listPatterns(toolUuid: String): Seq[PatternSpec] = {
-    val plugin = ResultsTools.list
-      .find(_.uuid == toolUuid)
-      .getOrElse(
-        throw new Exception(s"Failed to list patterns for tool with UUID $toolUuid because tool was not found"))
+  override def get(uuid: String): Either[AnalyserError, ToolSpec] =
+    list.flatMap { toolsSpecs =>
+      toolsSpecs.find(_.uuid == uuid) match {
+        case None       => Left(AnalyserError.FailedToFindTool(uuid))
+        case Some(tool) => Right(tool)
+      }
+    }
 
-    val dockerToolDocumentation = new DockerToolDocumentation(plugin, new BinaryDockerHelper())
-
-    val patternSpecOpt: Option[Seq[PatternSpec]] = for {
-      patternDescriptions <- dockerToolDocumentation.patternDescriptions
+  override def listPatterns(toolUuid: String): Either[AnalyserError, Seq[PatternSpec]] = {
+    val pluginEither =
+      ResultsTools.list.find(_.uuid == toolUuid).toRight(AnalyserError.FailedToFindTool(toolUuid))
+    for {
+      plugin <- pluginEither
+      dockerToolDocumentation = new DockerToolDocumentation(plugin, new BinaryDockerHelper())
+      patternDescriptions <- dockerToolDocumentation.patternDescriptions.toRight(
+        AnalyserError.FailedToListPatterns(toolUuid, "Cannot fetch patterns descriptions"))
       patternDescriptionsMap: Map[String, PatternDescription] =
         patternDescriptions.map(description => description.patternId.value -> description)(collection.breakOut)
-      toolSpecification <- dockerToolDocumentation.prefixedSpecs
+      toolSpecification <- dockerToolDocumentation.prefixedSpecs.toRight(
+        AnalyserError.FailedToListPatterns(toolUuid, "Cannot fetch tool specification"))
     } yield toolSpecification.patterns.map { pattern =>
       val patternDescription = patternDescriptionsMap.get(pattern.patternId.value)
 
@@ -61,10 +74,9 @@ class ToolRepositoryPlugins() extends ToolRepository {
         patternDescription.flatMap(_.description),
         patternDescription.flatMap(_.explanation),
         pattern.enabled,
-        timeToFix = None,
-        parameters = parameters)
+        timeToFix = patternDescription.flatMap(_.timeToFix),
+        parameters = parameters,
+        languages = pattern.languages)
     }(collection.breakOut)
-
-    patternSpecOpt.getOrElse(throw new Exception(s"Failed to list patterns for tool with UUID $toolUuid"))
   }
 }
