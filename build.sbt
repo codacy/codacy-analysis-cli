@@ -153,4 +153,4 @@ lazy val codacyApiClient = project
 ThisBuild / scalaVersion := Common.scalaVersionNumber
 ThisBuild / scalaBinaryVersion := Common.scalaBinaryVersionNumber
 ThisBuild / scapegoatDisabledInspections := Seq()
-ThisBuild / scapegoatVersion := "1.4.3"
+ThisBuild / scapegoatVersion := "1.4.6"
