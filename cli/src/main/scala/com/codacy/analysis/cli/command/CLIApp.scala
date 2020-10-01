@@ -149,6 +149,8 @@ final case class Analyse(
   forceFilePermissions: Int @@ Counter = Tag.of(0),
   @ValueDescription("Maximum time each tool has to execute")
   toolTimeout: Option[Duration],
+  @Hidden @ValueDescription("Fetch the tools and descriptions from Codacy public API")
+  fetchRemoteTools: Boolean = false,
   @Recurse
   extras: ExtraOptions)
     extends CommandOptions {
