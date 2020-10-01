@@ -94,7 +94,7 @@ lazy val codacyAnalysisModels = project
   .enablePlugins(JavaAppPackaging)
 
 lazy val apiSwaggerFile: File =
-  codacyApiClient.base / "target" / Dependencies.codacyToolsVersion / "swagger.yaml"
+  codacyApiClient.base / "target" / "api" / "codacy-api" / Dependencies.codacyApiVersion / "swagger.yaml"
 
 lazy val downloadCodacyToolsSwaggerFile = Def.task[Unit] {
   if (!Files.exists(apiSwaggerFile.toPath)) {
@@ -110,9 +110,9 @@ lazy val codacyApiClient = project
   .in(file("codacy-api-client"))
   .settings(name := "codacy-api-client", description := "Client library for codacy API")
   .settings(
+    // Guardrail requirement
     addCompilerPlugin(Dependencies.macroParadise.cross(CrossVersion.full)),
-    scalacOptions += "-Xexperimental"
-  ) // Guardrail requirement
+    scalacOptions += "-Xexperimental")
   .settings(
     libraryDependencies ++= Dependencies.akka ++ Dependencies.circe ++ Seq(
       Dependencies.typesafeConfig,
