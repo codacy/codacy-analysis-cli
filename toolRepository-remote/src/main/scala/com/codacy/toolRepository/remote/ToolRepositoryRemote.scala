@@ -4,7 +4,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import com.codacy.analysis.clientapi.definitions
 import com.codacy.analysis.clientapi.definitions.{PaginationInfo, PatternListResponse, ToolListResponse}
-import com.codacy.analysis.clientapi.tools.{ListToolPatternsResponse, ListToolsResponse, ToolsClient}
+import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsResponse, ToolsClient}
 import com.codacy.analysis.core.model.{ParameterSpec, PatternSpec, ToolSpec}
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.plugins.api.languages.Languages
@@ -18,9 +18,9 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
   override def list(): Seq[ToolSpec] = {
     val source = PaginatedApiSourceFactory { cursor =>
       toolsClient.listTools(cursor).value.map {
-        case Right(ListToolsResponse.OK(ToolListResponse(None | Some(PaginationInfo(None, _, _)), data))) =>
+        case Right(ListToolsResponse.OK(ToolListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
           (None, data)
-        case Right(ListToolsResponse.OK(ToolListResponse(Some(PaginationInfo(newCursor: Some[String], _, _)), data))) =>
+        case Right(ListToolsResponse.OK(ToolListResponse(data, Some(PaginationInfo(newCursor: Some[String], _, _))))) =>
           (newCursor, data)
         case Right(ListToolsResponse.BadRequest(badRequest)) =>
           throw new Exception(s"Failed to list tools with a Bad Request: ${badRequest.message}")
@@ -38,20 +38,20 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
 
   override def listPatterns(toolUuid: String): Seq[PatternSpec] = {
     val source = PaginatedApiSourceFactory { cursor =>
-      toolsClient.listToolPatterns(toolUuid, cursor = cursor).value.map {
-        case Right(ListToolPatternsResponse.OK(PatternListResponse(None | Some(PaginationInfo(None, _, _)), data))) =>
+      toolsClient.listPatterns(toolUuid, cursor = cursor).value.map {
+        case Right(ListPatternsResponse.OK(PatternListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
           (None, data)
         case Right(
-              ListToolPatternsResponse.OK(
-                PatternListResponse(Some(PaginationInfo(newCursor: Some[String], _, _)), data))) =>
+              ListPatternsResponse.OK(
+                PatternListResponse(data, Some(PaginationInfo(newCursor: Some[String], _, _))))) =>
           (newCursor, data)
-        case Right(ListToolPatternsResponse.NotFound(notFoundError)) =>
+        case Right(ListPatternsResponse.NotFound(notFoundError)) =>
           throw new Exception(
             s"Failed to list patterns because tool with UUID $toolUuid does not exist: ${notFoundError.message}")
-        case Right(ListToolPatternsResponse.BadRequest(badRequestError)) =>
+        case Right(ListPatternsResponse.BadRequest(badRequestError)) =>
           throw new Exception(
             s"Failed to list patterns for tool with UUID $toolUuid with a Bad Request: ${badRequestError.message}")
-        case Right(ListToolPatternsResponse.InternalServerError(internalServerError)) =>
+        case Right(ListPatternsResponse.InternalServerError(internalServerError)) =>
           throw new Exception(
             s"Failed to list patterns for tool with UUID $toolUuid with an Internal Server Error: ${internalServerError.message}")
         case Left(Right(e)) =>
@@ -73,7 +73,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
     ToolSpec(
       tool.uuid,
       tool.dockerImage,
-      tool.enabled,
+      tool.enabledByDefault,
       languages,
       tool.name,
       tool.shortName,
@@ -81,7 +81,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
       tool.sourceCodeUrl.getOrElse(""), // TODO: Check if this should be an Option too
       tool.prefix.getOrElse(""), // TODO: Check if this should be an Option too
       tool.needsCompilation,
-      tool.configFilenames,
+      tool.configurationFilenames,
       tool.clientSide,
       tool.configurable)
   }
@@ -91,11 +91,11 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
       ParameterSpec(parameter.name, parameter.default, parameter.description)
     }
     PatternSpec(
-      pattern.internalId,
-      pattern.level.toString,
-      pattern.categoryType,
+      pattern.id,
+      pattern.level,
+      pattern.category,
       pattern.subCategory,
-      pattern.name.getOrElse(pattern.internalId),
+      pattern.title.getOrElse(pattern.id),
       pattern.description,
       pattern.explanation,
       pattern.enabled,

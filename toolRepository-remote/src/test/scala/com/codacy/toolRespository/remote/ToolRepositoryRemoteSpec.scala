@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.{HttpHeader, HttpResponse}
 import akka.stream.ActorMaterializer
 import cats.data.EitherT
 import com.codacy.analysis.clientapi.definitions._
-import com.codacy.analysis.clientapi.tools.{ListToolPatternsResponse, ListToolsResponse, ToolsClient}
+import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsResponse, ToolsClient}
 import com.codacy.toolRepository.remote.ToolRepositoryRemote
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito._
@@ -27,13 +27,13 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
     sourceCodeUrl = None,
     prefix = None,
     needsCompilation = false,
-    configFilenames = Vector.empty,
+    configurationFilenames = Vector.empty,
     version = "version",
     description = None,
     dockerImage = "dockerImage",
     languages = Vector.empty,
     clientSide = false,
-    enabled = true,
+    enabledByDefault = true,
     configurable = false)
 
   val toolB = Tool(
@@ -44,13 +44,13 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
     sourceCodeUrl = None,
     prefix = None,
     needsCompilation = false,
-    configFilenames = Vector.empty,
+    configurationFilenames = Vector.empty,
     version = "version",
     description = None,
     dockerImage = "dockerImage",
     languages = Vector.empty,
     clientSide = false,
-    enabled = true,
+    enabledByDefault = true,
     configurable = false)
 
   "list" should {
@@ -65,8 +65,8 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
       val toolRepository = new ToolRepositoryRemote(mockedClient)
 
       when(mockedClient.listTools(cursor = None)).thenReturn(
-        eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(None, Vector(toolA)))),
-        eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(None, Vector(toolB)))))
+        eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(Vector(toolA), None))),
+        eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(Vector(toolB), None))))
 
       val tools = toolRepository.list()
 
@@ -85,10 +85,9 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
         mockedClient.listTools(
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
-          languages = ArgumentMatchers.any[Option[Iterable[String]]],
           headers = ArgumentMatchers.any[List[HttpHeader]])).thenReturn(
-        eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(Some(paginationInfo), Vector(toolA)))),
-        eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(None, Vector(toolB)))))
+        eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(Vector(toolA), Some(paginationInfo)))),
+        eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(Vector(toolB), None))))
 
       val tools = toolRepository.list()
 
@@ -120,38 +119,34 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
   }
 
   "listPatterns" should {
-    def eitherListToolPatternsResponse(listToolPatternsResponse: ListToolPatternsResponse)
-      : EitherT[Future, Either[Throwable, HttpResponse], ListToolPatternsResponse] = {
-      val responseEither: Either[Either[Throwable, HttpResponse], ListToolPatternsResponse] =
+    def eitherListToolPatternsResponse(listToolPatternsResponse: ListPatternsResponse)
+      : EitherT[Future, Either[Throwable, HttpResponse], ListPatternsResponse] = {
+      val responseEither: Either[Either[Throwable, HttpResponse], ListPatternsResponse] =
         Right(listToolPatternsResponse)
       EitherT(Future.successful(responseEither))
     }
 
     val patternA = Pattern(
-      internalId = "internalId - A",
-      name = None,
-      toolUuid = "toolUuid",
-      level = Pattern.Level.Info,
-      categoryType = "categoryType",
+      id = "internalId - A",
+      title = None,
+      level = "Info",
+      category = "categoryType",
       subCategory = None,
       description = None,
       explanation = None,
       enabled = true,
-      languages = None,
       timeToFix = None,
       parameters = Vector.empty)
 
     val patternB = Pattern(
-      internalId = "internalId - B",
-      name = None,
-      toolUuid = "toolUuid",
-      level = Pattern.Level.Info,
-      categoryType = "categoryType",
+      id = "internalId - B",
+      title = None,
+      level = "Info",
+      category = "categoryType",
       subCategory = None,
       description = None,
       explanation = None,
       enabled = true,
-      languages = None,
       timeToFix = None,
       parameters = Vector.empty)
     "return the list of patterns" in {
@@ -159,21 +154,19 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
       val toolRepository = new ToolRepositoryRemote(mockedClient)
 
       when(
-        mockedClient.listToolPatterns(
-          toolUuid = ArgumentMatchers.any[String],
-          languages = ArgumentMatchers.any[Option[Iterable[String]]],
-          categories = ArgumentMatchers.any[Option[Iterable[String]]],
+        mockedClient.listPatterns(
+          toolId = ArgumentMatchers.any[String],
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
           headers = ArgumentMatchers.any[List[HttpHeader]])).thenReturn(
-        eitherListToolPatternsResponse(ListToolPatternsResponse.OK(PatternListResponse(None, Vector(patternA)))),
-        eitherListToolPatternsResponse(ListToolPatternsResponse.OK(PatternListResponse(None, Vector(patternB)))))
+        eitherListToolPatternsResponse(ListPatternsResponse.OK(PatternListResponse(Vector(patternA), None))),
+        eitherListToolPatternsResponse(ListPatternsResponse.OK(PatternListResponse(Vector(patternB), None))))
 
       val patterns = toolRepository.listPatterns("some-tool-uuid")
 
       // patternB should not be returned because the first request returned an empty cursor
       patterns must haveLength(1)
-      patterns.head.id must_== patternA.internalId
+      patterns.head.id must_== patternA.id
     }
 
     "return list with multiple patterns" in {
@@ -183,23 +176,21 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
       val paginationInfo = PaginationInfo(Some("cursor"), Some(100), Some(1))
 
       when(
-        mockedClient.listToolPatterns(
-          toolUuid = ArgumentMatchers.any[String],
-          languages = ArgumentMatchers.any[Option[Iterable[String]]],
-          categories = ArgumentMatchers.any[Option[Iterable[String]]],
+        mockedClient.listPatterns(
+          toolId = ArgumentMatchers.any[String],
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
           headers = ArgumentMatchers.any[List[HttpHeader]])).thenReturn(
         eitherListToolPatternsResponse(
-          ListToolPatternsResponse.OK(PatternListResponse(Some(paginationInfo), Vector(patternA)))),
-        eitherListToolPatternsResponse(ListToolPatternsResponse.OK(PatternListResponse(None, Vector(patternB)))))
+          ListPatternsResponse.OK(PatternListResponse(Vector(patternA), Some(paginationInfo)))),
+        eitherListToolPatternsResponse(ListPatternsResponse.OK(PatternListResponse(Vector(patternB), None))))
 
       val patterns = toolRepository.listPatterns("some-tool-uuid")
 
       // patternB should not be returned because the first request returned an empty cursor
       patterns must haveLength(2)
-      patterns.map(_.id) must contain(patternA.internalId)
-      patterns.map(_.id) must contain(patternB.internalId)
+      patterns.map(_.id) must contain(patternA.id)
+      patterns.map(_.id) must contain(patternB.id)
     }
 
     "throw an exception if API returns BadRequest" in {
@@ -207,14 +198,12 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
       val toolRepository = new ToolRepositoryRemote(mockedClient)
 
       when(
-        mockedClient.listToolPatterns(
-          toolUuid = ArgumentMatchers.any[String],
-          languages = ArgumentMatchers.any[Option[Iterable[String]]],
-          categories = ArgumentMatchers.any[Option[Iterable[String]]],
+        mockedClient.listPatterns(
+          toolId = ArgumentMatchers.any[String],
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
           headers = ArgumentMatchers.any[List[HttpHeader]]))
-        .thenReturn(eitherListToolPatternsResponse(ListToolPatternsResponse.BadRequest(BadRequest("error"))))
+        .thenReturn(eitherListToolPatternsResponse(ListPatternsResponse.BadRequest(BadRequest("error"))))
 
       toolRepository.listPatterns("some-tool-uuid") must throwA[Exception]
     }
@@ -224,14 +213,12 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
       val toolRepository = new ToolRepositoryRemote(mockedClient)
 
       when(
-        mockedClient.listToolPatterns(
-          toolUuid = ArgumentMatchers.any[String],
-          languages = ArgumentMatchers.any[Option[Iterable[String]]],
-          categories = ArgumentMatchers.any[Option[Iterable[String]]],
+        mockedClient.listPatterns(
+          toolId = ArgumentMatchers.any[String],
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
           headers = ArgumentMatchers.any[List[HttpHeader]]))
-        .thenReturn(eitherListToolPatternsResponse(ListToolPatternsResponse.NotFound(NotFound("error"))))
+        .thenReturn(eitherListToolPatternsResponse(ListPatternsResponse.NotFound(NotFound("error"))))
 
       toolRepository.listPatterns("some-tool-uuid") must throwA[Exception]
     }
@@ -241,14 +228,12 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
       val toolRepository = new ToolRepositoryRemote(mockedClient)
 
       when(
-        mockedClient.listToolPatterns(
-          toolUuid = ArgumentMatchers.any[String],
-          languages = ArgumentMatchers.any[Option[Iterable[String]]],
-          categories = ArgumentMatchers.any[Option[Iterable[String]]],
+        mockedClient.listPatterns(
+          toolId = ArgumentMatchers.any[String],
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
           headers = ArgumentMatchers.any[List[HttpHeader]])).thenReturn(
-        eitherListToolPatternsResponse(ListToolPatternsResponse.InternalServerError(InternalServerError("error"))))
+        eitherListToolPatternsResponse(ListPatternsResponse.InternalServerError(InternalServerError("error"))))
 
       toolRepository.listPatterns("some-tool-uuid") must throwA[Exception]
     }
