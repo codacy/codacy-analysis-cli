@@ -6,16 +6,18 @@ import akka.stream.ActorMaterializer
 import cats.data.EitherT
 import com.codacy.analysis.clientapi.definitions._
 import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsResponse, ToolsClient}
+import com.codacy.analysis.core.model.{AnalyserError, PatternSpec, ToolSpec}
 import com.codacy.toolRepository.remote.ToolRepositoryRemote
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito._
+import org.specs2.matcher.EitherMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ToolRepositoryRemoteSpec extends Specification with Mockito {
+class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMatchers {
   implicit val actorSystem = ActorSystem("MyTest")
   implicit val materializer = ActorMaterializer()
 
@@ -68,11 +70,12 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
         eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(Vector(toolA), None))),
         eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(Vector(toolB), None))))
 
-      val tools = toolRepository.list()
+      val toolsEither = toolRepository.list
 
+      toolsEither must beRight
       // toolB should not be returned because the first one returned an empty cursor
-      tools must haveLength(1)
-      tools.head.uuid must_== (toolA.uuid)
+      toolsEither must beRight((t: Seq[ToolSpec]) => t must haveLength(1))
+      toolsEither must beRight((x: Seq[ToolSpec]) => x.head.uuid must_== toolA.uuid)
     }
 
     "return list with multiple tools" in {
@@ -89,12 +92,13 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
         eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(Vector(toolA), Some(paginationInfo)))),
         eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(Vector(toolB), None))))
 
-      val tools = toolRepository.list()
+      val toolsEither = toolRepository.list
 
+      toolsEither must beRight
       // toolB should not be returned because the first one returned an empty cursor
-      tools must haveLength(2)
-      tools.map(_.uuid) must contain(toolA.uuid)
-      tools.map(_.uuid) must contain(toolB.uuid)
+      toolsEither must beRight((t: Seq[ToolSpec]) => t must haveLength(2))
+      toolsEither must beRight((t: Seq[ToolSpec]) => t.map(_.uuid) must contain(toolA.uuid))
+      toolsEither must beRight((t: Seq[ToolSpec]) => t.map(_.uuid) must contain(toolB.uuid))
     }
 
     "throw an exception if API returns BadRequest" in {
@@ -104,7 +108,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
       when(mockedClient.listTools(cursor = None))
         .thenReturn(eitherListToolsResponse(ListToolsResponse.BadRequest(BadRequest("error"))))
 
-      toolRepository.list() must throwA[Exception]
+      toolRepository.list must beLeft((e: AnalyserError) => e must beAnInstanceOf[AnalyserError.FailedToFetchTools])
     }
 
     "throw an exception if API returns InternalServerError" in {
@@ -114,7 +118,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
       when(mockedClient.listTools(cursor = None))
         .thenReturn(eitherListToolsResponse(ListToolsResponse.InternalServerError(InternalServerError("error"))))
 
-      toolRepository.list() must throwA[Exception]
+      toolRepository.list must beLeft((e: AnalyserError) => e must beAnInstanceOf[AnalyserError.FailedToFetchTools])
     }
   }
 
@@ -162,11 +166,12 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
         eitherListToolPatternsResponse(ListPatternsResponse.OK(PatternListResponse(Vector(patternA), None))),
         eitherListToolPatternsResponse(ListPatternsResponse.OK(PatternListResponse(Vector(patternB), None))))
 
-      val patterns = toolRepository.listPatterns("some-tool-uuid")
+      val patternsEither = toolRepository.listPatterns("some-tool-uuid")
 
+      patternsEither must beRight
       // patternB should not be returned because the first request returned an empty cursor
-      patterns must haveLength(1)
-      patterns.head.id must_== patternA.id
+      patternsEither must beRight((p: Seq[PatternSpec]) => p must haveLength(1))
+      patternsEither must beRight((p: Seq[PatternSpec]) => p.head.id must_== patternA.id)
     }
 
     "return list with multiple patterns" in {
@@ -185,12 +190,13 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
           ListPatternsResponse.OK(PatternListResponse(Vector(patternA), Some(paginationInfo)))),
         eitherListToolPatternsResponse(ListPatternsResponse.OK(PatternListResponse(Vector(patternB), None))))
 
-      val patterns = toolRepository.listPatterns("some-tool-uuid")
+      val patternsEither = toolRepository.listPatterns("some-tool-uuid")
 
+      patternsEither must beRight
       // patternB should not be returned because the first request returned an empty cursor
-      patterns must haveLength(2)
-      patterns.map(_.id) must contain(patternA.id)
-      patterns.map(_.id) must contain(patternB.id)
+      patternsEither must beRight((p: Seq[PatternSpec]) => p must haveLength(2))
+      patternsEither must beRight((p: Seq[PatternSpec]) => p.map(_.id) must contain(patternA.id))
+      patternsEither must beRight((p: Seq[PatternSpec]) => p.map(_.id) must contain(patternB.id))
     }
 
     "throw an exception if API returns BadRequest" in {
@@ -205,7 +211,8 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
           headers = ArgumentMatchers.any[List[HttpHeader]]))
         .thenReturn(eitherListToolPatternsResponse(ListPatternsResponse.BadRequest(BadRequest("error"))))
 
-      toolRepository.listPatterns("some-tool-uuid") must throwA[Exception]
+      toolRepository.listPatterns("some-tool-uuid") must beLeft(
+        (e: AnalyserError) => e must beAnInstanceOf[AnalyserError.FailedToListPatterns])
     }
 
     "throw an exception if API returns NotFound" in {
@@ -220,7 +227,8 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
           headers = ArgumentMatchers.any[List[HttpHeader]]))
         .thenReturn(eitherListToolPatternsResponse(ListPatternsResponse.NotFound(NotFound("error"))))
 
-      toolRepository.listPatterns("some-tool-uuid") must throwA[Exception]
+      toolRepository.listPatterns("some-tool-uuid") must beLeft(
+        (e: AnalyserError) => e must beAnInstanceOf[AnalyserError.FailedToListPatterns])
     }
 
     "throw an exception if API returns InternalServerError" in {
@@ -235,7 +243,8 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito {
           headers = ArgumentMatchers.any[List[HttpHeader]])).thenReturn(
         eitherListToolPatternsResponse(ListPatternsResponse.InternalServerError(InternalServerError("error"))))
 
-      toolRepository.listPatterns("some-tool-uuid") must throwA[Exception]
+      toolRepository.listPatterns("some-tool-uuid") must beLeft(
+        (e: AnalyserError) => e must beAnInstanceOf[AnalyserError.FailedToListPatterns])
     }
   }
 }
