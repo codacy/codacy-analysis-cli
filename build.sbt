@@ -81,10 +81,8 @@ lazy val toolRepositoryRemote = project
 lazy val codacyAnalysisModels = project
   .in(file("model"))
   .settings(
-    crossScalaVersions := Common.supportedScalaVersions,
     name := "codacy-analysis-cli-model",
     Common.genericSettings,
-    publishTo := sonatypePublishToBundle.value,
     libraryDependencies ++=
       Dependencies.circe ++ Seq(Dependencies.pluginsApi) ++ Dependencies.specs2,
     description := "Library with analysis models")
