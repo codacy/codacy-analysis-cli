@@ -11,7 +11,7 @@ import com.codacy.analysis.cli.analysis.AnalyseExecutor.{
   IssuesToolExecutorResult,
   MetricsToolExecutorResult
 }
-import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ExitStatus}
+import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ExitStatus, ToolSelector}
 import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.configuration.{CLIConfiguration, Environment}
 import com.codacy.analysis.cli.formatter.Formatter
@@ -22,7 +22,6 @@ import com.codacy.analysis.core.configuration.CodacyConfigurationFileLoader
 import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.git.{Commit, Git, Repository}
 import com.codacy.analysis.core.model._
-import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.analysis.core.upload.ResultsUploader
 import com.codacy.analysis.core.utils.Logger
 import com.codacy.analysis.core.utils.SeqOps._
@@ -45,7 +44,7 @@ object AnalyseCommand {
       Formatter(configuration.analysis.output, environment.baseProjectDirectory(analyze.directory))
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    val toolRepository: ToolRepository = ToolRepositoryFactory.build(analyse.fetchRemoteTools)
+    val toolSelector = new ToolSelector(ToolRepositoryFactory.build(analyse.fetchRemoteTools))
 
     val analyseExecutor: AnalyseExecutor =
       new AnalyseExecutor(
@@ -53,7 +52,7 @@ object AnalyseCommand {
         Analyser(analyze.extras.analyser),
         fileCollector,
         configuration.analysis,
-        toolRepository)
+        toolSelector)
     val uploaderOpt: Either[String, Option[ResultsUploader]] =
       ResultsUploader(codacyClientOpt, configuration.upload.upload, configuration.upload.commitUuid)
 
@@ -91,7 +90,8 @@ class AnalyseCommand(analyze: Analyze,
       .fold(
         { _ =>
           Right(())
-        }, { repository =>
+        },
+        { repository =>
           for {
             _ <- validateNoUncommitedChanges(repository, configuration.upload.upload)
             _ <- validateGitCommitUuid(repository, analyze.commitUuid)
@@ -103,7 +103,8 @@ class AnalyseCommand(analyze: Analyze,
     repository.uncommitedFiles.fold(
       { _ =>
         Right(())
-      }, { uncommitedFiles =>
+      },
+      { uncommitedFiles =>
         if (uncommitedFiles.nonEmpty) {
           val error: CLIError = CLIError.UncommitedChanges(uncommitedFiles)
           if (upload) {

@@ -1,7 +1,7 @@
 package com.codacy.analysis.cli
 
 import better.files.File
-import com.codacy.analysis.cli.analysis.AnalyseExecutor
+import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ToolSelector}
 import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.core.files.FilesTarget
 import com.codacy.analysis.core.tools.Tool
@@ -11,17 +11,20 @@ import com.codacy.plugins.api.languages.{Language, Languages}
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 
-class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
+class ToolSelectorSpec extends Specification with NoLanguageFeatures {
 
   val emptyFilesTarget = FilesTarget(File(""), Set.empty, Set.empty)
   val noLocalConfiguration = Left("no config")
+
+  //TODO: Check what things we need to mock
+  val toolSelector: ToolSelector = new ToolSelector(toolRepository = null)
 
   "AnalyseExecutor.allTools" should {
     "find python tools" in {
 
       val toolConfiguration =
         CLIConfiguration.Tool(Option.empty, allowNetwork = false, Left("no config"), Option.empty, Map.empty)
-      val pythonTools = AnalyseExecutor.allTools(None, toolConfiguration, Set(Languages.Ruby))
+      val pythonTools = toolSelector.allTools(None, toolConfiguration, Set(Languages.Ruby))
 
       pythonTools should beRight
       pythonTools must beLike {
@@ -44,7 +47,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val userInput = Some(expectedToolName)
 
       val toolEither =
-        AnalyseExecutor.tools(userInput, toolConfiguration, Set(Python))
+        toolSelector.tools(userInput, toolConfiguration, Set(Python))
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -67,7 +70,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val languages = LanguagesHelper.fromFileTarget(emptyFilesTarget, Map.empty)
 
       val toolEither =
-        AnalyseExecutor.tools(userInput, toolConfiguration, languages)
+        toolSelector.tools(userInput, toolConfiguration, languages)
       toolEither must beLeft(CLIError.NonExistingToolInput(expectedToolName))
     }
 
@@ -87,7 +90,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
         CLIConfiguration.Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
 
       val toolEither =
-        AnalyseExecutor.tools(userInput, toolConfiguration, Set(Javascript, Python))
+        toolSelector.tools(userInput, toolConfiguration, Set(Javascript, Python))
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -104,7 +107,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
         CLIConfiguration.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
-      val toolEither = AnalyseExecutor.tools(userInput, toolConfiguration, languages)
+      val toolEither = toolSelector.tools(userInput, toolConfiguration, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -121,7 +124,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
         CLIConfiguration.Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, languageExtensions)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, languageExtensions)
 
-      val toolEither = AnalyseExecutor.tools(userInput, toolConfiguration, languages)
+      val toolEither = toolSelector.tools(userInput, toolConfiguration, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
