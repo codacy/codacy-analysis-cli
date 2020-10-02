@@ -4,7 +4,7 @@ import java.nio.file.{Path, Paths}
 
 import better.files.File
 import com.codacy.analysis.core.analysis.CodacyPluginsAnalyser
-import com.codacy.analysis.core.model.{Configuration, Issue, ParameterSpec, _}
+import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.utils.FileHelper
 import com.codacy.plugins.api
 import com.codacy.plugins.api.languages.Language
@@ -18,6 +18,8 @@ import play.api.libs.json.JsValue
 
 import scala.concurrent.duration._
 import scala.util.Try
+
+import cats.implicits._
 
 sealed trait SourceDirectory {
   val sourceDirectory: String
@@ -191,21 +193,23 @@ class ToolCollector(toolRepository: ToolRepository) {
     }
   }
 
-  def fromLanguages(languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
-    val collectedTools: Set[Tool] = (for {
-      //TODO: Handle and propagate the error instead of Seq.empty
-      tool <- toolRepository.list().getOrElse(Seq.empty)
-      //TODO: Handle and propagate the error instead of .toOption.toSeq
-      patterns <- toolRepository.listPatterns(tool.uuid).toOption.toSeq
-      languagesToRun = tool.languages.intersect(languages)
-      languageToRun <- languagesToRun
-    } yield Tool(FullToolSpec(tool, patterns), languageToRun))(collection.breakOut)
-
-    if (collectedTools.isEmpty) {
-      Left(AnalyserError.NoToolsFoundForFiles)
-    } else {
-      Right(collectedTools)
+  private def toTool(tool: ToolSpec, languages: Set[Language]): Either[AnalyserError, List[Tool]] = {
+    toolRepository.listPatterns(tool.uuid).map { patterns =>
+      tool.languages
+        .intersect(languages)
+        .map { language =>
+          Tool(FullToolSpec(tool, patterns), language)
+        }(collection.breakOut)
     }
   }
 
+  def fromLanguages(languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
+    for {
+      tools <- toolRepository.list()
+      toolsInfo <- tools.toList.flatTraverse(toolSpec => toTool(toolSpec, languages))
+      _ <- if (toolsInfo.nonEmpty) Right(()) else Left(AnalyserError.NoToolsFoundForFiles)
+    } yield {
+      toolsInfo.toSet
+    }
+  }
 }
