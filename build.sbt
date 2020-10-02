@@ -62,7 +62,7 @@ lazy val codacyAnalysisCli = project
 
 lazy val toolRepositoryPlugins = project
   .in(file("toolRepository-plugins"))
-  .settings(crossScalaVersions := Common.supportedScalaVersions, Common.genericSettings)
+  .settings(Common.genericSettings)
   .settings(libraryDependencies ++= Dependencies.codacyPlugins)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
@@ -70,10 +70,7 @@ lazy val toolRepositoryPlugins = project
 
 lazy val toolRepositoryRemote = project
   .in(file("toolRepository-remote"))
-  .settings(
-    crossScalaVersions := Common.supportedScalaVersions,
-    Common.genericSettings,
-    libraryDependencies ++= Dependencies.specs2)
+  .settings(Common.genericSettings, libraryDependencies ++= Dependencies.specs2)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisCore, codacyAnalysisModels, codacyApiClient)
@@ -81,8 +78,10 @@ lazy val toolRepositoryRemote = project
 lazy val codacyAnalysisModels = project
   .in(file("model"))
   .settings(
+    crossScalaVersions := Common.supportedScalaVersions,
     name := "codacy-analysis-cli-model",
     Common.genericSettings,
+    publishTo := sonatypePublishToBundle.value,
     libraryDependencies ++=
       Dependencies.circe ++ Seq(Dependencies.pluginsApi) ++ Dependencies.specs2,
     description := "Library with analysis models")
