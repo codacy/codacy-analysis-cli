@@ -7,7 +7,7 @@ import com.codacy.analysis.clientapi.definitions.{PaginationInfo, PatternListRes
 import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsResponse, ToolsClient}
 import com.codacy.analysis.core.model.{AnalyserError, ParameterSpec, PatternSpec, ToolSpec}
 import com.codacy.analysis.core.tools.ToolRepository
-import com.codacy.plugins.api.languages.Languages
+import com.codacy.plugins.api.languages.{Language, Languages}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -85,11 +85,11 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
       languages,
       tool.name,
       tool.shortName,
-      tool.documentationUrl.getOrElse(""), // TODO: Check if this should be an Option too
-      tool.sourceCodeUrl.getOrElse(""), // TODO: Check if this should be an Option too
-      tool.prefix.getOrElse(""), // TODO: Check if this should be an Option too
+      tool.documentationUrl,
+      tool.sourceCodeUrl,
+      tool.prefix.getOrElse(""),
       tool.needsCompilation,
-      hasConfigFile = true, // TODO: Fill in with appropriate value
+      hasConfigFile = tool.configurationFilenames.nonEmpty,
       tool.configurationFilenames.toSet,
       tool.clientSide,
       tool.configurable)
@@ -99,6 +99,13 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
     val parameterSpecs = pattern.parameters.map { parameter =>
       ParameterSpec(parameter.name, parameter.default, parameter.description)
     }
+
+    val languages: Set[Language] = pattern.languages
+      .getOrElse(Set.empty)
+      .flatMap { languageName =>
+        Languages.fromName(languageName)
+      }(collection.breakOut)
+
     PatternSpec(
       pattern.id,
       pattern.level,
@@ -110,6 +117,6 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
       pattern.enabled,
       pattern.timeToFix,
       parameterSpecs,
-      languages = Set.empty) // TODO: This should come from the API
+      languages = languages)
   }
 }
