@@ -3,7 +3,6 @@ package com.codacy.analysis.cli.formatter
 import java.io.PrintStream
 import java.math.BigInteger
 import java.net.URI
-import java.nio.file.Path
 import java.security.MessageDigest
 import java.util
 
@@ -53,52 +52,58 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
   override def addAll(toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
                       patternDescriptions: Set[PatternDescription],
                       analysisResults: Seq[Result]): Unit = {
-    toolSpecification.foreach {
-      case toolSpec: com.codacy.plugins.api.results.Tool.Specification
-          if toolSpec.patterns.exists(_.category == Pattern.Category.Security) =>
-        val securityIssues = filterSecurityIssues(toolSpec, analysisResults)
+    toolSpecification.foreach { toolSpec =>
+      val categorizedIssues = categorizeIssues(toolSpec, analysisResults)
 
-        val rules = createRules(securityIssues, patternDescriptions)
+      val securityRules = createRules(categorizedIssues.securityIssues, patternDescriptions)
+      val nonSecurityRules = createRules(categorizedIssues.nonSecurityIssues, patternDescriptions)
 
-        val driver = SarifReport.Tool(
-          SarifReport.Driver(
-            name = s"${toolSpec.name.value.capitalize} (reported by Codacy)",
-            version = toolSpec.version.fold("0.0.0-unknown")(_.value.stripPrefix("v")),
-            rules = rules))
+      val driver = SarifReport.Tool(
+        SarifReport.Driver(
+          name = s"${toolSpec.name.value.capitalize} (reported by Codacy)",
+          version = toolSpec.version.fold("0.0.0-unknown")(_.value.stripPrefix("v")),
+          rules = securityRules ++ nonSecurityRules))
 
-        val invocations =
-          List(
-            SarifReport.Invocation(
-              executionSuccessful = true,
-              workingDirectory = SarifReport.ArtifactLocation(uri = rootDirectory)))
+      val invocations =
+        List(SarifReport
+          .Invocation(executionSuccessful = true, workingDirectory = SarifReport.ArtifactLocation(uri = rootDirectory)))
 
-        val artifacts: List[SarifReport.Artifact] = {
-          val filenames: Set[String] = securityIssues.map(_.filename.toString)(collection.breakOut)
-          filenames.map(filename => SarifReport.Artifact(SarifReport.ArtifactLocation(s"$rootDirectory/$filename")))(
-            collection.breakOut)
-        }
+      val artifacts = createArtifacts(categorizedIssues.allIssues)
 
-        val results: List[SarifReport.Result] = securityIssues
-          .groupBy(_.filename)
-          .flatMap { case (filePath, issues) => createResults(filePath, issues, artifacts, rules) }(collection.breakOut)
+      val securityResults =
+        createResults(categorizedIssues.securityIssues, artifacts, securityRules, securityIssueSeverity)
+      val nonSecurityResults =
+        createResults(categorizedIssues.nonSecurityIssues, artifacts, nonSecurityRules, nonSecurityIssueSeverity)
 
-        runs.add(SarifReport.Run(tool = driver, results = results, invocations = invocations, artifacts = artifacts))
+      runs.add(
+        SarifReport.Run(
+          tool = driver,
+          results = securityResults ++ nonSecurityResults,
+          invocations = invocations,
+          artifacts = artifacts))
 
-        ()
-
-      case _ => // Do nothing
+      ()
     }
   }
 
-  private def filterSecurityIssues(toolSpec: com.codacy.plugins.api.results.Tool.Specification,
-                                   analysisResults: Seq[Result]): Seq[Issue] = {
+  private def categorizeIssues(toolSpec: com.codacy.plugins.api.results.Tool.Specification,
+                               analysisResults: Seq[Result]): CategorizedIssues = {
     // HACK: Seems like the issues (`issue.category`) do not have the right category
     //   while in the specification (`toolSpec.patterns[].category`) the pattern has the right category
     val patternsCategoryMap: Map[String, Pattern.Category] =
       toolSpec.patterns.map(pattern => (pattern.patternId.value, pattern.category))(collection.breakOut)
-    analysisResults.collect {
-      case issue: Issue if patternsCategoryMap.get(issue.patternId.value).contains(Pattern.Category.Security) =>
-        issue
+
+    analysisResults.foldLeft(CategorizedIssues(Seq.empty, Seq.empty)) {
+
+      case (categorizedIssues, issue: Issue)
+          if patternsCategoryMap.get(issue.patternId.value).contains(Pattern.Category.Security) =>
+        categorizedIssues.addSecurityIssue(issue)
+
+      case (categorizedIssues, issue: Issue) =>
+        categorizedIssues.addNonSecurityIssue(issue)
+
+      case (categorizedIssues, _) =>
+        categorizedIssues
     }
   }
 
@@ -119,12 +124,23 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
         SarifReport.RuleProperties(category = issue.category.getOrElse(Pattern.Category.CodeStyle).toString))).toList
   }
 
-  private def createResults(filePath: Path,
-                            issues: Seq[Issue],
-                            artifacts: List[SarifReport.Artifact],
-                            rules: Seq[SarifReport.Rule]): Seq[SarifReport.Result] = {
-    val fileContents = executionDirectory./(filePath.toString).lines.toList
-    issues.map { issue =>
+  private def createArtifacts(issues: Seq[Issue]): List[SarifReport.Artifact] = {
+    val filenames: Set[String] = issues.map(_.filename.toString)(collection.breakOut)
+    filenames.map(filename => SarifReport.Artifact(SarifReport.ArtifactLocation(s"$rootDirectory/$filename")))(
+      collection.breakOut)
+  }
+
+  private def createResults(
+    issues: Seq[Issue],
+    artifacts: List[SarifReport.Artifact],
+    rules: List[SarifReport.Rule],
+    getIssueSeverity: results.Result.Level => SarifReport.Level.Value): List[SarifReport.Result] = {
+
+    (for {
+      (fileName, issues) <- issues.groupBy(_.filename)
+      fileContents = executionDirectory./(fileName.toString).lines.toList
+      issue <- issues
+    } yield {
       val message = SarifReport.Message(issue.message.text)
       val filePath = s"$rootDirectory/${issue.filename.toString}"
       val locations = List(
@@ -137,17 +153,26 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
         ruleIndex = rules.indexWhere(_.id == issue.patternId.value),
         ruleId = issue.patternId.value,
         message = message,
-        level = getSarifLevel(issue.level),
+        level = getIssueSeverity(issue.level),
         locations = locations,
         partialFingerprints = SarifReport.PartialFingerprints("1", generatePrimaryLocationHash(issue, fileContents)))
-    }
+    }).toList
   }
 
-  private def getSarifLevel(level: results.Result.Level.Value): SarifReport.Level.Value = {
+  private def securityIssueSeverity(level: results.Result.Level.Value): SarifReport.Level.Value = {
     level match {
       case results.Result.Level.Err  => SarifReport.Level.Error
       case results.Result.Level.Warn => SarifReport.Level.Warning
       case _                         => SarifReport.Level.Note
+    }
+  }
+
+  /** At GitHub's request, non-security issues should have lower severity than their security counterparts. */
+  private def nonSecurityIssueSeverity(level: results.Result.Level.Value): SarifReport.Level.Value = {
+    level match {
+      case results.Result.Level.Err  => SarifReport.Level.Warning
+      case results.Result.Level.Warn => SarifReport.Level.Note
+      case _                         => SarifReport.Level.None
     }
   }
 
@@ -163,6 +188,14 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
 
 }
 
+/** Convenience class for separating issues into security and non-security categories. */
+private final case class CategorizedIssues(nonSecurityIssues: Seq[Issue], securityIssues: Seq[Issue]) {
+  val allIssues: Seq[Issue] = nonSecurityIssues ++ securityIssues
+
+  def addSecurityIssue(issue: Issue): CategorizedIssues = copy(securityIssues = securityIssues :+ issue)
+  def addNonSecurityIssue(issue: Issue): CategorizedIssues = copy(nonSecurityIssues = nonSecurityIssues :+ issue)
+}
+
 final case class SarifReport(`$schema`: String, version: String, runs: List[SarifReport.Run])
 
 object SarifReport {
@@ -171,6 +204,7 @@ object SarifReport {
     val Error: Value = Value("error")
     val Warning: Value = Value("warning")
     val Note: Value = Value("note")
+    val None: Value = Value("none")
   }
 
   final case class ArtifactLocation(uri: String)
