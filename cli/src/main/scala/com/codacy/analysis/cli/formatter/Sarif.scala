@@ -21,10 +21,14 @@ object Sarif extends FormatterCompanion {
   override val name: String = "sarif"
 
   override def apply(outputStream: PrintStream, executionDirectory: File): Formatter =
-    new Sarif(outputStream, executionDirectory)
+    apply(outputStream, executionDirectory, ghCodeScanningCompat = false)
+
+  def apply(stream: PrintStream, executionDirectory: File, ghCodeScanningCompat: Boolean): Formatter =
+    new Sarif(stream, executionDirectory, ghCodeScanningCompat)
 }
 
-private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: File) extends Formatter {
+private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: File, val ghCodeScanningCompat: Boolean)
+    extends Formatter {
 
   val schema = new URI("https://docs.oasis-open.org/sarif/sarif/v2.1.0/cos02/schemas/sarif-schema-2.1.0.json")
   val version = "2.1.0"
@@ -73,7 +77,11 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
       val securityResults =
         createResults(categorizedIssues.securityIssues, artifacts, securityRules, securityIssueSeverity)
       val nonSecurityResults =
-        createResults(categorizedIssues.nonSecurityIssues, artifacts, nonSecurityRules, nonSecurityIssueSeverity)
+        createResults(
+          categorizedIssues.nonSecurityIssues,
+          artifacts,
+          nonSecurityRules,
+          if (ghCodeScanningCompat) nonSecurityIssueSeverity else securityIssueSeverity)
 
       runs.add(
         SarifReport.Run(

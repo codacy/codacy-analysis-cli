@@ -39,16 +39,19 @@ object Formatter {
   def apply(formatterName: String,
             executionDirectory: File,
             outputFile: Option[File] = Option.empty,
-            printStream: Option[PrintStream] = Option.empty): Formatter = {
-
-    val builder = allFormatters.find(_.name.equalsIgnoreCase(formatterName)).getOrElse {
-      logger.warn(s"Could not find formatter for name $formatterName. Using ${defaultFormatter.name} as fallback.")
-      defaultFormatter
-    }
+            printStream: Option[PrintStream] = Option.empty,
+            ghCodeScanningCompat: Boolean = false): Formatter = {
 
     val stream = outputFile.map(asPrintStream).orElse(printStream).getOrElse(defaultPrintStream)
 
-    builder(stream, executionDirectory)
+    formatterName match {
+      case Json.name  => Json(stream, executionDirectory)
+      case Sarif.name => Sarif(stream, executionDirectory, ghCodeScanningCompat)
+      case Text.name  => Text(stream, executionDirectory)
+      case _ =>
+        logger.warn(s"Could not find formatter for name $formatterName. Using ${defaultFormatter.name} as fallback.")
+        defaultFormatter(stream, executionDirectory)
+    }
   }
 
   private def asPrintStream(file: File) = {

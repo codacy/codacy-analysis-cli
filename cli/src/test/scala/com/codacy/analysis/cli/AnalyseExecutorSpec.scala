@@ -184,7 +184,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
       CLIConfiguration.Tool(Option(15.minutes), allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
     CLIConfiguration.Analysis(
       directory,
-      CLIConfiguration.Output(Json.name, Option(outputFile)),
+      CLIConfiguration.Output(Json.name, Option(outputFile), ghCodeScanningCompat = false),
       tool,
       Option.empty,
       forceFilePermissions = false,
