@@ -88,7 +88,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
         val expectedConfiguration = CLIConfiguration(
           analysis = CLIConfiguration.Analysis(
             projectDirectory = directory,
-            output = CLIConfiguration.Output(Json.name, Option(outputFile)),
+            output = CLIConfiguration.Output(Json.name, Option(outputFile), ghCodeScanningCompat = false),
             tool = toolInput,
             parallel = Option(2),
             forceFilePermissions = true,
@@ -141,7 +141,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
       val expectedConfiguration = CLIConfiguration(
         CLIConfiguration.Analysis(
           projectDirectory = File.currentWorkingDirectory,
-          output = CLIConfiguration.Output(Json.name, Option.empty),
+          output = CLIConfiguration.Output(Json.name, Option.empty, ghCodeScanningCompat = false),
           tool = toolInput,
           parallel = Option.empty,
           forceFilePermissions = false,
@@ -198,7 +198,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
       val expectedConfiguration = CLIConfiguration(
         CLIConfiguration.Analysis(
           projectDirectory = File.currentWorkingDirectory,
-          output = CLIConfiguration.Output(Json.name, Option.empty),
+          output = CLIConfiguration.Output(Json.name, Option.empty, ghCodeScanningCompat = false),
           tool = toolInput,
           parallel = Option.empty,
           forceFilePermissions = false,
@@ -233,7 +233,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
       val expectedConfiguration = CLIConfiguration(
         CLIConfiguration.Analysis(
           projectDirectory = File("."),
-          output = CLIConfiguration.Output(Json.name, Option.empty),
+          output = CLIConfiguration.Output(Json.name, Option.empty, ghCodeScanningCompat = false),
           tool = toolInput,
           parallel = Option.empty,
           forceFilePermissions = false,
@@ -299,7 +299,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
       val expectedConfiguration = CLIConfiguration(
         CLIConfiguration.Analysis(
           projectDirectory = File.currentWorkingDirectory,
-          output = CLIConfiguration.Output(Json.name, Option.empty),
+          output = CLIConfiguration.Output(Json.name, Option.empty, ghCodeScanningCompat = false),
           tool = toolInput,
           parallel = Option.empty,
           forceFilePermissions = false,

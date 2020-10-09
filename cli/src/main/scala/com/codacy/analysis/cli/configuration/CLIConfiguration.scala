@@ -48,7 +48,7 @@ object CLIConfiguration {
 
       val fileExclusionRules =
         CLIConfiguration.FileExclusionRules(localConfiguration, remoteProjectConfiguration)
-      val output = CLIConfiguration.Output(analyse.format, analyse.output)
+      val output = CLIConfiguration.Output(analyse.format, analyse.output, analyse.ghCodeScanningCompatValue)
       val toolConfiguration =
         CLIConfiguration.Tool(analyse, localConfiguration, remoteProjectConfiguration)
       CLIConfiguration.Analysis(
@@ -66,7 +66,7 @@ object CLIConfiguration {
   final case class Upload(commitUuid: Option[Commit.Uuid], upload: Boolean)
   final case class Result(maxAllowedIssues: Int, failIfIncomplete: Boolean)
 
-  final case class Output(format: String, file: Option[File])
+  final case class Output(format: String, file: Option[File], ghCodeScanningCompat: Boolean)
 
   final case class FileExclusionRules(defaultIgnores: Option[Set[PathRegex]],
                                       ignoredPaths: Set[FilePath],

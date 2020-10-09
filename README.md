@@ -203,6 +203,7 @@ Found [Clone] 7 duplicated lines with 10 tokens:
 ### Commands and Configuration
 
 * `analyse` - Run a Codacy analysis over a directory/files
+    * `--help` - Displays all the configuration options, their meaning and possible values.
     * `--verbose` - Run the tool with verbose output
     * `--tool` - Choose the tool to analyse the code (e.g. brakeman)
     * `--directory` - Choose the directory to be analysed
@@ -218,6 +219,8 @@ Found [Clone] 7 duplicated lines with 10 tokens:
     * `--force-file-permissions` [default: false] - Force files to be readable by changing the permissions before running the analysis
     * `--tool-timeout` [default: 15minutes] - Maximum time each tool has to execute (e.g. 15minutes, 1hour)
     * `--tmp-directory` [optional] - Temporary directory for analysis purposes
+    * `--gh-code-scanning-compat` [default: false] - Reduce issue severity by one level, __for non-security issues__, for compatibility with GitHub's code scanning feature.
+    This option will only have an effect when used in conjunction with `--format sarif`. Note that in this case, the same issues on Codacy side will have higher priority.
 * `validate-configuration` - Validate the Codacy configuration file
     * `--directory` - Choose the directory where to look for the Codacy configuration file
 

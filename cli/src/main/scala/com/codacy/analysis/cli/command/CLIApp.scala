@@ -151,6 +151,9 @@ final case class Analyse(
   toolTimeout: Option[Duration],
   @ValueDescription("The tmp directory location.")
   tmpDirectory: Option[File] = None,
+  @ValueDescription(
+    "Reduce issue severity by one level, for non-security issues, for compatibility with GitHub's code scanning. Use in conjunction with `--format sarif`")
+  ghCodeScanningCompat: Int @@ Counter = Tag.of(0),
   @Recurse
   extras: ExtraOptions)
     extends CommandOptions {
@@ -158,6 +161,7 @@ final case class Analyse(
   val failIfIncompleteValue: Boolean = failIfIncomplete.## > 0
   val allowNetworkValue: Boolean = allowNetwork.## > 0
   val forceFilePermissionsValue: Boolean = forceFilePermissions.## > 0
+  val ghCodeScanningCompatValue: Boolean = ghCodeScanningCompat.## > 0
 }
 
 final case class ValidateConfiguration(@Recurse
