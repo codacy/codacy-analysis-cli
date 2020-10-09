@@ -40,10 +40,7 @@ object AnalyseCommand {
     val configuration: CLIConfiguration =
       CLIConfiguration(codacyClientOpt, environment, analyse, new CodacyConfigurationFileLoader)
     val formatter: Formatter =
-      Formatter(
-        configuration.analysis.output.format,
-        environment.baseProjectDirectory(analyse.directory),
-        configuration.analysis.output.file)
+      Formatter(configuration.analysis.output, environment.baseProjectDirectory(analyse.directory))
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
     val analyseExecutor: AnalyseExecutor =
       new AnalyseExecutor(formatter, Analyser(analyse.extras.analyser), fileCollector, configuration.analysis)

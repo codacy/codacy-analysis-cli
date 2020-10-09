@@ -115,7 +115,7 @@ class SarifSpec extends Specification with NoLanguageFeatures {
     // Act
     val bos = new ByteArrayOutputStream()
     val printStream = new PrintStream(bos)
-    val formatter = Sarif(printStream, sourceDirectory, ghCodeScanningCompat = reduceIssueSeverity)
+    val formatter = Sarif(printStream, sourceDirectory, reduceIssueSeverity)
     formatter.begin()
     formatter.addAll(
       toolSpecification = Option(toolSpecification),

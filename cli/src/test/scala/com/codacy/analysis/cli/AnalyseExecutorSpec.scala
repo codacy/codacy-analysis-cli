@@ -161,8 +161,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
   }
 
   private def runAnalyseExecutor(analyserName: String, configuration: CLIConfiguration.Analysis) = {
-    val formatter: Formatter =
-      Formatter(configuration.output.format, configuration.projectDirectory, configuration.output.file)
+    val formatter: Formatter = Formatter(configuration.output, configuration.projectDirectory)
     val analyser: Analyser[Try] = Analyser(analyserName)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 

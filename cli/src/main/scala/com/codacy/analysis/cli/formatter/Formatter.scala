@@ -3,13 +3,14 @@ package com.codacy.analysis.cli.formatter
 import java.io.{FileOutputStream, PrintStream}
 
 import better.files.File
+import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.core.model.Result
 import com.codacy.plugins.api.PatternDescription
 import org.log4s.{Logger, getLogger}
 
 trait FormatterCompanion {
   def name: String
-  def apply(outputStream: PrintStream, executionDirectory: File): Formatter
+  def apply(printStream: PrintStream, executionDirectory: File, ghCodeScanningCompat: Boolean): Formatter
 }
 
 trait Formatter {
@@ -36,22 +37,19 @@ object Formatter {
 
   val allFormatters: Set[FormatterCompanion] = Set(defaultFormatter, Json, Sarif)
 
-  def apply(formatterName: String,
+  def apply(outputConfiguration: CLIConfiguration.Output,
             executionDirectory: File,
-            outputFile: Option[File] = Option.empty,
-            printStream: Option[PrintStream] = Option.empty,
-            ghCodeScanningCompat: Boolean = false): Formatter = {
+            printStream: Option[PrintStream] = Option.empty): Formatter = {
 
-    val stream = outputFile.map(asPrintStream).orElse(printStream).getOrElse(defaultPrintStream)
+    val stream = outputConfiguration.file.map(asPrintStream).orElse(printStream).getOrElse(defaultPrintStream)
 
-    formatterName match {
-      case Json.name  => Json(stream, executionDirectory)
-      case Sarif.name => Sarif(stream, executionDirectory, ghCodeScanningCompat)
-      case Text.name  => Text(stream, executionDirectory)
-      case _ =>
-        logger.warn(s"Could not find formatter for name $formatterName. Using ${defaultFormatter.name} as fallback.")
-        defaultFormatter(stream, executionDirectory)
+    val formatterBuilder = allFormatters.find(_.name.equalsIgnoreCase(outputConfiguration.format)).getOrElse {
+      logger.warn(
+        s"Could not find formatter for name ${outputConfiguration.format}. Using ${defaultFormatter.name} as fallback.")
+      defaultFormatter
     }
+
+    formatterBuilder(stream, executionDirectory, outputConfiguration.ghCodeScanningCompat)
   }
 
   private def asPrintStream(file: File) = {

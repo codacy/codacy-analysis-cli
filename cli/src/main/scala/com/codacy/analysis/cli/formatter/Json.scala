@@ -14,7 +14,9 @@ import scala.util.Properties
 
 object Json extends FormatterCompanion {
   override val name: String = "json"
-  override def apply(outputStream: PrintStream, executionDirectory: File): Formatter = new Json(outputStream)
+
+  override def apply(printStream: PrintStream, executionDirectory: File, ghCodeScanningCompat: Boolean): Formatter =
+    new Json(printStream)
 }
 
 private[formatter] class Json(val stream: PrintStream) extends Formatter {

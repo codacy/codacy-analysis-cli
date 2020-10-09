@@ -20,11 +20,8 @@ import scala.util.matching.Regex
 object Sarif extends FormatterCompanion {
   override val name: String = "sarif"
 
-  override def apply(outputStream: PrintStream, executionDirectory: File): Formatter =
-    apply(outputStream, executionDirectory, ghCodeScanningCompat = false)
-
-  def apply(stream: PrintStream, executionDirectory: File, ghCodeScanningCompat: Boolean): Formatter =
-    new Sarif(stream, executionDirectory, ghCodeScanningCompat)
+  override def apply(printStream: PrintStream, executionDirectory: File, ghCodeScanningCompat: Boolean): Formatter =
+    new Sarif(printStream, executionDirectory, ghCodeScanningCompat)
 }
 
 private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: File, val ghCodeScanningCompat: Boolean)

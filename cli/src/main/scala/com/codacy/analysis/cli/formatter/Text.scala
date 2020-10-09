@@ -11,7 +11,8 @@ import com.codacy.plugins.api.{PatternDescription, results}
 object Text extends FormatterCompanion {
   override val name: String = "text"
 
-  override def apply(outputStream: PrintStream, executionDirectory: File): Formatter = new Text(outputStream)
+  override def apply(printStream: PrintStream, executionDirectory: File, ghCodeScanningCompat: Boolean): Formatter =
+    new Text(printStream)
 }
 
 private[formatter] class Text(val stream: PrintStream) extends Formatter {
