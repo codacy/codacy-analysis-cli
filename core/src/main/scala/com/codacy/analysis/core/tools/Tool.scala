@@ -91,7 +91,7 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val plugin: 
             fe =>
               FileError(
                 FileHelper.relativePath(sourceDirectory.appendPrefix(fe.filename)),
-                fe.message.getOrElse("Failed to analyse file.")))
+                fe.message.getOrElse("Failed to analyze file.")))
     }
   }
 

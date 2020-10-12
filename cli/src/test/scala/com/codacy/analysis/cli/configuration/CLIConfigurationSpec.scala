@@ -2,7 +2,7 @@ package com.codacy.analysis.cli.configuration
 
 import better.files.File
 import caseapp.Tag
-import com.codacy.analysis.cli.command.{APIOptions, Analyse, CommonOptions, ExtraOptions}
+import com.codacy.analysis.cli.command.{APIOptions, Analyze, CommonOptions, ExtraOptions}
 import com.codacy.analysis.cli.formatter.Json
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients._
@@ -40,7 +40,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
   private val toolInput = Option("hey! i'm a tool!")
   private val commitUuid = Option(Commit.Uuid("uuid"))
 
-  private val defaultAnalyse = Analyse(
+  private val defaultAnalyse = Analyze(
     options = CommonOptions(),
     api = APIOptions(),
     tool = toolInput,
@@ -62,13 +62,13 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
 
   "CLIConfiguration" should {
 
-    "parse configuration from analyse command" in {
+    "parse configuration from analyze command" in {
 
       (for {
         directory <- File.temporaryDirectory()
         outputFile <- File.temporaryFile()
       } yield {
-        val analyse = Analyse(
+        val analyze = Analyze(
           options = CommonOptions(),
           api = APIOptions(),
           tool = toolInput,
@@ -107,7 +107,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
           result = CLIConfiguration.Result(maxAllowedIssues = 5, failIfIncomplete = true))
 
         val actualConfiguration =
-          CLIConfiguration(Option(noRemoteConfigCodacyClient), defaultEnvironment, analyse, noLocalConfig)
+          CLIConfiguration(Option(noRemoteConfigCodacyClient), defaultEnvironment, analyze, noLocalConfig)
 
         actualConfiguration must beEqualTo(expectedConfiguration)
       }).get
@@ -226,7 +226,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
 
     }
 
-    "parse configuration with environment and analyse command values (no remote or local configs)" in {
+    "parse configuration with environment and analyze command values (no remote or local configs)" in {
 
       val environment = new Environment(Map("CODACY_CODE" -> "."))
 

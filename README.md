@@ -105,7 +105,7 @@ cd codacy-analysis-cli-* && sudo make install
 ### Script
 
 ```sh
-codacy-analysis-cli analyse \
+codacy-analysis-cli analyze \
   --tool <TOOL-SHORT-NAME> \
   --directory <SOURCE-CODE-PATH>
 ```
@@ -113,7 +113,7 @@ codacy-analysis-cli analyse \
 ### Java
 
 ```
-java -jar codacy-analysis-cli-assembly-{VERSION}.jar analyse \
+java -jar codacy-analysis-cli-assembly-{VERSION}.jar analyze \
   --tool <TOOL-SHORT-NAME> \
   --directory <SOURCE-CODE-PATH> \
   # other options
@@ -122,7 +122,7 @@ java -jar codacy-analysis-cli-assembly-{VERSION}.jar analyse \
 ### Local
 
 ```sh
-sbt "codacyAnalysisCli/runMain com.codacy.analysis.cli.Main analyse --tool <TOOL-SHORT-NAME> --directory <SOURCE-CODE-PATH>"
+sbt "codacyAnalysisCli/runMain com.codacy.analysis.cli.Main analyze --tool <TOOL-SHORT-NAME> --directory <SOURCE-CODE-PATH>"
 ```
 
 ### Docker
@@ -135,7 +135,7 @@ docker run \
   --volume "$CODACY_CODE":"$CODACY_CODE" \
   --volume /tmp:/tmp \
   codacy/codacy-analysis-cli \
-    analyse --tool <TOOL-SHORT-NAME>
+    analyze --tool <TOOL-SHORT-NAME>
 ```
 
 
@@ -202,10 +202,10 @@ Found [Clone] 7 duplicated lines with 10 tokens:
 
 ### Commands and Configuration
 
-* `analyse` - Run a Codacy analysis over a directory/files
+* `analyze` - Run a Codacy analysis over a directory/files
     * `--help` - Displays all the configuration options, their meaning and possible values.
     * `--verbose` - Run the tool with verbose output
-    * `--tool` - Choose the tool to analyse the code (e.g. brakeman)
+    * `--tool` - Choose the tool to analyze the code (e.g. brakeman)
     * `--directory` - Choose the directory to be analysed
     * `--codacy-api-base-url` or env.`CODACY_API_BASE_URL` - Change the Codacy installation API URL to retrieve the configuration (e.g. Enterprise installation)
     * `--output` - Send the output results to a file
@@ -244,7 +244,7 @@ You can find the project token in:
 * `Project -> Settings -> Integrations -> Add Integration -> Project API`
 
 ```sh
-codacy-analysis-cli analyse \
+codacy-analysis-cli analyze \
   --project-token <PROJECT-TOKEN> \
   --tool <TOOL-SHORT-NAME> \
   --directory <SOURCE-CODE-PATH>
@@ -260,7 +260,7 @@ You can find the project token in:
 The username and project name can be retrieved from the URL in Codacy.
 
 ```sh
-codacy-analysis-cli analyse \
+codacy-analysis-cli analyze \
   --api-token <PROJECT-TOKEN> \
   --username <USERNAME> \
   --project <PROJECT-NAME> \
@@ -339,6 +339,11 @@ sbt codacyCoverage
 
         sbt 'set version in codacyAnalysisCore := "<VERSION>"' 'set pgpPassphrase := Some("<SONATYPE_GPG_PASSPHRASE>".toCharArray)' codacyAnalysisCore/publishSigned
         sbt 'set version in codacyAnalysisCore := "<VERSION>"' sonatypeRelease
+
+## Breaking Changes
+
+- 4.0.0 - Rename `analyse` command to `analyze`. This is a breaking change if you are running the CLI by using the
+  [jar](#java) or [`sbt`](#local), but not if you are using the [provided script](#script).
 
 ## What is Codacy
 

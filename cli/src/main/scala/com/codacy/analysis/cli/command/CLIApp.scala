@@ -120,14 +120,14 @@ final case class ExtraOptions(
   @Hidden @ValueDescription(s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")
   analyser: String = Analyser.defaultAnalyser.name)
 
-final case class Analyse(
+final case class Analyze(
   @Recurse
   options: CommonOptions,
   @Recurse
   api: APIOptions,
-  @ExtraName("t") @ValueDescription(s"The tool to analyse the code. (${Tool.allToolShortNames.mkString(", ")})")
+  @ExtraName("t") @ValueDescription(s"The tool to analyze the code. (${Tool.allToolShortNames.mkString(", ")})")
   tool: Option[String],
-  @ExtraName("d") @ValueDescription("The directory to analyse.")
+  @ExtraName("d") @ValueDescription("The directory to analyze.")
   directory: Option[File],
   @ExtraName("f") @ValueDescription(s"The output format. (${Formatter.allFormatters.map(_.name).mkString(", ")})")
   format: String = Formatter.defaultFormatter.name,

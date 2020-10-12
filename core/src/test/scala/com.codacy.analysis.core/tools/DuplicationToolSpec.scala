@@ -15,7 +15,7 @@ import scala.util.Success
 class DuplicationToolSpec extends Specification with NoLanguageFeatures {
 
   "DuplicationTool" should {
-    "analyse duplication on a project" in {
+    "analyze duplication on a project" in {
       val commitUuid = "625e19cd9be4898939a7c40dbeb2b17e40df9d54"
       withClonedRepo("git://github.com/qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
         val expectedClones = Seq(
@@ -45,7 +45,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
       }
     }
 
-    "analyse duplication on a project, ignoring a file" in {
+    "analyze duplication on a project, ignoring a file" in {
       val commitUuid = "625e19cd9be4898939a7c40dbeb2b17e40df9d54"
       withClonedRepo("git://github.com/qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
         val expectedClones = Seq(

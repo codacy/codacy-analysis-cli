@@ -33,30 +33,30 @@ import scala.util.{Failure, Success, Try}
 
 object AnalyseCommand {
 
-  def apply(analyse: Analyse, env: Map[String, String]): AnalyseCommand = {
+  def apply(analyze: Analyze, env: Map[String, String]): AnalyseCommand = {
     val environment: Environment = new Environment(env)
     val codacyClientOpt: Option[CodacyClient] =
-      Credentials.get(environment, analyse.api).map(CodacyClient.apply)
+      Credentials.get(environment, analyze.api).map(CodacyClient.apply)
     val configuration: CLIConfiguration =
-      CLIConfiguration(codacyClientOpt, environment, analyse, new CodacyConfigurationFileLoader)
+      CLIConfiguration(codacyClientOpt, environment, analyze, new CodacyConfigurationFileLoader)
     val formatter: Formatter =
-      Formatter(configuration.analysis.output, environment.baseProjectDirectory(analyse.directory))
+      Formatter(configuration.analysis.output, environment.baseProjectDirectory(analyze.directory))
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
     val analyseExecutor: AnalyseExecutor =
-      new AnalyseExecutor(formatter, Analyser(analyse.extras.analyser), fileCollector, configuration.analysis)
+      new AnalyseExecutor(formatter, Analyser(analyze.extras.analyser), fileCollector, configuration.analysis)
     val uploaderOpt: Either[String, Option[ResultsUploader]] =
       ResultsUploader(codacyClientOpt, configuration.upload.upload, configuration.upload.commitUuid)
 
-    new AnalyseCommand(analyse, configuration, analyseExecutor, uploaderOpt)
+    new AnalyseCommand(analyze, configuration, analyseExecutor, uploaderOpt)
   }
 }
 
-class AnalyseCommand(analyse: Analyse,
+class AnalyseCommand(analyze: Analyze,
                      configuration: CLIConfiguration,
                      analyseExecutor: AnalyseExecutor,
                      uploaderOpt: Either[String, Option[ResultsUploader]]) {
 
-  Logger.setLevel(analyse.options.verboseValue)
+  Logger.setLevel(analyze.options.verboseValue)
 
   private val logger: org.log4s.Logger = getLogger
 
@@ -64,7 +64,7 @@ class AnalyseCommand(analyse: Analyse,
     removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
 
     val analysisAndUpload = for {
-      _ <- validate(analyse, configuration)
+      _ <- validate(analyze, configuration)
       analysisResults <- analyseExecutor.run()
       _ <- upload(configuration.upload, analysisResults)
     } yield analysisResults
@@ -75,7 +75,7 @@ class AnalyseCommand(analyse: Analyse,
       .exitCode(analysisAndUpload)
   }
 
-  private def validate(analyse: Analyse, configuration: CLIConfiguration): Either[CLIError, Unit] = {
+  private def validate(analyze: Analyze, configuration: CLIConfiguration): Either[CLIError, Unit] = {
     Git
       .repository(configuration.analysis.projectDirectory)
       .fold(
@@ -85,7 +85,7 @@ class AnalyseCommand(analyse: Analyse,
         { repository =>
           for {
             _ <- validateNoUncommitedChanges(repository, configuration.upload.upload)
-            _ <- validateGitCommitUuid(repository, analyse.commitUuid)
+            _ <- validateGitCommitUuid(repository, analyze.commitUuid)
           } yield ()
         })
   }
