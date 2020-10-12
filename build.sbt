@@ -48,7 +48,7 @@ lazy val codacyAnalysisCore = project
     // Test Dependencies
     libraryDependencies ++= Dependencies.specs2,
     sonatypeInformation,
-    description := "Library to analyse projects")
+    description := "Library to analyze projects")
   .settings(assemblyCommon: _*)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)

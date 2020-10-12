@@ -3,7 +3,7 @@ package com.codacy.analysis.cli.configuration
 import better.files.File
 import cats.Foldable
 import cats.implicits._
-import com.codacy.analysis.cli.command.Analyse
+import com.codacy.analysis.cli.command.Analyze
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.configuration.{
@@ -41,22 +41,22 @@ object CLIConfiguration {
   object Analysis {
 
     def apply(projectDirectory: File,
-              analyse: Analyse,
+              analyze: Analyze,
               localConfiguration: Either[String, CodacyConfigurationFile],
               remoteProjectConfiguration: Either[String, ProjectConfiguration],
               tmpDirectory: Option[File]): Analysis = {
 
       val fileExclusionRules =
         CLIConfiguration.FileExclusionRules(localConfiguration, remoteProjectConfiguration)
-      val output = CLIConfiguration.Output(analyse.format, analyse.output, analyse.ghCodeScanningCompatValue)
+      val output = CLIConfiguration.Output(analyze.format, analyze.output, analyze.ghCodeScanningCompatValue)
       val toolConfiguration =
-        CLIConfiguration.Tool(analyse, localConfiguration, remoteProjectConfiguration)
+        CLIConfiguration.Tool(analyze, localConfiguration, remoteProjectConfiguration)
       CLIConfiguration.Analysis(
         projectDirectory,
         output,
-        analyse.tool,
-        analyse.parallel,
-        analyse.forceFilePermissionsValue,
+        analyze.tool,
+        analyze.parallel,
+        analyze.forceFilePermissionsValue,
         fileExclusionRules,
         toolConfiguration,
         tmpDirectory)
@@ -124,7 +124,7 @@ object CLIConfiguration {
 
   object Tool {
 
-    def apply(analyse: Analyse,
+    def apply(analyze: Analyze,
               localConfiguration: Either[String, CodacyConfigurationFile],
               remoteProjectConfiguration: Either[String, ProjectConfiguration]): CLIConfiguration.Tool = {
 
@@ -141,8 +141,8 @@ object CLIConfiguration {
         localConfiguration.map(_.languageCustomExtensions).getOrElse(Map.empty[Language, Set[String]])
 
       CLIConfiguration.Tool(
-        analyse.toolTimeout,
-        analyse.allowNetworkValue,
+        analyze.toolTimeout,
+        analyze.allowNetworkValue,
         toolConfigurations,
         enginesConfiguration,
         languageExtensions)
@@ -191,11 +191,11 @@ object CLIConfiguration {
 
   def apply(clientOpt: Option[CodacyClient],
             environment: Environment,
-            analyse: Analyse,
+            analyze: Analyze,
             localConfigLoader: CodacyConfigurationFileLoader): CLIConfiguration = {
-    val projectDirectory: File = environment.baseProjectDirectory(analyse.directory)
+    val projectDirectory: File = environment.baseProjectDirectory(analyze.directory)
     val commitUuid: Option[Commit.Uuid] =
-      analyse.commitUuid.orElse(Git.currentCommitUuid(projectDirectory))
+      analyze.commitUuid.orElse(Git.currentCommitUuid(projectDirectory))
 
     val localConfiguration: Either[String, CodacyConfigurationFile] =
       localConfigLoader.load(projectDirectory)
@@ -205,9 +205,9 @@ object CLIConfiguration {
       _.getRemoteConfiguration
     }
     val analysisConfiguration =
-      Analysis(projectDirectory, analyse, localConfiguration, remoteProjectConfiguration, analyse.tmpDirectory)
-    val uploadConfiguration = Upload(commitUuid, analyse.uploadValue)
-    val resultConfiguration = Result(analyse.maxAllowedIssues, analyse.failIfIncompleteValue)
+      Analysis(projectDirectory, analyze, localConfiguration, remoteProjectConfiguration, analyze.tmpDirectory)
+    val uploadConfiguration = Upload(commitUuid, analyze.uploadValue)
+    val resultConfiguration = Result(analyze.maxAllowedIssues, analyze.failIfIncompleteValue)
 
     CLIConfiguration(analysisConfiguration, uploadConfiguration, resultConfiguration)
   }

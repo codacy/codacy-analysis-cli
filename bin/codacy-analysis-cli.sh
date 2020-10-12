@@ -60,7 +60,7 @@ analysis_file() {
       *)
         if [ ${is_filename} -eq 1 ]; then
           if [ -n "$filename" ]; then
-            echo "Please provide only one file or directory to analyse" >&2
+            echo "Please provide only one file or directory to analyze" >&2
             exit 1
           else
             is_filename=0
@@ -104,7 +104,11 @@ prep_args_with_output_absolute_path() {
             new_args="${new_args} ${OUTPUT}"
           fi
         else
-          new_args="${new_args} ${arg}"
+          if [ ${arg} == "analyse" ]; then
+            new_args="${new_args} analyze"
+          else
+            new_args="${new_args} ${arg}"
+          fi
         fi
         ;;
     esac

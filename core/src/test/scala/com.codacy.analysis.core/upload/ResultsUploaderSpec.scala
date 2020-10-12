@@ -178,7 +178,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
     val esLintPatternsInternalIds =
       Set("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty")
 
-    s"analyse a javascript project with eslint, $message".stripMargin in {
+    s"analyze a javascript project with eslint, $message".stripMargin in {
       val toolPatterns = esLintPatternsInternalIds.map { patternId =>
         ToolPattern(patternId, Set.empty)
       }

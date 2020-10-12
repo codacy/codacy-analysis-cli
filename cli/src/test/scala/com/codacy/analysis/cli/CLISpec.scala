@@ -32,21 +32,21 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
       cli.parse(Array("--version")) must beLike {
         case Right((DefaultCommand(_), _, parsed)) => parsed must beNone
       }
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint")) must beLike {
+      cli.parse(Array("analyze", "--directory", "/tmp", "--tool", "pylint")) must beLike {
         case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
       }
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--output", "/tmp/test.txt")) must beLike {
+      cli.parse(Array("analyze", "--directory", "/tmp", "--tool", "pylint", "--output", "/tmp/test.txt")) must beLike {
         case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
       }
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--verbose")) must beLike {
+      cli.parse(Array("analyze", "--directory", "/tmp", "--tool", "pylint", "--verbose")) must beLike {
         case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
       }
-      cli.parse(Array("analyse", "--directory", "/tmp", "--tool", "pylint", "--format", "json")) must beLike {
+      cli.parse(Array("analyze", "--directory", "/tmp", "--tool", "pylint", "--format", "json")) must beLike {
         case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
       }
       cli.parse(
         Array(
-          "analyse",
+          "analyze",
           "--directory",
           "/tmp",
           "--tool",
@@ -60,13 +60,13 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
     "fail parse" in {
       cli.parse(Array("bad-command", "--directory", "/tmp", "--tool", "pylint")) must beEqualTo(
         Right(errorMsg("Command not found: bad-command")))
-      cli.parse(Array("analyse", "--bad-parameter", "/tmp", "--tool", "pylint")) must beEqualTo(
+      cli.parse(Array("analyze", "--bad-parameter", "/tmp", "--tool", "pylint")) must beEqualTo(
         Right(errorMsg("Unrecognized argument: --bad-parameter")))
-      cli.parse(Array("analyse", "analyse", "--tool-timeout", "1semilha")) must beEqualTo(
+      cli.parse(Array("analyze", "analyze", "--tool-timeout", "1semilha")) must beEqualTo(
         Right(errorMsg("Invalid duration 1semilha (e.g. 20minutes, 10seconds, ...)")))
       cli.parse(
         Array(
-          "analyse",
+          "analyze",
           "--directory",
           "/tmp",
           "--tool",
@@ -84,7 +84,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
         file <- File.temporaryFile()
       } yield {
         cli.main(
-          Array("analyse", "--directory", directory.pathAsString, "--tool", "pylint", "--output", file.pathAsString))
+          Array("analyze", "--directory", directory.pathAsString, "--tool", "pylint", "--output", file.pathAsString))
 
         file.contentAsString must beEqualTo("""|Starting analysis ...
                                                |Analysis complete
@@ -99,7 +99,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
       } yield {
         cli.main(
           Array(
-            "analyse",
+            "analyze",
             "--directory",
             directory.pathAsString,
             "--tool",
@@ -119,7 +119,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
         (file, directory) =>
           cli.main(
             Array(
-              "analyse",
+              "analyze",
               "--directory",
               directory./("src/main/resources/docs/directory-tests/rails4").pathAsString,
               "--tool",
@@ -150,7 +150,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
         "38e5ab22774c6061ce693efab4011d49b8feb5ca") { (file, directory) =>
         cli.main(
           Array(
-            "analyse",
+            "analyze",
             "--directory",
             directory.pathAsString,
             "--tool",
@@ -177,7 +177,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
         (file, directory) =>
           cli.main(
             Array(
-              "analyse",
+              "analyze",
               "--directory",
               directory.pathAsString,
               "--tool",
@@ -208,7 +208,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
         (file, directory) =>
           cli.main(
             Array(
-              "analyse",
+              "analyze",
               "--directory",
               directory.pathAsString,
               "--tool",
@@ -240,7 +240,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
         (file, directory) =>
           cli.main(
             Array(
-              "analyse",
+              "analyze",
               "--directory",
               directory.pathAsString,
               "--tool",
@@ -274,7 +274,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
 
           CommandRunner.exec(List("git", "add", newFile.name), Option(directory.toJava))
 
-          val analyse = Analyse(
+          val analyze = Analyze(
             options = CommonOptions(),
             api = APIOptions(projectToken = None, codacyApiBaseUrl = None),
             tool = None,
@@ -283,7 +283,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             extras = ExtraOptions(),
             toolTimeout = None)
 
-          cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
+          cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
         }).get
       }
     }
@@ -293,7 +293,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
         (for {
           _ <- File.temporaryFile(parent = Some(directory))
         } yield {
-          val analyse = Analyse(
+          val analyze = Analyze(
             options = CommonOptions(),
             api = APIOptions(projectToken = None, codacyApiBaseUrl = None),
             tool = None,
@@ -301,7 +301,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             upload = Tag.of(1),
             extras = ExtraOptions(),
             toolTimeout = None)
-          cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
+          cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
         }).get
       }
     }
@@ -314,7 +314,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
 
           CommandRunner.exec(List("git", "add", newFile.name), Option(directory.toJava))
 
-          val analyse = Analyse(
+          val analyze = Analyze(
             options = CommonOptions(),
             api = APIOptions(projectToken = Some("hey, im a token"), codacyApiBaseUrl = Some("https://codacy.com")),
             tool = None,
@@ -323,7 +323,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             extras = ExtraOptions(),
             toolTimeout = None)
 
-          cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
+          cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
         }).get
       }
     }
@@ -333,7 +333,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
         (for {
           _ <- File.temporaryFile(parent = Some(directory))
         } yield {
-          val analyse = Analyse(
+          val analyze = Analyze(
             options = CommonOptions(),
             api = APIOptions(projectToken = Some("hey, im a token"), codacyApiBaseUrl = Some("https://codacy.com")),
             tool = None,
@@ -342,7 +342,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             extras = ExtraOptions(),
             commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
             toolTimeout = None)
-          cli.run(analyse) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
+          cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
         }).get
       }
     }
@@ -351,7 +351,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
       (for {
         directory <- File.temporaryDirectory()
       } yield {
-        cli.main(Array("analyse", "--directory", directory.pathAsString, "--tool", "pylint"))
+        cli.main(Array("analyze", "--directory", directory.pathAsString, "--tool", "pylint"))
 
         (directory / ".codacy.json").toJava must not(exist)
         (directory / ".codacyrc").toJava must not(exist)
