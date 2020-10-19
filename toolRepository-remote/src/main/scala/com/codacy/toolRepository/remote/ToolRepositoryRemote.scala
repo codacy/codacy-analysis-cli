@@ -5,15 +5,22 @@ import akka.stream.scaladsl.Sink
 import com.codacy.analysis.clientapi.definitions
 import com.codacy.analysis.clientapi.definitions.{PaginationInfo, PatternListResponse, ToolListResponse}
 import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsResponse, ToolsClient}
+import com.codacy.analysis.core.storage.{FileDataStorage, WithStorage}
 import com.codacy.analysis.core.model.{AnalyserError, ParameterSpec, PatternSpec, ToolSpec}
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.plugins.api.languages.{Language, Languages}
+import io.circe.{Decoder, Encoder}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
+trait ToolRepositoryRemoteStorage extends WithStorage[RemoteToolInformation] {
+  override val storage: RemoteToolsDataStorage = new RemoteToolsDataStorage()
+}
+
 class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionContext, implicit val mat: Materializer)
-    extends ToolRepository {
+    extends ToolRepository
+    with ToolRepositoryRemoteStorage {
 
   override lazy val list: Either[AnalyserError, Seq[ToolSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
@@ -36,7 +43,14 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
       source.runWith(Sink.seq).map(tools => Right(tools.map(toToolSpec))).recover {
         case e: Exception => Left(AnalyserError.FailedToFetchTools(e.getMessage))
       }
-    Await.result(toolsF, 1 minute)
+    val result = Await.result(toolsF, 1 minute)
+    result match {
+      case Right(tools) =>
+        this.storage.storeTools(tools)
+        Right(tools)
+      case Left(err) =>
+        this.storage.getToolsOrError(err)
+    }
   }
 
   override def get(uuid: String): Either[AnalyserError, ToolSpec] =
@@ -72,7 +86,15 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
     val patternsF = source.runWith(Sink.seq).map(patterns => Right(patterns.map(toPatternSpec))).recover {
       case e: Exception => Left(AnalyserError.FailedToListPatterns(toolUuid, e.getMessage))
     }
-    Await.result(patternsF, 1 minute)
+
+    val result = Await.result(patternsF, 1 minute)
+    result match {
+      case Right(patterns) =>
+        this.storage.storePatterns(toolUuid, patterns)
+        Right(patterns)
+      case Left(err) =>
+        this.storage.getPatternsOrError(err)
+    }
   }
 
   private def toToolSpec(tool: definitions.Tool): ToolSpec = {
