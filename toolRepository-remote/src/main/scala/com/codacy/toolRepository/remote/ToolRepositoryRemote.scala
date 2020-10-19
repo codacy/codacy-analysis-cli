@@ -5,22 +5,17 @@ import akka.stream.scaladsl.Sink
 import com.codacy.analysis.clientapi.definitions
 import com.codacy.analysis.clientapi.definitions.{PaginationInfo, PatternListResponse, ToolListResponse}
 import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsResponse, ToolsClient}
-import com.codacy.analysis.core.storage.{FileDataStorage, WithStorage}
 import com.codacy.analysis.core.model.{AnalyserError, ParameterSpec, PatternSpec, ToolSpec}
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.plugins.api.languages.{Language, Languages}
-import io.circe.{Decoder, Encoder}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
-trait ToolRepositoryRemoteStorage extends WithStorage[RemoteToolInformation] {
-  override val storage: RemoteToolsDataStorage = new RemoteToolsDataStorage()
-}
-
-class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionContext, implicit val mat: Materializer)
-    extends ToolRepository
-    with ToolRepositoryRemoteStorage {
+class ToolRepositoryRemote(toolsClient: ToolsClient, storage: RemoteToolsDataStorageTrait)(
+  implicit val ec: ExecutionContext,
+  implicit val mat: Materializer)
+    extends ToolRepository {
 
   override lazy val list: Either[AnalyserError, Seq[ToolSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
@@ -93,7 +88,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient)(implicit val ec: ExecutionC
         this.storage.storePatterns(toolUuid, patterns)
         Right(patterns)
       case Left(err) =>
-        this.storage.getPatternsOrError(err)
+        this.storage.getPatternsOrError(toolUuid, err)
     }
   }
 

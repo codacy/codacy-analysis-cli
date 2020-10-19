@@ -34,7 +34,7 @@ abstract class FileDataStorage[T] {
     !storageFile.delete().exists
   }
 
-  def put(values: Seq[T]): Unit = {
+  def put(values: Seq[T]): Boolean = {
     logger.debug("Adding values to storage")
     val newStorageList = get() match {
       case None                => values
@@ -44,6 +44,7 @@ abstract class FileDataStorage[T] {
     val storageListJson = newStorageList.asJson.toString
     val wroteSuccessfully = writeToFile(storageFile, storageListJson)
     logger.debug(s"Storage saved with status: ${wroteSuccessfully}")
+    wroteSuccessfully
   }
 
   def get(): Option[Seq[T]] = {
@@ -64,10 +65,10 @@ abstract class FileDataStorage[T] {
     }
   }
 
-  private[storage] def mergeSeq(newTools: Seq[T], storedTools: Seq[T]) = {
+  private[storage] def mergeSeq(newValues: Seq[T], storedValues: Seq[T]) = {
     logger.debug("Merging storage values with new values list")
-    // newTools should be first so it updates storage for already existing tools
-    val fullList = newTools ++ storedTools
+    // newValues should be first so it updates storage for already existing values
+    val fullList = newValues ++ storedValues
     fullList.foldLeft(Seq[T]()) {
       case (acc, value) => addValue(acc, value)
     }

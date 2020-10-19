@@ -6,7 +6,7 @@ import com.codacy.plugins.api.languages.{Language, Languages}
 import io.circe.{Decoder, Encoder, HCursor, Json}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
-class RemoteToolsDataStorage extends FileDataStorage[RemoteToolInformation] {
+trait RemoteToolsDataStorageTrait extends FileDataStorage[RemoteToolInformation] {
 
   override implicit val encoder: Encoder[RemoteToolInformation] =
     RemoteToolInformationEncoders.toolInformationEncoder
@@ -20,12 +20,23 @@ class RemoteToolsDataStorage extends FileDataStorage[RemoteToolInformation] {
 
   override def storageFilename: String = "tools"
 
-  def storeTools(tools: Seq[ToolSpec]): Unit = {
+  def storeTools(tools: Seq[ToolSpec]): Boolean
+
+  def storePatterns(toolUuid: String, patterns: Seq[PatternSpec]): Boolean
+
+  def getToolsOrError(error: AnalyserError): Either[AnalyserError, Seq[ToolSpec]]
+
+  def getPatternsOrError(toolUuid: String, error: AnalyserError): Either[AnalyserError, Seq[PatternSpec]]
+}
+
+class RemoteToolsDataStorage extends RemoteToolsDataStorageTrait {
+
+  def storeTools(tools: Seq[ToolSpec]): Boolean = {
     val remoteToolsInfo = tools.map(RemoteToolInformation(_, Seq.empty))
     this.put(remoteToolsInfo)
   }
 
-  def storePatterns(toolUuid: String, patterns: Seq[PatternSpec]): Unit = {
+  def storePatterns(toolUuid: String, patterns: Seq[PatternSpec]): Boolean = {
     val listOfTools = this.get().getOrElse(Seq.empty)
     val remoteToolsInfo = listOfTools.map { tool =>
       if (tool.toolSpec.uuid == toolUuid) {
@@ -45,10 +56,16 @@ class RemoteToolsDataStorage extends FileDataStorage[RemoteToolInformation] {
     }
   }
 
-  def getPatternsOrError(error: AnalyserError): Either[AnalyserError, Seq[PatternSpec]] = {
+  def getPatternsOrError(toolUuid: String, error: AnalyserError): Either[AnalyserError, Seq[PatternSpec]] = {
     this.get() match {
-      case Some(storageInfo) => Right(storageInfo.map(remoteToolInformation => remoteToolInformation.patterns))
-      case None              => Left(error)
+      case Some(storageInfo) =>
+        val patternsOpt =
+          storageInfo.find(_.toolSpec.uuid == toolUuid).map(remoteToolInformation => remoteToolInformation.patterns)
+        patternsOpt match {
+          case Some(patterns) => Right(patterns)
+          case None           => Left(error)
+        }
+      case None => Left(error)
     }
   }
 }
