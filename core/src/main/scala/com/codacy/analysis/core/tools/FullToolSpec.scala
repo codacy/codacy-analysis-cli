@@ -10,7 +10,7 @@ case class FullToolSpec(tool: ToolSpec, patterns: Seq[PatternSpec]) {
 
   private def toToolApiSpecification(toolSpec: ToolSpec, patterns: Seq[PatternSpec]): api.results.Tool.Specification = {
     api.results.Tool.Specification(
-      name = api.results.Tool.Name(toolSpec.name),
+      name = api.results.Tool.Name(toolSpec.shortName),
       version = Some(api.results.Tool.Version(toolSpec.version)),
       patterns = toPatternApiSpecification(patterns))
   }

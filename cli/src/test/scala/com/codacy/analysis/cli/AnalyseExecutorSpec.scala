@@ -1,13 +1,14 @@
 package com.codacy.analysis.cli
 
 import better.files.File
-import com.codacy.analysis.cli.analysis.AnalyseExecutor
+import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ToolSelector}
 import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
+import com.codacy.analysis.core.ToolRepositoryMock
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.files.FileCollector
-import com.codacy.analysis.core.model.{Issue, Result, ToolResult}
+import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.utils.TestUtils._
 import io.circe.generic.auto._
 import io.circe.parser
@@ -165,8 +166,9 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     val analyser: Analyser[Try] = Analyser(analyserName)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    //TODO: mock ToolSelector
-    new AnalyseExecutor(formatter, analyser, fileCollector, configuration, toolSelector = null).run() must beRight
+    val toolRepository = new ToolRepositoryMock
+    val toolSelector = new ToolSelector(toolRepository)
+    new AnalyseExecutor(formatter, analyser, fileCollector, configuration, toolSelector).run() must beRight
   }
 
   private def analysisConfiguration(directory: File,
