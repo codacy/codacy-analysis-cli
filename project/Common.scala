@@ -23,7 +23,6 @@ object Common {
       "oss.sonatype.org",
       sys.env.getOrElse("SONATYPE_USER", "username"),
       sys.env.getOrElse("SONATYPE_PASSWORD", "password")),
-    scalaVersion := scalaVersionNumber,
     organization := "com.codacy",
     scalacOptions ++= Common.compilerFlags(scalaVersion.value),
     Test / scalacOptions += "-Yrangepos",
