@@ -22,7 +22,7 @@ class ToolRepositoryMock extends ToolRepository {
       Seq(
         ToolSpec(
           uuid = pylintId,
-          dockerImage = "codacy/codacy-pylint:latest",
+          dockerImage = "codacy/codacy-pylint:3.2.0",
           isDefault = true,
           version = "",
           languages = Set(Languages.Python),
@@ -38,7 +38,7 @@ class ToolRepositoryMock extends ToolRepository {
           hasUIConfiguration = true),
         ToolSpec(
           uuid = eslintId,
-          dockerImage = "codacy/codacy-eslint:latest",
+          dockerImage = "codacy/codacy-eslint:5.9.4",
           isDefault = true,
           version = "",
           languages = Set(Languages.Javascript, Languages.JSON, Languages.TypeScript),
@@ -54,7 +54,7 @@ class ToolRepositoryMock extends ToolRepository {
           hasUIConfiguration = true),
         ToolSpec(
           uuid = csslintId,
-          dockerImage = "codacy/codacy-csslint:latest",
+          dockerImage = "codacy/codacy-csslint:3.2.1",
           isDefault = true,
           version = "",
           languages = Set(Languages.CSS),
@@ -70,7 +70,7 @@ class ToolRepositoryMock extends ToolRepository {
           hasUIConfiguration = true),
         ToolSpec(
           uuid = brakemanId,
-          dockerImage = "codacy/codacy-brakeman:latest",
+          dockerImage = "codacy/codacy-brakeman:1.3.1",
           isDefault = true,
           version = "",
           languages = Set(Languages.Ruby),
