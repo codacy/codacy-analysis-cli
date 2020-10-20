@@ -8,13 +8,15 @@ import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsRespo
 import com.codacy.analysis.core.model.{AnalyserError, ParameterSpec, PatternSpec, ToolSpec}
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.plugins.api.languages.{Language, Languages}
+import com.codacy.toolRepository.remote.storage.{PatternSpecDataStorage, ToolSpecDataStorage}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
-class ToolRepositoryRemote(toolsClient: ToolsClient, storage: RemoteToolsDataStorageTrait)(
-  implicit val ec: ExecutionContext,
-  implicit val mat: Materializer)
+class ToolRepositoryRemote(toolsClient: ToolsClient,
+                           toolsStorage: ToolSpecDataStorage,
+                           patternStorage: String => PatternSpecDataStorage)(implicit val ec: ExecutionContext,
+                                                                             implicit val mat: Materializer)
     extends ToolRepository {
 
   override lazy val list: Either[AnalyserError, Seq[ToolSpec]] = {
@@ -41,10 +43,10 @@ class ToolRepositoryRemote(toolsClient: ToolsClient, storage: RemoteToolsDataSto
     val result = Await.result(toolsF, 1 minute)
     result match {
       case Right(tools) =>
-        this.storage.storeTools(tools)
+        this.toolsStorage.save(tools)
         Right(tools)
       case Left(err) =>
-        this.storage.getTools().fold[Either[AnalyserError, Seq[ToolSpec]]](Left(err))(Right(_))
+        this.toolsStorage.get().fold[Either[AnalyserError, Seq[ToolSpec]]](Left(err))(Right(_))
     }
   }
 
@@ -83,12 +85,13 @@ class ToolRepositoryRemote(toolsClient: ToolsClient, storage: RemoteToolsDataSto
     }
 
     val result = Await.result(patternsF, 1 minute)
+    val patternSpecDataStorage = patternStorage(toolUuid)
     result match {
       case Right(patterns) =>
-        this.storage.storePatterns(toolUuid, patterns)
+        patternSpecDataStorage.save(patterns)
         Right(patterns)
       case Left(err) =>
-        this.storage.getPatterns(toolUuid).fold[Either[AnalyserError, Seq[PatternSpec]]](Left(err))(Right(_))
+        patternSpecDataStorage.get().fold[Either[AnalyserError, Seq[PatternSpec]]](Left(err))(Right(_))
     }
   }
 
