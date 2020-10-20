@@ -7,7 +7,8 @@ import cats.data.EitherT
 import com.codacy.analysis.clientapi.definitions._
 import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsResponse, ToolsClient}
 import com.codacy.analysis.core.model.{AnalyserError, PatternSpec, ToolSpec}
-import com.codacy.toolRepository.remote.{RemoteToolsDataStorage, RemoteToolsDataStorageTrait, ToolRepositoryRemote}
+import com.codacy.plugins.api.languages.Languages
+import com.codacy.toolRepository.remote.{RemoteToolsDataStorageTrait, ToolRepositoryRemote}
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito._
 import org.specs2.matcher.EitherMatchers
@@ -55,7 +56,31 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
     enabledByDefault = true,
     configurable = false)
 
-  val mockToolsDataStorage: RemoteToolsDataStorageTrait = new RemoteToolsDataStorageTrait {
+  val patternA = Pattern(
+    id = "internalId - A",
+    title = None,
+    level = "Info",
+    category = "categoryType",
+    subCategory = None,
+    description = None,
+    explanation = None,
+    enabled = true,
+    timeToFix = None,
+    parameters = Vector.empty)
+
+  val patternB = Pattern(
+    id = "internalId - B",
+    title = None,
+    level = "Info",
+    category = "categoryType",
+    subCategory = None,
+    description = None,
+    explanation = None,
+    enabled = true,
+    timeToFix = None,
+    parameters = Vector.empty)
+
+  val mockToolsDataEmptyStorage: RemoteToolsDataStorageTrait = new RemoteToolsDataStorageTrait {
     override def storeTools(tools: Seq[ToolSpec]): Boolean = true
 
     override def storePatterns(toolUuid: String, patterns: Seq[PatternSpec]): Boolean = true
@@ -63,6 +88,45 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
     override def getTools(): Option[Seq[ToolSpec]] = None
 
     override def getPatterns(toolUuid: String): Option[Seq[PatternSpec]] = None
+  }
+
+  val mockToolsDataWithStorage: RemoteToolsDataStorageTrait = new RemoteToolsDataStorageTrait {
+    override def storeTools(tools: Seq[ToolSpec]): Boolean = true
+
+    override def storePatterns(toolUuid: String, patterns: Seq[PatternSpec]): Boolean = true
+
+    override def getTools(): Option[Seq[ToolSpec]] =
+      Some(
+        Seq(
+          ToolSpec(
+            toolA.uuid,
+            toolA.dockerImage,
+            toolA.enabledByDefault,
+            toolA.version,
+            Set(Languages.Python),
+            toolA.name,
+            toolA.shortName,
+            toolA.documentationUrl,
+            toolA.sourceCodeUrl,
+            toolA.prefix.getOrElse(""),
+            toolA.needsCompilation,
+            hasConfigFile = toolA.configurationFilenames.nonEmpty,
+            toolA.configurationFilenames.toSet,
+            toolA.clientSide,
+            toolA.configurable)))
+
+    override def getPatterns(toolUuid: String): Option[Seq[PatternSpec]] = Some(Seq(PatternSpec(
+      id = patternA.id,
+      title = "",
+      level = "Info",
+      category = "categoryType",
+      subCategory = None,
+      description = None,
+      explanation = None,
+      enabled = true,
+      timeToFix = None,
+      parameters = Seq.empty,
+      languages = Set.empty)))
   }
 
   "list" should {
@@ -74,7 +138,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
 
     "return the list of tools" in {
       val mockedClient = mock[ToolsClient]
-      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataStorage)
+      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataEmptyStorage)
 
       when(mockedClient.listTools(cursor = None)).thenReturn(
         eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(Vector(toolA), None))),
@@ -90,7 +154,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
 
     "return list with multiple tools" in {
       val mockedClient = mock[ToolsClient]
-      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataStorage)
+      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataEmptyStorage)
 
       val paginationInfo = PaginationInfo(Some("cursor"), Some(100), Some(1))
 
@@ -111,9 +175,23 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
       toolsEither must beRight((t: Seq[ToolSpec]) => t.map(_.uuid) must contain(toolB.uuid))
     }
 
+    "return list with stored tools" in {
+      val mockedClient = mock[ToolsClient]
+      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataWithStorage)
+
+      when(mockedClient.listTools(cursor = None))
+        .thenReturn(eitherListToolsResponse(ListToolsResponse.BadRequest(BadRequest("error"))))
+
+      val toolsEither = toolRepository.list
+
+      toolsEither must beRight
+      toolsEither must beRight((t: Seq[ToolSpec]) => t must haveLength(1))
+      toolsEither must beRight((x: Seq[ToolSpec]) => x.head.uuid must_== toolA.uuid)
+    }
+
     "throw an exception if API returns BadRequest" in {
       val mockedClient = mock[ToolsClient]
-      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataStorage)
+      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataEmptyStorage)
 
       when(mockedClient.listTools(cursor = None))
         .thenReturn(eitherListToolsResponse(ListToolsResponse.BadRequest(BadRequest("error"))))
@@ -123,7 +201,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
 
     "throw an exception if API returns InternalServerError" in {
       val mockedClient = mock[ToolsClient]
-      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataStorage)
+      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataEmptyStorage)
 
       when(mockedClient.listTools(cursor = None))
         .thenReturn(eitherListToolsResponse(ListToolsResponse.InternalServerError(InternalServerError("error"))))
@@ -140,32 +218,9 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
       EitherT(Future.successful(responseEither))
     }
 
-    val patternA = Pattern(
-      id = "internalId - A",
-      title = None,
-      level = "Info",
-      category = "categoryType",
-      subCategory = None,
-      description = None,
-      explanation = None,
-      enabled = true,
-      timeToFix = None,
-      parameters = Vector.empty)
-
-    val patternB = Pattern(
-      id = "internalId - B",
-      title = None,
-      level = "Info",
-      category = "categoryType",
-      subCategory = None,
-      description = None,
-      explanation = None,
-      enabled = true,
-      timeToFix = None,
-      parameters = Vector.empty)
     "return the list of patterns" in {
       val mockedClient = mock[ToolsClient]
-      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataStorage)
+      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataEmptyStorage)
 
       when(
         mockedClient.listPatterns(
@@ -186,7 +241,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
 
     "return list with multiple patterns" in {
       val mockedClient = mock[ToolsClient]
-      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataStorage)
+      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataEmptyStorage)
 
       val paginationInfo = PaginationInfo(Some("cursor"), Some(100), Some(1))
 
@@ -209,9 +264,28 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
       patternsEither must beRight((p: Seq[PatternSpec]) => p.map(_.id) must contain(patternB.id))
     }
 
+    "return list of patterns from storage" in {
+      val mockedClient = mock[ToolsClient]
+      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataWithStorage)
+
+      when(
+        mockedClient.listPatterns(
+          toolId = ArgumentMatchers.any[String],
+          cursor = ArgumentMatchers.any[Option[String]],
+          limit = ArgumentMatchers.any[Option[Int]],
+          headers = ArgumentMatchers.any[List[HttpHeader]]))
+        .thenReturn(eitherListToolPatternsResponse(ListPatternsResponse.BadRequest(BadRequest("error"))))
+
+      val patternsEither = toolRepository.listPatterns("some-tool-uuid")
+
+      patternsEither must beRight
+      patternsEither must beRight((p: Seq[PatternSpec]) => p must haveLength(1))
+      patternsEither must beRight((p: Seq[PatternSpec]) => p.map(_.id) must contain(patternA.id))
+    }
+
     "throw an exception if API returns BadRequest" in {
       val mockedClient = mock[ToolsClient]
-      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataStorage)
+      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataEmptyStorage)
 
       when(
         mockedClient.listPatterns(
@@ -227,7 +301,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
 
     "throw an exception if API returns NotFound" in {
       val mockedClient = mock[ToolsClient]
-      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataStorage)
+      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataEmptyStorage)
 
       when(
         mockedClient.listPatterns(
@@ -243,7 +317,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
 
     "throw an exception if API returns InternalServerError" in {
       val mockedClient = mock[ToolsClient]
-      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataStorage)
+      val toolRepository = new ToolRepositoryRemote(mockedClient, mockToolsDataEmptyStorage)
 
       when(
         mockedClient.listPatterns(

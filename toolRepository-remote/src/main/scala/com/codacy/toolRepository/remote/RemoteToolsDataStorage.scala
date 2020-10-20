@@ -32,7 +32,7 @@ trait RemoteToolsDataStorageTrait extends FileDataStorage[RemoteToolInformation]
 class RemoteToolsDataStorage extends RemoteToolsDataStorageTrait {
 
   def storeTools(tools: Seq[ToolSpec]): Boolean = {
-    val remoteToolsInfo = tools.map(RemoteToolInformation(_, Seq.empty))
+    val remoteToolsInfo = tools.map(RemoteToolInformation(_, None))
     this.put(remoteToolsInfo)
   }
 
@@ -40,7 +40,7 @@ class RemoteToolsDataStorage extends RemoteToolsDataStorageTrait {
     val listOfTools = this.get().getOrElse(Seq.empty)
     val remoteToolsInfo = listOfTools.map { tool =>
       if (tool.toolSpec.uuid == toolUuid) {
-        RemoteToolInformation(tool.toolSpec, patterns)
+        RemoteToolInformation(tool.toolSpec, Some(patterns))
       } else {
         tool
       }
@@ -54,11 +54,13 @@ class RemoteToolsDataStorage extends RemoteToolsDataStorageTrait {
   }
 
   def getPatterns(toolUuid: String): Option[Seq[PatternSpec]] = {
-    this.get().flatMap(_.find(_.toolSpec.uuid == toolUuid).map(remoteToolInformation => remoteToolInformation.patterns))
+    this
+      .get()
+      .flatMap(_.find(_.toolSpec.uuid == toolUuid).flatMap(remoteToolInformation => remoteToolInformation.patterns))
   }
 }
 
-case class RemoteToolInformation(toolSpec: ToolSpec, patterns: Seq[PatternSpec])
+case class RemoteToolInformation(toolSpec: ToolSpec, patterns: Option[Seq[PatternSpec]])
 
 object RemoteToolInformationEncoders {
 

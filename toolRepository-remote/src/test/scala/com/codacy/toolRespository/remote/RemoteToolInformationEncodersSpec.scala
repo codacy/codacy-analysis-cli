@@ -17,7 +17,7 @@ class RemoteToolInformationEncodersSpec
     with Mockito
     with FutureMatchers {
 
-  def toolSpec(languages: Set[Language] = Set(Python)) =
+  def toolSpec(languages: Set[Language] = Set(Python)): ToolSpec =
     ToolSpec(
       uuid = "34225275-f79e-4b85-8126-c7512c987c0d",
       dockerImage = "codacy/codacy-example-tool:1.0.0",
@@ -35,12 +35,35 @@ class RemoteToolInformationEncodersSpec
       isClientSide = false,
       hasUIConfiguration = true)
 
-  def toolPatternsSpec(subcategory: Option[String] = None) =
+  def toolSpecAsJson(language: String = "Python"): String = s"""{
+                                                       |  "uuid" : "34225275-f79e-4b85-8126-c7512c987c0d",
+                                                       |  "dockerImage" : "codacy/codacy-example-tool:1.0.0",
+                                                       |  "isDefault" : true,
+                                                       |  "version" : "",
+                                                       |  "languages" : [
+                                                       |    {
+                                                       |      "name" : "${language}"
+                                                       |    }
+                                                       |  ],
+                                                       |  "name" : "PyLint",
+                                                       |  "shortName" : "PyLint",
+                                                       |  "documentationUrl" : null,
+                                                       |  "sourceCodeUrl" : null,
+                                                       |  "prefix" : "",
+                                                       |  "needsCompilation" : false,
+                                                       |  "hasConfigFile" : true,
+                                                       |  "configFilenames" : [
+                                                       |  ],
+                                                       |  "isClientSide" : false,
+                                                       |  "hasUIConfiguration" : true
+                                                       |}""".stripMargin
+
+  val patternSpec: PatternSpec =
     PatternSpec(
       id = "test",
       level = "Info",
       category = "Security",
-      subCategory = subcategory,
+      subCategory = None,
       title = "Test title",
       description = Some(""),
       explanation = Some(""),
@@ -49,34 +72,28 @@ class RemoteToolInformationEncodersSpec
       parameters = Seq.empty,
       languages = Set(Python))
 
-  def toolSpecAsJson(language: String = "Python") = s"""{
-                         |  "uuid" : "34225275-f79e-4b85-8126-c7512c987c0d",
-                         |  "dockerImage" : "codacy/codacy-example-tool:1.0.0",
-                         |  "isDefault" : true,
-                         |  "version" : "",
-                         |  "languages" : [
-                         |    {
-                         |      "name" : "${language}"
-                         |    }
-                         |  ],
-                         |  "name" : "PyLint",
-                         |  "shortName" : "PyLint",
-                         |  "documentationUrl" : null,
-                         |  "sourceCodeUrl" : null,
-                         |  "prefix" : "",
-                         |  "needsCompilation" : false,
-                         |  "hasConfigFile" : true,
-                         |  "configFilenames" : [
-                         |  ],
-                         |  "isClientSide" : false,
-                         |  "hasUIConfiguration" : true
-                         |}""".stripMargin
+  val toolPatternSpecJson: String = s"""{
+                                          |  "id" : "test",
+                                          |  "level" : "Info",
+                                          |  "category" : "Security",
+                                          |  "subCategory" : null,
+                                          |  "title" : "Test title",
+                                          |  "description" : "",
+                                          |  "explanation" : "",
+                                          |  "enabled" : true,
+                                          |  "timeToFix" : 5,
+                                          |  "parameters" : [
+                                          |  ],
+                                          |  "languages" : [
+                                          |    {
+                                          |      "name" : "Python"
+                                          |    }
+                                          |  ]
+                                          |}""".stripMargin
 
   "ToolCacheSpec" should {
     s"Encode tool spec correctly".stripMargin in {
-
-      val toolSpecJson = toolSpec().asJson
-      toolSpecJson.toString shouldEqual toolSpecAsJson()
+        toolSpec().asJson.toString shouldEqual toolSpecAsJson()
     }
 
     s"Decode tool spec correctly".stripMargin in {
@@ -89,6 +106,15 @@ class RemoteToolInformationEncodersSpec
 
       val toolSpecDecoded = parser.decode[ToolSpec](toolSpecAsJson("NotFound"))
       toolSpecDecoded shouldEqual Right(toolSpec(Set.empty))
+    }
+
+    s"Encode pattern spec correctly".stripMargin in {
+      patternSpec.asJson.toString shouldEqual toolPatternSpecJson
+    }
+
+    "Decode pattern spec correctly".stripMargin in {
+      val decodedPatternSpec = parser.decode[PatternSpec](toolPatternSpecJson)
+      decodedPatternSpec shouldEqual Right(patternSpec)
     }
   }
 }
