@@ -3,7 +3,7 @@ package com.codacy.toolRespository.remote
 import com.codacy.analysis.core.model.{PatternSpec, ToolSpec}
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.languages.Languages.Python
-import com.codacy.toolRepository.remote.RemoteToolInformationEncoders._
+import com.codacy.toolRepository.remote.storage.ToolPatternsSpecsEncoders._
 import io.circe._
 import io.circe.syntax._
 import org.specs2.control.NoLanguageFeatures
@@ -11,7 +11,7 @@ import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-class RemoteToolInformationEncodersSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
+class ToolPatternsSpecsEncodersSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
   def toolSpec(languages: Set[Language] = Set(Python)): ToolSpec =
     ToolSpec(
@@ -87,7 +87,7 @@ class RemoteToolInformationEncodersSpec extends Specification with NoLanguageFea
                                           |  ]
                                           |}""".stripMargin
 
-  "ToolCacheSpec" should {
+  "ToolPatternsSpecsEncoders" should {
     s"Encode tool spec correctly".stripMargin in {
       toolSpec().asJson.toString shouldEqual toolSpecAsJson()
     }

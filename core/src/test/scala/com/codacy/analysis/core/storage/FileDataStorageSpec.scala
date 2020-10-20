@@ -17,57 +17,31 @@ class FileDataStorageSpec extends Specification with NoLanguageFeatures with Moc
     override implicit val encoder: Encoder[Test] = deriveEncoder
     override implicit val decoder: Decoder[Test] = deriveDecoder
 
-    override def compare(current: Test, value: Test): Boolean = current.name == value.name
-
     override val storageFile: File = File.newTemporaryFile()
 
     override def storageFilename: String = ""
-
-    def callAdd(data: Seq[Test]): Unit = this.put(data)
-
-    def callFetch: Option[Seq[Test]] = this.get()
-
-    def disposeStorage: Boolean = this.invalidate()
   }
 
-  "WithStorage" should {
+  "FileDataStorage" should {
     val testingData = Seq(Test("first"), Test("second"))
 
-    def cleanup(storageTest: StorageTest) = storageTest.disposeStorage
+    def cleanup(storageTest: StorageTest) = storageTest.invalidate()
 
     s"Save and fetch storage correctly".stripMargin in {
       val storageTest = new StorageTest()
-      storageTest.callAdd(testingData)
+      storageTest.save(testingData)
 
-      val storageContent = storageTest.callFetch
+      val storageContent = storageTest.get()
       storageContent shouldEqual Some(testingData)
       cleanup(storageTest)
     }
 
     s"Dispose storage correctly".stripMargin in {
       val storageTest = new StorageTest()
-      storageTest.callAdd(testingData)
+      storageTest.save(testingData)
 
-      storageTest.disposeStorage shouldEqual true
-      storageTest.callFetch shouldEqual None
-    }
-
-    s"Add more data to storage".stripMargin in {
-      val storageTest = new StorageTest()
-      storageTest.callAdd(testingData)
-
-      val storageContent = storageTest.callFetch
-      storageContent shouldEqual Some(testingData)
-
-      // should only add Test("third") as Test("first") is already stored
-      storageTest.callAdd(Seq(Test("first"), Test("third")))
-
-      val expectedData = Seq(Test("first"), Test("third"), Test("second"))
-
-      val newStorageContent = storageTest.callFetch
-      newStorageContent shouldEqual Some(expectedData)
-
-      cleanup(storageTest)
+      storageTest.invalidate() shouldEqual true
+      storageTest.get() shouldEqual None
     }
 
   }

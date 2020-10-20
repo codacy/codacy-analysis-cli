@@ -1,89 +1,11 @@
-package com.codacy.toolRepository.remote
+package com.codacy.toolRepository.remote.storage
 
 import com.codacy.analysis.core.model.{ParameterSpec, PatternSpec, ToolSpec}
-import com.codacy.analysis.core.storage.FileDataStorage
 import com.codacy.plugins.api.languages.{Language, Languages}
-import io.circe.{Decoder, Encoder, HCursor, Json}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder, HCursor, Json}
 
-trait RemoteToolsDataStorageTrait extends FileDataStorage[RemoteToolInformation] {
-
-  override implicit val encoder: Encoder[RemoteToolInformation] =
-    RemoteToolInformationEncoders.toolInformationEncoder
-
-  override implicit val decoder: Decoder[RemoteToolInformation] =
-    RemoteToolInformationEncoders.toolInformationDecoder
-
-  override def compare(current: RemoteToolInformation, value: RemoteToolInformation): Boolean = {
-    current.toolSpec.uuid == value.toolSpec.uuid
-  }
-
-  override def storageFilename: String = "tools"
-
-  def storeTools(tools: Seq[ToolSpec]): Boolean
-
-  def storePatterns(toolUuid: String, patterns: Seq[PatternSpec]): Boolean
-
-  def getTools(): Option[Seq[ToolSpec]]
-
-  def getPatterns(toolUuid: String): Option[Seq[PatternSpec]]
-}
-
-class RemoteToolsDataStorage extends RemoteToolsDataStorageTrait {
-
-  def mergeToolsList(currentList: Seq[RemoteToolInformation],
-                     newListOfTools: Seq[ToolSpec]): Seq[RemoteToolInformation] = {
-    newListOfTools.map { tool =>
-      val toolInfoOpt =
-        currentList.find(toolInfo => toolInfo.toolSpec.uuid == tool.uuid && toolInfo.toolSpec.version == tool.version)
-
-      toolInfoOpt match {
-        case None    => RemoteToolInformation(tool, None)
-        case Some(t) => t
-      }
-    }
-  }
-
-  def updatePatternsForTool(listOfTools: Seq[RemoteToolInformation],
-                            toolUuid: String,
-                            patterns: Seq[PatternSpec]): Seq[RemoteToolInformation] = {
-    listOfTools.map { tool =>
-      if (tool.toolSpec.uuid == toolUuid) {
-        RemoteToolInformation(tool.toolSpec, Some(patterns))
-      } else {
-        tool
-      }
-    }
-  }
-
-  def storeTools(tools: Seq[ToolSpec]): Boolean = {
-    val currentListOfTools = this.get().getOrElse(Seq.empty)
-    val remoteToolsInfo = this.mergeToolsList(currentListOfTools, tools)
-
-    this.put(remoteToolsInfo)
-  }
-
-  def storePatterns(toolUuid: String, patterns: Seq[PatternSpec]): Boolean = {
-    val listOfTools = this.get().getOrElse(Seq.empty)
-    val remoteToolsInfo = updatePatternsForTool(listOfTools, toolUuid, patterns)
-
-    this.put(remoteToolsInfo)
-  }
-
-  def getTools(): Option[Seq[ToolSpec]] = {
-    this.get().map(_.map(remoteToolInformation => remoteToolInformation.toolSpec))
-  }
-
-  def getPatterns(toolUuid: String): Option[Seq[PatternSpec]] = {
-    this
-      .get()
-      .flatMap(_.find(_.toolSpec.uuid == toolUuid).flatMap(remoteToolInformation => remoteToolInformation.patterns))
-  }
-}
-
-case class RemoteToolInformation(toolSpec: ToolSpec, patterns: Option[Seq[PatternSpec]])
-
-object RemoteToolInformationEncoders {
+object ToolPatternsSpecsEncoders {
 
   implicit val encodeLanguage: Encoder[Language] = (l: Language) => Json.obj(("name", Json.fromString(l.name)))
 
@@ -160,7 +82,4 @@ object RemoteToolInformationEncoders {
       timeToFix,
       parameters,
       languages.filter(_ != null))
-
-  implicit val toolInformationDecoder: Decoder[RemoteToolInformation] = deriveDecoder[RemoteToolInformation]
-  implicit val toolInformationEncoder: Encoder[RemoteToolInformation] = deriveEncoder[RemoteToolInformation]
 }
