@@ -37,7 +37,7 @@ class WithStorageSpec extends Specification with NoLanguageFeatures with Mockito
 
     def cleanup(storageTest: StorageTest) = storageTest.disposeStorage
 
-    s"Save storage correctly".stripMargin in {
+    s"Save and fetch storage correctly".stripMargin in {
       val storageTest = new StorageTest()
       storageTest.callAdd(testingData)
 
