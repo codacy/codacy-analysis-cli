@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import com.codacy.analysis.clientapi.tools.ToolsClient
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.toolRepository.plugins.ToolRepositoryPlugins
-import com.codacy.toolRepository.remote.ToolRepositoryRemote
+import com.codacy.toolRepository.remote.{RemoteToolsDataStorage, ToolRepositoryRemote}
 
 import scala.concurrent.Future
 
@@ -21,7 +21,8 @@ object ToolRepositoryFactory {
 
       val toolsClient =
         ToolsClient(codacyApiBaseUrl)(httpClient = httpClient, ec = actorSystem.dispatcher, mat = materializer)
-      new ToolRepositoryRemote(toolsClient)(ec = actorSystem.dispatcher, mat = materializer)
+      val remoteToolsDataStorage = new RemoteToolsDataStorage()
+      new ToolRepositoryRemote(toolsClient, remoteToolsDataStorage)(ec = actorSystem.dispatcher, mat = materializer)
     } else {
       new ToolRepositoryPlugins()
     }

@@ -60,9 +60,9 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
 
     override def storePatterns(toolUuid: String, patterns: Seq[PatternSpec]): Boolean = true
 
-    override def getToolsOrError(error: AnalyserError): Either[AnalyserError, Seq[ToolSpec]] = Left(error)
+    override def getTools(): Option[Seq[ToolSpec]] = None
 
-    override def getPatternsOrError(toolUuid: String, error: AnalyserError): Either[AnalyserError, Seq[PatternSpec]] = Left(error)
+    override def getPatterns(toolUuid: String): Option[Seq[PatternSpec]] = None
   }
 
   "list" should {
