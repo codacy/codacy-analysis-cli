@@ -44,7 +44,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient, storage: RemoteToolsDataSto
         this.storage.storeTools(tools)
         Right(tools)
       case Left(err) =>
-        this.storage.getToolsOrError(err)
+        this.storage.getTools().fold[Either[AnalyserError, Seq[ToolSpec]]](Left(err))(Right(_))
     }
   }
 
@@ -88,7 +88,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient, storage: RemoteToolsDataSto
         this.storage.storePatterns(toolUuid, patterns)
         Right(patterns)
       case Left(err) =>
-        this.storage.getPatternsOrError(toolUuid, err)
+        this.storage.getPatterns(toolUuid).fold[Either[AnalyserError, Seq[PatternSpec]]](Left(err))(Right(_))
     }
   }
 

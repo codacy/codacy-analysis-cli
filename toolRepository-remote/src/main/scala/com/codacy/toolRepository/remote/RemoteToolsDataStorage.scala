@@ -24,9 +24,9 @@ trait RemoteToolsDataStorageTrait extends FileDataStorage[RemoteToolInformation]
 
   def storePatterns(toolUuid: String, patterns: Seq[PatternSpec]): Boolean
 
-  def getToolsOrError(error: AnalyserError): Either[AnalyserError, Seq[ToolSpec]]
+  def getTools(): Option[Seq[ToolSpec]]
 
-  def getPatternsOrError(toolUuid: String, error: AnalyserError): Either[AnalyserError, Seq[PatternSpec]]
+  def getPatterns(toolUuid: String): Option[Seq[PatternSpec]]
 }
 
 class RemoteToolsDataStorage extends RemoteToolsDataStorageTrait {
@@ -49,24 +49,12 @@ class RemoteToolsDataStorage extends RemoteToolsDataStorageTrait {
     this.put(remoteToolsInfo)
   }
 
-  def getToolsOrError(error: AnalyserError): Either[AnalyserError, Seq[ToolSpec]] = {
-    this.get() match {
-      case Some(storageInfo) => Right(storageInfo.map(remoteToolInformation => remoteToolInformation.toolSpec))
-      case None              => Left(error)
-    }
+  def getTools(): Option[Seq[ToolSpec]] = {
+    this.get().map(_.map(remoteToolInformation => remoteToolInformation.toolSpec))
   }
 
-  def getPatternsOrError(toolUuid: String, error: AnalyserError): Either[AnalyserError, Seq[PatternSpec]] = {
-    this.get() match {
-      case Some(storageInfo) =>
-        val patternsOpt =
-          storageInfo.find(_.toolSpec.uuid == toolUuid).map(remoteToolInformation => remoteToolInformation.patterns)
-        patternsOpt match {
-          case Some(patterns) => Right(patterns)
-          case None           => Left(error)
-        }
-      case None => Left(error)
-    }
+  def getPatterns(toolUuid: String): Option[Seq[PatternSpec]] = {
+    this.get().flatMap(_.find(_.toolSpec.uuid == toolUuid).map(remoteToolInformation => remoteToolInformation.patterns))
   }
 }
 
