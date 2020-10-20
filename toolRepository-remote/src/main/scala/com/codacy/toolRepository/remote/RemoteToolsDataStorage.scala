@@ -34,9 +34,8 @@ class RemoteToolsDataStorage extends RemoteToolsDataStorageTrait {
   def mergeToolsList(currentList: Seq[RemoteToolInformation],
                      newListOfTools: Seq[ToolSpec]): Seq[RemoteToolInformation] = {
     newListOfTools.map { tool =>
-      val toolInfoOpt = currentList.find(toolInfo =>
-        toolInfo.toolSpec.uuid == tool.uuid && toolInfo.toolSpec.version == tool.version
-      )
+      val toolInfoOpt =
+        currentList.find(toolInfo => toolInfo.toolSpec.uuid == tool.uuid && toolInfo.toolSpec.version == tool.version)
 
       toolInfoOpt match {
         case None    => RemoteToolInformation(tool, None)

@@ -22,63 +22,74 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
   implicit val actorSystem = ActorSystem("MyTest")
   implicit val materializer = ActorMaterializer()
 
-  val toolA = Tool(
-    uuid = "uuid - A",
-    name = "name A",
-    shortName = "shortName",
-    documentationUrl = None,
-    sourceCodeUrl = None,
-    prefix = None,
-    needsCompilation = false,
-    configurationFilenames = Vector.empty,
-    version = "version",
-    description = None,
-    dockerImage = "dockerImage",
-    languages = Vector.empty,
-    clientSide = false,
-    enabledByDefault = true,
-    configurable = false)
+  private def getTool(uuid: String, name: String) =
+    Tool(
+      uuid = uuid,
+      name = name,
+      shortName = "shortName",
+      documentationUrl = None,
+      sourceCodeUrl = None,
+      prefix = None,
+      needsCompilation = false,
+      configurationFilenames = Vector.empty,
+      version = "version",
+      description = None,
+      dockerImage = "dockerImage",
+      languages = Vector.empty,
+      clientSide = false,
+      enabledByDefault = true,
+      configurable = false)
 
-  val toolB = Tool(
-    uuid = "uuid - B",
-    name = "name B",
-    shortName = "shortName",
-    documentationUrl = None,
-    sourceCodeUrl = None,
-    prefix = None,
-    needsCompilation = false,
-    configurationFilenames = Vector.empty,
-    version = "version",
-    description = None,
-    dockerImage = "dockerImage",
-    languages = Vector.empty,
-    clientSide = false,
-    enabledByDefault = true,
-    configurable = false)
+  private def getPattern(id: String) =
+    Pattern(
+      id = id,
+      title = None,
+      level = "Info",
+      category = "categoryType",
+      subCategory = None,
+      description = None,
+      explanation = None,
+      enabled = true,
+      timeToFix = None,
+      parameters = Vector.empty)
 
-  val patternA = Pattern(
-    id = "internalId - A",
-    title = None,
-    level = "Info",
-    category = "categoryType",
-    subCategory = None,
-    description = None,
-    explanation = None,
-    enabled = true,
-    timeToFix = None,
-    parameters = Vector.empty)
+  private def toolSpec(uuid: String, version: String = "version"): ToolSpec =
+    ToolSpec(
+      uuid = uuid,
+      "codacy:1.0.0",
+      isDefault = false,
+      version,
+      Set(Languages.Python),
+      "name",
+      "shortName",
+      None,
+      None,
+      "",
+      needsCompilation = false,
+      hasConfigFile = false,
+      Set.empty,
+      isClientSide = false,
+      hasUIConfiguration = false)
 
-  val patternB = Pattern(
-    id = "internalId - B",
-    title = None,
-    level = "Info",
-    category = "categoryType",
-    subCategory = None,
-    description = None,
-    explanation = None,
-    enabled = true,
-    timeToFix = None,
-    parameters = Vector.empty)
+  private def patternSpec(id: String): PatternSpec =
+    PatternSpec(
+      id = id,
+      title = "",
+      level = "Info",
+      category = "categoryType",
+      subCategory = None,
+      description = None,
+      explanation = None,
+      enabled = true,
+      timeToFix = None,
+      parameters = Seq.empty,
+      languages = Set.empty)
+
+  private val toolA: Tool = getTool("uuid - A", "name A")
+  private val toolB: Tool = getTool("uuid - B", "name B")
+
+  private val patternA: Pattern = getPattern("internalId - A")
+  private val patternB: Pattern = getPattern("internalId - B")
 
   val mockToolsDataEmptyStorage: RemoteToolsDataStorageTrait = new RemoteToolsDataStorageTrait {
     override def storeTools(tools: Seq[ToolSpec]): Boolean = true
@@ -95,41 +106,9 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
 
     override def storePatterns(toolUuid: String, patterns: Seq[PatternSpec]): Boolean = true
 
-    override def getTools(): Option[Seq[ToolSpec]] =
-      Some(
-        Seq(
-          ToolSpec(
-            toolA.uuid,
-            toolA.dockerImage,
-            toolA.enabledByDefault,
-            toolA.version,
-            Set(Languages.Python),
-            toolA.name,
-            toolA.shortName,
-            toolA.documentationUrl,
-            toolA.sourceCodeUrl,
-            toolA.prefix.getOrElse(""),
-            toolA.needsCompilation,
-            hasConfigFile = toolA.configurationFilenames.nonEmpty,
-            toolA.configurationFilenames.toSet,
-            toolA.clientSide,
-            toolA.configurable)))
+    override def getTools(): Option[Seq[ToolSpec]] = Some(Seq(toolSpec(toolA.uuid)))
 
-    override def getPatterns(toolUuid: String): Option[Seq[PatternSpec]] =
-      Some(
-        Seq(
-          PatternSpec(
-            id = patternA.id,
-            title = "",
-            level = "Info",
-            category = "categoryType",
-            subCategory = None,
-            description = None,
-            explanation = None,
-            enabled = true,
-            timeToFix = None,
-            parameters = Seq.empty,
-            languages = Set.empty)))
+    override def getPatterns(toolUuid: String): Option[Seq[PatternSpec]] = Some(Seq(patternSpec(patternA.id)))
   }
 
   "list" should {

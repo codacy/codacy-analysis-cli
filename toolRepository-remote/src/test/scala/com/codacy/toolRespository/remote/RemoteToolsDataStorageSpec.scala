@@ -12,7 +12,7 @@ class RemoteToolsDataStorageSpec extends Specification with NoLanguageFeatures w
 
   val toolVersion = "1.0.0"
 
-  def toolSpec(uuid: String, version: String = toolVersion): ToolSpec =
+  private def toolSpec(uuid: String, version: String = toolVersion): ToolSpec =
     ToolSpec(
       uuid = uuid,
       "codacy:1.0.0",
