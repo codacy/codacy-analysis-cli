@@ -5,6 +5,13 @@ import codacy.libs._
 
 Universal / javaOptions ++= Seq("-Xms1g", "-Xmx2g", "-Xss512m", "-XX:+UseG1GC", "-XX:+UseStringDeduplication")
 
+inThisBuild(
+  Seq(
+    scalaVersion := Common.scalaVersionNumber,
+    scalaBinaryVersion := Common.scalaBinaryVersionNumber,
+    scapegoatDisabledInspections := Seq(),
+    scapegoatVersion := "1.4.6"))
+
 val sonatypeInformation = Seq(
   startYear := Some(2018),
   homepage := Some(url("https://github.com/codacy/codacy-analysis-cli")),
@@ -129,9 +136,3 @@ lazy val codacyApiClient = project
           modules = List("circe", "akka-http")))
     },
     silencerSettings)
-
-// Scapegoat
-ThisBuild / scalaVersion := Common.scalaVersionNumber
-ThisBuild / scalaBinaryVersion := Common.scalaBinaryVersionNumber
-ThisBuild / scapegoatDisabledInspections := Seq()
-ThisBuild / scapegoatVersion := "1.4.6"

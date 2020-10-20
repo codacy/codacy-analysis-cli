@@ -10,7 +10,7 @@ case class FullToolSpec(tool: ToolSpec, patterns: Seq[PatternSpec]) {
 
   private def toToolApiSpecification(toolSpec: ToolSpec, patterns: Seq[PatternSpec]): api.results.Tool.Specification = {
     api.results.Tool.Specification(
-      name = api.results.Tool.Name(toolSpec.name),
+      name = api.results.Tool.Name(toolSpec.shortName),
       version = Some(api.results.Tool.Version(toolSpec.version)),
       patterns = toPatternApiSpecification(patterns))
   }
@@ -41,7 +41,6 @@ case class FullToolSpec(tool: ToolSpec, patterns: Seq[PatternSpec]) {
       api.PatternDescription(
         patternId = api.results.Pattern.Id(pattern.id),
         title = pattern.title,
-        //TODO: Check if it should already come optional from the API
         parameters = Some(toToolApiParameterDescriptions(pattern.parameters)),
         description = pattern.description,
         timeToFix = pattern.timeToFix,

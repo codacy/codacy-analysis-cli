@@ -4,7 +4,7 @@ import com.codacy.analysis.core.model.{AnalyserError, ParameterSpec, PatternSpec
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.plugins.api.PatternDescription
 import com.codacy.plugins.api.results.Parameter
-import com.codacy.plugins.results.traits.{DockerTool, DockerToolDocumentation}
+import com.codacy.plugins.results.traits.DockerToolDocumentation
 import com.codacy.plugins.results.utils.ResultsTools
 import com.codacy.plugins.utils.BinaryDockerHelper
 

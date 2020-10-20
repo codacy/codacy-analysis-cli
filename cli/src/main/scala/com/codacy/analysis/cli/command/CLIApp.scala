@@ -124,7 +124,6 @@ final case class Analyse(
   options: CommonOptions,
   @Recurse
   api: APIOptions,
-  //TODO: Consider if we want to list the tools, and how we want to show them
   @ExtraName("t") @ValueDescription(s"The tool to analyse the code.")
   tool: Option[String],
   @ExtraName("d") @ValueDescription("The directory to analyse.")

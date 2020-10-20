@@ -14,7 +14,6 @@ object AnalyserError {
     override val message: String = s"The tool $toolName needs network access to execute."
   }
 
-  //TODO: Consider if we want to list the tools, and how we want to show them
   final case class NonExistingToolInput(toolName: String) extends AnalyserError {
 
     override val message: String =

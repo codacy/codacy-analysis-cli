@@ -3,6 +3,7 @@ package com.codacy.analysis.core.files
 import java.nio.file.{Path, Paths}
 
 import better.files.File
+import com.codacy.analysis.core.ToolRepositoryMock
 import com.codacy.analysis.core.clients.api.{FilePath, PathRegex}
 import com.codacy.analysis.core.tools.ToolCollector
 import com.codacy.plugins.api.languages.Languages
@@ -334,8 +335,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
 
   val expectedConfigFiles = List("src/main/resources/docs/directory-tests/rails3/config/brakeman.yml")
 
-  //TODO: Pass a mock ToolCollector
-  val toolCollector = new ToolCollector(toolRepository = null)
+  val toolCollector = new ToolCollector(toolRepository = new ToolRepositoryMock)
 
   fileCollector.getClass.getName should {
     "list files and filter files per tool" in {

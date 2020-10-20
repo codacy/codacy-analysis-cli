@@ -54,7 +54,6 @@ class AnalyseExecutor(formatter: Formatter,
 
           tool match {
             case tool: Tool =>
-              //TODO: Handle the either instead of .toOption
               val fullToolSpec: Option[FullToolSpec] = toolSelector.fromUuid(tool.uuid).toOption
               val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
               val analysisResults =
