@@ -11,11 +11,7 @@ import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-class RemoteToolInformationEncodersSpec
-    extends Specification
-    with NoLanguageFeatures
-    with Mockito
-    with FutureMatchers {
+class RemoteToolInformationEncodersSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
   def toolSpec(languages: Set[Language] = Set(Python)): ToolSpec =
     ToolSpec(
@@ -93,7 +89,7 @@ class RemoteToolInformationEncodersSpec
 
   "ToolCacheSpec" should {
     s"Encode tool spec correctly".stripMargin in {
-        toolSpec().asJson.toString shouldEqual toolSpecAsJson()
+      toolSpec().asJson.toString shouldEqual toolSpecAsJson()
     }
 
     s"Decode tool spec correctly".stripMargin in {

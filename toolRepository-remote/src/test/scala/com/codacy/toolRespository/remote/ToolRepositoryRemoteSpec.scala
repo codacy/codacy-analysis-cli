@@ -115,18 +115,21 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
             toolA.clientSide,
             toolA.configurable)))
 
-    override def getPatterns(toolUuid: String): Option[Seq[PatternSpec]] = Some(Seq(PatternSpec(
-      id = patternA.id,
-      title = "",
-      level = "Info",
-      category = "categoryType",
-      subCategory = None,
-      description = None,
-      explanation = None,
-      enabled = true,
-      timeToFix = None,
-      parameters = Seq.empty,
-      languages = Set.empty)))
+    override def getPatterns(toolUuid: String): Option[Seq[PatternSpec]] =
+      Some(
+        Seq(
+          PatternSpec(
+            id = patternA.id,
+            title = "",
+            level = "Info",
+            category = "categoryType",
+            subCategory = None,
+            description = None,
+            explanation = None,
+            enabled = true,
+            timeToFix = None,
+            parameters = Seq.empty,
+            languages = Set.empty)))
   }
 
   "list" should {
