@@ -1,6 +1,6 @@
 package com.codacy.toolRepository.remote
 
-import com.codacy.analysis.core.model.{AnalyserError, ParameterSpec, PatternSpec, ToolSpec}
+import com.codacy.analysis.core.model.{ParameterSpec, PatternSpec, ToolSpec}
 import com.codacy.analysis.core.storage.FileDataStorage
 import com.codacy.plugins.api.languages.{Language, Languages}
 import io.circe.{Decoder, Encoder, HCursor, Json}
