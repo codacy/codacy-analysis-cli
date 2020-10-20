@@ -74,7 +74,3 @@ abstract class FileDataStorage[T] {
     }
   }
 }
-
-trait WithStorage[T] {
-  val storage: FileDataStorage[T]
-}

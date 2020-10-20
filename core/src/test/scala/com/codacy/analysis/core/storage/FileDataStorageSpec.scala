@@ -8,28 +8,26 @@ import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-class WithStorageSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
+class FileDataStorageSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
   case class Test(name: String)
 
-  class StorageTest extends WithStorage[Test] {
+  class StorageTest extends FileDataStorage[Test] {
 
-    override val storage: FileDataStorage[Test] = new FileDataStorage[Test] {
-      override implicit val encoder: Encoder[Test] = deriveEncoder
-      override implicit val decoder: Decoder[Test] = deriveDecoder
+    override implicit val encoder: Encoder[Test] = deriveEncoder
+    override implicit val decoder: Decoder[Test] = deriveDecoder
 
-      override def compare(current: Test, value: Test): Boolean = current.name == value.name
+    override def compare(current: Test, value: Test): Boolean = current.name == value.name
 
-      override val storageFile: File = File.newTemporaryFile()
+    override val storageFile: File = File.newTemporaryFile()
 
-      override def storageFilename: String = ""
-    }
+    override def storageFilename: String = ""
 
-    def callAdd(data: Seq[Test]): Unit = this.storage.put(data)
+    def callAdd(data: Seq[Test]): Unit = this.put(data)
 
-    def callFetch: Option[Seq[Test]] = this.storage.get()
+    def callFetch: Option[Seq[Test]] = this.get()
 
-    def disposeStorage: Boolean = this.storage.invalidate()
+    def disposeStorage: Boolean = this.invalidate()
   }
 
   "WithStorage" should {
