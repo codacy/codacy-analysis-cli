@@ -31,20 +31,42 @@ trait RemoteToolsDataStorageTrait extends FileDataStorage[RemoteToolInformation]
 
 class RemoteToolsDataStorage extends RemoteToolsDataStorageTrait {
 
-  def storeTools(tools: Seq[ToolSpec]): Boolean = {
-    val remoteToolsInfo = tools.map(RemoteToolInformation(_, None))
-    this.put(remoteToolsInfo)
+  def mergeToolsList(currentList: Seq[RemoteToolInformation],
+                     newListOfTools: Seq[ToolSpec]): Seq[RemoteToolInformation] = {
+    newListOfTools.map { tool =>
+      val toolInfoOpt = currentList.find(toolInfo =>
+        toolInfo.toolSpec.uuid == tool.uuid && toolInfo.toolSpec.version == tool.version
+      )
+
+      toolInfoOpt match {
+        case None    => RemoteToolInformation(tool, None)
+        case Some(t) => t
+      }
+    }
   }
 
-  def storePatterns(toolUuid: String, patterns: Seq[PatternSpec]): Boolean = {
-    val listOfTools = this.get().getOrElse(Seq.empty)
-    val remoteToolsInfo = listOfTools.map { tool =>
+  def updatePatternsForTool(listOfTools: Seq[RemoteToolInformation],
+                            toolUuid: String,
+                            patterns: Seq[PatternSpec]): Seq[RemoteToolInformation] = {
+    listOfTools.map { tool =>
       if (tool.toolSpec.uuid == toolUuid) {
         RemoteToolInformation(tool.toolSpec, Some(patterns))
       } else {
         tool
       }
     }
+  }
+
+  def storeTools(tools: Seq[ToolSpec]): Boolean = {
+    val currentListOfTools = this.get().getOrElse(Seq.empty)
+    val remoteToolsInfo = this.mergeToolsList(currentListOfTools, tools)
+
+    this.put(remoteToolsInfo)
+  }
+
+  def storePatterns(toolUuid: String, patterns: Seq[PatternSpec]): Boolean = {
+    val listOfTools = this.get().getOrElse(Seq.empty)
+    val remoteToolsInfo = updatePatternsForTool(listOfTools, toolUuid, patterns)
 
     this.put(remoteToolsInfo)
   }
