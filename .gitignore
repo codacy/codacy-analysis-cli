@@ -88,3 +88,5 @@ project/plugins/project/
 .metals
 project/metals.sbt
 .vscode/
+
+.codacy
