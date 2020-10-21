@@ -32,27 +32,27 @@ class ToolPatternsSpecsEncodersSpec extends Specification with NoLanguageFeature
       hasUIConfiguration = true)
 
   def toolSpecAsJson(language: String = "Python"): String = s"""{
-                                                       |  "uuid" : "34225275-f79e-4b85-8126-c7512c987c0d",
-                                                       |  "dockerImage" : "codacy/codacy-example-tool:1.0.0",
-                                                       |  "isDefault" : true,
-                                                       |  "version" : "",
-                                                       |  "languages" : [
-                                                       |    {
-                                                       |      "name" : "${language}"
-                                                       |    }
-                                                       |  ],
-                                                       |  "name" : "PyLint",
-                                                       |  "shortName" : "PyLint",
-                                                       |  "documentationUrl" : null,
-                                                       |  "sourceCodeUrl" : null,
-                                                       |  "prefix" : "",
-                                                       |  "needsCompilation" : false,
-                                                       |  "hasConfigFile" : true,
-                                                       |  "configFilenames" : [
-                                                       |  ],
-                                                       |  "isClientSide" : false,
-                                                       |  "hasUIConfiguration" : true
-                                                       |}""".stripMargin
+                                                               |  "uuid" : "34225275-f79e-4b85-8126-c7512c987c0d",
+                                                               |  "dockerImage" : "codacy/codacy-example-tool:1.0.0",
+                                                               |  "isDefault" : true,
+                                                               |  "version" : "",
+                                                               |  "languages" : [
+                                                               |    {
+                                                               |      "name" : "${language}"
+                                                               |    }
+                                                               |  ],
+                                                               |  "name" : "PyLint",
+                                                               |  "shortName" : "PyLint",
+                                                               |  "documentationUrl" : null,
+                                                               |  "sourceCodeUrl" : null,
+                                                               |  "prefix" : "",
+                                                               |  "needsCompilation" : false,
+                                                               |  "hasConfigFile" : true,
+                                                               |  "configFilenames" : [
+                                                               |  ],
+                                                               |  "isClientSide" : false,
+                                                               |  "hasUIConfiguration" : true
+                                                               |}""".stripMargin
 
   val patternSpec: PatternSpec =
     PatternSpec(
@@ -69,23 +69,23 @@ class ToolPatternsSpecsEncodersSpec extends Specification with NoLanguageFeature
       languages = Set(Python))
 
   val toolPatternSpecJson: String = s"""{
-                                          |  "id" : "test",
-                                          |  "level" : "Info",
-                                          |  "category" : "Security",
-                                          |  "subCategory" : null,
-                                          |  "title" : "Test title",
-                                          |  "description" : "",
-                                          |  "explanation" : "",
-                                          |  "enabled" : true,
-                                          |  "timeToFix" : 5,
-                                          |  "parameters" : [
-                                          |  ],
-                                          |  "languages" : [
-                                          |    {
-                                          |      "name" : "Python"
-                                          |    }
-                                          |  ]
-                                          |}""".stripMargin
+                                       |  "id" : "test",
+                                       |  "level" : "Info",
+                                       |  "category" : "Security",
+                                       |  "subCategory" : null,
+                                       |  "title" : "Test title",
+                                       |  "description" : "",
+                                       |  "explanation" : "",
+                                       |  "enabled" : true,
+                                       |  "timeToFix" : 5,
+                                       |  "parameters" : [
+                                       |  ],
+                                       |  "languages" : [
+                                       |    {
+                                       |      "name" : "Python"
+                                       |    }
+                                       |  ]
+                                       |}""".stripMargin
 
   "ToolPatternsSpecsEncoders" should {
     s"Encode tool spec correctly".stripMargin in {
