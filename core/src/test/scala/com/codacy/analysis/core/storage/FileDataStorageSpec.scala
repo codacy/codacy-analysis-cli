@@ -25,7 +25,7 @@ class FileDataStorageSpec extends Specification with NoLanguageFeatures with Moc
   "FileDataStorage" should {
     val testingData = Seq(Test("first"), Test("second"))
 
-    def cleanup(storageTest: StorageTest) = storageTest.invalidate()
+    def cleanup(storageTest: StorageTest) = storageTest.invalidate().isSuccess
 
     s"Save and fetch storage correctly".stripMargin in {
       val storageTest = new StorageTest()
@@ -40,7 +40,7 @@ class FileDataStorageSpec extends Specification with NoLanguageFeatures with Moc
       val storageTest = new StorageTest()
       storageTest.save(testingData)
 
-      storageTest.invalidate() shouldEqual true
+      storageTest.invalidate().isSuccess shouldEqual true
       storageTest.get() shouldEqual None
     }
 

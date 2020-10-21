@@ -22,8 +22,7 @@ object ToolRepositoryFactory {
 
       val toolsClient =
         ToolsClient(codacyApiBaseUrl)(httpClient = httpClient, ec = actorSystem.dispatcher, mat = materializer)
-      val toolsDataStorage = new ToolSpecDataStorage()
-      new ToolRepositoryRemote(toolsClient, toolsDataStorage, PatternSpecDataStorage.apply)(
+      new ToolRepositoryRemote(toolsClient, ToolSpecDataStorage.apply, PatternSpecDataStorage.apply)(
         ec = actorSystem.dispatcher,
         mat = materializer)
     } else {

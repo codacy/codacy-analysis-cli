@@ -25,15 +25,19 @@ trait FileDataStorage[T] {
       }
     }
 
-  private def readFromFile(file: File): String =
+  private def readFromFile(file: File): Try[String] =
     synchronized {
-      file.contentAsString
+      Try {
+        file.contentAsString
+      }
     }
 
-  def invalidate(): Boolean =
+  def invalidate(): Try[Unit] =
     synchronized {
       logger.debug("Invalidating storage")
-      !storageFile.delete().exists
+      Try {
+        storageFile.delete()
+      }
     }
 
   def save(values: Seq[T]): Boolean = {
@@ -47,7 +51,10 @@ trait FileDataStorage[T] {
   def get(): Option[Seq[T]] = {
     logger.debug("Retrieving storage")
     if (storageFile.exists) {
-      parser.decode[Seq[T]](readFromFile(storageFile)).fold(_ => None, v => Some(v)).filter(_.nonEmpty)
+      val fileContentOpt = readFromFile(storageFile).toOption
+      fileContentOpt.flatMap { content =>
+        parser.decode[Seq[T]](content).fold(_ => None, v => Some(v)).filter(_.nonEmpty)
+      }
     } else {
       None
     }
