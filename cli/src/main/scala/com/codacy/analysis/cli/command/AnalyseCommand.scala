@@ -38,7 +38,7 @@ object AnalyseCommand {
     val environment: Environment = new Environment(env)
     val apiUrl =
       environment
-        .apiBaseUrlArgument(analyse.api.codacyApiBaseUrl)
+        .apiBaseUrlArgument(analyze.api.codacyApiBaseUrl)
         .orElse(environment.apiBaseUrlEnvironmentVariable())
         .getOrElse("https://api.codacy.com")
 
@@ -50,7 +50,7 @@ object AnalyseCommand {
       Formatter(configuration.analysis.output, environment.baseProjectDirectory(analyze.directory))
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    val toolSelector = new ToolSelector(ToolRepositoryFactory.build(apiUrl, analyse.fetchRemoteTools))
+    val toolSelector = new ToolSelector(ToolRepositoryFactory.build(apiUrl, analyze.fetchRemoteTools))
 
     val analyseExecutor: AnalyseExecutor =
       new AnalyseExecutor(
