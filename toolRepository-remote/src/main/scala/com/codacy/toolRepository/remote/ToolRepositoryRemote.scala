@@ -9,6 +9,7 @@ import com.codacy.analysis.core.model.{AnalyserError, ParameterSpec, PatternSpec
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.plugins.api.languages.{Language, Languages}
 import com.codacy.toolRepository.remote.storage.{PatternSpecDataStorage, ToolSpecDataStorage}
+import org.log4s.{Logger, getLogger}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -18,6 +19,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
                            patternStorage: String => PatternSpecDataStorage)(implicit val ec: ExecutionContext,
                                                                              implicit val mat: Materializer)
     extends ToolRepository {
+  private val logger: Logger = getLogger
 
   private val toolStorageFilename = "tools"
   private val toolStorageInstance = toolsStorage(toolStorageFilename)
@@ -61,7 +63,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
       }
     }
 
-  override def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = {
+  private def patternsFromApi(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
       toolsClient.listPatterns(tool.uuid, cursor = cursor).value.map {
         case Right(ListPatternsResponse.OK(PatternListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
@@ -94,8 +96,28 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
       case Right(patterns) =>
         patternSpecDataStorage.save(patterns)
         Right(patterns)
-      case Left(err) =>
-        patternSpecDataStorage.get().toRight(err)
+      case Left(err) => Left(err)
+    }
+  }
+
+  override def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = {
+    val toolPatternsStorageFilename = s"${tool.uuid}-${tool.version}"
+    val toolPatternsStorageInstance = patternStorage(toolPatternsStorageFilename)
+
+    toolPatternsStorageInstance.get() match {
+      case Some(patternsFromStorage) =>
+        logger.info(s"Using patterns from cache for ${tool.name} version ${tool.version}")
+        Right(patternsFromStorage)
+      case None =>
+        patternsFromApi(tool) match {
+          case Right(patternsFromApi) =>
+            logger.info(s"Fetched patterns for ${tool.name} version ${tool.version}")
+            toolPatternsStorageInstance.save(patternsFromApi)
+            Right(patternsFromApi)
+          case Left(err) =>
+            logger.error(s"Failed to fetch patterns for ${tool.name} from API: ${err.message}")
+            Left(err)
+        }
     }
   }
 
