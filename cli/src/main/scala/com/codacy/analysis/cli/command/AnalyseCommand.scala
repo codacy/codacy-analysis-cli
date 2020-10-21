@@ -2,6 +2,9 @@ package com.codacy.analysis.cli.command
 
 import java.nio.file.Path
 
+import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import better.files.File
 import cats.implicits._
 import com.codacy.analysis.cli.CLIError
@@ -15,7 +18,7 @@ import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ExitStatus, ToolSelect
 import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.configuration.{CLIConfiguration, Environment}
 import com.codacy.analysis.cli.formatter.Formatter
-import com.codacy.analysis.cli.toolRepository.ToolRepositoryFactory
+import com.codacy.analysis.clientapi.tools.ToolsClient
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.configuration.CodacyConfigurationFileLoader
@@ -25,6 +28,8 @@ import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.upload.ResultsUploader
 import com.codacy.analysis.core.utils.Logger
 import com.codacy.analysis.core.utils.SeqOps._
+import com.codacy.toolRepository.remote.ToolRepositoryRemote
+import com.codacy.toolRepository.remote.storage.{PatternSpecDataStorage, ToolSpecDataStorage}
 import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -51,7 +56,7 @@ object AnalyseCommand {
       Formatter(configuration.analysis.output, environment.baseProjectDirectory(analyze.directory))
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    val toolSelector = new ToolSelector(ToolRepositoryFactory.build(apiUrl, analyze.legacyFetchTools))
+    val toolSelector = new ToolSelector(toolRepository(apiUrl))
 
     val analyseExecutor: AnalyseExecutor =
       new AnalyseExecutor(
@@ -64,6 +69,19 @@ object AnalyseCommand {
       ResultsUploader(codacyClientOpt, configuration.upload.upload, configuration.upload.commitUuid)
 
     new AnalyseCommand(analyze, configuration, analyseExecutor, uploaderOpt)
+  }
+
+  private def toolRepository(codacyApiUrl: String) = {
+    val actorSystem = ActorSystem("ToolsServiceActorSystem")
+    val materializer = akka.stream.ActorMaterializer()(actorSystem)
+    val httpClient: HttpRequest => Future[HttpResponse] =
+      Http(actorSystem).singleRequest(_)
+
+    val toolsClient =
+      ToolsClient(codacyApiUrl)(httpClient = httpClient, ec = actorSystem.dispatcher, mat = materializer)
+    new ToolRepositoryRemote(toolsClient, ToolSpecDataStorage.apply, PatternSpecDataStorage.apply)(
+      ec = actorSystem.dispatcher,
+      mat = materializer)
   }
 }
 
