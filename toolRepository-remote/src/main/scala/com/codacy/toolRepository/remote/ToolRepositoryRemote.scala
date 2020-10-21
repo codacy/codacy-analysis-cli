@@ -14,10 +14,13 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 class ToolRepositoryRemote(toolsClient: ToolsClient,
-                           toolsStorage: ToolSpecDataStorage,
+                           toolsStorage: String => ToolSpecDataStorage,
                            patternStorage: String => PatternSpecDataStorage)(implicit val ec: ExecutionContext,
                                                                              implicit val mat: Materializer)
     extends ToolRepository {
+
+  private val toolStorageFilename = "tools"
+  private val toolStorageInstance = toolsStorage(toolStorageFilename)
 
   override lazy val list: Either[AnalyserError, Seq[ToolSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
@@ -43,10 +46,10 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
     val result = Await.result(toolsF, 1 minute)
     result match {
       case Right(tools) =>
-        this.toolsStorage.save(tools)
+        toolStorageInstance.save(tools)
         Right(tools)
       case Left(err) =>
-        this.toolsStorage.get().fold[Either[AnalyserError, Seq[ToolSpec]]](Left(err))(Right(_))
+        toolStorageInstance.get().toRight(err)
     }
   }
 
@@ -91,7 +94,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
         patternSpecDataStorage.save(patterns)
         Right(patterns)
       case Left(err) =>
-        patternSpecDataStorage.get().fold[Either[AnalyserError, Seq[PatternSpec]]](Left(err))(Right(_))
+        patternSpecDataStorage.get().toRight(err)
     }
   }
 
