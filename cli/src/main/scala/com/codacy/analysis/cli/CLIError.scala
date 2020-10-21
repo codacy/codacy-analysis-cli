@@ -12,16 +12,16 @@ object CLIError {
 
   def from(coreError: AnalyserError): CLIError = {
     coreError match {
-      case AnalyserError.ToolExecutionFailure(toolType, toolName) =>
-        CLIError.ToolExecutionFailure(toolType, toolName)
-      case AnalyserError.ToolNeedsNetwork(toolName) =>
-        CLIError.ToolNeedsNetwork(toolName)
-      case AnalyserError.NonExistingToolInput(toolName) =>
-        CLIError.NonExistingToolInput(toolName)
-      case AnalyserError.NoActiveToolInConfiguration =>
-        CLIError.NoActiveToolInConfiguration
-      case AnalyserError.NoToolsFoundForFiles =>
-        CLIError.NoToolsFoundForFiles
+      case AnalyserError.ToolExecutionFailure(toolType, toolName) => CLIError.ToolExecutionFailure(toolType, toolName)
+      case AnalyserError.ToolNeedsNetwork(toolName)               => CLIError.ToolNeedsNetwork(toolName)
+      case AnalyserError.NonExistingToolInput(toolName)           => CLIError.NonExistingToolInput(toolName)
+      case AnalyserError.NoActiveToolInConfiguration              => CLIError.NoActiveToolInConfiguration
+      case AnalyserError.NoToolsFoundForFiles                     => CLIError.NoToolsFoundForFiles
+      case AnalyserError.FailedToFetchTools(errorMessage)         => CLIError.CouldNotGetTools(errorMessage)
+      case AnalyserError.FailedToFindTool(toolUuid) =>
+        CLIError.CouldNotGetTools(s"Failure to get tool with UUID: $toolUuid")
+      case AnalyserError.FailedToListPatterns(toolUuid, errorMessage) =>
+        CLIError.CouldNotGetTools(s"Failure getting patterns for tool with UUID $toolUuid. Error: $errorMessage")
     }
   }
 
