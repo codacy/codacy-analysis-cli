@@ -23,7 +23,7 @@ abstract class FileDataStorage[T](val storageFilename: String) {
         home / "Library" / "Caches" / "Codacy" / "codacy-analysis-cli"
 
       case Some(sysName) if sysName.contains("nix") || sysName.contains("nux") =>
-        home / ".cache" / "Codacy" / "codacy-analysis-cli"
+        home / ".cache" / "codacy" / "codacy-analysis-cli"
 
       case Some(sysName) if sysName.contains("windows") =>
         sys.env.get("APPDATA").fold(defaultFolder) { windowsCacheDir =>

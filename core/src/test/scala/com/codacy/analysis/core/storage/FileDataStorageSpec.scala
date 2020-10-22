@@ -12,29 +12,29 @@ class FileDataStorageSpec extends Specification with NoLanguageFeatures with Moc
 
   case class Test(name: String)
 
-  class StorageTest(storageFilename: String = "") extends FileDataStorage[Test](storageFilename) {
-
+  class StorageTest() extends FileDataStorage[Test]("") {
     override implicit val encoder: Encoder[Test] = deriveEncoder
     override implicit val decoder: Decoder[Test] = deriveDecoder
 
-    override val storageFile: File = File.newTemporaryFile()
+    override val storageFile: File = {
+      val file = File.newTemporaryFile()
+      file.deleteOnExit()
+      file
+    }
   }
 
   "FileDataStorage" should {
     val testingData = Seq(Test("first"), Test("second"))
 
-    def cleanup(storageTest: StorageTest) = storageTest.invalidate().isSuccess
-
-    s"Save and fetch storage correctly".stripMargin in {
+    "Save and fetch storage correctly".stripMargin in {
       val storageTest = new StorageTest()
       storageTest.save(testingData)
 
       val storageContent = storageTest.get()
       storageContent shouldEqual Some(testingData)
-      cleanup(storageTest)
     }
 
-    s"Dispose storage correctly".stripMargin in {
+    "Dispose storage correctly".stripMargin in {
       val storageTest = new StorageTest()
       storageTest.save(testingData)
 
