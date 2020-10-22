@@ -9,45 +9,51 @@ import org.log4s.{Logger, getLogger}
 import scala.compat.Platform
 import scala.util.Try
 
-trait FileDataStorage[T] {
-  private val logger: Logger = getLogger
+abstract class FileDataStorage[T](val storageFilename: String) {
 
   implicit val encoder: Encoder[T]
   implicit val decoder: Decoder[T]
 
-  def storageFilename: String
+  private val logger: Logger = getLogger
+
+  private val cacheFolder: File = {
+    val defaultFolder = File.currentWorkingDirectory / ".codacy" / "codacy-analysis-cli"
+    val cacheBaseFolderOpt = sys.props.get("user.home").map(File(_))
+
+    val result = cacheBaseFolderOpt.fold(defaultFolder) { cacheBaseFolder =>
+      val osNameOpt = sys.props.get("os.name").map(_.toLowerCase)
+      osNameOpt match {
+        case Some(sysName) if sysName.contains("mas") =>
+          cacheBaseFolder / "Library" / "Caches" / "com.codacy" / "codacy-analysis-cli"
+
+        case Some(sysName) if sysName.contains("nix") || sysName.contains("nux") || sysName.contains("aix") =>
+          cacheBaseFolder / ".cache" / "codacy" / "codacy-analysis-cli"
+
+        case Some(sysName) if sysName.contains("windows") =>
+          val windowsCacheDir = File(sys.env("APPDATA"))
+          if (windowsCacheDir.exists) {
+            windowsCacheDir / "Codacy" / "codacy-analysis-cli"
+          } else {
+            defaultFolder
+          }
+        case _ => defaultFolder
+      }
+    }
+
+    result.createIfNotExists(asDirectory = true, createParents = true)
+    result
+  }
 
   val storageFile: File = cacheFolder / storageFilename
 
-  private def cacheFolder: File = {
-    val defaultFolder = File.currentWorkingDirectory / ".codacy" / "codacy-analysis-cli"
-    val osNameOpt = sys.props.get("os.name").map(_.toLowerCase)
-
-    osNameOpt match {
-      case Some(sysName) if sysName.contains("mas") || sysName == "darwin" =>
-        home / "Library" / "Caches" / "Codacy" / "codacy-analysis-cli"
-
-      case Some(sysName) if sysName.contains("nix") || sysName.contains("nux") =>
-        home / ".cache" / "Codacy" / "codacy-analysis-cli"
-
-      case Some(sysName) if sysName.contains("windows") =>
-        sys.env.get("APPDATA").fold(defaultFolder) { windowsCacheDir =>
-          File(windowsCacheDir) / "Codacy" / "codacy-analysis-cli"
-        }
-
-      case _ => defaultFolder
-    }
-  }
-
-  private def writeToFile(file: File, content: String): Try[File] =
+  private def writeToFile(content: String): Try[File] =
     Try {
-      file.createFileIfNotExists(createParents = true)
-      file.write(content)
+      storageFile.write(content)
     }
 
-  private def readFromFile(file: File): Try[String] =
+  private def readFromFile(): Try[String] =
     Try {
-      file.contentAsString
+      storageFile.contentAsString
     }
 
   def invalidate(): Try[Unit] =
@@ -59,7 +65,7 @@ trait FileDataStorage[T] {
   def save(values: Seq[T]): Boolean = {
     logger.debug("Saving new values to storage")
     val storageListJson = values.asJson.toString
-    val wroteSuccessfully = writeToFile(storageFile, storageListJson)
+    val wroteSuccessfully = writeToFile(storageListJson)
     logger.debug(s"Storage saved with status: ${wroteSuccessfully}")
     wroteSuccessfully.isSuccess
   }
@@ -67,7 +73,7 @@ trait FileDataStorage[T] {
   def get(): Option[Seq[T]] = {
     logger.debug("Retrieving storage")
     if (storageFile.exists) {
-      val fileContentOpt = readFromFile(storageFile).toOption
+      val fileContentOpt = readFromFile().toOption
       fileContentOpt.flatMap { content =>
         parser.decode[Seq[T]](content).fold(_ => None, v => Some(v)).filter(_.nonEmpty)
       }
