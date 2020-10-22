@@ -48,9 +48,9 @@ object Dependencies {
 
   val akka =
     Seq(
-      "com.typesafe.akka" %% "akka-actor" % akkaVersion force,
-      "com.typesafe.akka" %% "akka-stream" % akkaVersion force,
-      "com.typesafe.akka" %% "akka-slf4j" % akkaVersion force,
+      "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+      "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+      "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
       "com.typesafe.akka" %% "akka-http" % akkaHttpVersion)
 
   val macroParadise = "org.scalamacros" %% "paradise" % "2.1.1"
