@@ -15,29 +15,48 @@ trait FileDataStorage[T] {
 
   def storageFilename: String
 
-  val storageFile: File = File.currentWorkingDirectory / ".codacy" / "codacy-analysis-cli" / storageFilename
+  val storageFile: File = cacheFolder / storageFilename
+
+  private def cacheFolder: File = {
+    val defaultFolder = File.currentWorkingDirectory / ".codacy" / "codacy-analysis-cli"
+    val cacheBaseFolderOpt = sys.props.get("user.home").map(File(_))
+
+    cacheBaseFolderOpt.fold(defaultFolder) { cacheBaseFolder =>
+      val osNameOpt = sys.props.get("os.name").map(_.toLowerCase)
+      osNameOpt match {
+        case Some(sysName) if sysName.contains("mac") =>
+          cacheBaseFolder / "Library" / "Caches" / "com.codacy" / "codacy-analysis-cli"
+
+        case Some(sysName) if sysName.contains("nix") || sysName.contains("nux") || sysName.contains("aix") =>
+          cacheBaseFolder / ".cache" / "codacy" / "codacy-analysis-cli"
+
+        case Some(sysName) if sysName.contains("windows") =>
+          val windowsCacheDir = File(sys.env("APPDATA"))
+          if (windowsCacheDir.exists) {
+            windowsCacheDir / "Codacy" / "codacy-analysis-cli"
+          } else {
+            defaultFolder
+          }
+        case _ => defaultFolder
+      }
+    }
+  }
 
   private def writeToFile(file: File, content: String): Try[File] =
-    synchronized {
-      Try {
-        file.createFileIfNotExists(createParents = true)
-        file.write(content)
-      }
+    Try {
+      file.createFileIfNotExists(createParents = true)
+      file.write(content)
     }
 
   private def readFromFile(file: File): Try[String] =
-    synchronized {
-      Try {
-        file.contentAsString
-      }
+    Try {
+      file.contentAsString
     }
 
   def invalidate(): Try[Unit] =
-    synchronized {
+    Try {
       logger.debug("Invalidating storage")
-      Try {
-        storageFile.delete()
-      }
+      storageFile.delete()
     }
 
   def save(values: Seq[T]): Boolean = {
