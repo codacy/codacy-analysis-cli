@@ -1,10 +1,12 @@
 package com.codacy.analysis.core.storage
 
 import better.files.File
+import better.files.File.home
 import io.circe._
 import io.circe.syntax._
 import org.log4s.{Logger, getLogger}
 
+import scala.compat.Platform
 import scala.util.Try
 
 trait FileDataStorage[T] {
@@ -19,26 +21,21 @@ trait FileDataStorage[T] {
 
   private def cacheFolder: File = {
     val defaultFolder = File.currentWorkingDirectory / ".codacy" / "codacy-analysis-cli"
-    val cacheBaseFolderOpt = sys.props.get("user.home").map(File(_))
+    val osNameOpt = sys.props.get("os.name").map(_.toLowerCase)
 
-    cacheBaseFolderOpt.fold(defaultFolder) { cacheBaseFolder =>
-      val osNameOpt = sys.props.get("os.name").map(_.toLowerCase)
-      osNameOpt match {
-        case Some(sysName) if sysName.contains("mac") =>
-          cacheBaseFolder / "Library" / "Caches" / "com.codacy" / "codacy-analysis-cli"
+    osNameOpt match {
+      case Some(sysName) if sysName.contains("mas") || sysName == "darwin" =>
+        home / "Library" / "Caches" / "Codacy" / "codacy-analysis-cli"
 
-        case Some(sysName) if sysName.contains("nix") || sysName.contains("nux") || sysName.contains("aix") =>
-          cacheBaseFolder / ".cache" / "codacy" / "codacy-analysis-cli"
+      case Some(sysName) if sysName.contains("nix") || sysName.contains("nux") =>
+        home / ".cache" / "Codacy" / "codacy-analysis-cli"
 
-        case Some(sysName) if sysName.contains("windows") =>
-          val windowsCacheDir = File(sys.env("APPDATA"))
-          if (windowsCacheDir.exists) {
-            windowsCacheDir / "Codacy" / "codacy-analysis-cli"
-          } else {
-            defaultFolder
-          }
-        case _ => defaultFolder
-      }
+      case Some(sysName) if sysName.contains("windows") =>
+        sys.env.get("APPDATA").fold(defaultFolder) { windowsCacheDir =>
+          File(windowsCacheDir) / "Codacy" / "codacy-analysis-cli"
+        }
+
+      case _ => defaultFolder
     }
   }
 
