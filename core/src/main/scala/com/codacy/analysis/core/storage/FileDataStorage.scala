@@ -6,25 +6,20 @@ import io.circe._
 import io.circe.syntax._
 import org.log4s.{Logger, getLogger}
 
-import scala.compat.Platform
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
-trait FileDataStorage[T] {
-  private val logger: Logger = getLogger
+abstract class FileDataStorage[T](val storageFilename: String) {
 
   implicit val encoder: Encoder[T]
   implicit val decoder: Decoder[T]
 
-  def storageFilename: String
+  private val logger: Logger = getLogger
 
-  val storageFile: File = cacheFolder / storageFilename
-
-  private def cacheFolder: File = {
+  private val cacheFolder: File = {
     val defaultFolder = File.currentWorkingDirectory / ".codacy" / "codacy-analysis-cli"
     val osNameOpt = sys.props.get("os.name").map(_.toLowerCase)
-
-    osNameOpt match {
-      case Some(sysName) if sysName.contains("mas") || sysName == "darwin" =>
+    val result = osNameOpt match {
+      case Some(sysName) if sysName.contains("mac") || sysName == "darwin" =>
         home / "Library" / "Caches" / "Codacy" / "codacy-analysis-cli"
 
       case Some(sysName) if sysName.contains("nix") || sysName.contains("nux") =>
@@ -37,17 +32,21 @@ trait FileDataStorage[T] {
 
       case _ => defaultFolder
     }
+
+    result.createIfNotExists(asDirectory = true, createParents = true)
+    result
   }
 
-  private def writeToFile(file: File, content: String): Try[File] =
+  val storageFile: File = cacheFolder / storageFilename
+
+  private def writeToFile(content: String): Try[File] =
     Try {
-      file.createFileIfNotExists(createParents = true)
-      file.write(content)
+      storageFile.write(content)
     }
 
-  private def readFromFile(file: File): Try[String] =
+  private def readFromFile(): Try[String] =
     Try {
-      file.contentAsString
+      storageFile.contentAsString
     }
 
   def invalidate(): Try[Unit] =
@@ -59,15 +58,25 @@ trait FileDataStorage[T] {
   def save(values: Seq[T]): Boolean = {
     logger.debug("Saving new values to storage")
     val storageListJson = values.asJson.toString
-    val wroteSuccessfully = writeToFile(storageFile, storageListJson)
-    logger.debug(s"Storage saved with status: ${wroteSuccessfully}")
-    wroteSuccessfully.isSuccess
+    writeToFile(storageListJson) match {
+      case Success(_) =>
+        logger.debug(s"Storage saved successfully")
+        true
+      case Failure(exception) =>
+        logger.debug(s"Storage failed to save: ${exception.getLocalizedMessage}")
+        false
+    }
   }
 
   def get(): Option[Seq[T]] = {
     logger.debug("Retrieving storage")
     if (storageFile.exists) {
-      val fileContentOpt = readFromFile(storageFile).toOption
+      val fileContentOpt = readFromFile() match {
+        case Success(content) => Some(content)
+        case Failure(exception) =>
+          logger.debug(s"Failed to retrieve from storage: ${exception.getLocalizedMessage}")
+          None
+      }
       fileContentOpt.flatMap { content =>
         parser.decode[Seq[T]](content).fold(_ => None, v => Some(v)).filter(_.nonEmpty)
       }

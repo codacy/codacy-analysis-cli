@@ -4,21 +4,12 @@ import com.codacy.analysis.core.model.ToolSpec
 import com.codacy.analysis.core.storage.FileDataStorage
 import io.circe.{Decoder, Encoder}
 
-trait ToolSpecDataStorageTrait extends FileDataStorage[ToolSpec] {
+case class ToolSpecDataStorage(override val storageFilename: String = "tools")
+    extends FileDataStorage[ToolSpec](storageFilename) {
 
   override implicit val encoder: Encoder[ToolSpec] =
     ToolPatternsSpecsEncoders.toolEncoder
 
   override implicit val decoder: Decoder[ToolSpec] =
     ToolPatternsSpecsEncoders.toolDecoder
-
-}
-
-class ToolSpecDataStorage(override val storageFilename: String = "tools") extends ToolSpecDataStorageTrait
-
-object ToolSpecDataStorage {
-
-  def apply(storageFilename: String): ToolSpecDataStorage = {
-    new ToolSpecDataStorage(storageFilename)
-  }
 }

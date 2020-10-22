@@ -88,23 +88,23 @@ class ToolPatternsSpecsEncodersSpec extends Specification with NoLanguageFeature
                                        |}""".stripMargin
 
   "ToolPatternsSpecsEncoders" should {
-    s"Encode tool spec correctly".stripMargin in {
+    "Encode tool spec correctly".stripMargin in {
       toolSpec().asJson.toString shouldEqual toolSpecAsJson()
     }
 
-    s"Decode tool spec correctly".stripMargin in {
+    "Decode tool spec correctly".stripMargin in {
 
       val toolSpecDecoded = parser.decode[ToolSpec](toolSpecAsJson())
       toolSpecDecoded shouldEqual Right(toolSpec())
     }
 
-    s"Decode tool spec with languages None".stripMargin in {
+    "Decode tool spec with languages None".stripMargin in {
 
       val toolSpecDecoded = parser.decode[ToolSpec](toolSpecAsJson("NotFound"))
       toolSpecDecoded shouldEqual Right(toolSpec(Set.empty))
     }
 
-    s"Encode pattern spec correctly".stripMargin in {
+    "Encode pattern spec correctly".stripMargin in {
       patternSpec.asJson.toString shouldEqual toolPatternSpecJson
     }
 

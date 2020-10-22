@@ -12,14 +12,12 @@ class FileDataStorageSpec extends Specification with NoLanguageFeatures with Moc
 
   case class Test(name: String)
 
-  class StorageTest extends FileDataStorage[Test] {
+  class StorageTest(storageFilename: String = "") extends FileDataStorage[Test](storageFilename) {
 
     override implicit val encoder: Encoder[Test] = deriveEncoder
     override implicit val decoder: Decoder[Test] = deriveDecoder
 
     override val storageFile: File = File.newTemporaryFile()
-
-    override def storageFilename: String = ""
   }
 
   "FileDataStorage" should {
