@@ -1,7 +1,7 @@
 package com.codacy.analysis.cli
 
-import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.git.Commit
+import com.codacy.analysis.core.model.AnalyserError
 import com.codacy.plugins.api.languages.Language
 
 sealed trait CLIError {
@@ -10,18 +10,18 @@ sealed trait CLIError {
 
 object CLIError {
 
-  def from(coreError: Analyser.Error): CLIError = {
+  def from(coreError: AnalyserError): CLIError = {
     coreError match {
-      case Analyser.Error.ToolExecutionFailure(toolType, toolName) =>
-        CLIError.ToolExecutionFailure(toolType, toolName)
-      case Analyser.Error.ToolNeedsNetwork(toolName) =>
-        CLIError.ToolNeedsNetwork(toolName)
-      case Analyser.Error.NonExistingToolInput(toolName, _) =>
-        CLIError.NonExistingToolInput(toolName)
-      case Analyser.Error.NoActiveToolInConfiguration =>
-        CLIError.NoActiveToolInConfiguration
-      case Analyser.Error.NoToolsFoundForFiles =>
-        CLIError.NoToolsFoundForFiles
+      case AnalyserError.ToolExecutionFailure(toolType, toolName) => CLIError.ToolExecutionFailure(toolType, toolName)
+      case AnalyserError.ToolNeedsNetwork(toolName)               => CLIError.ToolNeedsNetwork(toolName)
+      case AnalyserError.NonExistingToolInput(toolName)           => CLIError.NonExistingToolInput(toolName)
+      case AnalyserError.NoActiveToolInConfiguration              => CLIError.NoActiveToolInConfiguration
+      case AnalyserError.NoToolsFoundForFiles                     => CLIError.NoToolsFoundForFiles
+      case AnalyserError.FailedToFetchTools(errorMessage)         => CLIError.CouldNotGetTools(errorMessage)
+      case AnalyserError.FailedToFindTool(toolUuid) =>
+        CLIError.CouldNotGetTools(s"Failure to get tool with UUID: $toolUuid")
+      case AnalyserError.FailedToListPatterns(toolUuid, errorMessage) =>
+        CLIError.CouldNotGetTools(s"Failure getting patterns for tool with UUID $toolUuid. Error: $errorMessage")
     }
   }
 

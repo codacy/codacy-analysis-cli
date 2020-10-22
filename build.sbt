@@ -1,3 +1,6 @@
+import java.nio.file.Files
+
+import sbt._
 import codacy.libs._
 import sbt._
 
@@ -16,6 +19,12 @@ val assemblyCommon = Seq(
       val oldStrategy = (assemblyMergeStrategy in assembly).value
       oldStrategy(x)
   })
+inThisBuild(
+  Seq(
+    scalaVersion := Common.scalaVersionNumber,
+    scalaBinaryVersion := Common.scalaBinaryVersionNumber,
+    scapegoatDisabledInspections := Seq(),
+    scapegoatVersion := "1.4.6"))
 
 val sonatypeInformation = Seq(
   startYear := Some(2018),
@@ -71,8 +80,23 @@ lazy val codacyAnalysisCli = project
   .enablePlugins(DockerPlugin)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
-  .dependsOn(codacyAnalysisCore % "compile->compile;test->test")
-  .aggregate(codacyAnalysisCore)
+  .dependsOn(codacyAnalysisCore % "compile->compile;test->test", toolRepositoryPlugins, toolRepositoryRemote)
+  .aggregate(codacyAnalysisCore, toolRepositoryPlugins, toolRepositoryRemote)
+
+lazy val toolRepositoryPlugins = project
+  .in(file("toolRepository-plugins"))
+  .settings(Common.genericSettings)
+  .settings(libraryDependencies ++= Dependencies.codacyPlugins)
+  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
+  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
+  .dependsOn(codacyAnalysisCore, codacyAnalysisModels)
+
+lazy val toolRepositoryRemote = project
+  .in(file("toolRepository-remote"))
+  .settings(Common.genericSettings, libraryDependencies ++= Dependencies.specs2)
+  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
+  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
+  .dependsOn(codacyAnalysisCore, codacyAnalysisModels, codacyApiClient)
 
 lazy val codacyAnalysisModels = project
   .in(file("model"))
@@ -90,8 +114,42 @@ lazy val codacyAnalysisModels = project
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .enablePlugins(JavaAppPackaging)
 
-// Scapegoat
-ThisBuild / scalaVersion := Common.scalaVersionNumber
-ThisBuild / scalaBinaryVersion := Common.scalaBinaryVersionNumber
-ThisBuild / scapegoatDisabledInspections := Seq()
-ThisBuild / scapegoatVersion := "1.4.3"
+lazy val apiSwaggerFile: File =
+  codacyApiClient.base / "target" / "api" / "codacy-api" / Dependencies.codacyApiVersion / "swagger.yaml"
+
+lazy val downloadCodacyToolsSwaggerFile = Def.task[Unit] {
+  if (!Files.exists(apiSwaggerFile.toPath)) {
+    val result: String =
+      scala.io.Source
+        .fromURL(url(s"https://dl.bintray.com/codacy/api/codacy-api/${Dependencies.codacyApiVersion}/apiv3.yaml"))
+        .mkString
+    IO.write(apiSwaggerFile, result)
+  }
+}
+
+val silencerSettings =
+  Seq(libraryDependencies ++= Dependencies.silencer, scalacOptions += "-P:silencer:pathFilters=src_managed")
+
+lazy val codacyApiClient = project
+  .in(file("codacy-api-client"))
+  .settings(name := "codacy-api-client", description := "Client library for codacy API")
+  .settings(
+    // Guardrail requirement
+    addCompilerPlugin(Dependencies.macroParadise.cross(CrossVersion.full)),
+    scalacOptions += "-Xexperimental")
+  .settings(
+    libraryDependencies ++= Dependencies.akka ++ Dependencies.circe ++ Seq(
+      Dependencies.typesafeConfig,
+      Dependencies.cats,
+      scalatest % Test))
+  .settings(
+    Compile / guardrail := (Compile / guardrail).dependsOn(downloadCodacyToolsSwaggerFile).value,
+    Compile / guardrailTasks := {
+      List(
+        ScalaClient(
+          specPath = apiSwaggerFile,
+          pkg = "com.codacy.analysis.clientapi",
+          tracing = false,
+          modules = List("circe", "akka-http")))
+    },
+    silencerSettings)

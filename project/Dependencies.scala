@@ -5,6 +5,8 @@ object Dependencies {
   val codacyPluginsVersion = "21.0.6_play_2.7"
   val circeVersion = "0.12.3"
   val specs2Version = "4.8.1"
+  val codacyApiVersion = "18.5.0"
+  val silencerVersion = "1.7.0"
 
   lazy val circe = List(
     "io.circe" %% "circe-core" % circeVersion,
@@ -40,4 +42,20 @@ object Dependencies {
   lazy val jGit = "org.eclipse.jgit" % "org.eclipse.jgit" % "5.6.0.201912101111-r"
 
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.0"
+
+  val akkaVersion = "2.5.26"
+  val akkaHttpVersion = "10.1.9"
+
+  val akka =
+    Seq(
+      "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+      "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+      "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
+      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion)
+
+  val macroParadise = "org.scalamacros" %% "paradise" % "2.1.1"
+
+  val silencer = Seq(
+    compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
+    "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full)
 }

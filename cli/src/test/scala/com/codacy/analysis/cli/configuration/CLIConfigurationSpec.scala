@@ -32,7 +32,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
   private val remoteUrl = "codacy.com/2.0"
 
   private val apiCredentials: Credentials =
-    APIToken(apiTokenStr, Option(remoteUrl), UserName(username), ProjectName(project))
+    APIToken(apiTokenStr, remoteUrl, UserName(username), ProjectName(project))
 
   private object noLocalConfig extends CodacyConfigurationFileLoader {
     override def load(directory: File) = Left("no local config")
@@ -50,7 +50,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
     commitUuid = commitUuid,
     extras = ExtraOptions(analyser = Analyser.defaultAnalyser.name))
   private val defaultEnvironment = new Environment(Map.empty)
-  private val httpHelper = new HttpHelper(Option(remoteUrl), Map.empty)
+  private val httpHelper = new HttpHelper(remoteUrl, Map.empty)
 
   private val noRemoteConfigCodacyClient =
     new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {

@@ -1,33 +1,69 @@
 package com.codacy.analysis.cli
 
 import better.files.File
-import com.codacy.analysis.cli.analysis.AnalyseExecutor
+import com.codacy.analysis.cli.analysis.ToolSelector
 import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.core.files.FilesTarget
-import com.codacy.analysis.core.tools.Tool
+import com.codacy.analysis.core.model.{AnalyserError, PatternSpec, ToolSpec}
+import com.codacy.analysis.core.tools.{Tool, ToolRepository}
 import com.codacy.analysis.core.utils.LanguagesHelper
 import com.codacy.plugins.api.languages.Languages.{Javascript, Python}
 import com.codacy.plugins.api.languages.{Language, Languages}
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 
-class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
+class ToolSelectorSpec extends Specification with NoLanguageFeatures {
 
   val emptyFilesTarget = FilesTarget(File(""), Set.empty, Set.empty)
   val noLocalConfiguration = Left("no config")
 
+  val toolRepository = new ToolRepository {
+
+    private def getToolSpec(uuid: String, name: String, languages: Set[Language]) =
+      ToolSpec(
+        uuid = uuid,
+        dockerImage = "codacy/codacy-example-tool:1.0.0",
+        isDefault = true,
+        version = "",
+        languages = languages,
+        name = name,
+        shortName = name,
+        documentationUrl = None,
+        sourceCodeUrl = None,
+        prefix = "",
+        needsCompilation = false,
+        hasConfigFile = true,
+        configFilenames = Set.empty,
+        isClientSide = false,
+        hasUIConfiguration = true)
+
+    override def list(): Either[AnalyserError, Seq[ToolSpec]] =
+      Right(
+        Seq(
+          getToolSpec("34225275-f79e-4b85-8126-c7512c987c0d", "PyLint", Set(Python)),
+          getToolSpec("c6273c22-5248-11e5-885d-feff819cdc9f", "Brakeman", Set(Languages.Ruby)),
+          getToolSpec("724f98da-f616-4e37-9606-f16919137a1e", "Rubocop", Set(Languages.Ruby)),
+          getToolSpec("38794ba2-94d8-4178-ab99-1f5c1d12760c", "BundlerAudit", Set(Languages.Ruby)),
+          getToolSpec("cf05f3aa-fd23-4586-8cce-5368917ec3e5", "ESLint", Set(Languages.Javascript))))
+
+    override def get(uuid: String): Either[AnalyserError, ToolSpec] = ???
+
+    override def listPatterns(toolUuid: String): Either[AnalyserError, Seq[PatternSpec]] = Right(Seq.empty)
+  }
+  val toolSelector: ToolSelector = new ToolSelector(toolRepository)
+
   "AnalyseExecutor.allTools" should {
-    "find python tools" in {
+    "find ruby tools" in {
 
       val toolConfiguration =
         CLIConfiguration.Tool(Option.empty, allowNetwork = false, Left("no config"), Option.empty, Map.empty)
-      val pythonTools = AnalyseExecutor.allTools(None, toolConfiguration, Set(Languages.Ruby))
+      val rubyTools = toolSelector.allTools(None, toolConfiguration, Set(Languages.Ruby))
 
-      pythonTools should beRight
-      pythonTools must beLike {
+      rubyTools should beRight
+      rubyTools must beLike {
         case Right(tools) =>
           tools.map(_.name) must containTheSameElementsAs(
-            Seq("brakeman", "rubocop", "bundleraudit", "metrics", "duplication"))
+            Seq("Brakeman", "Rubocop", "BundlerAudit", "metrics", "duplication"))
           tools.flatMap(_.supportedLanguages) must containAllOf(Seq(Languages.Ruby))
       }
     }
@@ -36,7 +72,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
   "AnalyseExecutor.tools" should {
     "use input over remote configuration" in {
 
-      val expectedToolName = "pylint"
+      val expectedToolName = "PyLint"
       val toolConfigs =
         Set(CLIConfiguration.IssuesTool("InvalidToolName", enabled = true, notEdited = false, Set.empty))
       val toolConfiguration =
@@ -44,7 +80,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val userInput = Some(expectedToolName)
 
       val toolEither =
-        AnalyseExecutor.tools(userInput, toolConfiguration, Set(Python))
+        toolSelector.tools(userInput, toolConfiguration, Set(Python))
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -67,7 +103,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val languages = LanguagesHelper.fromFileTarget(emptyFilesTarget, Map.empty)
 
       val toolEither =
-        AnalyseExecutor.tools(userInput, toolConfiguration, languages)
+        toolSelector.tools(userInput, toolConfiguration, languages)
       toolEither must beLeft(CLIError.NonExistingToolInput(expectedToolName))
     }
 
@@ -87,7 +123,7 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
         CLIConfiguration.Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
 
       val toolEither =
-        AnalyseExecutor.tools(userInput, toolConfiguration, Set(Javascript, Python))
+        toolSelector.tools(userInput, toolConfiguration, Set(Javascript, Python))
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -104,11 +140,11 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
         CLIConfiguration.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
-      val toolEither = AnalyseExecutor.tools(userInput, toolConfiguration, languages)
+      val toolEither = toolSelector.tools(userInput, toolConfiguration, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
-          toolSet.map(_.name) mustEqual Set("brakeman", "rubocop", "bundleraudit")
+          toolSet.map(_.name) mustEqual Set("Brakeman", "Rubocop", "BundlerAudit")
       }
     }
 
@@ -116,16 +152,16 @@ class AnalyseExecutorToolsSpec extends Specification with NoLanguageFeatures {
       val userInput = None
       val toolConfigs = Left("some error")
       val filesTarget = FilesTarget(File(""), Set(File("SomeClazz.rawr").path), Set.empty)
-      val languageExtensions: Map[Language, Set[String]] = Map(Languages.Java -> Set("rawr"))
+      val languageExtensions: Map[Language, Set[String]] = Map(Languages.Ruby -> Set("rawr"))
       val toolConfiguration =
         CLIConfiguration.Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, languageExtensions)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, languageExtensions)
 
-      val toolEither = AnalyseExecutor.tools(userInput, toolConfiguration, languages)
+      val toolEither = toolSelector.tools(userInput, toolConfiguration, languages)
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
-          toolSet.map(_.name) mustEqual Set("spotbugs", "checkstyle", "pmd", "pmd-legacy")
+          toolSet.map(_.name) mustEqual Set("Brakeman", "Rubocop", "BundlerAudit")
       }
     }
   }

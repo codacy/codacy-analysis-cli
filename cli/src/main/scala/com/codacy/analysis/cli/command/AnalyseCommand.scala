@@ -11,10 +11,11 @@ import com.codacy.analysis.cli.analysis.AnalyseExecutor.{
   IssuesToolExecutorResult,
   MetricsToolExecutorResult
 }
-import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ExitStatus}
+import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ExitStatus, ToolSelector}
 import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.configuration.{CLIConfiguration, Environment}
 import com.codacy.analysis.cli.formatter.Formatter
+import com.codacy.analysis.cli.toolRepository.ToolRepositoryFactory
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.configuration.CodacyConfigurationFileLoader
@@ -35,15 +36,29 @@ object AnalyseCommand {
 
   def apply(analyze: Analyze, env: Map[String, String]): AnalyseCommand = {
     val environment: Environment = new Environment(env)
+    val apiUrl =
+      environment
+        .apiBaseUrlArgument(analyze.api.codacyApiBaseUrl)
+        .orElse(environment.apiBaseUrlEnvironmentVariable())
+        .getOrElse("https://api.codacy.com")
+
     val codacyClientOpt: Option[CodacyClient] =
-      Credentials.get(environment, analyze.api).map(CodacyClient.apply)
+      Credentials.get(environment, analyze.api, apiUrl).map(CodacyClient.apply)
     val configuration: CLIConfiguration =
       CLIConfiguration(codacyClientOpt, environment, analyze, new CodacyConfigurationFileLoader)
     val formatter: Formatter =
       Formatter(configuration.analysis.output, environment.baseProjectDirectory(analyze.directory))
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
+
+    val toolSelector = new ToolSelector(ToolRepositoryFactory.build(apiUrl, analyze.fetchRemoteTools))
+
     val analyseExecutor: AnalyseExecutor =
-      new AnalyseExecutor(formatter, Analyser(analyze.extras.analyser), fileCollector, configuration.analysis)
+      new AnalyseExecutor(
+        formatter,
+        Analyser(analyze.extras.analyser),
+        fileCollector,
+        configuration.analysis,
+        toolSelector)
     val uploaderOpt: Either[String, Option[ResultsUploader]] =
       ResultsUploader(codacyClientOpt, configuration.upload.upload, configuration.upload.commitUuid)
 

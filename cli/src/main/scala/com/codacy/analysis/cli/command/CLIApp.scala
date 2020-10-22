@@ -9,7 +9,6 @@ import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.{ProjectName, UserName}
 import com.codacy.analysis.core.git.Commit
-import com.codacy.analysis.core.tools.Tool
 
 import scala.concurrent.duration.Duration
 import scala.util.matching.Regex
@@ -125,7 +124,7 @@ final case class Analyze(
   options: CommonOptions,
   @Recurse
   api: APIOptions,
-  @ExtraName("t") @ValueDescription(s"The tool to analyze the code. (${Tool.allToolShortNames.mkString(", ")})")
+  @ExtraName("t") @ValueDescription("The tool to analyze the code.")
   tool: Option[String],
   @ExtraName("d") @ValueDescription("The directory to analyze.")
   directory: Option[File],
@@ -154,6 +153,8 @@ final case class Analyze(
   @ValueDescription(
     "Reduce issue severity by one level, for non-security issues, for compatibility with GitHub's code scanning. Use in conjunction with `--format sarif`")
   ghCodeScanningCompat: Int @@ Counter = Tag.of(0),
+  @Hidden @ValueDescription("Fetch the tools and descriptions from Codacy public API")
+  fetchRemoteTools: Boolean = false,
   @Recurse
   extras: ExtraOptions)
     extends CommandOptions {

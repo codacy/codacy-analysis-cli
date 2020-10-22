@@ -10,10 +10,10 @@ object Common {
 
   private val defaultDockerInstallationPath = "/opt/codacy"
   val scalaBinaryVersionNumber = "2.12"
-  val scalaVersionNumber = s"$scalaBinaryVersionNumber.10"
+  val scalaVersionNumber = s"$scalaBinaryVersionNumber.12"
 
   val scala213BinaryVersionNumber = "2.13"
-  val scala213VersionNumber = s"$scala213BinaryVersionNumber.1"
+  val scala213VersionNumber = s"$scala213BinaryVersionNumber.3"
   lazy val supportedScalaVersions = List(Common.scalaVersionNumber, Common.scala213VersionNumber)
 
   val genericSettings = Seq(
@@ -23,7 +23,6 @@ object Common {
       "oss.sonatype.org",
       sys.env.getOrElse("SONATYPE_USER", "username"),
       sys.env.getOrElse("SONATYPE_PASSWORD", "password")),
-    scalaVersion := scalaVersionNumber,
     organization := "com.codacy",
     scalacOptions ++= Common.compilerFlags(scalaVersion.value),
     Test / scalacOptions += "-Yrangepos",

@@ -1,15 +1,12 @@
 package com.codacy.analysis.core.clients
 
 sealed trait Credentials {
-  val baseUrl: Option[String]
+  val baseUrl: String
 }
 
-final case class ProjectToken(token: String, baseUrl: Option[String] = Option.empty[String]) extends Credentials
+final case class ProjectToken(token: String, baseUrl: String) extends Credentials
 
-final case class APIToken(token: String,
-                          baseUrl: Option[String] = Option.empty[String],
-                          userName: UserName,
-                          projectName: ProjectName)
+final case class APIToken(token: String, baseUrl: String, userName: UserName, projectName: ProjectName)
     extends Credentials
 
 final case class UserName(private val userName: String) extends AnyVal {
