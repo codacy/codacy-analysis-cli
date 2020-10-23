@@ -90,14 +90,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
         case e: Exception => Left(AnalyserError.FailedToListPatterns(tool.uuid, e.getMessage))
       }
 
-    val result = Await.result(patternsF, 1 minute)
-    val patternSpecDataStorage = patternStorage(tool.uuid)
-    result match {
-      case Right(patterns) =>
-        patternSpecDataStorage.save(patterns)
-        Right(patterns)
-      case Left(err) => Left(err)
-    }
+    Await.result(patternsF, 1 minute)
   }
 
   override def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = {

@@ -313,19 +313,6 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
       patternsEither must beRight((p: Seq[PatternSpec]) => p.map(_.id) must contain(patternA.id))
     }
 
-    "throw an error when fetching patterns for non existing tool" in {
-      val mockedClient = mock[ToolsClient]
-      val toolRepository =
-        new ToolRepositoryRemote(mockedClient, _ => mockToolsDataWithStorage, _ => mockPatternDataWithStorage)
-
-      when(mockedClient.listTools(cursor = None))
-        .thenReturn(eitherListToolsResponse(ListToolsResponse.OK(ToolListResponse(Vector(toolA), None))))
-
-      val patternsEither = toolRepository.listPatterns(toolSpec("non-existing-tool"))
-
-      patternsEither must beLeft
-    }
-
     "throw an exception if API returns BadRequest" in {
       val mockedClient = mock[ToolsClient]
       val toolRepository =
