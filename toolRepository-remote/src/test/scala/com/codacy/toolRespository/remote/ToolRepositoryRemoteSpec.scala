@@ -224,7 +224,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
         eitherListToolPatternsResponse(ListPatternsResponse.OK(PatternListResponse(Vector(patternA), None))),
         eitherListToolPatternsResponse(ListPatternsResponse.OK(PatternListResponse(Vector(patternB), None))))
 
-      val patternsEither = toolRepository.listPatterns("some-tool-uuid")
+      val patternsEither = toolRepository.listPatterns(toolSpec("some-tool-uuid"))
 
       patternsEither must beRight
       // patternB should not be returned because the first request returned an empty cursor
@@ -249,7 +249,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
           ListPatternsResponse.OK(PatternListResponse(Vector(patternA), Some(paginationInfo)))),
         eitherListToolPatternsResponse(ListPatternsResponse.OK(PatternListResponse(Vector(patternB), None))))
 
-      val patternsEither = toolRepository.listPatterns("some-tool-uuid")
+      val patternsEither = toolRepository.listPatterns(toolSpec("some-tool-uuid"))
 
       patternsEither must beRight
       // patternB should not be returned because the first request returned an empty cursor
@@ -271,7 +271,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
           headers = ArgumentMatchers.any[List[HttpHeader]]))
         .thenReturn(eitherListToolPatternsResponse(ListPatternsResponse.BadRequest(BadRequest("error"))))
 
-      val patternsEither = toolRepository.listPatterns("some-tool-uuid")
+      val patternsEither = toolRepository.listPatterns(toolSpec("some-tool-uuid"))
 
       patternsEither must beRight
       patternsEither must beRight((p: Seq[PatternSpec]) => p must haveLength(1))
@@ -291,7 +291,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
           headers = ArgumentMatchers.any[List[HttpHeader]]))
         .thenReturn(eitherListToolPatternsResponse(ListPatternsResponse.BadRequest(BadRequest("error"))))
 
-      toolRepository.listPatterns("some-tool-uuid") must beLeft(
+      toolRepository.listPatterns(toolSpec("some-tool-uuid")) must beLeft(
         (e: AnalyserError) => e must beAnInstanceOf[AnalyserError.FailedToListPatterns])
     }
 
@@ -308,7 +308,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
           headers = ArgumentMatchers.any[List[HttpHeader]]))
         .thenReturn(eitherListToolPatternsResponse(ListPatternsResponse.NotFound(NotFound("error"))))
 
-      toolRepository.listPatterns("some-tool-uuid") must beLeft(
+      toolRepository.listPatterns(toolSpec("some-tool-uuid")) must beLeft(
         (e: AnalyserError) => e must beAnInstanceOf[AnalyserError.FailedToListPatterns])
     }
 
@@ -325,7 +325,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
           headers = ArgumentMatchers.any[List[HttpHeader]])).thenReturn(
         eitherListToolPatternsResponse(ListPatternsResponse.InternalServerError(InternalServerError("error"))))
 
-      toolRepository.listPatterns("some-tool-uuid") must beLeft(
+      toolRepository.listPatterns(toolSpec("some-tool-uuid")) must beLeft(
         (e: AnalyserError) => e must beAnInstanceOf[AnalyserError.FailedToListPatterns])
     }
   }

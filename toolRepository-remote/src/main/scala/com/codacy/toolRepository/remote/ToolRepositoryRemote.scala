@@ -61,9 +61,9 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
       }
     }
 
-  override def listPatterns(toolUuid: String): Either[AnalyserError, Seq[PatternSpec]] = {
+  override def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
-      toolsClient.listPatterns(toolUuid, cursor = cursor).value.map {
+      toolsClient.listPatterns(tool.uuid, cursor = cursor).value.map {
         case Right(ListPatternsResponse.OK(PatternListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
           (None, data)
         case Right(
@@ -83,12 +83,13 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
       }
     }
 
-    val patternsF = source.runWith(Sink.seq).map(patterns => Right(patterns.map(toPatternSpec))).recover {
-      case e: Exception => Left(AnalyserError.FailedToListPatterns(toolUuid, e.getMessage))
-    }
+    val patternsF =
+      source.runWith(Sink.seq).map(patterns => Right(patterns.map(toPatternSpec(_, tool.prefix)))).recover {
+        case e: Exception => Left(AnalyserError.FailedToListPatterns(tool.uuid, e.getMessage))
+      }
 
     val result = Await.result(patternsF, 1 minute)
-    val patternSpecDataStorage = patternStorage(toolUuid)
+    val patternSpecDataStorage = patternStorage(tool.uuid)
     result match {
       case Right(patterns) =>
         patternSpecDataStorage.save(patterns)
@@ -118,7 +119,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
       tool.configurable)
   }
 
-  private def toPatternSpec(pattern: definitions.Pattern): PatternSpec = {
+  private def toPatternSpec(pattern: definitions.Pattern, patternPrefix: String): PatternSpec = {
     val parameterSpecs = pattern.parameters.map { parameter =>
       ParameterSpec(parameter.name, parameter.default, parameter.description)
     }
@@ -130,7 +131,8 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
       }(collection.breakOut)
 
     PatternSpec(
-      pattern.id,
+      // plugins is expecting to receive patterns without prefixes
+      pattern.id.stripPrefix(patternPrefix),
       pattern.level,
       pattern.category,
       pattern.subCategory,

@@ -147,7 +147,7 @@ class ToolCollector(toolRepository: ToolRepository) {
   def fromUuid(uuid: String): Either[AnalyserError, FullToolSpec] = {
     for {
       tool <- toolRepository.get(uuid)
-      patterns <- toolRepository.listPatterns(tool.uuid)
+      patterns <- toolRepository.listPatterns(tool)
     } yield {
       FullToolSpec(tool, patterns)
     }
@@ -181,7 +181,7 @@ class ToolCollector(toolRepository: ToolRepository) {
   def from(value: String, languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
     for {
       tool <- find(value)
-      patterns <- toolRepository.listPatterns(tool.uuid)
+      patterns <- toolRepository.listPatterns(tool)
     } yield {
       tool.languages.intersect(languages).map(language => Tool(FullToolSpec(tool, patterns), language))
     }
@@ -196,7 +196,7 @@ class ToolCollector(toolRepository: ToolRepository) {
   }
 
   private def toTool(tool: ToolSpec, languages: Set[Language]): Either[AnalyserError, List[Tool]] = {
-    toolRepository.listPatterns(tool.uuid).map { patterns =>
+    toolRepository.listPatterns(tool).map { patterns =>
       tool.languages
         .intersect(languages)
         .map { language =>

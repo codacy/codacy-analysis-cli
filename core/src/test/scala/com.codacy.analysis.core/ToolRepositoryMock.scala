@@ -107,13 +107,13 @@ class ToolRepositoryMock extends ToolRepository {
   private def getSimplePattern(patternId: String): PatternSpec =
     PatternSpec(patternId, "Info", "ErrorProne", None, patternId, None, None, enabled = true, None, Seq(), Set())
 
-  override def listPatterns(toolUuid: String): Either[AnalyserError, Seq[PatternSpec]] =
+  override def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] =
     Map(
       pylintId -> Seq("PyLint_C0111", "PyLint_E1101").map(getSimplePattern),
       eslintId -> Seq("ESLint_semi", "ESLint_no-undef", "ESLint_indent", "ESLint_no-empty").map(getSimplePattern),
       csslintId -> Seq("CSSLint_important").map(getSimplePattern),
       brakemanId -> Seq().map(getSimplePattern),
       scalastyleId -> Seq().map(getSimplePattern))
-      .get(toolUuid)
-      .toRight(AnalyserError.FailedToListPatterns(toolUuid, ""))
+      .get(tool.uuid)
+      .toRight(AnalyserError.FailedToListPatterns(tool.uuid, ""))
 }

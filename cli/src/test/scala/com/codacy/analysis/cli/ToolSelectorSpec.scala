@@ -48,7 +48,7 @@ class ToolSelectorSpec extends Specification with NoLanguageFeatures {
 
     override def get(uuid: String): Either[AnalyserError, ToolSpec] = ???
 
-    override def listPatterns(toolUuid: String): Either[AnalyserError, Seq[PatternSpec]] = Right(Seq.empty)
+    override def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = Right(Seq.empty)
   }
   val toolSelector: ToolSelector = new ToolSelector(toolRepository)
 
