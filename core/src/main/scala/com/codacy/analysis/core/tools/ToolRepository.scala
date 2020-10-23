@@ -6,6 +6,6 @@ trait ToolRepository {
 
   def list(): Either[AnalyserError, Seq[ToolSpec]]
   def get(uuid: String): Either[AnalyserError, ToolSpec]
-  def listPatterns(toolUuid: String): Either[AnalyserError, Seq[PatternSpec]]
+  def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]]
 
 }

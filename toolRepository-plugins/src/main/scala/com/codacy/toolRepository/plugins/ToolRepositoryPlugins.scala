@@ -43,18 +43,18 @@ class ToolRepositoryPlugins() extends ToolRepository {
       }
     }
 
-  override def listPatterns(toolUuid: String): Either[AnalyserError, Seq[PatternSpec]] = {
+  override def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = {
     val pluginEither =
-      ResultsTools.list.find(_.uuid == toolUuid).toRight(AnalyserError.FailedToFindTool(toolUuid))
+      ResultsTools.list.find(_.uuid == tool.uuid).toRight(AnalyserError.FailedToFindTool(tool.uuid))
     for {
       plugin <- pluginEither
       dockerToolDocumentation = new DockerToolDocumentation(plugin, new BinaryDockerHelper())
       patternDescriptions <- dockerToolDocumentation.patternDescriptions.toRight(
-        AnalyserError.FailedToListPatterns(toolUuid, "Cannot fetch patterns descriptions"))
+        AnalyserError.FailedToListPatterns(tool.uuid, "Cannot fetch patterns descriptions"))
       patternDescriptionsMap: Map[String, PatternDescription] =
         patternDescriptions.map(description => description.patternId.value -> description)(collection.breakOut)
-      toolSpecification <- dockerToolDocumentation.prefixedSpecs.toRight(
-        AnalyserError.FailedToListPatterns(toolUuid, "Cannot fetch tool specification"))
+      toolSpecification <- dockerToolDocumentation.toolSpecification.toRight(
+        AnalyserError.FailedToListPatterns(tool.uuid, "Cannot fetch tool specification"))
     } yield toolSpecification.patterns.map { pattern =>
       val patternDescription = patternDescriptionsMap.get(pattern.patternId.value)
 
