@@ -93,6 +93,20 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
     Await.result(patternsF, 1 minute)
   }
 
+  private def downloadPatternsFromApi(
+    tool: ToolSpec,
+    toolPatternsStorageInstance: PatternSpecDataStorage): Either[AnalyserError, Seq[PatternSpec]] = {
+    patternsFromApi(tool) match {
+      case Right(patternsFromApi) =>
+        logger.info(s"Fetched patterns for ${tool.name} version ${tool.version}")
+        toolPatternsStorageInstance.save(patternsFromApi)
+        Right(patternsFromApi)
+      case Left(err) =>
+        logger.error(s"Failed to fetch patterns for ${tool.name} from API: ${err.message}")
+        Left(err)
+    }
+  }
+
   override def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = {
     val toolPatternsStorageFilename = s"${tool.uuid}-${tool.version}"
     val toolPatternsStorageInstance = patternStorage(toolPatternsStorageFilename)
@@ -102,15 +116,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
         logger.info(s"Using patterns from cache for ${tool.name} version ${tool.version}")
         Right(patternsFromStorage)
       case None =>
-        patternsFromApi(tool) match {
-          case Right(patternsFromApi) =>
-            logger.info(s"Fetched patterns for ${tool.name} version ${tool.version}")
-            toolPatternsStorageInstance.save(patternsFromApi)
-            Right(patternsFromApi)
-          case Left(err) =>
-            logger.error(s"Failed to fetch patterns for ${tool.name} from API: ${err.message}")
-            Left(err)
-        }
+        downloadPatternsFromApi(tool, toolPatternsStorageInstance)
     }
   }
 
