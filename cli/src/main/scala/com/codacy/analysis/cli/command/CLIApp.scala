@@ -153,8 +153,8 @@ final case class Analyze(
   @ValueDescription(
     "Reduce issue severity by one level, for non-security issues, for compatibility with GitHub's code scanning. Use in conjunction with `--format sarif`")
   ghCodeScanningCompat: Int @@ Counter = Tag.of(0),
-  @Hidden @ValueDescription("Fetch the tools and descriptions from Codacy public API")
-  fetchRemoteTools: Boolean = false,
+  @Hidden @ValueDescription("Fetch the tools and descriptions from codacy-plugins library")
+  legacyFetchTools: Boolean = false,
   @Recurse
   extras: ExtraOptions)
     extends CommandOptions {
