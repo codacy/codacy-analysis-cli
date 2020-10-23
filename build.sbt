@@ -19,6 +19,7 @@ val assemblyCommon = Seq(
       val oldStrategy = (assemblyMergeStrategy in assembly).value
       oldStrategy(x)
   })
+
 inThisBuild(
   Seq(
     scalaVersion := Common.scalaVersionNumber,
@@ -87,6 +88,7 @@ lazy val toolRepositoryPlugins = project
   .in(file("toolRepository-plugins"))
   .settings(Common.genericSettings)
   .settings(libraryDependencies ++= Dependencies.codacyPlugins)
+  .settings(assemblyCommon: _*)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisCore, codacyAnalysisModels)
@@ -94,6 +96,7 @@ lazy val toolRepositoryPlugins = project
 lazy val toolRepositoryRemote = project
   .in(file("toolRepository-remote"))
   .settings(Common.genericSettings, libraryDependencies ++= Dependencies.specs2)
+  .settings(assemblyCommon: _*)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisCore, codacyAnalysisModels, codacyApiClient)
