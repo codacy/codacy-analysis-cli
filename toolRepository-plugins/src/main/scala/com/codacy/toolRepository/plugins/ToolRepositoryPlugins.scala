@@ -53,7 +53,7 @@ class ToolRepositoryPlugins() extends ToolRepository {
         AnalyserError.FailedToListPatterns(toolUuid, "Cannot fetch patterns descriptions"))
       patternDescriptionsMap: Map[String, PatternDescription] =
         patternDescriptions.map(description => description.patternId.value -> description)(collection.breakOut)
-      toolSpecification <- dockerToolDocumentation.prefixedSpecs.toRight(
+      toolSpecification <- dockerToolDocumentation.toolSpecification.toRight(
         AnalyserError.FailedToListPatterns(toolUuid, "Cannot fetch tool specification"))
     } yield toolSpecification.patterns.map { pattern =>
       val patternDescription = patternDescriptionsMap.get(pattern.patternId.value)
