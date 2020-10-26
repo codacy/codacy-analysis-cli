@@ -13,8 +13,10 @@ import scala.concurrent.Future
 
 object ToolRepositoryFactory {
 
-  def build(codacyApiBaseUrl: String, fetchRemoteTools: Boolean): ToolRepository =
-    if (fetchRemoteTools) {
+  def build(codacyApiBaseUrl: String, legacyFetchTools: Boolean): ToolRepository =
+    if (legacyFetchTools) {
+      new ToolRepositoryPlugins()
+    } else {
       val actorSystem = ActorSystem("ToolsServiceActorSystem")
       val materializer = akka.stream.ActorMaterializer()(actorSystem)
       val httpClient: HttpRequest => Future[HttpResponse] =
@@ -25,7 +27,5 @@ object ToolRepositoryFactory {
       new ToolRepositoryRemote(toolsClient, ToolSpecDataStorage.apply, PatternSpecDataStorage.apply)(
         ec = actorSystem.dispatcher,
         mat = materializer)
-    } else {
-      new ToolRepositoryPlugins()
     }
 }

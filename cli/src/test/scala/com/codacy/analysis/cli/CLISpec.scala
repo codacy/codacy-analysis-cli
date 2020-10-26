@@ -316,7 +316,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
 
           val analyze = Analyze(
             options = CommonOptions(),
-            api = APIOptions(projectToken = Some("hey, im a token"), codacyApiBaseUrl = Some("https://codacy.com")),
+            api = APIOptions(projectToken = Some("hey, im a token"), codacyApiBaseUrl = Some("https://api.codacy.com")),
             tool = None,
             directory = Option(directory),
             upload = Tag.of(0),
