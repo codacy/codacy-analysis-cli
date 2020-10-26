@@ -41,6 +41,7 @@ object AnalyseCommand {
         .apiBaseUrlArgument(analyze.api.codacyApiBaseUrl)
         .orElse(environment.apiBaseUrlEnvironmentVariable())
         .getOrElse("https://api.codacy.com")
+        .stripSuffix("/") // a trailing slash breaks the tools fetching mechanism
 
     val codacyClientOpt: Option[CodacyClient] =
       Credentials.get(environment, analyze.api, apiUrl).map(CodacyClient.apply)

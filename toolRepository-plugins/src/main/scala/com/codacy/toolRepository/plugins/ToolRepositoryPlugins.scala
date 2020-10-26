@@ -26,7 +26,7 @@ class ToolRepositoryPlugins() extends ToolRepository {
         Some(tool.sourceCodeUrl),
         tool.prefix,
         tool.needsCompilation,
-        hasConfigFile = false,
+        hasConfigFile = tool.hasConfigFile,
         tool.configFilename.to[Set],
         tool.isClientSide,
         tool.hasUIConfiguration)
