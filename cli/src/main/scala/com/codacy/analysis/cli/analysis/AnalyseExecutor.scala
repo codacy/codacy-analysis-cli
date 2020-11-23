@@ -156,7 +156,9 @@ class AnalyseExecutor(formatter: Formatter,
       val shouldUseRemoteConfiguredPatterns = !shouldUseConfigFile && toolConfiguration.patterns.nonEmpty
       // TODO: Review isEnabled condition when running multiple tools since we might want to force this for single tools
       // val shouldRun = toolConfiguration.isEnabled && (shouldUseConfigFile || shouldUseRemoteConfiguredPatterns)
-      val shouldRun = shouldUseConfigFile || shouldUseRemoteConfiguredPatterns
+      val isClientSideWithoutConfiguration = tool.isClientSide && !tool.hasUIConfiguration && !tool.allowsConfigFile
+
+      val shouldRun = shouldUseConfigFile || shouldUseRemoteConfiguredPatterns || isClientSideWithoutConfiguration
 
       if (!shouldRun) {
         logger.error(s"""Could not find conditions to run tool ${tool.name} with:
@@ -167,6 +169,9 @@ class AnalyseExecutor(formatter: Formatter,
         Failure(new Exception(s"Could not find conditions to run tool ${tool.name}"))
       } else if (shouldUseConfigFile) {
         logger.info(s"Preparing to run ${tool.name} with configuration file")
+        Success(FileCfg(baseSubDir, extraValues))
+      } else if (isClientSideWithoutConfiguration) {
+        logger.info(s"Preparing to run ${tool.name} without configurations")
         Success(FileCfg(baseSubDir, extraValues))
       } else {
         logger.info(s"Preparing to run ${tool.name} with remote configuration")

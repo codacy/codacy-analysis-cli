@@ -52,6 +52,12 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val tool: To
   def configFilenames: Set[String] =
     if (tool.hasConfigFile) tool.configFilenames else Set.empty
 
+  def allowsConfigFile: Boolean = tool.hasConfigFile
+
+  def isClientSide: Boolean = tool.isClientSide
+
+  def hasUIConfiguration: Boolean = tool.hasUIConfiguration
+
   def run(directory: File,
           files: Set[Path],
           config: Configuration,
