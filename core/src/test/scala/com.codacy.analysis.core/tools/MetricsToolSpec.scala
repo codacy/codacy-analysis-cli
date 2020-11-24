@@ -62,7 +62,7 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
 
       val tools = MetricsToolCollector.fromLanguages(languagesWithTools)
 
-      tools must haveSize(4)
+      tools must haveSize(5)
 
       tools.map(_.languageToRun) must containTheSameElementsAs(languagesWithTools.to[Seq])
     }
