@@ -182,7 +182,8 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
   }
 
   private def generatePrimaryLocationHash(issue: Issue, fileContents: List[String]): String = {
-    val issueLineContents = fileContents(Math.max(0, issue.location.line - 1))
+    val issueLineIndex = Math.max(0, issue.location.line - 1)
+    val issueLineContents = if (fileContents.length > issueLineIndex) fileContents(issueLineIndex) else ""
     val lineContentsWithoutSpaces = spacesCompiledRegex.replaceAllIn(issueLineContents, "")
     val fingerprintContents =
       (issue.filename.toString + issue.patternId.value + lineContentsWithoutSpaces).getBytes("UTF-8")
