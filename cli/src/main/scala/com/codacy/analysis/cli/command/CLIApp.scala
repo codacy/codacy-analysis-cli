@@ -106,11 +106,11 @@ sealed trait CommandOptions {
 
 final case class APIOptions(@ValueDescription("The project token.")
                             projectToken: Option[String] = Option.empty,
-                            @ValueDescription("The api token.")
+                            @ValueDescription("The api token.") @Hidden
                             apiToken: Option[String] = Option.empty,
-                            @ValueDescription("The username.")
+                            @ValueDescription("The username.") @Hidden
                             username: Option[UserName] = Option.empty,
-                            @ValueDescription("The project name.")
+                            @ValueDescription("The project name.") @Hidden
                             project: Option[ProjectName] = Option.empty,
                             @ValueDescription("The codacy api base url.")
                             codacyApiBaseUrl: Option[String] = Some("https://api.codacy.com"))
