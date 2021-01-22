@@ -252,24 +252,6 @@ codacy-analysis-cli analyze \
 
 > In alternative to setting `--project-token` you can define CODACY_PROJECT_TOKEN in the environment.
 
-#### API Token
-
-You can find the project token in:
-* `Account -> Access Management`
-
-The username and project name can be retrieved from the URL in Codacy.
-
-```sh
-codacy-analysis-cli analyze \
-  --api-token <PROJECT-TOKEN> \
-  --username <USERNAME> \
-  --project <PROJECT-NAME> \
-  --tool <TOOL-SHORT-NAME> \
-  --directory <SOURCE-CODE-PATH>
-```
-
-> In alternative to setting `--api-token` you can define CODACY_API_TOKEN in the environment.
-
 ## Build
 
 ### Compile
