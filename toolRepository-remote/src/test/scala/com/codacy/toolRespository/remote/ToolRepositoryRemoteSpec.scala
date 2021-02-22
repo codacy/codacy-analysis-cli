@@ -45,7 +45,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
     Pattern(
       id = id,
       title = None,
-      level = "Info",
+      level = SeverityLevel.Info,
       category = "categoryType",
       subCategory = None,
       description = None,
