@@ -124,7 +124,7 @@ lazy val downloadCodacyToolsSwaggerFile = Def.task[Unit] {
   if (!Files.exists(apiSwaggerFile.toPath)) {
     val result: String =
       scala.io.Source
-        .fromURL(url(s"https://dl.bintray.com/codacy/api/codacy-api/${Dependencies.codacyApiVersion}/apiv3.yaml"))
+        .fromURL(url(s"https://artifacts.codacy.com/api/codacy-api/${Dependencies.codacyApiVersion}/apiv3.yaml"))
         .mkString
     IO.write(apiSwaggerFile, result)
   }

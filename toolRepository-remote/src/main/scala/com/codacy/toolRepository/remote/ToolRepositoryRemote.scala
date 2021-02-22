@@ -154,7 +154,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
     PatternSpec(
       // plugins is expecting to receive patterns without prefixes
       pattern.id.stripPrefix(patternPrefix),
-      pattern.level,
+      pattern.level.value,
       pattern.category,
       pattern.subCategory,
       pattern.title.getOrElse(pattern.id),
