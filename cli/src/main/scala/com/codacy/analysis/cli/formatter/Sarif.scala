@@ -123,14 +123,15 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
     (for {
       issue <- issues.groupBy(_.patternId.value).collect { case (_, issue :: _) => issue }
       modelPattern <- patternsMap.get(issue.patternId.value)
-    } yield SarifReport.Rule(
-      id = issue.patternId.value,
-      name = modelPattern.title,
-      shortDescription = SarifReport.Message(modelPattern.description.getOrElse(modelPattern.title)),
-      help = SarifReport
-        .Message(text = modelPattern.description.getOrElse(modelPattern.title), markdown = modelPattern.explanation),
-      properties =
-        SarifReport.RuleProperties(category = issue.category.getOrElse(Pattern.Category.CodeStyle).toString))).toList
+    } yield
+      SarifReport.Rule(
+        id = issue.patternId.value,
+        name = modelPattern.title,
+        shortDescription = SarifReport.Message(modelPattern.description.getOrElse(modelPattern.title)),
+        help = SarifReport
+          .Message(text = modelPattern.description.getOrElse(modelPattern.title), markdown = modelPattern.explanation),
+        properties =
+          SarifReport.RuleProperties(category = issue.category.getOrElse(Pattern.Category.CodeStyle).toString))).toList
   }
 
   private def createArtifacts(issues: Seq[Issue]): List[SarifReport.Artifact] = {
