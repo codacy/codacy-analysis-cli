@@ -67,6 +67,7 @@ class AnalyseExecutor(formatter: Formatter,
                 tool.name,
                 fullToolSpec.map(_.toolApiSpec),
                 fullToolSpec.map(_.patternDescriptions).getOrElse(Set.empty[PatternDescription]),
+                fullToolSpec.map(_.tool.prefix),
                 filteredFiles.readableFiles,
                 analysisResults)
             case metricsTool: MetricsTool =>
@@ -112,10 +113,15 @@ class AnalyseExecutor(formatter: Formatter,
       formatter.begin()
       executorResults.foreach {
         case toolResults: IssuesToolExecutorResult =>
-          toolResults.analysisResults.foreach(results =>
-            formatter.addAll(toolResults.toolSpecification, toolResults.patternDescriptions, results.to[List]))
+          toolResults.analysisResults.foreach(
+            results =>
+              formatter.addAll(
+                toolResults.toolSpecification,
+                toolResults.patternDescriptions,
+                toolResults.prefix,
+                results.to[List]))
         case toolResults =>
-          toolResults.analysisResults.foreach(results => formatter.addAll(None, Set.empty, results.to[List]))
+          toolResults.analysisResults.foreach(results => formatter.addAll(None, Set.empty, None, results.to[List]))
       }
       formatter.end()
 
@@ -211,6 +217,7 @@ object AnalyseExecutor {
     toolName: String,
     toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
     patternDescriptions: Set[PatternDescription],
+    prefix: Option[String],
     files: Set[Path],
     analysisResults: Try[Set[ToolResult]])
       extends ExecutorResult[ToolResult]

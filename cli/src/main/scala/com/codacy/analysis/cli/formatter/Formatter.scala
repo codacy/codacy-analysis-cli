@@ -21,6 +21,7 @@ trait Formatter {
 
   def addAll(toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
              patternDescriptions: Set[PatternDescription],
+             toolPrefix: Option[String],
              elements: Seq[Result]): Unit
 
   def end(): Unit

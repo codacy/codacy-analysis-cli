@@ -29,6 +29,7 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
 
   override def addAll(toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
                       patternDescriptions: Set[PatternDescription],
+                      toolPrefix: Option[String],
                       elements: Seq[Result]): Unit = elements.foreach(add)
 
   private def add(element: Result): Unit = {

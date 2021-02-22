@@ -216,9 +216,9 @@ class AnalyseCommand(analyze: Analyze,
 
   private def issuesToUpload(toolAndIssuesResults: Seq[IssuesToolExecutorResult]): Seq[ResultsUploader.ToolResults] = {
     toolAndIssuesResults.map {
-      case IssuesToolExecutorResult(toolName, _, _, files, Success(issues)) =>
+      case IssuesToolExecutorResult(toolName, _, _, _, files, Success(issues)) =>
         ResultsUploader.ToolResults(toolName, files, Right(issues))
-      case IssuesToolExecutorResult(toolName, _, _, files, Failure(error)) =>
+      case IssuesToolExecutorResult(toolName, _, _, _, files, Failure(error)) =>
         ResultsUploader.ToolResults(toolName, files, Left(error.getMessage))
     }(collection.breakOut)
   }

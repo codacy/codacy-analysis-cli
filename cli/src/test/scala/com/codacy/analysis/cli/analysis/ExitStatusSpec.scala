@@ -27,6 +27,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
         toolName = "MyTool",
         toolSpecification = None,
         patternDescriptions = Set.empty,
+        prefix = None,
         files = Set(Paths.get("Test.scala")),
         // scalafmt: { binPack.defnSite = true }
         analysisResults = Success(Set(
@@ -58,6 +59,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
         toolName = "MyTool",
         toolSpecification = None,
         patternDescriptions = Set.empty,
+        prefix = None,
         files = Set(Paths.get("Test.scala")),
         // scalafmt: { binPack.defnSite = true }
         analysisResults = Success(Set(
@@ -92,6 +94,7 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
               toolName = "MyTool",
               toolSpecification = None,
               patternDescriptions = Set.empty,
+              prefix = None,
               files = Set(Paths.get("Test.scala")),
               analysisResults = Success(Set()))))) should beEqualTo(ExitStatus.ExitCodes.success)
     }
@@ -102,12 +105,14 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
           toolName = "MyTool",
           toolSpecification = None,
           patternDescriptions = Set.empty,
+          prefix = None,
           files = Set(),
           analysisResults = Success(Set())),
         IssuesToolExecutorResult(
           toolName = "MyTool",
           toolSpecification = None,
           patternDescriptions = Set.empty,
+          prefix = None,
           files = Set(Paths.get("Test.scala")),
           analysisResults = Failure(new Exception("Failed")))))) should beEqualTo(
         ExitStatus.ExitCodes.partiallyFailedAnalysis)
@@ -119,12 +124,14 @@ class ExitStatusSpec extends Specification with NoLanguageFeatures with Mockito 
           toolName = "MyTool",
           toolSpecification = None,
           patternDescriptions = Set.empty,
+          prefix = None,
           files = Set(),
           analysisResults = Success(Set())),
         IssuesToolExecutorResult(
           toolName = "MyTool",
           toolSpecification = None,
           patternDescriptions = Set.empty,
+          prefix = None,
           files = Set(Paths.get("Test.scala")),
           analysisResults = Failure(new Exception("Failed")))))) should beEqualTo(ExitStatus.ExitCodes.success)
     }
