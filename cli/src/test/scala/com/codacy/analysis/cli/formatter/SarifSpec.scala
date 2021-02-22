@@ -120,6 +120,7 @@ class SarifSpec extends Specification with NoLanguageFeatures {
     formatter.addAll(
       toolSpecification = Option(toolSpecification),
       patternDescriptions = Set(securityPatternDescription, duplicationPatternDescription),
+      toolPrefix = None,
       elements = List(securityIssue, duplicationIssue))
     formatter.end()
     val formatterOutput = bos.toString

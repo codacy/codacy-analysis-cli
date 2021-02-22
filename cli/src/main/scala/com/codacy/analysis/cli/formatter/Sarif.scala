@@ -52,9 +52,10 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
 
   override def addAll(toolSpecification: Option[com.codacy.plugins.api.results.Tool.Specification],
                       patternDescriptions: Set[PatternDescription],
+                      toolPrefix: Option[String],
                       analysisResults: Seq[Result]): Unit = {
     toolSpecification.foreach { toolSpec =>
-      val categorizedIssues = categorizeIssues(toolSpec, analysisResults)
+      val categorizedIssues = categorizeIssues(toolSpec, toolPrefix, analysisResults)
 
       val securityRules = createRules(categorizedIssues.securityIssues, patternDescriptions)
       val nonSecurityRules = createRules(categorizedIssues.nonSecurityIssues, patternDescriptions)
@@ -92,6 +93,7 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
   }
 
   private def categorizeIssues(toolSpec: com.codacy.plugins.api.results.Tool.Specification,
+                               toolPrefix: Option[String],
                                analysisResults: Seq[Result]): CategorizedIssues = {
     // HACK: Seems like the issues (`issue.category`) do not have the right category
     //   while in the specification (`toolSpec.patterns[].category`) the pattern has the right category
@@ -101,7 +103,9 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
     analysisResults.foldLeft(CategorizedIssues(Seq.empty, Seq.empty)) {
 
       case (categorizedIssues, issue: Issue)
-          if patternsCategoryMap.get(issue.patternId.value).contains(Pattern.Category.Security) =>
+          if patternsCategoryMap
+            .get(toolPrefix.fold(issue.patternId.value)(prefix => issue.patternId.value.stripPrefix(prefix)))
+            .contains(Pattern.Category.Security) =>
         categorizedIssues.addSecurityIssue(issue)
 
       case (categorizedIssues, issue: Issue) =>
