@@ -152,11 +152,13 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
     } yield {
       val message = SarifReport.Message(issue.message.text)
       val filePath = s"$rootDirectory/${issue.filename.toString}"
+      // Some tools return 0 as line number, which doesn't comply with SARIF json schema
+      val line = if (issue.location.line >= 1) issue.location.line else 1
       val locations = List(
         SarifReport.Location(SarifReport.PhysicalLocation(
           artifactLocation = SarifReport
             .ArtifactLocationIndexed(index = artifacts.indexWhere(_.location.uri == filePath), uri = filePath),
-          region = SarifReport.Region(startLine = issue.location.line))))
+          region = SarifReport.Region(startLine = line))))
 
       SarifReport.Result(
         ruleIndex = rules.indexWhere(_.id == issue.patternId.value),
