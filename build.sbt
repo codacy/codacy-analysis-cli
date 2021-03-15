@@ -81,17 +81,8 @@ lazy val codacyAnalysisCli = project
   .enablePlugins(DockerPlugin)
   // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
   .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
-  .dependsOn(codacyAnalysisCore % "compile->compile;test->test", toolRepositoryPlugins, toolRepositoryRemote)
-  .aggregate(codacyAnalysisCore, toolRepositoryPlugins, toolRepositoryRemote)
-
-lazy val toolRepositoryPlugins = project
-  .in(file("toolRepository-plugins"))
-  .settings(Common.genericSettings)
-  .settings(libraryDependencies ++= Dependencies.codacyPlugins)
-  .settings(assemblyCommon: _*)
-  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
-  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
-  .dependsOn(codacyAnalysisCore, codacyAnalysisModels)
+  .dependsOn(codacyAnalysisCore % "compile->compile;test->test", toolRepositoryRemote)
+  .aggregate(codacyAnalysisCore, toolRepositoryRemote)
 
 lazy val toolRepositoryRemote = project
   .in(file("toolRepository-remote"))

@@ -51,7 +51,7 @@ object AnalyseCommand {
       Formatter(configuration.analysis.output, environment.baseProjectDirectory(analyze.directory))
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    val toolSelector = new ToolSelector(ToolRepositoryFactory.build(apiUrl, analyze.legacyFetchTools))
+    val toolSelector = new ToolSelector(ToolRepositoryFactory.build(apiUrl))
 
     val analyseExecutor: AnalyseExecutor =
       new AnalyseExecutor(
