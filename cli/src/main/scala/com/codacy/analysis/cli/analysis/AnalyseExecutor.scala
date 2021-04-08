@@ -62,7 +62,8 @@ class AnalyseExecutor(formatter: Formatter,
                   filteredFiles,
                   configuration.toolConfiguration,
                   toolHasConfigFiles,
-                  configuration.tmpDirectory)
+                  configuration.tmpDirectory,
+                  maxToolMemory = configuration.maxToolMemory)
               IssuesToolExecutorResult(
                 tool.name,
                 fullToolSpec.map(_.toolApiSpec),
@@ -76,7 +77,8 @@ class AnalyseExecutor(formatter: Formatter,
                   metricsTool,
                   filteredFiles.directory,
                   Some(filteredFiles.readableFiles),
-                  configuration.tmpDirectory)
+                  configuration.tmpDirectory,
+                  maxToolMemory = configuration.maxToolMemory)
               MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, analysisResults)
             case duplicationTool: DuplicationTool =>
               val analysisResults =
@@ -84,7 +86,8 @@ class AnalyseExecutor(formatter: Formatter,
                   duplicationTool,
                   filteredFiles.directory,
                   filteredFiles.readableFiles,
-                  configuration.tmpDirectory)
+                  configuration.tmpDirectory,
+                  maxToolMemory = configuration.maxToolMemory)
               DuplicationToolExecutorResult(
                 duplicationTool.languageToRun.name,
                 filteredFiles.readableFiles,
@@ -133,7 +136,8 @@ class AnalyseExecutor(formatter: Formatter,
                      analysisFilesTarget: FilesTarget,
                      configuration: CLIConfiguration.Tool,
                      toolHasConfigFiles: Boolean,
-                     tmpDirectory: Option[File]): Try[Set[ToolResult]] = {
+                     tmpDirectory: Option[File],
+                     maxToolMemory: Option[String]): Try[Set[ToolResult]] = {
     for {
       toolConfiguration <- getToolConfiguration(tool, toolHasConfigFiles, configuration)
       results <- analyser.analyse(
@@ -142,7 +146,8 @@ class AnalyseExecutor(formatter: Formatter,
         analysisFilesTarget.readableFiles,
         toolConfiguration,
         tmpDirectory,
-        configuration.toolTimeout)
+        configuration.toolTimeout,
+        maxToolMemory)
     } yield results
   }
 

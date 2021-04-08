@@ -78,6 +78,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
           parallel = Option(2),
           commitUuid = commitUuid,
           toolTimeout = Option(20.seconds),
+          maxToolMemory = Some("3000000000"),
           forceFilePermissions = Tag.of(1),
           extras = ExtraOptions(analyser = Analyser.defaultAnalyser.name),
           allowNetwork = Tag.of(1),
@@ -102,7 +103,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
               allowNetwork = true,
               toolConfigurations = Left("no remote config"),
               extraToolConfigurations = Option.empty,
-              extensionsByLanguage = Map.empty)),
+              extensionsByLanguage = Map.empty),
+            maxToolMemory = Some("3000000000")),
           upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = true),
           result = CLIConfiguration.Result(maxAllowedIssues = 5, failIfIncomplete = true))
 
@@ -164,7 +166,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
                     parameters = pattern.parameters.map(parameter =>
                       CLIConfiguration.IssuesTool.Parameter(name = parameter.name, value = parameter.value))))))),
             extraToolConfigurations = Option.empty,
-            extensionsByLanguage = Map.empty)),
+            extensionsByLanguage = Map.empty),
+          maxToolMemory = Some("3000000000")),
         upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
@@ -215,7 +218,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
             extraToolConfigurations = Option(
               Map("engine no. 9" -> CLIConfiguration.IssuesTool
                 .Extra(baseSubDir = engineConfig.baseSubDir, extraValues = engineConfig.extraValues))),
-            extensionsByLanguage = Map(Languages.Scala -> Set(".scala", ".alacs")))),
+            extensionsByLanguage = Map(Languages.Scala -> Set(".scala", ".alacs"))),
+          maxToolMemory = Some("3000000000")),
         upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
@@ -247,7 +251,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
             allowNetwork = false,
             toolConfigurations = Left("no remote config"),
             extraToolConfigurations = Option.empty,
-            extensionsByLanguage = Map.empty)),
+            extensionsByLanguage = Map.empty),
+          maxToolMemory = Some("3000000000")),
         upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
@@ -326,7 +331,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
             extraToolConfigurations = Option(
               Map("engine no. 9" -> CLIConfiguration.IssuesTool
                 .Extra(baseSubDir = engineConfig.baseSubDir, extraValues = engineConfig.extraValues))),
-            extensionsByLanguage = Map(Languages.Scala -> Set(".sc")))),
+            extensionsByLanguage = Map(Languages.Scala -> Set(".sc"))),
+          maxToolMemory = Some("3000000000")),
         upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 

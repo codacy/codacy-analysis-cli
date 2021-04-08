@@ -39,7 +39,8 @@ final case class SubDirectory(sourceDirectory: String, protected val subDirector
     filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val tool: ToolSpec, val languageToRun: Language)
+class Tool(fullToolSpec: FullToolSpec, defaultRunTimeout: Duration)(private val tool: ToolSpec,
+                                                                    val languageToRun: Language)
     extends ITool {
 
   private val logger: Logger = getLogger
@@ -56,7 +57,8 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val tool: To
           files: Set[Path],
           config: Configuration,
           tmpDirectory: Option[File] = None,
-          timeout: Option[Duration] = Option.empty[Duration]): Try[Set[ToolResult]] = {
+          timeout: Option[Duration] = Option.empty[Duration],
+          maxToolMemory: Option[String]): Try[Set[ToolResult]] = {
     val pluginConfiguration = config match {
       case CodacyCfg(patterns, _, extraValues) =>
         val pts: List[PatternRequest] = patterns.map { pt =>
@@ -69,6 +71,16 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val tool: To
       case FileCfg(_, extraValues) =>
         PluginConfiguration(None, convertExtraValues(extraValues))
     }
+
+    val dockerInformation = new DockerInformation(
+      dockerImageName = fullToolSpec.tool.dockerImage,
+      needsCompilation = fullToolSpec.tool.needsCompilation)
+
+    val dockerRunner =
+      new BinaryDockerRunner[Result](dockerInformation, BinaryDockerRunner.Config(containerMemoryLimit = maxToolMemory))
+
+    val runner =
+      new ToolRunner(Option(fullToolSpec.toolApiSpec), fullToolSpec.tool.prefix, dockerRunner)
 
     val sourceDirectory = getSourceDirectory(directory, config.baseSubDir)
     val request =
@@ -128,15 +140,7 @@ class Tool(runner: ToolRunner, defaultRunTimeout: Duration)(private val tool: To
 object Tool {
 
   def apply(fullToolSpec: FullToolSpec, languageToRun: Language): Tool = {
-    val dockerInformation = new DockerInformation(
-      dockerImageName = fullToolSpec.tool.dockerImage,
-      needsCompilation = fullToolSpec.tool.needsCompilation)
-
-    val dockerRunner = new BinaryDockerRunner[Result](dockerInformation)
-
-    val runner =
-      new ToolRunner(Option(fullToolSpec.toolApiSpec), fullToolSpec.tool.prefix, dockerRunner)
-    new Tool(runner, DockerRunner.defaultRunTimeout)(fullToolSpec.tool, languageToRun)
+    new Tool(fullToolSpec, DockerRunner.defaultRunTimeout)(fullToolSpec.tool, languageToRun)
   }
 }
 

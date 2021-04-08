@@ -25,10 +25,13 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
   def run(directory: File,
           files: Option[Set[Source.File]],
           tmpDirectory: Option[File] = None,
-          timeout: Option[Duration] = Option.empty[Duration]): Try[List[FileMetrics]] = {
+          timeout: Option[Duration] = Option.empty[Duration],
+          maxToolMemory: Option[String] = None): Try[List[FileMetrics]] = {
     val request = MetricsRequest(directory.pathAsString)
 
-    val dockerRunner = new BinaryDockerRunner[api.metrics.FileMetrics](metricsTool)
+    val dockerRunner = new BinaryDockerRunner[api.metrics.FileMetrics](
+      metricsTool,
+      BinaryDockerRunner.Config(containerMemoryLimit = maxToolMemory))
     val runner = new MetricsRunner(metricsTool, dockerRunner)
 
     val configuration = CodacyConfiguration(files, Some(languageToRun), None)

@@ -36,7 +36,8 @@ object CLIConfiguration {
                             forceFilePermissions: Boolean,
                             fileExclusionRules: CLIConfiguration.FileExclusionRules,
                             toolConfiguration: CLIConfiguration.Tool,
-                            tmpDirectory: Option[File] = None)
+                            tmpDirectory: Option[File] = None,
+                            maxToolMemory: Option[String] = None)
 
   object Analysis {
 
@@ -44,7 +45,8 @@ object CLIConfiguration {
               analyze: Analyze,
               localConfiguration: Either[String, CodacyConfigurationFile],
               remoteProjectConfiguration: Either[String, ProjectConfiguration],
-              tmpDirectory: Option[File]): Analysis = {
+              tmpDirectory: Option[File],
+              maxToolMemory: Option[String]): Analysis = {
 
       val fileExclusionRules =
         CLIConfiguration.FileExclusionRules(localConfiguration, remoteProjectConfiguration)
@@ -59,7 +61,8 @@ object CLIConfiguration {
         analyze.forceFilePermissionsValue,
         fileExclusionRules,
         toolConfiguration,
-        tmpDirectory)
+        tmpDirectory,
+        maxToolMemory)
     }
   }
 
@@ -205,7 +208,13 @@ object CLIConfiguration {
       _.getRemoteConfiguration
     }
     val analysisConfiguration =
-      Analysis(projectDirectory, analyze, localConfiguration, remoteProjectConfiguration, analyze.tmpDirectory)
+      Analysis(
+        projectDirectory,
+        analyze,
+        localConfiguration,
+        remoteProjectConfiguration,
+        analyze.tmpDirectory,
+        analyze.maxToolMemory)
     val uploadConfiguration = Upload(commitUuid, analyze.uploadValue)
     val resultConfiguration = Result(analyze.maxAllowedIssues, analyze.failIfIncompleteValue)
 
