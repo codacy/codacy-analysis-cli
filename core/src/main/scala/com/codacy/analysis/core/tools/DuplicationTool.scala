@@ -26,8 +26,9 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
           timeout: Option[Duration] = Option.empty[Duration],
           maxToolMemory: Option[String] = None): Try[Set[DuplicationClone]] = {
 
-    val dockerRunner =
-      new BinaryDockerRunner[api.duplication.DuplicationClone](duplicationTool, ToolsShared.dockerConfig(maxToolMemory))
+    val dockerRunner = new BinaryDockerRunner[api.duplication.DuplicationClone](
+      duplicationTool,
+      BinaryDockerRunner.Config(containerMemoryLimit = maxToolMemory))
     val runner = new traits.DuplicationRunner(duplicationTool, dockerRunner)
 
     for {

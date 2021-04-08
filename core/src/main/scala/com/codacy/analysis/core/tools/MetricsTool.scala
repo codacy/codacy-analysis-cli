@@ -29,8 +29,9 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
           maxToolMemory: Option[String] = None): Try[List[FileMetrics]] = {
     val request = MetricsRequest(directory.pathAsString)
 
-    val dockerRunner =
-      new BinaryDockerRunner[api.metrics.FileMetrics](metricsTool, ToolsShared.dockerConfig(maxToolMemory))
+    val dockerRunner = new BinaryDockerRunner[api.metrics.FileMetrics](
+      metricsTool,
+      BinaryDockerRunner.Config(containerMemoryLimit = maxToolMemory))
     val runner = new MetricsRunner(metricsTool, dockerRunner)
 
     val configuration = CodacyConfiguration(files, Some(languageToRun), None)

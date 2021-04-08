@@ -76,7 +76,8 @@ class Tool(fullToolSpec: FullToolSpec, defaultRunTimeout: Duration)(private val 
       dockerImageName = fullToolSpec.tool.dockerImage,
       needsCompilation = fullToolSpec.tool.needsCompilation)
 
-    val dockerRunner = new BinaryDockerRunner[Result](dockerInformation, ToolsShared.dockerConfig(maxToolMemory))
+    val dockerRunner =
+      new BinaryDockerRunner[Result](dockerInformation, BinaryDockerRunner.Config(containerMemoryLimit = maxToolMemory))
 
     val runner =
       new ToolRunner(Option(fullToolSpec.toolApiSpec), fullToolSpec.tool.prefix, dockerRunner)
