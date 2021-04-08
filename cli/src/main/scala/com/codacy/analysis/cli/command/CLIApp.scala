@@ -150,6 +150,8 @@ final case class Analyze(
   toolTimeout: Option[Duration],
   @ValueDescription("The tmp directory location.")
   tmpDirectory: Option[File] = None,
+  @ValueDescription("The memory limit to run the tools with")
+  maxToolMemory: Option[String] = com.codacy.plugins.runners.BinaryDockerRunner.Config().containerMemoryLimit,
   @ValueDescription(
     "Reduce issue severity by one level, for non-security issues, for compatibility with GitHub's code scanning. Use in conjunction with `--format sarif`")
   ghCodeScanningCompat: Int @@ Counter = Tag.of(0),

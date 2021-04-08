@@ -22,19 +22,22 @@ trait Analyser[T[_]] {
               files: Set[Path],
               config: Configuration,
               tmpDirectory: Option[File],
-              timeout: Option[Duration] = Option.empty[Duration]): T[Set[ToolResult]]
+              timeout: Option[Duration] = Option.empty[Duration],
+              maxToolMemory: Option[String] = None): T[Set[ToolResult]]
 
   def metrics(metricsTool: MetricsTool,
               directory: File,
               files: Option[Set[Path]],
               tmpDirectory: Option[File],
-              timeout: Option[Duration] = Option.empty[Duration]): T[Set[FileMetrics]]
+              timeout: Option[Duration] = Option.empty[Duration],
+              maxToolMemory: Option[String] = None): T[Set[FileMetrics]]
 
   def duplication(duplicationTool: DuplicationTool,
                   directory: File,
                   files: Set[Path],
                   tmpDirectory: Option[File],
-                  timeout: Option[Duration] = Option.empty[Duration]): T[Set[DuplicationClone]]
+                  timeout: Option[Duration] = Option.empty[Duration],
+                  maxToolMemory: Option[String] = None): T[Set[DuplicationClone]]
 
 }
 

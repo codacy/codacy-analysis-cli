@@ -11,7 +11,7 @@ import org.log4s.{Logger, getLogger}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
-class CodacyPluginsAnalyser extends Analyser[Try] {
+final class CodacyPluginsAnalyser extends Analyser[Try] {
 
   private val logger: Logger = getLogger
 
@@ -20,8 +20,9 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
                        files: Set[Path],
                        config: Configuration,
                        tmpDirectory: Option[File],
-                       timeout: Option[Duration] = Option.empty[Duration]): Try[Set[ToolResult]] = {
-    val result = tool.run(directory, files, config, tmpDirectory, timeout)
+                       timeout: Option[Duration] = Option.empty[Duration],
+                       maxToolMemory: Option[String] = None): Try[Set[ToolResult]] = {
+    val result = tool.run(directory, files, config, tmpDirectory, timeout, maxToolMemory)
 
     result match {
       case Success(res) =>
@@ -37,11 +38,12 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
                        directory: File,
                        files: Option[Set[Path]],
                        tmpDirectory: Option[File],
-                       timeout: Option[Duration] = Option.empty[Duration]): Try[Set[FileMetrics]] = {
+                       timeout: Option[Duration] = Option.empty[Duration],
+                       maxToolMemory: Option[String] = None): Try[Set[FileMetrics]] = {
 
     val srcFiles = files.map(_.map(filePath => Source.File(filePath.toString)))
 
-    val result = metricsTool.run(directory, srcFiles, tmpDirectory, timeout)
+    val result = metricsTool.run(directory, srcFiles, tmpDirectory, timeout, maxToolMemory)
 
     result match {
       case Success(res) =>
@@ -57,9 +59,10 @@ class CodacyPluginsAnalyser extends Analyser[Try] {
                            directory: File,
                            files: Set[Path],
                            tmpDirectory: Option[File],
-                           timeout: Option[Duration] = Option.empty[Duration]): Try[Set[DuplicationClone]] = {
+                           timeout: Option[Duration] = Option.empty[Duration],
+                           maxToolMemory: Option[String] = None): Try[Set[DuplicationClone]] = {
 
-    val result = duplicationTool.run(directory, files, tmpDirectory, timeout)
+    val result = duplicationTool.run(directory, files, tmpDirectory, timeout, maxToolMemory)
 
     result match {
       case Success(res) =>
