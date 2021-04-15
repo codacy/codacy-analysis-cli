@@ -229,6 +229,10 @@ workflows:
           type: approval
           requires:
             - publish_docker_locally
+          filters:
+            branches:
+              only:
+                - master
       - codacy/shell:
           name: publish_dockerhub_stable
           context: CodacyDocker
