@@ -7,7 +7,7 @@ import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command.ArgumentParsers._
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
-import com.codacy.analysis.core.clients.{ProjectName, UserName}
+import com.codacy.analysis.core.clients.{ProjectName, UserName, OrganizationProvider}
 import com.codacy.analysis.core.git.Commit
 
 import scala.concurrent.duration.Duration
@@ -40,15 +40,21 @@ object ArgumentParsers {
     }
   }
 
+  implicit val providerParser: ArgParser[OrganizationProvider.Value] = {
+    ArgParser.instance[OrganizationProvider.Value]("provider") { provider: String =>
+      Try(OrganizationProvider.withName(provider)).toEither.left.map(_.toString)
+    }
+  }
+
   implicit val userNameParser: ArgParser[UserName] = {
-    ArgParser.instance[UserName]("username") { path: String =>
-      Right(UserName(path))
+    ArgParser.instance[UserName]("username") { username: String =>
+      Right(UserName(username))
     }
   }
 
   implicit val projectNameParser: ArgParser[ProjectName] = {
-    ArgParser.instance[ProjectName]("project") { path: String =>
-      Right(ProjectName(path))
+    ArgParser.instance[ProjectName]("project") { project: String =>
+      Right(ProjectName(project))
     }
   }
 
@@ -106,11 +112,13 @@ sealed trait CommandOptions {
 
 final case class APIOptions(@ValueDescription("The project token.")
                             projectToken: Option[String] = Option.empty,
-                            @ValueDescription("The api token.") @Hidden
+                            @ValueDescription("The api token.")
                             apiToken: Option[String] = Option.empty,
-                            @ValueDescription("The username.") @Hidden
+                            @ValueDescription("The provider.")
+                            provider: Option[OrganizationProvider.Value] = Option.empty,
+                            @ValueDescription("The username.")
                             username: Option[UserName] = Option.empty,
-                            @ValueDescription("The project name.") @Hidden
+                            @ValueDescription("The project name.")
                             project: Option[ProjectName] = Option.empty,
                             @ValueDescription("The codacy api base url.")
                             codacyApiBaseUrl: Option[String] = Some("https://api.codacy.com"))

@@ -17,7 +17,7 @@ object Credentials {
       .orElse[Credentials] {
         environment
           .apiTokenArgument(options.apiToken)
-          .flatMap(getCredentialsWithAdditionalParams(_, apiURL, options.project, options.username))
+          .flatMap(getCredentialsWithAdditionalParams(_, apiURL, options.provider, options.username, options.project))
       }
       .orElse[Credentials] {
         environment.projectTokenEnvironmentVariable().map[Credentials](ProjectToken(_, apiURL))
@@ -25,20 +25,22 @@ object Credentials {
       .orElse[Credentials] {
         environment
           .apiTokenEnvironmentVariable()
-          .flatMap(getCredentialsWithAdditionalParams(_, apiURL, options.project, options.username))
+          .flatMap(getCredentialsWithAdditionalParams(_, apiURL, options.provider, options.username, options.project))
       }
       .ifEmpty(logger.warn("Could not retrieve credentials"))
   }
 
   private def getCredentialsWithAdditionalParams(apiToken: String,
                                                  apiUrl: String,
-                                                 projectOpt: Option[ProjectName],
-                                                 userNameOpt: Option[UserName]): Option[Credentials] = {
+                                                 providerOpt: Option[OrganizationProvider.Value],
+                                                 userNameOpt: Option[UserName],
+                                                 projectOpt: Option[ProjectName]): Option[Credentials] = {
     (for {
-      project <- projectOpt
+      provider <- providerOpt
       userName <- userNameOpt
+      project <- projectOpt
     } yield {
-      APIToken(apiToken, apiUrl, userName, project)
-    }).ifEmpty(logger.warn("Could not retrieve username and/or project"))
+      APIToken(apiToken, apiUrl, provider, userName, project)
+    }).ifEmpty(logger.warn("Could not retrieve provider, username and/or project"))
   }
 }

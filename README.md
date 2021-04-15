@@ -44,17 +44,17 @@ brew install codacy-analysis-cli
 
 #### Docker Configuration
 Once the pre-requisites are met, it’s time to enable the connectivity between bash and docker.
- 
+
 It’s mandatory that the daemon is exposed without LTS. In order to do that go to Docker Settings -> General. Just click on the checkbox with the label 'Expose daemon on tcp://localhost:2375 without TLS' and docker will reload.
 
 #### Preparing docker client on bash
 Now it’s time to go to the bash and install and configure the docker client.
- 
+
 If you are using Windows 10 (build above 1803) the following command will make the docker client available from the bash
 ```sudo ln -s "/mnt/c/Program Files/Docker/Docker/resources/bin/docker.exe" /usr/local/bin/docker```
 
 If you are using a previous version of Windows 10, [here](https://medium.com/@sebagomez/installing-the-docker-client-on-ubuntus-windows-subsystem-for-linux-612b392a44c4) you can find a very easy tutorial to follow.
- 
+
 Since you’ll be using the WSL, the variable DOCKER_HOST needs to be configured to `tcp://0.0.0.0:2375`, in order to do that just type the following command on the bash
 
 ```export DOCKER_HOST=tcp://0.0.0.0:2375```
@@ -68,7 +68,7 @@ It’s also possible to add this variable to your .bashrc or .bash_profile files
 
 #### Installing codacy-analysis-cli
 At this point, codacy-analysis-cli is ready to be installed.
- 
+
 In bash, go to the folder you want to download the tool into and type the following commands:
 
 ```sudo apt-get install make```
@@ -253,6 +253,25 @@ codacy-analysis-cli analyze \
 
 > In alternative to setting `--project-token` you can define CODACY_PROJECT_TOKEN in the environment.
 
+#### API Token
+
+You can find the project token in:
+* `Account -> Access Management`
+
+The provider, username, and project name can be retrieved from the URL in Codacy.
+
+```sh
+codacy-analysis-cli analyze \
+  --api-token <PROJECT-TOKEN> \
+  --provider <PROVIDER> \
+  --username <USERNAME> \
+  --project <PROJECT-NAME> \
+  --tool <TOOL-SHORT-NAME> \
+  --directory <SOURCE-CODE-PATH>
+```
+
+> In alternative to setting `--api-token` you can define CODACY_API_TOKEN in the environment.
+
 ## Build
 
 ### Compile
@@ -262,7 +281,7 @@ codacy-analysis-cli analyze \
     **Note:** - Scapegoat runs during compile in Test, to disable it, set `NO_SCAPEGOAT`.
 
         sbt compile
-        
+
 * **Tests**
 
         sbt test:compile
@@ -347,4 +366,3 @@ Codacy supports PHP, Python, Ruby, Java, JavaScript, and Scala, among others.
 ### Free for Open Source
 
 Codacy is free for Open Source projects.
-
