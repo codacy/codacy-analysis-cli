@@ -33,7 +33,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
 
   def getRemoteConfiguration: Either[String, ProjectConfiguration] = {
     credentials match {
-      case token: APIToken => getProjectConfiguration(token.userName, token.projectName)
+      case token: APIToken => getProjectConfiguration(token.provider, token.userName, token.projectName)
       case _: ProjectToken => getProjectConfiguration
     }
   }
@@ -44,7 +44,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     credentials match {
       case token: APIToken =>
         sendRemoteResultsTo(
-          s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/issuesRemoteResults",
+          s"/${token.provider.toString}/${token.userName}/${token.projectName}/commit/${commitUuid.value}/issuesRemoteResults",
           tool,
           results)
       case _: ProjectToken =>
@@ -56,7 +56,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     credentials match {
       case token: APIToken =>
         sendRemoteMetricsTo(
-          s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/metricsRemoteResults",
+          s"/${token.provider.toString}/${token.userName}/${token.projectName}/commit/${commitUuid.value}/metricsRemoteResults",
           results)
       case _: ProjectToken =>
         sendRemoteMetricsTo(s"/commit/${commitUuid.value}/metricsRemoteResults", results)
@@ -67,7 +67,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     credentials match {
       case token: APIToken =>
         sendRemoteDuplicationTo(
-          s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/duplicationRemoteResults",
+          s"/${token.provider.toString}/${token.userName}/${token.projectName}/commit/${commitUuid.value}/duplicationRemoteResults",
           results)
       case _: ProjectToken =>
         sendRemoteDuplicationTo(s"/commit/${commitUuid.value}/duplicationRemoteResults", results)
@@ -77,7 +77,8 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
   def sendEndOfResults(commitUuid: Commit.Uuid): Future[Either[String, Unit]] = {
     credentials match {
       case token: APIToken =>
-        sendEndOfResultsTo(s"/${token.userName}/${token.projectName}/commit/${commitUuid.value}/resultsFinal")
+        sendEndOfResultsTo(
+          s"/${token.provider.toString}}/${token.userName}/${token.projectName}/commit/${commitUuid.value}/resultsFinal")
       case _: ProjectToken => sendEndOfResultsTo(s"/commit/${commitUuid.value}/resultsFinal")
     }
   }
@@ -86,9 +87,10 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     getProjectConfigurationFrom("/project/analysis/configuration")
   }
 
-  private def getProjectConfiguration(username: UserName,
+  private def getProjectConfiguration(provider: OrganizationProvider.Value,
+                                      username: UserName,
                                       projectName: ProjectName): Either[String, ProjectConfiguration] = {
-    getProjectConfigurationFrom(s"/project/$username/$projectName/analysis/configuration")
+    getProjectConfigurationFrom(s"/${provider.toString}/$username/$projectName/analysis/configuration")
   }
 
   private def sendRemoteMetricsTo(endpoint: String, metrics: Seq[MetricsResult]): Future[Either[String, Unit]] =
@@ -202,7 +204,7 @@ object CodacyClient {
           // This is deprecated and is kept for backward compatibility. It will removed in the context of CY-1272
           ("project_token", token))
         new CodacyClient(credentials, new HttpHelper(baseUrl, headers))
-      case APIToken(token, baseUrl, _, _) =>
+      case APIToken(token, baseUrl, _, _, _) =>
         val headers: Map[String, String] = Map(
           ("api-token", token),
           // This is deprecated and is kept for backward compatibility. It will removed in the context of CY-1272

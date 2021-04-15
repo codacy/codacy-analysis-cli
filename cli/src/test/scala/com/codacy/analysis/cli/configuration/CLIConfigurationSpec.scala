@@ -27,12 +27,13 @@ import scala.concurrent.duration._
 class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
 
   private val apiTokenStr = "RandomApiToken"
+  private val provider = OrganizationProvider.gh
   private val username = "some_user"
   private val project = "some_project"
   private val remoteUrl = "codacy.com/2.0"
 
   private val apiCredentials: Credentials =
-    APIToken(apiTokenStr, remoteUrl, UserName(username), ProjectName(project))
+    APIToken(apiTokenStr, remoteUrl, provider, UserName(username), ProjectName(project))
 
   private object noLocalConfig extends CodacyConfigurationFileLoader {
     override def load(directory: File) = Left("no local config")

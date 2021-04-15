@@ -13,6 +13,7 @@ class CredentialsSpec extends Specification with NoLanguageFeatures with Mockito
   private val environment = new Environment(Map.empty)
   private val apiTokenStr = "RandomApiToken"
   private val projectTokenStr = "RandomProjectToken"
+  private val provider = OrganizationProvider.gh
   private val username = "some_user"
   private val project = "some_project"
   private val baseUrl = "codacy.com"
@@ -21,9 +22,10 @@ class CredentialsSpec extends Specification with NoLanguageFeatures with Mockito
 
     "Initialize credentials" in {
       "with API Token" in {
-        "with user and project name" in {
+        "with provider, user and project name" in {
           val apiOptions = APIOptions(
             apiToken = Option(apiTokenStr),
+            provider = Option(provider),
             username = Option(UserName(username)),
             project = Option(ProjectName(project)),
             codacyApiBaseUrl = Option(baseUrl))
@@ -36,6 +38,7 @@ class CredentialsSpec extends Specification with NoLanguageFeatures with Mockito
         "without user and project name" in {
           val apiOptions = APIOptions(
             apiToken = Option(apiTokenStr),
+            provider = None,
             username = None,
             project = None,
             codacyApiBaseUrl = Option(baseUrl))
