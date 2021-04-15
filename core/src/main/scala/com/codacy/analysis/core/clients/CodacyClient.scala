@@ -78,7 +78,7 @@ class CodacyClient(credentials: Credentials, http: HttpHelper)(implicit context:
     credentials match {
       case token: APIToken =>
         sendEndOfResultsTo(
-          s"/${token.provider.toString}}/${token.userName}/${token.projectName}/commit/${commitUuid.value}/resultsFinal")
+          s"/${token.provider.toString}/${token.userName}/${token.projectName}/commit/${commitUuid.value}/resultsFinal")
       case _: ProjectToken => sendEndOfResultsTo(s"/commit/${commitUuid.value}/resultsFinal")
     }
   }
