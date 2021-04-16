@@ -3,6 +3,7 @@ package com.codacy.toolRespository.remote
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{HttpHeader, HttpResponse}
 import akka.stream.ActorMaterializer
+import better.files.File
 import cats.data.EitherT
 import com.codacy.analysis.clientapi.definitions._
 import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsResponse, ToolsClient}
@@ -92,29 +93,31 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
   private val patternA: Pattern = getPattern("internalId - A")
   private val patternB: Pattern = getPattern("internalId - B")
 
-  val mockToolsDataEmptyStorage: ToolSpecDataStorage = new ToolSpecDataStorage {
+  val mockToolsDataEmptyStorage: ToolSpecDataStorage = new ToolSpecDataStorage(File.currentWorkingDirectory) {
     override def save(tools: Seq[ToolSpec]): Boolean = true
 
     override def get(): Option[Seq[ToolSpec]] = None
   }
 
-  val mockToolsDataWithStorage: ToolSpecDataStorage = new ToolSpecDataStorage {
+  val mockToolsDataWithStorage: ToolSpecDataStorage = new ToolSpecDataStorage(File.currentWorkingDirectory) {
     override def save(tools: Seq[ToolSpec]): Boolean = true
 
     override def get(): Option[Seq[ToolSpec]] = Some(Seq(toolSpec(toolA.uuid)))
   }
 
-  val mockPatternDataEmptyStorage: PatternSpecDataStorage = new PatternSpecDataStorage(toolA.uuid) {
-    override def save(tools: Seq[PatternSpec]): Boolean = true
+  val mockPatternDataEmptyStorage: PatternSpecDataStorage =
+    new PatternSpecDataStorage(File.currentWorkingDirectory, toolA.uuid) {
+      override def save(tools: Seq[PatternSpec]): Boolean = true
 
-    override def get(): Option[Seq[PatternSpec]] = None
-  }
+      override def get(): Option[Seq[PatternSpec]] = None
+    }
 
-  val mockPatternDataWithStorage: PatternSpecDataStorage = new PatternSpecDataStorage(toolA.uuid) {
-    override def save(tools: Seq[PatternSpec]): Boolean = true
+  val mockPatternDataWithStorage: PatternSpecDataStorage =
+    new PatternSpecDataStorage(File.currentWorkingDirectory, toolA.uuid) {
+      override def save(tools: Seq[PatternSpec]): Boolean = true
 
-    override def get(): Option[Seq[PatternSpec]] = Some(Seq(patternSpec(patternA.id)))
-  }
+      override def get(): Option[Seq[PatternSpec]] = Some(Seq(patternSpec(patternA.id)))
+    }
 
   def eitherListToolsResponse(
     listToolsResponse: ListToolsResponse): EitherT[Future, Either[Throwable, HttpResponse], ListToolsResponse] = {

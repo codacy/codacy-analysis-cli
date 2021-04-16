@@ -12,7 +12,7 @@ class FileDataStorageSpec extends Specification with NoLanguageFeatures with Moc
 
   case class Test(name: String)
 
-  class StorageTest() extends FileDataStorage[Test]("") {
+  class StorageTest() extends FileDataStorage[Test](File.currentWorkingDirectory, "") {
     override implicit val encoder: Encoder[Test] = deriveEncoder
     override implicit val decoder: Decoder[Test] = deriveDecoder
 

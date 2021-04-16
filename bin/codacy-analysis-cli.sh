@@ -10,9 +10,9 @@ log_error() {
   cat >&2 <<-EOF
 		We encountered a problem with your Docker setup:
 		  > ${message}
-		
+
 		Please check https://github.com/codacy/codacy-analysis-cli for alternative instructions.
-		
+
 	EOF
   exit 3
 }
@@ -22,6 +22,17 @@ test_docker_socket() {
     log_error "/var/run/docker.sock must exist as a Unix domain socket"
   elif [ -n "${DOCKER_HOST}" ] && [ "${DOCKER_HOST}" != "unix:///var/run/docker.sock" ]; then
     log_error "invalid DOCKER_HOST=${DOCKER_HOST}, must be unset or unix:///var/run/docker.sock"
+  fi
+}
+
+set_cache_directory() {
+  CODACY_CACHE_FOLDER="$(pwd)/.codacy/codacy-analysis-cli"
+
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    CODACY_CACHE_FOLDER="$HOME/Library/Caches/Codacy/codacy-analysis-cli"
+  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    CODACY_CACHE_FOLDER="$HOME/.cache/codacy/codacy-analysis-cli"
+  #TODO: Add support for Windows
   fi
 }
 
@@ -37,10 +48,12 @@ run() {
     --env CODACY_PROJECT_TOKEN="$CODACY_PROJECT_TOKEN" \
     --env CODACY_API_TOKEN="$CODACY_API_TOKEN" \
     --env CODACY_API_BASE_URL="$CODACY_API_BASE_URL" \
+    --env CODACY_CACHE_FOLDER="$CODACY_CACHE_FOLDER" \
     --volume /var/run/docker.sock:/var/run/docker.sock \
     --volume "$CODACY_CODE":"$CODACY_CODE" \
     ${output_volume} \
     --volume /tmp:/tmp \
+    --volume "$CODACY_CACHE_FOLDER":"$CODACY_CACHE_FOLDER" \
     codacy/codacy-analysis-cli:${CODACY_ANALYSIS_CLI_VERSION} -- \
     "$@"
 }
@@ -118,6 +131,8 @@ prep_args_with_output_absolute_path() {
 }
 
 test_docker_socket
+
+set_cache_directory
 
 analysis_file "$@"
 

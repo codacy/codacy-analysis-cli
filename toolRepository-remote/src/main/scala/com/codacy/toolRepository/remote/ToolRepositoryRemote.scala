@@ -25,6 +25,28 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
   private val toolStorageInstance = toolsStorage(toolStorageFilename)
 
   override lazy val list: Either[AnalyserError, Seq[ToolSpec]] = {
+    toolStorageInstance.get() match {
+      case Some(toolsFromStorage) =>
+        logger.info(s"Using tools from cache")
+        Right(toolsFromStorage)
+      case None =>
+        downloadToolsFromApi()
+    }
+  }
+
+  private def downloadToolsFromApi(): Either[AnalyserError, Seq[ToolSpec]] = {
+    toolsFromApi() match {
+      case Right(toolsFromApi) =>
+        logger.info(s"Fetched tools")
+        toolStorageInstance.save(toolsFromApi)
+        Right(toolsFromApi)
+      case Left(err) =>
+        logger.error(s"Failed to fetch tools")
+        Left(err)
+    }
+  }
+
+  private def toolsFromApi(): Either[AnalyserError, Seq[ToolSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
       toolsClient.listTools(cursor).value.map {
         case Right(ListToolsResponse.OK(ToolListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
@@ -45,14 +67,8 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
       source.runWith(Sink.seq).map(tools => Right(tools.map(toToolSpec))).recover {
         case e: Exception => Left(AnalyserError.FailedToFetchTools(e.getMessage))
       }
-    val result = Await.result(toolsF, 1 minute)
-    result match {
-      case Right(tools) =>
-        toolStorageInstance.save(tools)
-        Right(tools)
-      case Left(err) =>
-        toolStorageInstance.get().toRight(err)
-    }
+
+    Await.result(toolsF, 1 minute)
   }
 
   override def get(uuid: String): Either[AnalyserError, ToolSpec] =
