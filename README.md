@@ -218,7 +218,7 @@ Found [Clone] 7 duplicated lines with 10 tokens:
     * `--allow-network` [default: false] - Allow network access, so tools that need it can execute (e.g. findbugs)
     * `--force-file-permissions` [default: false] - Force files to be readable by changing the permissions before running the analysis
     * `--tool-timeout` [default: 15minutes] - Maximum time each tool has to execute (e.g. 15minutes, 1hour)
-    * `--max-tool-memory` [default: 3000000000] - Maximum of allowed memory for each tool execution (in bytes or using the notation of [Docker's memory limit flags](https://docs.docker.com/config/containers/resource_constraints/#limit-a-containers-access-to-memory))
+    * `--max-tool-memory` [default: 3g] - Maximum of allowed memory for each tool execution (in bytes or using the notation of [Docker's memory limit flags](https://docs.docker.com/config/containers/resource_constraints/#limit-a-containers-access-to-memory))
     * `--tmp-directory` [optional] - Temporary directory for analysis purposes
     * `--gh-code-scanning-compat` [default: false] - Reduce issue severity by one level, __for non-security issues__, for compatibility with GitHub's code scanning feature.
     This option will only have an effect when used in conjunction with `--format sarif`. Note that in this case, the same issues on Codacy side will have higher priority.
