@@ -241,8 +241,9 @@ To run locally the same analysis that Codacy does in your code you can request r
 
 #### Project Token
 
-You can find the project token in:
-* `Project -> Settings -> Integrations -> Add Integration -> Project API`
+See [how to generate a project token](https://docs.codacy.com/codacy-api/api-tokens/#project-api-tokens).
+
+> ⚠️ **Warning:** For security reasons we recommend that you store your project API token in the environment variable CODACY_PROJECT_TOKEN instead of setting `--project-token`.
 
 ```sh
 codacy-analysis-cli analyze \
@@ -251,12 +252,11 @@ codacy-analysis-cli analyze \
   --directory <SOURCE-CODE-PATH>
 ```
 
-> In alternative to setting `--project-token` you can define CODACY_PROJECT_TOKEN in the environment.
-
 #### API Token
 
-You can find the project token in:
-* `Account -> Access Management`
+See [how to generate an account API token](https://docs.codacy.com/codacy-api/api-tokens/#account-api-tokens).
+
+> ⚠️ **Warning:** For security reasons we recommend that you store your account API token in the environment variable CODACY_API_TOKEN instead of setting `--api-token`.
 
 The provider, username, and project name can be retrieved from the URL in Codacy.
 
@@ -269,8 +269,6 @@ codacy-analysis-cli analyze \
   --tool <TOOL-SHORT-NAME> \
   --directory <SOURCE-CODE-PATH>
 ```
-
-> In alternative to setting `--api-token` you can define CODACY_API_TOKEN in the environment.
 
 ## Build
 
