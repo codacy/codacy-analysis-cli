@@ -101,11 +101,8 @@ final case class DefaultCommand(
 }
 
 final case class CommonOptions(@ValueDescription("Run the tool with verbose output")
-                               verbose: Int @@ Counter = Tag.of(0),
-                               @ExtraName("s") @ValueDescription("Skip commit UUID validation")
-                               skipCommitUuidValidation: Int @@ Counter = Tag.of(0)) {
+                               verbose: Int @@ Counter = Tag.of(0)) {
   val verboseValue: Boolean = verbose.## > 0
-  val skipCommitUuidValidationValue: Boolean = skipCommitUuidValidation.## > 0
 }
 
 sealed trait CommandOptions {
@@ -144,6 +141,8 @@ final case class Analyze(
   output: Option[File] = Option.empty,
   @ExtraName("c") @ValueDescription("The commit UUID of the commit that will be analysed")
   commitUuid: Option[Commit.Uuid] = Option.empty,
+  @ExtraName("s") @ValueDescription("Skip commit UUID validation")
+  skipCommitUuidValidation: Int @@ Counter = Tag.of(0),
   @ExtraName("u") @ValueDescription("If the results should be uploaded to the API")
   upload: Int @@ Counter = Tag.of(0),
   @ExtraName("p") @ValueDescription("The number of tools to run in parallel")
@@ -174,6 +173,8 @@ final case class Analyze(
   val allowNetworkValue: Boolean = allowNetwork.## > 0
   val forceFilePermissionsValue: Boolean = forceFilePermissions.## > 0
   val ghCodeScanningCompatValue: Boolean = ghCodeScanningCompat.## > 0
+  val skipCommitUuidValidationValue: Boolean = skipCommitUuidValidation.## > 0
+
 }
 
 final case class ValidateConfiguration(@Recurse
