@@ -347,6 +347,26 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
       }
     }
 
+    "does not fail when the uuid of the current commit of the git project does not match the one provided by parameter but fails for other reason" in {
+      withTemporaryGitRepo { directory =>
+        (for {
+          _ <- File.temporaryFile(parent = Some(directory))
+        } yield {
+          val analyze = Analyze(
+            options = CommonOptions(),
+            api = APIOptions(projectToken = Some("hey, im a token"), codacyApiBaseUrl = Some("https://codacy.com")),
+            tool = None,
+            directory = Option(directory),
+            upload = Tag.of(0),
+            extras = ExtraOptions(),
+            commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
+            skipCommitUuidValidation = Tag.of(1),
+            toolTimeout = None)
+          cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
+        }).get
+      }
+    }
+
     "cleanup config files after cli run" in {
       (for {
         directory <- File.temporaryDirectory()
