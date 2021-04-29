@@ -146,9 +146,8 @@ class AnalyseCommand(analyze: Analyze,
   }
 
   private def validateGitCommitUuid(repository: Repository,
-                                    commitUuidOpt: Option[Commit.Uuid], skipCommitUuidValidationValue: Boolean
-
-): Either[CLIError, Unit] = {
+                                    commitUuidOpt: Option[Commit.Uuid],
+                                    skipCommitUuidValidationValue: Boolean): Either[CLIError, Unit] = {
     (for {
       gitCommit <- repository.latestCommit.toOption
       paramCommitUuid <- commitUuidOpt
