@@ -100,8 +100,9 @@ final case class DefaultCommand(
   }
 }
 
-final case class CommonOptions(@ValueDescription("Run the tool with verbose output")
-                               verbose: Int @@ Counter = Tag.of(0)) {
+final case class CommonOptions(
+  @ValueDescription("Run the tool with verbose output")
+  verbose: Int @@ Counter = Tag.of(0)) {
   val verboseValue: Boolean = verbose.## > 0
 }
 
