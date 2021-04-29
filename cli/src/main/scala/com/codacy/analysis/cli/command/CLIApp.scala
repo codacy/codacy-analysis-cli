@@ -141,7 +141,7 @@ final case class Analyze(
   output: Option[File] = Option.empty,
   @ExtraName("c") @ValueDescription("The commit UUID of the commit that will be analysed")
   commitUuid: Option[Commit.Uuid] = Option.empty,
-  @ExtraName("s") @ValueDescription("Skip commit UUID validation")
+  @ExtraName("s") @ValueDescription("[default: false] - Force using a commit UUID")
   skipCommitUuidValidation: Int @@ Counter = Tag.of(0),
   @ExtraName("u") @ValueDescription("If the results should be uploaded to the API")
   upload: Int @@ Counter = Tag.of(0),
