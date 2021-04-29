@@ -119,7 +119,7 @@ class AnalyseCommand(analyze: Analyze,
         { repository =>
           for {
             _ <- validateNoUncommitedChanges(repository, configuration.upload.upload)
-            _ <- validateGitCommitUuid(repository, analyze.commitUuid, analyze.options.skipCommitUuidValidationValue)
+            _ <- validateGitCommitUuid(repository, analyze.commitUuid, analyze.skipCommitUuidValidationValue)
           } yield ()
         })
   }
