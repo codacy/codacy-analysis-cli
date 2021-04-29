@@ -102,8 +102,11 @@ final case class DefaultCommand(
 
 final case class CommonOptions(
   @ValueDescription("Run the tool with verbose output")
-  verbose: Int @@ Counter = Tag.of(0)) {
+  verbose: Int @@ Counter = Tag.of(0),
+  @ExtraName("s") @ValueDescription("Skip commit UUID validation (use with extra care)")
+  skipCommitUuidValidation: Int @@ Counter = Tag.of(0)) {
   val verboseValue: Boolean = verbose.## > 0
+  val skipCommitUuidValidationValue: Boolean = skipCommitUuidValidation.## > 0
 }
 
 sealed trait CommandOptions {

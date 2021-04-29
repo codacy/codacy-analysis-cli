@@ -119,7 +119,7 @@ class AnalyseCommand(analyze: Analyze,
         { repository =>
           for {
             _ <- validateNoUncommitedChanges(repository, configuration.upload.upload)
-            _ <- validateGitCommitUuid(repository, analyze.commitUuid)
+            _ <- validateGitCommitUuid(repository, analyze.commitUuid, analyze.options.skipCommitUuidValidationValue)
           } yield ()
         })
   }
@@ -146,11 +146,13 @@ class AnalyseCommand(analyze: Analyze,
   }
 
   private def validateGitCommitUuid(repository: Repository,
-                                    commitUuidOpt: Option[Commit.Uuid]): Either[CLIError, Unit] = {
+                                    commitUuidOpt: Option[Commit.Uuid], skipCommitUuidValidationValue: Boolean
+
+): Either[CLIError, Unit] = {
     (for {
       gitCommit <- repository.latestCommit.toOption
       paramCommitUuid <- commitUuidOpt
-      if gitCommit.commitUuid != paramCommitUuid
+      if (!skipCommitUuidValidationValue && gitCommit.commitUuid != paramCommitUuid)
     } yield {
       val error = CLIError.CommitUuidsDoNotMatch(paramCommitUuid, gitCommit.commitUuid)
       logger.error(error.message)
