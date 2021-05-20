@@ -29,11 +29,9 @@ With a single command you can:
 
 ## Install
 
-### MacOS
-
 ```bash
-brew tap codacy/tap
-brew install codacy-analysis-cli
+curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
+cd codacy-analysis-cli-* && sudo make install
 ```
 
 ### Windows
@@ -92,13 +90,6 @@ Finally, just type the following command and the installation will start
 ```sudo make install```
 
 When Docker’s username is required, be sure to write the username and not the e-mail because depending on how you’ve created your docker account, they might be different.
-
-### Others
-
-```bash
-curl -L https://github.com/codacy/codacy-analysis-cli/archive/master.tar.gz | tar xvz
-cd codacy-analysis-cli-* && sudo make install
-```
 
 ## Usage
 
