@@ -56,7 +56,7 @@ object AnalyseCommand {
       Formatter(configuration.analysis.output, environment.baseProjectDirectory(analyze.directory))
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    val toolSelector = new ToolSelector(toolRepository(apiUrl))
+    val toolSelector = new ToolSelector(toolRepository(apiUrl, environment.baseProjectDirectory(analyze.directory)))
 
     val analyseExecutor: AnalyseExecutor =
       new AnalyseExecutor(
@@ -71,7 +71,7 @@ object AnalyseCommand {
     new AnalyseCommand(analyze, configuration, analyseExecutor, uploaderOpt)
   }
 
-  private def toolRepository(codacyApiUrl: String) = {
+  private def toolRepository(codacyApiUrl: String, currentWorkingDirectory: File) = {
     val actorSystem = ActorSystem("ToolsServiceActorSystem")
     val materializer = akka.stream.ActorMaterializer()(actorSystem)
     val httpClient: HttpRequest => Future[HttpResponse] =
@@ -79,9 +79,10 @@ object AnalyseCommand {
 
     val toolsClient =
       ToolsClient(codacyApiUrl)(httpClient = httpClient, ec = actorSystem.dispatcher, mat = materializer)
-    new ToolRepositoryRemote(toolsClient, ToolSpecDataStorage.apply, PatternSpecDataStorage.apply)(
-      ec = actorSystem.dispatcher,
-      mat = materializer)
+    new ToolRepositoryRemote(
+      toolsClient,
+      ToolSpecDataStorage(currentWorkingDirectory, _),
+      PatternSpecDataStorage(currentWorkingDirectory, _))(ec = actorSystem.dispatcher, mat = materializer)
   }
 }
 

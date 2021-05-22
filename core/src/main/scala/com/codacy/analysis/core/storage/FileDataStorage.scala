@@ -1,14 +1,13 @@
 package com.codacy.analysis.core.storage
 
 import better.files.File
-import better.files.File.home
 import io.circe._
 import io.circe.syntax._
 import org.log4s.{Logger, getLogger}
 
 import scala.util.{Failure, Success, Try}
 
-abstract class FileDataStorage[T](val storageFilename: String) {
+abstract class FileDataStorage[T](val currentWorkingDirectory: File, val storageFilename: String) {
 
   implicit val encoder: Encoder[T]
   implicit val decoder: Decoder[T]
@@ -16,22 +15,9 @@ abstract class FileDataStorage[T](val storageFilename: String) {
   private val logger: Logger = getLogger
 
   private val cacheFolder: File = {
-    val defaultFolder = File.currentWorkingDirectory / ".codacy" / "codacy-analysis-cli"
-    val osNameOpt = sys.props.get("os.name").map(_.toLowerCase)
-    val result = osNameOpt match {
-      case Some(sysName) if sysName.contains("mac") || sysName == "darwin" =>
-        home / "Library" / "Caches" / "Codacy" / "codacy-analysis-cli"
-
-      case Some(sysName) if sysName.contains("nix") || sysName.contains("nux") =>
-        home / ".cache" / "codacy" / "codacy-analysis-cli"
-
-      case Some(sysName) if sysName.contains("windows") =>
-        sys.env.get("APPDATA").fold(defaultFolder) { windowsCacheDir =>
-          File(windowsCacheDir) / "Codacy" / "codacy-analysis-cli"
-        }
-
-      case _ => defaultFolder
-    }
+    val defaultFolder = currentWorkingDirectory / ".codacy" / "codacy-analysis-cli"
+    val cacheFolderOpt = sys.env.get("CODACY_CACHE_FOLDER").map(File(_))
+    val result = cacheFolderOpt.getOrElse(defaultFolder)
 
     result.createIfNotExists(asDirectory = true, createParents = true)
     result
@@ -56,7 +42,7 @@ abstract class FileDataStorage[T](val storageFilename: String) {
     }
 
   def save(values: Seq[T]): Boolean = {
-    logger.debug("Saving new values to storage")
+    logger.debug(s"Saving new values to storage $storageFile")
     val storageListJson = values.asJson.toString
     writeToFile(storageListJson) match {
       case Success(_) =>
