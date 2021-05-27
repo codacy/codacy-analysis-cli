@@ -62,8 +62,8 @@ class ToolSelectorSpec extends Specification with NoLanguageFeatures {
       rubyTools should beRight
       rubyTools must beLike {
         case Right(tools) =>
-          tools.map(_.name) must containTheSameElementsAs(
-            Seq("Brakeman", "Rubocop", "BundlerAudit", "metrics", "duplication"))
+          tools.map(_.names.mkString("/")) must containTheSameElementsAs(
+            Seq("Brakeman", "Rubocop", "BundlerAudit", "metric/metrics", "duplication"))
           tools.flatMap(_.supportedLanguages) must containAllOf(Seq(Languages.Ruby))
       }
     }

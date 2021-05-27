@@ -17,7 +17,7 @@ import scala.util.Try
 
 class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val languageToRun: Language) extends ITool {
 
-  override def name: String = "duplication"
+  override def names: Seq[String] = Seq("duplication")
   override def supportedLanguages: Set[Language] = duplicationTool.languages.to[Set]
 
   def run(directory: File,

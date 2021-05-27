@@ -53,10 +53,16 @@ trait FileCollector[T[_]] {
 
     val filters =
       Set[Set[Path] => Set[Path]](
-        filterByGlobs(_, exclusionRules.excludePaths.byTool.getOrElse(tool.name, Set.empty)),
+        filterByGlobs(_, getExcludePathsForTool(exclusionRules.excludePaths, tool)),
         filterByLanguage(tool.languageToRun, exclusionRules.allowedExtensionsByLanguage))
     val filteredFiles = filters.foldLeft(target.readableFiles) { case (fs, filter) => filter(fs) }
     target.copy(readableFiles = filteredFiles)
+  }
+
+  private def getExcludePathsForTool(excludePaths: ExcludePaths, tool: ITool): Set[Glob] = {
+    tool.names.foldLeft(Set.empty[Glob]){ (accum, next) =>
+        excludePaths.byTool.getOrElse(next,accum)
+    }
   }
 
   private def filterByGlobs(files: Set[Path], excludeGlobs: Set[Glob]): Set[Path] = {

@@ -26,9 +26,9 @@ final class CodacyPluginsAnalyser extends Analyser[Try] {
 
     result match {
       case Success(res) =>
-        logger.info(s"Completed analysis for ${tool.name} with ${res.size} results")
+        logger.info(s"Completed analysis for ${tool.names.mkString("/")} with ${res.size} results")
       case Failure(e) =>
-        logger.error(e)(AnalyserError.ToolExecutionFailure("analysis", tool.name).message)
+        logger.error(e)(AnalyserError.ToolExecutionFailure("analysis", tool.names.mkString("/")).message)
     }
 
     result
@@ -47,9 +47,9 @@ final class CodacyPluginsAnalyser extends Analyser[Try] {
 
     result match {
       case Success(res) =>
-        logger.info(s"Completed metrics for ${metricsTool.name} with ${res.size} results")
+        logger.info(s"Completed metrics for ${metricsTool.names.mkString("/")} with ${res.size} results")
       case Failure(e) =>
-        logger.error(e)(AnalyserError.ToolExecutionFailure("metrics", metricsTool.name).message)
+        logger.error(e)(AnalyserError.ToolExecutionFailure("metrics", metricsTool.names.mkString("/")).message)
     }
 
     result.map(_.to[Set])
@@ -66,9 +66,9 @@ final class CodacyPluginsAnalyser extends Analyser[Try] {
 
     result match {
       case Success(res) =>
-        logger.info(s"Completed duplication for ${duplicationTool.name} with ${res.size} results")
+        logger.info(s"Completed duplication for ${duplicationTool.names.mkString("/")} with ${res.size} results")
       case Failure(e) =>
-        logger.error(e)(AnalyserError.ToolExecutionFailure("duplication", duplicationTool.name).message)
+        logger.error(e)(AnalyserError.ToolExecutionFailure("duplication", duplicationTool.names.mkString("/")).message)
     }
 
     result.map(_.to[Set])

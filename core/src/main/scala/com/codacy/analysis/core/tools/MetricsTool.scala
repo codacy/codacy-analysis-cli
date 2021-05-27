@@ -18,7 +18,7 @@ import scala.concurrent.duration.Duration
 import scala.util.Try
 
 class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun: Language) extends ITool {
-  override def name: String = "metrics"
+  override def names: Seq[String] = Seq("metric", "metrics")
 
   override def supportedLanguages: Set[Language] = metricsTool.languages.to[Set]
 

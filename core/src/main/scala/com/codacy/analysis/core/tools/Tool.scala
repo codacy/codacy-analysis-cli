@@ -45,8 +45,9 @@ class Tool(fullToolSpec: FullToolSpec, defaultRunTimeout: Duration)(private val 
 
   private val logger: Logger = getLogger
 
-  override def name: String = tool.shortName
+  override def names: Seq[String] = Seq(tool.shortName)
   def uuid: String = tool.uuid
+  def name: String = tool.shortName
 
   override def supportedLanguages: Set[Language] = tool.languages
 
@@ -166,12 +167,10 @@ class ToolCollector(toolRepository: ToolRepository) {
       Left(AnalyserError.NoActiveToolInConfiguration)
     } else {
       val toolsIdentified = toolUuids.flatMap { toolUuid =>
-        from(toolUuid, languages).fold(
-          { _ =>
-            logger.warn(s"Failed to get tool for uuid:$toolUuid")
-            Set.empty[Tool]
-          },
-          identity)
+        from(toolUuid, languages).fold({ _ =>
+          logger.warn(s"Failed to get tool for uuid:$toolUuid")
+          Set.empty[Tool]
+        }, identity)
       }
 
       if (toolsIdentified.size != toolUuids.size) {
