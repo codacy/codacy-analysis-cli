@@ -9,8 +9,11 @@ object SetOps {
 
   def mapInParallel[A, B](set: Set[A], nrParallel: Option[Int] = Option.empty[Int])(f: A => B): Seq[B] = {
     val setPar: ParSet[A] = set.par
-    setPar.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(nrParallel.getOrElse(2)))
-    setPar.map(f)(collection.breakOut)
+    val forkJoinPool = new ForkJoinPool(nrParallel.getOrElse(2))
+    setPar.tasksupport = new ForkJoinTaskSupport(forkJoinPool)
+    val result = setPar.map(f)
+    forkJoinPool.shutdown()
+    result.seq.toSeq
   }
 
 }
