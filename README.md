@@ -334,7 +334,9 @@ sbt codacyCoverage
 
 ## Breaking Changes
 
-- 4.0.0 - Rename `analyse` command to `analyze`. This is a breaking change if you are running the CLI by using the
+- `7.0.0`: Fix `--parallel` that wasn't making the tools run actually in parallel. To restore the previous behaviour use `--parallel 1`
+
+- `4.0.0`: Rename `analyse` command to `analyze`. This is a breaking change if you are running the CLI by using the
   [jar](#java) or [`sbt`](#local), but not if you are using the [provided script](#script).
 
 ## What is Codacy
