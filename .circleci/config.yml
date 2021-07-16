@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  codacy: codacy/base@5.0.0
+  codacy: codacy/base@5.4.0
   slack: circleci/slack@3.3.0
 
 references:
@@ -200,12 +200,20 @@ workflows:
                  sonatypeBundleRelease"
           requires:
             - publish_docker_locally
+          filters:
+            branches:
+              only:
+                - master
       - codacy/publish_docker:
           name: publish_dockerhub
           context: CodacyDocker
           docker_tag: dev-snapshot
           requires:
             - publish_docker_locally
+          filters:
+            branches:
+              only:
+                - master
       - codacy/sbt:
           name: build_cli_jar
           install_sbt_version: 1.3.12
@@ -218,6 +226,10 @@ workflows:
             mv ./cli/target/scala-2.12/codacy-analysis-cli-assembly-$(cat .version).jar ~/workdir/artifacts/
           requires:
             - publish_docker_locally
+          filters:
+            branches:
+              only:
+                - master
       - codacy/publish_ghr:
           context: CodacyGitHub
           path: ~/workdir/artifacts/
