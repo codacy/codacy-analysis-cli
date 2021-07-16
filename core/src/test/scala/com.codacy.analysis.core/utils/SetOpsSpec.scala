@@ -6,15 +6,19 @@ class SetOpsSpec extends Specification {
 
   "SetOps.mapInParallel" should {
     "actually run in parallel" in {
+      val sleepMillis = 100L
+      val parallelism = 20
+
       val initialTime = System.currentTimeMillis()
-      SetOps.mapInParallel(1.to(1000).toSet, Some(1000)) { _ =>
-        Thread.sleep(10)
+      SetOps.mapInParallel(1.to(parallelism).toSet, Some(parallelism)) { _ =>
+        Thread.sleep(sleepMillis)
       }
       val finalTime = System.currentTimeMillis()
 
-      val elapsedSeconds = (finalTime - initialTime) / 1000
+      val elapsedMillis = finalTime - initialTime
+      val expectedMaxMillis = (sleepMillis * parallelism * 0.95).toLong
 
-      elapsedSeconds should beLessThan(9L)
+      elapsedMillis should beLessThan(expectedMaxMillis)
     }
   }
 }
