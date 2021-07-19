@@ -206,7 +206,7 @@ workflows:
                 - master
       - codacy/publish_docker:
           name: publish_dockerhub
-          context: CodacyDocker
+          context: CodacyAWS
           docker_tag: dev-snapshot
           requires:
             - publish_docker_locally
