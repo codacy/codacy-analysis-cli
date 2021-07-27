@@ -14,18 +14,20 @@ class HttpHelper(apiUrl: String, extraHeaders: Map[String, String], allowUnsafeS
   def get(endpoint: String): Either[ParsingFailure, Json] = {
     val headers: Map[String, String] = Map("Content-Type" -> "application/json") ++ extraHeaders
 
-    var response: HttpResponse[String] = null;
+    var response: Option[HttpResponse[String]] = Option(null);
     if (allowUnsafeSSL) {
-      response = Http(s"$remoteUrl$endpoint")
-        .headers(headers)
-        .timeout(connectionTimeoutMs, readTimeoutMs)
-        .options(HttpOptions.allowUnsafeSSL)
-        .asString
+      response = Option(
+        Http(s"$remoteUrl$endpoint")
+          .headers(headers)
+          .timeout(connectionTimeoutMs, readTimeoutMs)
+          .options(HttpOptions.allowUnsafeSSL)
+          .asString)
     } else {
-      response = Http(s"$remoteUrl$endpoint").headers(headers).timeout(connectionTimeoutMs, readTimeoutMs).asString
+      response = Option(
+        Http(s"$remoteUrl$endpoint").headers(headers).timeout(connectionTimeoutMs, readTimeoutMs).asString)
     }
 
-    parse(response.body)
+    parse(response.get.body)
   }
 
   def post(endpoint: String, dataOpt: Option[Json] = None): Either[ParsingFailure, Json] = {
