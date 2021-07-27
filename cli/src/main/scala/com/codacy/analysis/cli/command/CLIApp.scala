@@ -146,6 +146,8 @@ final case class Analyze(
   skipCommitUuidValidation: Int @@ Counter = Tag.of(0),
   @ExtraName("u") @ValueDescription("If the results should be uploaded to the API")
   upload: Int @@ Counter = Tag.of(0),
+  @ExtraName("i") @ValueDescription("[default: false] - Skips ssl verification when comunicating with Codacy API")
+  skipSslVerification: Int @@ Counter = Tag.of(0),
   @ExtraName("p") @ValueDescription("The number of tools to run in parallel")
   parallel: Option[Int] = Option.empty,
   @ValueDescription("Allow tools to access the network")
@@ -175,6 +177,7 @@ final case class Analyze(
   val forceFilePermissionsValue: Boolean = forceFilePermissions.## > 0
   val ghCodeScanningCompatValue: Boolean = ghCodeScanningCompat.## > 0
   val skipCommitUuidValidationValue: Boolean = skipCommitUuidValidation.## > 0
+  val skipSslVerificationValue: Boolean = skipSslVerification.## > 0
 
 }
 

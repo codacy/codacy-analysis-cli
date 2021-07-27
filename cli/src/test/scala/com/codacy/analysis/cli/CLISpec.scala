@@ -55,6 +55,19 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38")) must beLike {
         case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
       }
+      cli.parse(
+        Array(
+          "analyze",
+          "--directory",
+          "/tmp",
+          "--tool",
+          "pylint",
+          "--commit-uuid",
+          "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38",
+          "--upload",
+          "--skip-ssl-verification")) must beLike {
+        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
+      }
     }
 
     "fail parse" in {
