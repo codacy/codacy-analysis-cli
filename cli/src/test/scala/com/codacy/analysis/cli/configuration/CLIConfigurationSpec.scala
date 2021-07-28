@@ -51,7 +51,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
     commitUuid = commitUuid,
     extras = ExtraOptions(analyser = Analyser.defaultAnalyser.name))
   private val defaultEnvironment = new Environment(Map.empty)
-  private val httpHelper = new HttpHelper(remoteUrl, Map.empty)
+  private val httpHelper = new HttpHelper(remoteUrl, Map.empty, false)
 
   private val noRemoteConfigCodacyClient =
     new CodacyClient(apiCredentials, httpHelper)(ExecutionContext.global) {
