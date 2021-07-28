@@ -49,7 +49,9 @@ object AnalyseCommand {
         .stripSuffix("/") // a trailing slash breaks the tools fetching mechanism
 
     val codacyClientOpt: Option[CodacyClient] =
-      Credentials.get(environment, analyze.api, apiUrl).map(CodacyClient.apply)
+      Credentials
+        .get(environment, analyze.api, apiUrl)
+        .map(cred => CodacyClient.apply(cred, analyze.skipSslVerificationValue))
     val configuration: CLIConfiguration =
       CLIConfiguration(codacyClientOpt, environment, analyze, new CodacyConfigurationFileLoader)
     val formatter: Formatter =

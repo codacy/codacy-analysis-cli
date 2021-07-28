@@ -2,22 +2,29 @@ package com.codacy.analysis.core.utils
 
 import io.circe.parser.parse
 import io.circe.{Json, ParsingFailure}
-import scalaj.http.{Http, HttpRequest, HttpResponse}
+import scalaj.http.{Http, HttpRequest, HttpResponse, HttpOptions}
 
-class HttpHelper(apiUrl: String, extraHeaders: Map[String, String]) {
+class HttpHelper(apiUrl: String, extraHeaders: Map[String, String], allowUnsafeSSL: Boolean) {
 
   private lazy val connectionTimeoutMs = 2000
   private lazy val readTimeoutMs = 5000
 
   private val remoteUrl = apiUrl + "/2.0"
 
+  private def httpOptions = if (allowUnsafeSSL) Seq(HttpOptions.allowUnsafeSSL) else Seq.empty
+
   def get(endpoint: String): Either[ParsingFailure, Json] = {
     val headers: Map[String, String] = Map("Content-Type" -> "application/json") ++ extraHeaders
 
     val response: HttpResponse[String] =
-      Http(s"$remoteUrl$endpoint").headers(headers).timeout(connectionTimeoutMs, readTimeoutMs).asString
+      Http(s"$remoteUrl$endpoint")
+        .headers(headers)
+        .timeout(connectionTimeoutMs, readTimeoutMs)
+        .options(httpOptions)
+        .asString
 
     parse(response.body)
+
   }
 
   def post(endpoint: String, dataOpt: Option[Json] = None): Either[ParsingFailure, Json] = {
@@ -26,7 +33,8 @@ class HttpHelper(apiUrl: String, extraHeaders: Map[String, String]) {
     } ++ extraHeaders
 
     val request: HttpRequest = dataOpt.map { data =>
-      Http(s"$remoteUrl$endpoint").postData(data.toString)
+      Http(s"$remoteUrl$endpoint").options(httpOptions).postData(data.toString)
+
     }.getOrElse(Http(s"$remoteUrl$endpoint"))
       .method("POST")
       .headers(headers)
