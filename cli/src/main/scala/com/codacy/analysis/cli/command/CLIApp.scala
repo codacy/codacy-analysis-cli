@@ -9,6 +9,7 @@ import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.clients.{OrganizationProvider, ProjectName, UserName}
 import com.codacy.analysis.core.configuration.AppConfiguration
 import com.codacy.analysis.core.git.Commit
+import com.codacy.cli.Versions
 
 import scala.concurrent.duration.Duration
 import scala.util.matching.Regex
@@ -77,14 +78,8 @@ object ArgumentParsers {
   }
 }
 
-object Version {
-
-  val version: String =
-    Option(getClass.getPackage.getImplementationVersion).getOrElse("0.1.0-SNAPSHOT")
-}
-
 @AppName("Codacy Analysis Cli")
-@AppVersion(Version.version)
+@AppVersion(Versions.cliVersion)
 @ProgName("codacy-analysis-cli")
 final case class DefaultCommand(
   @ExtraName("v") @ValueDescription("Prints the version of the program")
@@ -95,7 +90,7 @@ final case class DefaultCommand(
 
   def run(): Unit = {
     if (versionValue) {
-      Console.println(s"codacy-analysis-cli is on version ${Version.version}")
+      Console.println(s"codacy-analysis-cli is on version ${Versions.cliVersion}")
     }
   }
 }

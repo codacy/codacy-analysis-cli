@@ -10,6 +10,7 @@ import org.log4s.{Logger, getLogger}
 
 trait FormatterCompanion {
   def name: String
+
   def apply(printStream: PrintStream, executionDirectory: File, ghCodeScanningCompat: Boolean): Formatter
 }
 

@@ -31,6 +31,7 @@ run() {
     output_volume="--volume ${OUTPUT_DIRECTORY}:${OUTPUT_DIRECTORY}";
   fi
   local CODACY_ANALYSIS_CLI_VERSION="${CODACY_ANALYSIS_CLI_VERSION:-stable}"
+  docker pull codacy/codacy-analysis-cli:${CODACY_ANALYSIS_CLI_VERSION}
   docker run \
     --rm \
     --env CODACY_CODE="$CODACY_CODE" \

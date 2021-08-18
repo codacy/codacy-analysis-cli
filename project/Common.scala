@@ -1,14 +1,8 @@
-import com.typesafe.sbt.packager.Keys._
-import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport.Docker
-import com.typesafe.sbt.packager.docker.{Cmd, CmdLike, DockerAlias}
 import sbt.Keys._
-import sbt.{Def, _}
-
-import scala.util.Properties
+import sbt.{Compile, Credentials, Test}
 
 object Common {
 
-  private val defaultDockerInstallationPath = "/opt/codacy"
   val scalaBinaryVersionNumber = "2.12"
   val scalaVersionNumber = s"$scalaBinaryVersionNumber.12"
 
