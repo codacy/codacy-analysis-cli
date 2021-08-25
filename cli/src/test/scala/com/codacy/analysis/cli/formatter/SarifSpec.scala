@@ -63,7 +63,7 @@ class SarifSpec extends Specification with NoLanguageFeatures {
         Pattern.Specification(securityPatternId, securityPatternLevel, securityPatternCategory, None),
         Pattern.Specification(duplicationPatternId, duplicationPatternLevel, duplicationPatternCategory, None)))
 
-    val expectedArtifactLocation = s"file:///codacy/${securityIssue.filename.toString}"
+    val expectedArtifactLocation = s"${securityIssue.filename.toString}"
     val expectedReport = SarifReport(
       "https://docs.oasis-open.org/sarif/sarif/v2.1.0/cos02/schemas/sarif-schema-2.1.0.json",
       "2.1.0",
