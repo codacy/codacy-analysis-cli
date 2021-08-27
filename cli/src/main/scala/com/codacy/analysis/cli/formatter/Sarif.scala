@@ -135,8 +135,7 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
 
   private def createArtifacts(issues: Seq[Issue]): List[SarifReport.Artifact] = {
     val filenames: Set[String] = issues.map(_.filename.toString)(collection.breakOut)
-    filenames.map(filename => SarifReport.Artifact(SarifReport.ArtifactLocation(s"$rootDirectory/$filename")))(
-      collection.breakOut)
+    filenames.map(filename => SarifReport.Artifact(SarifReport.ArtifactLocation(s"$filename")))(collection.breakOut)
   }
 
   private def createResults(
@@ -151,7 +150,7 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
       issue <- issues
     } yield {
       val message = SarifReport.Message(issue.message.text)
-      val filePath = s"$rootDirectory/${issue.filename.toString}"
+      val filePath = s"${issue.filename.toString}"
       // Some tools return 0 as line number, which doesn't comply with SARIF json schema
       val line = if (issue.location.line >= 1) issue.location.line else 1
       val locations = List(
