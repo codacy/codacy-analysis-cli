@@ -30,7 +30,7 @@ object Dependencies {
   val codacyPlugins =
     Seq("codacy-plugins", "codacy-plugins-runner-binary").map("com.codacy" %% _ % codacyPluginsVersion)
 
-  lazy val pluginsApi = "com.codacy" %% "codacy-plugins-api" % "5.3.1"
+  lazy val pluginsApi = "com.codacy" %% "codacy-plugins-api" % "5.3.2"
 
   lazy val pprint = "com.lihaoyi" %% "pprint" % "0.5.7"
 
