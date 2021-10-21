@@ -255,7 +255,7 @@ The provider, username, and project name can be retrieved from the URL in Codacy
 
 ```sh
 codacy-analysis-cli analyze \
-  --api-token <PROJECT-TOKEN> \
+  --api-token <API-TOKEN> \
   --provider <PROVIDER> \
   --username <USERNAME> \
   --project <PROJECT-NAME> \
