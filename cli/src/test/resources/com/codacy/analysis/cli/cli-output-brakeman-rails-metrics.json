@@ -352,6 +352,10 @@
         {
           "line": 67,
           "value": 3
+        },
+        {
+          "line": 51,
+          "value": 2
         }
       ]
     }
@@ -768,7 +772,7 @@
   {
     "FileMetrics": {
       "filename": "src/main/resources/docs/directory-tests/rails4/config/initializers/i18n.rb",
-      "complexity": 3,
+      "complexity": 4,
       "loc": 16,
       "cloc": 1,
       "nrMethods": null,
@@ -776,7 +780,7 @@
       "lineComplexities": [
         {
           "line": 11,
-          "value": 3
+          "value": 4
         }
       ]
     }
