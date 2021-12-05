@@ -120,13 +120,18 @@ class AnalyseCommand(analyze: Analyze,
         },
         { repository =>
           for {
-            _ <- validateNoUncommitedChanges(repository, configuration.upload.upload, analyze.skipUncommittedFilesCheckValue)
+            _ <- validateNoUncommitedChanges(
+              repository,
+              configuration.upload.upload,
+              analyze.skipUncommittedFilesCheckValue)
             _ <- validateGitCommitUuid(repository, analyze.commitUuid, analyze.skipCommitUuidValidationValue)
           } yield ()
         })
   }
 
-  private def validateNoUncommitedChanges(repository: Repository, upload: Boolean, skipUncommittedFilesCheck: Boolean): Either[CLIError, Unit] = {
+  private def validateNoUncommitedChanges(repository: Repository,
+                                          upload: Boolean,
+                                          skipUncommittedFilesCheck: Boolean): Either[CLIError, Unit] = {
     repository.uncommitedFiles.fold(
       { _ =>
         Right(())
