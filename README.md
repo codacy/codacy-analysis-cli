@@ -203,6 +203,7 @@ Found [Clone] 7 duplicated lines with 10 tokens:
     * `--format` [default: text] - Change the output format (e.g. json)
     * `--commit-uuid` [default: latest commit of current git branch] - Set the commit UUID that will receive the results on Codacy
     * `--skip-commit-uuid-validation` [default: false] - Force using a commit UUID even if it doesn't belong to the current git branch.
+    * `--skip-uncommitted-files-check` [default: false] - Skip check for uncommitted files in the analysis directory
     * `--upload` [default: false] - Request to push results to Codacy
     * `--skip-ssl-verification` [default: false] - Skip the SSL certificate verification when communicating with the Codacy API
     * `--parallel` [default: 2] - Number of tools to run in parallel
