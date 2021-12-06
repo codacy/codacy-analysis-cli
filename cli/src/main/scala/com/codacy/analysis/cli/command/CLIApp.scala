@@ -144,6 +144,8 @@ final case class Analyze(
   commitUuid: Option[Commit.Uuid] = Option.empty,
   @ExtraName("s") @ValueDescription("[default: false] - Force using a commit UUID")
   skipCommitUuidValidation: Int @@ Counter = Tag.of(0),
+  @ExtraName("g") @ValueDescription("[default: false] - Skip the check for uncommitted files in the analysis directory")
+  skipUncommittedFilesCheck: Int @@ Counter = Tag.of(0),
   @ExtraName("u") @ValueDescription("If the results should be uploaded to the API")
   upload: Int @@ Counter = Tag.of(0),
   @ExtraName("i") @ValueDescription(
@@ -178,6 +180,7 @@ final case class Analyze(
   val forceFilePermissionsValue: Boolean = forceFilePermissions.## > 0
   val ghCodeScanningCompatValue: Boolean = ghCodeScanningCompat.## > 0
   val skipCommitUuidValidationValue: Boolean = skipCommitUuidValidation.## > 0
+  val skipUncommittedFilesCheckValue: Boolean = skipUncommittedFilesCheck.## > 0
   val skipSslVerificationValue: Boolean = skipSslVerification.## > 0
 
 }
