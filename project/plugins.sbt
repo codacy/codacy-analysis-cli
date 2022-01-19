@@ -1,4 +1,4 @@
-addSbtPlugin("com.codacy" % "codacy-sbt-plugin" % "21.0.3")
+addSbtPlugin("com.codacy" % "codacy-sbt-plugin" % "22.0.1")
 
 // Coverage
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
