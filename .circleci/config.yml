@@ -145,7 +145,7 @@ workflows:
       - codacy/sbt:
           name: compile
           install_sbt_version: 1.6.1
-          cmd: sbt coverage +test:compile
+          cmd: sbt clean coverage +test:compile
           persist_to_workspace: true
           requires:
             - codacy/checkout_and_version
