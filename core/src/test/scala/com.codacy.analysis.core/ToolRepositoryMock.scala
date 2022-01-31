@@ -3,13 +3,14 @@ package com.codacy.analysis.core
 import com.codacy.analysis.core.model.{AnalyserError, PatternSpec, ToolSpec}
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.plugins.api.languages.Languages
+import com.codacy.analysis.core.model.DuplicationToolSpec
 
 /**
-  * This class can be used to replace calls to codacy API related to tools.
+  * This object can be used to replace calls to codacy API related to tools.
   * It's just a placeholder until we find a better way to introduce mocks and
   * do integration tests.
   */
-class ToolRepositoryMock extends ToolRepository {
+object ToolRepositoryMock extends ToolRepository {
 
   private val pylintId = "34225275-f79e-4b85-8126-c7512c987c0d"
   private val eslintId = "cf05f3aa-fd23-4586-8cce-5368917ec3e5"
@@ -17,7 +18,7 @@ class ToolRepositoryMock extends ToolRepository {
   private val brakemanId = "c6273c22-5248-11e5-885d-feff819cdc9f"
   private val scalastyleId = "21586cd3-3eaa-4454-878e-ac0211a833c2"
 
-  override def list(): Either[AnalyserError, Seq[ToolSpec]] =
+  override def listTools(): Either[AnalyserError, Seq[ToolSpec]] =
     Right(
       Seq(
         ToolSpec(
@@ -101,8 +102,8 @@ class ToolRepositoryMock extends ToolRepository {
           isClientSide = false,
           hasUIConfiguration = true)))
 
-  override def get(uuid: String): Either[AnalyserError, ToolSpec] =
-    list().flatMap(_.find(_.uuid == uuid).toRight(AnalyserError.FailedToFindTool(uuid)))
+  override def getTool(uuid: String): Either[AnalyserError, ToolSpec] =
+    listTools().flatMap(_.find(_.uuid == uuid).toRight(AnalyserError.FailedToFindTool(uuid)))
 
   private def getSimplePattern(patternId: String): PatternSpec =
     PatternSpec(patternId, "Info", "ErrorProne", None, patternId, None, None, enabled = true, None, Seq(), Set())
@@ -116,4 +117,23 @@ class ToolRepositoryMock extends ToolRepository {
       scalastyleId -> Seq().map(getSimplePattern))
       .get(tool.uuid)
       .toRight(AnalyserError.FailedToListPatterns(tool.uuid, ""))
+
+  override def listDuplicationTools(): Either[AnalyserError, Seq[DuplicationToolSpec]] =
+    Right(
+      Seq(
+        DuplicationToolSpec(
+          "codacy/codacy-duplication-pmdcpd:2.2.2",
+          Set(
+            Languages.CPP,
+            Languages.Scala,
+            Languages.Go,
+            Languages.Python,
+            Languages.Javascript,
+            Languages.C,
+            Languages.CSharp,
+            Languages.Java,
+            Languages.Swift)),
+        DuplicationToolSpec("codacy/codacy-duplication-phpcpd:2.1.4", Set(Languages.PHP)),
+        DuplicationToolSpec("codacy/codacy-duplication-flay:2.1.4", Set(Languages.Ruby)),
+        DuplicationToolSpec("codacy/codacy-duplication-jscpd:0.1.6", Set(Languages.Kotlin, Languages.TypeScript))))
 }

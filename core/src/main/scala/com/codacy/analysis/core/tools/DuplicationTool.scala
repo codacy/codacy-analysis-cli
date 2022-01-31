@@ -8,23 +8,28 @@ import com.codacy.plugins.api.duplication.DuplicationTool.CodacyConfiguration
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api
 import com.codacy.plugins.duplication.traits
-import com.codacy.plugins.duplication.utils.DuplicationTools
 import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
 import org.log4s.getLogger
 
 import scala.concurrent.duration._
 import scala.util.Try
+import com.codacy.analysis.core.model.DuplicationToolSpec
+import com.codacy.analysis.core.model.AnalyserError
 
-class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val languageToRun: Language) extends ITool {
+class DuplicationTool(duplicationToolSpec: DuplicationToolSpec, val languageToRun: Language) extends ITool {
 
   override def name: String = "duplication"
-  override def supportedLanguages: Set[Language] = duplicationTool.languages.to[Set]
+  override def supportedLanguages: Set[Language] = duplicationToolSpec.languages
 
   def run(directory: File,
           files: Set[Path],
           tmpDirectory: Option[File] = None,
           timeout: Option[Duration] = Option.empty[Duration],
           maxToolMemory: Option[String] = None): Try[Set[DuplicationClone]] = {
+
+    val Array(dockerName, dockerVersion) = duplicationToolSpec.dockerImage.split(':')
+
+    val duplicationTool = new traits.DuplicationTool(duplicationToolSpec.languages.toList, dockerName, dockerVersion) {}
 
     val dockerRunner = new BinaryDockerRunner[api.duplication.DuplicationClone](
       duplicationTool,
@@ -69,22 +74,22 @@ class DuplicationTool(private val duplicationTool: traits.DuplicationTool, val l
   }
 }
 
-object DuplicationToolCollector {
+class DuplicationToolCollector(toolRepository: ToolRepository) {
 
   private val logger: org.log4s.Logger = getLogger
 
-  private val availableTools: List[traits.DuplicationTool] = DuplicationTools.list
-
-  def fromLanguages(languages: Set[Language]): Set[DuplicationTool] = {
-    languages.flatMap { lang =>
-      val collectedTools = availableTools.collect {
-        case tool if tool.languages.contains(lang) =>
-          new DuplicationTool(tool, lang)
+  def fromLanguages(languages: Set[Language]): Either[AnalyserError, Set[DuplicationTool]] = {
+    toolRepository.listDuplicationTools().map { tools =>
+      languages.flatMap { lang =>
+        val collectedTools = tools.collect {
+          case tool if tool.languages.contains(lang) =>
+            new DuplicationTool(tool, lang)
+        }
+        if (collectedTools.isEmpty) {
+          logger.info(s"No duplication tools found for language ${lang.name}")
+        }
+        collectedTools
       }
-      if (collectedTools.isEmpty) {
-        logger.info(s"No duplication tools found for language ${lang.name}")
-      }
-      collectedTools
     }
   }
 

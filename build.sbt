@@ -60,8 +60,6 @@ lazy val codacyAnalysisCore = project
     sonatypeInformation,
     description := "Library to analyze projects")
   .settings(assemblyCommon: _*)
-  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
-  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisModels)
 
 lazy val codacyAnalysisCli = project
@@ -79,8 +77,6 @@ lazy val codacyAnalysisCli = project
   .settings(assemblyCommon: _*)
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
-  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
-  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisCore % "compile->compile;test->test", toolRepositoryRemote)
   .aggregate(codacyAnalysisCore, toolRepositoryRemote)
 
@@ -88,9 +84,7 @@ lazy val toolRepositoryRemote = project
   .in(file("toolRepository-remote"))
   .settings(Common.genericSettings, libraryDependencies ++= Dependencies.specs2)
   .settings(assemblyCommon: _*)
-  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
-  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
-  .dependsOn(codacyAnalysisCore, codacyAnalysisModels, codacyApiClient)
+  .dependsOn(codacyAnalysisCore % "compile->compile;test->test", codacyAnalysisModels, codacyApiClient)
 
 lazy val codacyAnalysisModels = project
   .in(file("model"))
@@ -104,8 +98,6 @@ lazy val codacyAnalysisModels = project
     description := "Library with analysis models")
   .settings(assemblyCommon: _*)
   .settings(sonatypeInformation)
-  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
-  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .enablePlugins(JavaAppPackaging)
 
 lazy val apiSwaggerFile: File =

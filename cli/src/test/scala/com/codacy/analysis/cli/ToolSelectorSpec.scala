@@ -5,19 +5,20 @@ import com.codacy.analysis.cli.analysis.ToolSelector
 import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.core.files.FilesTarget
 import com.codacy.analysis.core.model.{AnalyserError, PatternSpec, ToolSpec}
-import com.codacy.analysis.core.tools.{Tool, ToolRepository}
+import com.codacy.analysis.core.tools.{Tool, ToolRepositoryStub}
 import com.codacy.analysis.core.utils.LanguagesHelper
 import com.codacy.plugins.api.languages.Languages.{Javascript, Python}
 import com.codacy.plugins.api.languages.{Language, Languages}
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
+import com.codacy.analysis.core.model.DuplicationToolSpec
 
 class ToolSelectorSpec extends Specification with NoLanguageFeatures {
 
   val emptyFilesTarget = FilesTarget(File(""), Set.empty, Set.empty)
   val noLocalConfiguration = Left("no config")
 
-  val toolRepository = new ToolRepository {
+  val toolRepository = new ToolRepositoryStub {
 
     private def getToolSpec(uuid: String, name: String, languages: Set[Language]) =
       ToolSpec(
@@ -37,7 +38,7 @@ class ToolSelectorSpec extends Specification with NoLanguageFeatures {
         isClientSide = false,
         hasUIConfiguration = true)
 
-    override def list(): Either[AnalyserError, Seq[ToolSpec]] =
+    override def listTools(): Either[AnalyserError, Seq[ToolSpec]] =
       Right(
         Seq(
           getToolSpec("34225275-f79e-4b85-8126-c7512c987c0d", "PyLint", Set(Python)),
@@ -46,9 +47,10 @@ class ToolSelectorSpec extends Specification with NoLanguageFeatures {
           getToolSpec("38794ba2-94d8-4178-ab99-1f5c1d12760c", "BundlerAudit", Set(Languages.Ruby)),
           getToolSpec("cf05f3aa-fd23-4586-8cce-5368917ec3e5", "ESLint", Set(Languages.Javascript))))
 
-    override def get(uuid: String): Either[AnalyserError, ToolSpec] = ???
-
     override def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = Right(Seq.empty)
+
+    override def listDuplicationTools(): Either[AnalyserError, Seq[DuplicationToolSpec]] =
+      Right(Seq(DuplicationToolSpec("", Set(Languages.Ruby))))
   }
   val toolSelector: ToolSelector = new ToolSelector(toolRepository)
 

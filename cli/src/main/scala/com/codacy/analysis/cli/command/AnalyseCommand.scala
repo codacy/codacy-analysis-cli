@@ -25,11 +25,12 @@ import com.codacy.analysis.core.configuration.CodacyConfigurationFileLoader
 import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.git.{Commit, Git, Repository}
 import com.codacy.analysis.core.model._
+import com.codacy.analysis.core.storage.FileDataStorage
 import com.codacy.analysis.core.upload.ResultsUploader
 import com.codacy.analysis.core.utils.Logger
 import com.codacy.analysis.core.utils.SeqOps._
 import com.codacy.toolRepository.remote.ToolRepositoryRemote
-import com.codacy.toolRepository.remote.storage.{PatternSpecDataStorage, ToolSpecDataStorage}
+import com.codacy.toolRepository.remote.storage.ToolPatternsSpecsEncoders._
 import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -81,7 +82,9 @@ object AnalyseCommand {
 
     val toolsClient =
       ToolsClient(codacyApiUrl)(httpClient = httpClient, ec = actorSystem.dispatcher, mat = materializer)
-    new ToolRepositoryRemote(toolsClient, ToolSpecDataStorage.apply, PatternSpecDataStorage.apply)(
+    val toolsDataStorage = FileDataStorage[ToolSpec]("tools")
+    val duplicationToolsDataStorage = FileDataStorage[DuplicationToolSpec]("duplicationTools")
+    new ToolRepositoryRemote(toolsClient, toolsDataStorage, duplicationToolsDataStorage, FileDataStorage(_))(
       ec = actorSystem.dispatcher,
       mat = materializer)
   }

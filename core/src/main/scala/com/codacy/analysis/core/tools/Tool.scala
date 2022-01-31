@@ -39,9 +39,9 @@ final case class SubDirectory(sourceDirectory: String, protected val subDirector
     filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(fullToolSpec: FullToolSpec, defaultRunTimeout: Duration)(private val tool: ToolSpec,
-                                                                    val languageToRun: Language)
-    extends ITool {
+class Tool(fullToolSpec: FullToolSpec, val languageToRun: Language, defaultRunTimeout: Duration) extends ITool {
+
+  private val tool = fullToolSpec.tool
 
   private val logger: Logger = getLogger
 
@@ -140,7 +140,7 @@ class Tool(fullToolSpec: FullToolSpec, defaultRunTimeout: Duration)(private val 
 object Tool {
 
   def apply(fullToolSpec: FullToolSpec, languageToRun: Language): Tool = {
-    new Tool(fullToolSpec, DockerRunner.defaultRunTimeout)(fullToolSpec.tool, languageToRun)
+    new Tool(fullToolSpec, languageToRun, DockerRunner.defaultRunTimeout)
   }
 }
 
@@ -150,7 +150,7 @@ class ToolCollector(toolRepository: ToolRepository) {
 
   def fromUuid(uuid: String): Either[AnalyserError, FullToolSpec] = {
     for {
-      tool <- toolRepository.get(uuid)
+      tool <- toolRepository.getTool(uuid)
       patterns <- toolRepository.listPatterns(tool)
     } yield {
       FullToolSpec(tool, patterns)
@@ -192,7 +192,7 @@ class ToolCollector(toolRepository: ToolRepository) {
   }
 
   private def find(value: String): Either[AnalyserError, ToolSpec] = {
-    toolRepository.list().flatMap { availableTools =>
+    toolRepository.listTools().flatMap { availableTools =>
       availableTools
         .find(tool => tool.shortName.equalsIgnoreCase(value) || tool.uuid.equalsIgnoreCase(value))
         .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
@@ -211,7 +211,7 @@ class ToolCollector(toolRepository: ToolRepository) {
 
   def fromLanguages(languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
     for {
-      tools <- toolRepository.list()
+      tools <- toolRepository.listTools()
       toolsInfo <- tools.toList.flatTraverse(toolSpec => toTool(toolSpec, languages))
       _ <- if (toolsInfo.nonEmpty) Right(()) else Left(AnalyserError.NoToolsFoundForFiles)
     } yield {

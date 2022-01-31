@@ -3,28 +3,37 @@ package com.codacy.toolRepository.remote
 import akka.stream.Materializer
 import akka.stream.scaladsl.Sink
 import com.codacy.analysis.clientapi.definitions
-import com.codacy.analysis.clientapi.definitions.{PaginationInfo, PatternListResponse, ToolListResponse}
-import com.codacy.analysis.clientapi.tools.{ListPatternsResponse, ListToolsResponse, ToolsClient}
-import com.codacy.analysis.core.model.{AnalyserError, ParameterSpec, PatternSpec, ToolSpec}
+import com.codacy.analysis.clientapi.definitions.{
+  DuplicationToolListResponse,
+  PaginationInfo,
+  PatternListResponse,
+  ToolListResponse
+}
+import com.codacy.analysis.clientapi.tools.{
+  ListDuplicationToolsResponse,
+  ListPatternsResponse,
+  ListToolsResponse,
+  ToolsClient
+}
+import com.codacy.analysis.core.model.{AnalyserError, DuplicationToolSpec, ParameterSpec, PatternSpec, ToolSpec}
+import com.codacy.analysis.core.storage.DataStorage
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.plugins.api.languages.{Language, Languages}
-import com.codacy.toolRepository.remote.storage.{PatternSpecDataStorage, ToolSpecDataStorage}
 import org.log4s.{Logger, getLogger}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 class ToolRepositoryRemote(toolsClient: ToolsClient,
-                           toolsStorage: String => ToolSpecDataStorage,
-                           patternStorage: String => PatternSpecDataStorage)(implicit val ec: ExecutionContext,
-                                                                             implicit val mat: Materializer)
+                           toolsDataStorage: DataStorage[ToolSpec],
+                           duplicationToolsDataStorage: DataStorage[DuplicationToolSpec],
+                           patternsDataStorageFunc: String => DataStorage[PatternSpec])(
+  implicit val ec: ExecutionContext,
+  implicit val mat: Materializer)
     extends ToolRepository {
   private val logger: Logger = getLogger
 
-  private val toolStorageFilename = "tools"
-  private val toolStorageInstance = toolsStorage(toolStorageFilename)
-
-  override lazy val list: Either[AnalyserError, Seq[ToolSpec]] = {
+  override lazy val listTools: Either[AnalyserError, Seq[ToolSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
       toolsClient.listTools(cursor).value.map {
         case Right(ListToolsResponse.OK(ToolListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
@@ -48,15 +57,33 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
     val result = Await.result(toolsF, 1 minute)
     result match {
       case Right(tools) =>
-        toolStorageInstance.save(tools)
+        toolsDataStorage.save(tools)
         Right(tools)
       case Left(err) =>
-        toolStorageInstance.get().toRight(err)
+        toolsDataStorage.get().toRight(err)
     }
   }
 
-  override def get(uuid: String): Either[AnalyserError, ToolSpec] =
-    list.flatMap { toolsSpecs =>
+  override lazy val listDuplicationTools: Either[AnalyserError, Seq[DuplicationToolSpec]] = {
+    val toolsF = toolsClient.listDuplicationTools().value.map {
+      case Right(ListDuplicationToolsResponse.OK(DuplicationToolListResponse(data))) =>
+        Right(data.map(toDuplicationToolSpec))
+      case Right(ListDuplicationToolsResponse.InternalServerError(internalServerError)) =>
+        Left(s"Internal Server Error: ${internalServerError.message}")
+      case Left(Right(error))    => Left(s"Failed to list tools with ${error.status} status code")
+      case Left(Left(throwable)) => Left(throwable.getMessage)
+    }
+    Await.result(toolsF, 1.minute) match {
+      case Right(tools) =>
+        duplicationToolsDataStorage.save(tools)
+        Right(tools)
+      case Left(err) =>
+        duplicationToolsDataStorage.get().toRight(AnalyserError.FailedToFetchTools(err))
+    }
+  }
+
+  override def getTool(uuid: String): Either[AnalyserError, ToolSpec] =
+    listTools.flatMap { toolsSpecs =>
       toolsSpecs.find(_.uuid == uuid) match {
         case None       => Left(AnalyserError.FailedToFindTool(uuid))
         case Some(tool) => Right(tool)
@@ -93,13 +120,12 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
     Await.result(patternsF, 1 minute)
   }
 
-  private def downloadPatternsFromApi(
-    tool: ToolSpec,
-    toolPatternsStorageInstance: PatternSpecDataStorage): Either[AnalyserError, Seq[PatternSpec]] = {
+  private def downloadPatternsFromApi(tool: ToolSpec,
+                                      storage: DataStorage[PatternSpec]): Either[AnalyserError, Seq[PatternSpec]] = {
     patternsFromApi(tool) match {
       case Right(patternsFromApi) =>
         logger.info(s"Fetched patterns for ${tool.name} version ${tool.version}")
-        toolPatternsStorageInstance.save(patternsFromApi)
+        storage.save(patternsFromApi)
         Right(patternsFromApi)
       case Left(err) =>
         logger.error(s"Failed to fetch patterns for ${tool.name} from API: ${err.message}")
@@ -109,7 +135,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
 
   override def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = {
     val toolPatternsStorageFilename = s"${tool.uuid}-${tool.version}"
-    val toolPatternsStorageInstance = patternStorage(toolPatternsStorageFilename)
+    val toolPatternsStorageInstance = patternsDataStorageFunc(toolPatternsStorageFilename)
 
     toolPatternsStorageInstance.get() match {
       case Some(patternsFromStorage) =>
@@ -118,6 +144,11 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
       case None =>
         downloadPatternsFromApi(tool, toolPatternsStorageInstance)
     }
+  }
+
+  private def toDuplicationToolSpec(tool: definitions.DuplicationTool): DuplicationToolSpec = {
+    val languages = tool.languages.flatMap(Languages.fromName).to[Set]
+    DuplicationToolSpec(tool.dockerImage, languages)
   }
 
   private def toToolSpec(tool: definitions.Tool): ToolSpec = {

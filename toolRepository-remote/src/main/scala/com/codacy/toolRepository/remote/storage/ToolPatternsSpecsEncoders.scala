@@ -1,6 +1,6 @@
 package com.codacy.toolRepository.remote.storage
 
-import com.codacy.analysis.core.model.{ParameterSpec, PatternSpec, ToolSpec}
+import com.codacy.analysis.core.model.{DuplicationToolSpec, ParameterSpec, PatternSpec, ToolSpec}
 import com.codacy.plugins.api.languages.{Language, Languages}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder, HCursor, Json}
@@ -49,6 +49,14 @@ object ToolPatternsSpecsEncoders {
       configFilenames,
       isClientSide,
       hasUIConfiguration)
+
+  implicit val duplicationToolEncoder: Encoder[DuplicationToolSpec] = deriveEncoder[DuplicationToolSpec]
+
+  implicit val duplicationToolDecoder: Decoder[DuplicationToolSpec] = (c: HCursor) =>
+    for {
+      dockerImage <- c.downField("dockerImage").as[String]
+      languages <- c.downField("languages").as[Set[Language]]
+    } yield DuplicationToolSpec(dockerImage, languages.filter(_ != null))
 
   implicit val patternParameterDecoder: Decoder[ParameterSpec] = deriveDecoder[ParameterSpec]
   implicit val patternParameterEncoder: Encoder[ParameterSpec] = deriveEncoder[ParameterSpec]

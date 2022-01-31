@@ -7,39 +7,48 @@ import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.FutureMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import org.specs2.specification.core.AsExecution
 
 class FileDataStorageSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
   case class Test(name: String)
+  implicit val encoder: Encoder[Test] = deriveEncoder
+  implicit val decoder: Decoder[Test] = deriveDecoder
 
-  class StorageTest() extends FileDataStorage[Test]("") {
-    override implicit val encoder: Encoder[Test] = deriveEncoder
-    override implicit val decoder: Decoder[Test] = deriveDecoder
-
-    override val storageFile: File = {
-      val file = File.newTemporaryFile()
-      file.deleteOnExit()
-      file
+  def usingTempFile[R: AsExecution](f: DataStorage[Test] => R): R = {
+    File.temporaryFile() { file =>
+      val storageTest = FileDataStorage[Test](file)
+      f(storageTest)
     }
   }
+
+  val storageFile: File = {
+    val file = File.newTemporaryFile()
+    file.deleteOnExit()
+    file
+  }
+
+  val storageTest = FileDataStorage[Test](storageFile)
 
   "FileDataStorage" should {
     val testingData = Seq(Test("first"), Test("second"))
 
     "Save and fetch storage correctly".stripMargin in {
-      val storageTest = new StorageTest()
-      storageTest.save(testingData)
+      usingTempFile { storageTest =>
+        storageTest.save(testingData)
 
-      val storageContent = storageTest.get()
-      storageContent shouldEqual Some(testingData)
+        val storageContent = storageTest.get()
+        storageContent shouldEqual Some(testingData)
+      }
     }
 
     "Dispose storage correctly".stripMargin in {
-      val storageTest = new StorageTest()
-      storageTest.save(testingData)
+      usingTempFile { storageTest =>
+        storageTest.save(testingData)
 
-      storageTest.invalidate().isSuccess shouldEqual true
-      storageTest.get() shouldEqual None
+        storageTest.invalidate().isSuccess shouldEqual true
+        storageTest.get() shouldEqual None
+      }
     }
 
   }
