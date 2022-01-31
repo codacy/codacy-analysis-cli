@@ -89,6 +89,8 @@ references:
           webhook: https://hooks.slack.com/services/$SLACK_TOKEN
           failure_message: ":red_circle: A $CIRCLE_JOB job has failed! See more on: $RP_LAUNCH_URL, login with the default user."
 
+  cache_prefix: &cache_prefix sbt-cache-31012022
+
 jobs:
   maven_dependencies:
     docker:
@@ -145,7 +147,8 @@ workflows:
       - codacy/sbt:
           name: compile
           install_sbt_version: 1.6.1
-          cmd: sbt clean coverage +test:compile
+          cmd: sbt coverage +test:compile
+          cache_prefix: *cache_prefix
           persist_to_workspace: true
           requires:
             - codacy/checkout_and_version
@@ -154,6 +157,7 @@ workflows:
           install_sbt_version: 1.6.1
           cmd: |
             sbt "scalafmtCheckAll;scalafmtSbtCheck;scapegoat;scalafixEnable;scalafix --test"
+          cache_prefix: *cache_prefix
           requires:
             - compile
       - codacy/sbt:
@@ -164,6 +168,7 @@ workflows:
             git config --global user.name "Codacy Team"
             sbt coverage +test coverageReport
             bash <(curl -Ls https://coverage.codacy.com/get.sh) report --skip
+          cache_prefix: *cache_prefix
           requires:
             - compile
       - codacy/sbt:
@@ -173,6 +178,7 @@ workflows:
             sbt "set codacyAnalysisCli / version := \"dev-snapshot\";
                  codacyAnalysisCli/docker:publishLocal"
             docker save --output docker-image.tar $CIRCLE_PROJECT_REPONAME:dev-snapshot
+          cache_prefix: *cache_prefix
           persist_to_workspace: true
           requires:
             - compile
@@ -198,6 +204,7 @@ workflows:
                  codacyAnalysisCore/publishSigned;
                  +codacyAnalysisModels/publishSigned;
                  sonatypeBundleRelease"
+          cache_prefix: *cache_prefix
           requires:
             - publish_docker_locally
           filters:
@@ -224,6 +231,7 @@ workflows:
                  codacyAnalysisCli/assembly"
             mkdir -p ~/workdir/artifacts/
             mv ./cli/target/scala-2.12/codacy-analysis-cli-assembly-$(cat .version).jar ~/workdir/artifacts/
+          cache_prefix: *cache_prefix
           requires:
             - publish_docker_locally
           filters:
