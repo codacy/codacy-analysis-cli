@@ -4,8 +4,6 @@ import sbt._
 import codacy.libs._
 import sbt._
 
-Universal / javaOptions ++= Seq("-Xms1g", "-Xmx2g", "-Xss512m", "-XX:+UseG1GC", "-XX:+UseStringDeduplication")
-
 val assemblyCommon = Seq(
   assembly / test := {},
   // Without this assembly merge strategy, gives the following error:
