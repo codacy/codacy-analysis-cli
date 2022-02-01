@@ -8,17 +8,13 @@ import org.log4s.{Logger, getLogger}
 
 import scala.util.{Failure, Success, Try}
 
-trait DataStorageCompanion {
-  def apply[T](storageFilename: String)(implicit encoder: Encoder[T], decoder: Decoder[T]): DataStorage[T]
-}
-
 trait DataStorage[T] {
   def get(): Option[Seq[T]]
   def save(values: Seq[T]): Boolean
   def invalidate(): Try[Unit]
 }
 
-object FileDataStorage extends DataStorageCompanion {
+object FileDataStorage {
 
   def apply[T](storageFilename: String)(implicit encoder: Encoder[T], decoder: Decoder[T]): DataStorage[T] = {
     val cacheFolder: File = {
