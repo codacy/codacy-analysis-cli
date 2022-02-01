@@ -31,12 +31,11 @@ object Common {
     Compile / doc / sources := Seq.empty)
 
   val dockerSettings: Seq[Def.Setting[_]] = Seq(
-    packageName in Docker := packageName.value,
-    version in Docker := version.value,
-    maintainer in Docker := "Rodrigo Fernandes <rodrigo@codacy.com>",
+    Docker / packageName := packageName.value,
+    Docker / version := version.value,
     dockerBaseImage := "openjdk:8-jre-alpine",
-    defaultLinuxInstallLocation in Docker := defaultDockerInstallationPath,
-    daemonUser in Docker := "root",
+    Docker / defaultLinuxInstallLocation := defaultDockerInstallationPath,
+    Docker / daemonUser := "root",
     dockerEntrypoint := Seq(s"$defaultDockerInstallationPath/bin/${name.value}"),
     dockerCmd := Seq(),
     dockerCommands := dockerCommands.value.flatMap {

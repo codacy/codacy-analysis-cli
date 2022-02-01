@@ -7,16 +7,16 @@ import sbt._
 Universal / javaOptions ++= Seq("-Xms1g", "-Xmx2g", "-Xss512m", "-XX:+UseG1GC", "-XX:+UseStringDeduplication")
 
 val assemblyCommon = Seq(
-  test in assembly := {},
+  assembly / test := {},
   // Without this assembly merge strategy, gives the following error:
   // (codacyAnalysisCli / assembly) deduplicate: different file contents found in the following:
   // [error] org/bouncycastle/bcpg-jdk15on/1.64/bcpg-jdk15on-1.64.jar:META-INF/versions/9/module-info.class
   // Workaround:
   // https://stackoverflow.com/questions/54834125/sbt-assembly-deduplicate-module-info-class
-  assemblyMergeStrategy in assembly := {
+  assembly / assemblyMergeStrategy := {
     case "META-INF/versions/9/module-info.class" => MergeStrategy.discard
     case x =>
-      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(x)
   })
 
