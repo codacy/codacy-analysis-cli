@@ -4,19 +4,17 @@ import sbt._
 import codacy.libs._
 import sbt._
 
-Universal / javaOptions ++= Seq("-Xms1g", "-Xmx2g", "-Xss512m", "-XX:+UseG1GC", "-XX:+UseStringDeduplication")
-
 val assemblyCommon = Seq(
-  test in assembly := {},
+  assembly / test := {},
   // Without this assembly merge strategy, gives the following error:
   // (codacyAnalysisCli / assembly) deduplicate: different file contents found in the following:
   // [error] org/bouncycastle/bcpg-jdk15on/1.64/bcpg-jdk15on-1.64.jar:META-INF/versions/9/module-info.class
   // Workaround:
   // https://stackoverflow.com/questions/54834125/sbt-assembly-deduplicate-module-info-class
-  assemblyMergeStrategy in assembly := {
+  assembly / assemblyMergeStrategy := {
     case "META-INF/versions/9/module-info.class" => MergeStrategy.discard
     case x =>
-      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(x)
   })
 
@@ -60,8 +58,6 @@ lazy val codacyAnalysisCore = project
     sonatypeInformation,
     description := "Library to analyze projects")
   .settings(assemblyCommon: _*)
-  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
-  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisModels)
 
 lazy val codacyAnalysisCli = project
@@ -79,8 +75,6 @@ lazy val codacyAnalysisCli = project
   .settings(assemblyCommon: _*)
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(DockerPlugin)
-  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
-  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .dependsOn(codacyAnalysisCore % "compile->compile;test->test", toolRepositoryRemote)
   .aggregate(codacyAnalysisCore, toolRepositoryRemote)
 
@@ -88,9 +82,7 @@ lazy val toolRepositoryRemote = project
   .in(file("toolRepository-remote"))
   .settings(Common.genericSettings, libraryDependencies ++= Dependencies.specs2)
   .settings(assemblyCommon: _*)
-  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
-  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
-  .dependsOn(codacyAnalysisCore, codacyAnalysisModels, codacyApiClient)
+  .dependsOn(codacyAnalysisCore % "compile->compile;test->test", codacyAnalysisModels, codacyApiClient)
 
 lazy val codacyAnalysisModels = project
   .in(file("model"))
@@ -104,8 +96,6 @@ lazy val codacyAnalysisModels = project
     description := "Library with analysis models")
   .settings(assemblyCommon: _*)
   .settings(sonatypeInformation)
-  // Disable legacy Scalafmt plugin imported by codacy-sbt-plugin
-  .disablePlugins(com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin)
   .enablePlugins(JavaAppPackaging)
 
 lazy val apiSwaggerFile: File =

@@ -335,7 +335,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
 
   val expectedConfigFiles = List("src/main/resources/docs/directory-tests/rails3/config/brakeman.yml")
 
-  val toolCollector = new ToolCollector(toolRepository = new ToolRepositoryMock)
+  val toolCollector = new ToolCollector(ToolRepositoryMock)
 
   fileCollector.getClass.getName should {
     "list files and filter files per tool" in {

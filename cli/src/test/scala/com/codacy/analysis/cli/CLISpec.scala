@@ -8,9 +8,8 @@ import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.{DuplicationClone, FileError, Result, ToolResult}
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.plugins.utils.CommandRunner
-import io.circe
 import io.circe.generic.auto._
-import io.circe.{Json, parser}
+import io.circe.parser
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.FileMatchers
 import org.specs2.mutable.Specification

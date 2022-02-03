@@ -166,7 +166,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     val analyser: Analyser[Try] = Analyser(analyserName)
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
-    val toolRepository = new ToolRepositoryMock
+    val toolRepository = ToolRepositoryMock
     val toolSelector = new ToolSelector(toolRepository)
     new AnalyseExecutor(formatter, analyser, fileCollector, configuration, toolSelector).run() must beRight
   }
