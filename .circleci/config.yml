@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  codacy: codacy/base@5.4.1
+  codacy: codacy/base@6.1.4
   slack: circleci/slack@3.3.0
 
 references:
@@ -253,14 +253,11 @@ workflows:
             branches:
               only:
                 - master
-      - codacy/shell:
+      - codacy/publish_docker:
           name: publish_dockerhub_stable
           context: CodacyDocker
-          cmd: |
-            docker load --input docker-image.tar
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag $CIRCLE_PROJECT_REPONAME:dev-snapshot codacy/$CIRCLE_PROJECT_REPONAME:stable
-            docker push codacy/$CIRCLE_PROJECT_REPONAME:stable
+          docker_tag: dev-snapshot
+          release_tag: stable
           requires:
             - publish_dockerhub_stable_hold
   # TODO: Re-enable after https://codacy.atlassian.net/browse/CY-4147
