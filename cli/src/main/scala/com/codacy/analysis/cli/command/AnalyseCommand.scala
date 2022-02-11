@@ -84,9 +84,13 @@ object AnalyseCommand {
       ToolsClient(codacyApiUrl)(httpClient = httpClient, ec = actorSystem.dispatcher, mat = materializer)
     val toolsDataStorage = FileDataStorage[ToolSpec]("tools")
     val duplicationToolsDataStorage = FileDataStorage[DuplicationToolSpec]("duplicationTools")
-    new ToolRepositoryRemote(toolsClient, toolsDataStorage, duplicationToolsDataStorage, FileDataStorage(_))(
-      ec = actorSystem.dispatcher,
-      mat = materializer)
+    val metricsToolsDataStorage = FileDataStorage[MetricsToolSpec]("metricsTools")
+    new ToolRepositoryRemote(
+      toolsClient,
+      toolsDataStorage,
+      duplicationToolsDataStorage,
+      metricsToolsDataStorage,
+      FileDataStorage(_))(ec = actorSystem.dispatcher, mat = materializer)
   }
 }
 

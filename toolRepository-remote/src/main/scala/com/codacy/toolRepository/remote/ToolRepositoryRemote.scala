@@ -5,17 +5,26 @@ import akka.stream.scaladsl.Sink
 import com.codacy.analysis.clientapi.definitions
 import com.codacy.analysis.clientapi.definitions.{
   DuplicationToolListResponse,
+  MetricsToolListResponse,
   PaginationInfo,
   PatternListResponse,
   ToolListResponse
 }
 import com.codacy.analysis.clientapi.tools.{
   ListDuplicationToolsResponse,
+  ListMetricsToolsResponse,
   ListPatternsResponse,
   ListToolsResponse,
   ToolsClient
 }
-import com.codacy.analysis.core.model.{AnalyserError, DuplicationToolSpec, ParameterSpec, PatternSpec, ToolSpec}
+import com.codacy.analysis.core.model.{
+  AnalyserError,
+  DuplicationToolSpec,
+  MetricsToolSpec,
+  ParameterSpec,
+  PatternSpec,
+  ToolSpec
+}
 import com.codacy.analysis.core.storage.DataStorage
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.plugins.api.languages.{Language, Languages}
@@ -27,6 +36,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 class ToolRepositoryRemote(toolsClient: ToolsClient,
                            toolsDataStorage: DataStorage[ToolSpec],
                            duplicationToolsDataStorage: DataStorage[DuplicationToolSpec],
+                           metricsToolsDataStorage: DataStorage[MetricsToolSpec],
                            patternsDataStorageFunc: String => DataStorage[PatternSpec])(
   implicit val ec: ExecutionContext,
   implicit val mat: Materializer)
@@ -79,6 +89,24 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
         Right(tools)
       case Left(err) =>
         duplicationToolsDataStorage.get().toRight(AnalyserError.FailedToFetchTools(err))
+    }
+  }
+
+  override lazy val listMetricsTools: Either[AnalyserError, Seq[MetricsToolSpec]] = {
+    val toolsF = toolsClient.listMetricsTools().value.map {
+      case Right(ListMetricsToolsResponse.OK(MetricsToolListResponse(data))) =>
+        Right(data.map(toMetricsToolSpec))
+      case Right(ListMetricsToolsResponse.InternalServerError(internalServerError)) =>
+        Left(s"Internal Server Error: ${internalServerError.message}")
+      case Left(Right(error))    => Left(s"Failed to list tools with ${error.status} status code")
+      case Left(Left(throwable)) => Left(throwable.getMessage)
+    }
+    Await.result(toolsF, 1.minute) match {
+      case Right(tools) =>
+        metricsToolsDataStorage.save(tools)
+        Right(tools)
+      case Left(err) =>
+        metricsToolsDataStorage.get().toRight(AnalyserError.FailedToFetchTools(err))
     }
   }
 
@@ -149,6 +177,11 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
   private def toDuplicationToolSpec(tool: definitions.DuplicationTool): DuplicationToolSpec = {
     val languages = tool.languages.flatMap(Languages.fromName).to[Set]
     DuplicationToolSpec(tool.dockerImage, languages)
+  }
+
+  private def toMetricsToolSpec(tool: definitions.MetricsTool): MetricsToolSpec = {
+    val languages = tool.languages.flatMap(Languages.fromName).to[Set]
+    MetricsToolSpec(tool.dockerImage, languages)
   }
 
   private def toToolSpec(tool: definitions.Tool): ToolSpec = {

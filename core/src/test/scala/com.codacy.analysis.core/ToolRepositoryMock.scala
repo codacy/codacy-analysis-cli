@@ -4,6 +4,7 @@ import com.codacy.analysis.core.model.{AnalyserError, PatternSpec, ToolSpec}
 import com.codacy.analysis.core.tools.ToolRepository
 import com.codacy.plugins.api.languages.Languages
 import com.codacy.analysis.core.model.DuplicationToolSpec
+import com.codacy.analysis.core.model.MetricsToolSpec
 
 /**
   * This object can be used to replace calls to codacy API related to tools.
@@ -136,4 +137,22 @@ object ToolRepositoryMock extends ToolRepository {
         DuplicationToolSpec("codacy/codacy-duplication-phpcpd:2.1.4", Set(Languages.PHP)),
         DuplicationToolSpec("codacy/codacy-duplication-flay:2.1.4", Set(Languages.Ruby)),
         DuplicationToolSpec("codacy/codacy-duplication-jscpd:0.1.6", Set(Languages.Kotlin, Languages.TypeScript))))
+
+  override def listMetricsTools(): Either[AnalyserError, Seq[MetricsToolSpec]] =
+    Right(
+      Seq(
+        MetricsToolSpec(dockerImage = "codacy/codacy-metrics-pmd:0.2.4", languages = Set(Languages.Java)),
+        MetricsToolSpec(dockerImage = "codacy/codacy-metrics-gocyclo:0.2.4", languages = Set(Languages.Go)),
+        MetricsToolSpec(dockerImage = "codacy/codacy-metrics-scalastyle:0.2.4", languages = Set(Languages.Scala)),
+        MetricsToolSpec(dockerImage = "codacy/codacy-metrics-radon:0.2.4", languages = Set(Languages.Python)),
+        MetricsToolSpec(
+          dockerImage = "codacy/codacy-metrics-eslint:1.1.250",
+          languages = Set(Languages.Javascript, Languages.TypeScript)),
+        MetricsToolSpec(dockerImage = "codacy/codacy-metrics-pdepend:0.5.0", languages = Set(Languages.PHP)),
+        MetricsToolSpec(dockerImage = "codacy/codacy-metrics-rubocop:0.4.1", languages = Set(Languages.Ruby)),
+        MetricsToolSpec(dockerImage = "codacy/codacy-metrics-scala:0.2.4", languages = Set(Languages.Scala)),
+        MetricsToolSpec(dockerImage = "codacy/codacy-metrics-sonar-csharp:0.1.36", languages = Set(Languages.CSharp)),
+        MetricsToolSpec(dockerImage = "codacy/codacy-metrics-sonar-csharp:0.1.36", languages = Set(Languages.CSharp)),
+        MetricsToolSpec(dockerImage = "codacy/codacy-metrics-detekt:0.1.2", languages = Set(Languages.Kotlin)),
+        MetricsToolSpec(dockerImage = "codacy/codacy-metrics-cloc:0.4.1", languages = Languages.all)))
 }
