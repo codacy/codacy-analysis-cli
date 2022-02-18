@@ -7,6 +7,7 @@ class ToolRepositoryStub extends ToolRepository {
 
   def listTools(): Either[AnalyserError, Seq[ToolSpec]] = ???
   def listDuplicationTools(): Either[AnalyserError, Seq[model.DuplicationToolSpec]] = ???
+  def listMetricsTools(): Either[AnalyserError, Seq[model.MetricsToolSpec]] = ???
   def getTool(uuid: String): Either[AnalyserError, ToolSpec] = ???
   def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = ???
 

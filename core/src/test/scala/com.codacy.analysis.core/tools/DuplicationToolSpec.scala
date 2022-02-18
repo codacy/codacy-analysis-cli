@@ -2,6 +2,7 @@ package com.codacy.analysis.core.tools
 
 import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.model
+import com.codacy.analysis.core.ToolRepositoryMock
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.plugins.api.languages.{Language, Languages}
 import com.codacy.plugins.api.duplication.DuplicationCloneFile
@@ -10,7 +11,6 @@ import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 
 import scala.util.Success
-import com.codacy.analysis.core.ToolRepositoryMock
 
 class DuplicationToolSpec extends Specification with NoLanguageFeatures {
 
