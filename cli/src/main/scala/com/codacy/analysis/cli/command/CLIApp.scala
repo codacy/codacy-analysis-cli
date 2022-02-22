@@ -7,7 +7,8 @@ import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command.ArgumentParsers._
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.core.analysis.Analyser
-import com.codacy.analysis.core.clients.{ProjectName, UserName, OrganizationProvider}
+import com.codacy.analysis.core.clients.{OrganizationProvider, ProjectName, UserName}
+import com.codacy.analysis.core.configuration.AppConfiguration
 import com.codacy.analysis.core.git.Commit
 
 import scala.concurrent.duration.Duration
@@ -148,6 +149,8 @@ final case class Analyze(
   skipUncommittedFilesCheck: Int @@ Counter = Tag.of(0),
   @ExtraName("u") @ValueDescription("If the results should be uploaded to the API")
   upload: Int @@ Counter = Tag.of(0),
+  @ValueDescription(s"Batch size for upload of results. If not set defaults to ${AppConfiguration.batchSize}")
+  uploadBatchSize: Int = AppConfiguration.batchSize,
   @ExtraName("i") @ValueDescription(
     "[default: false] - Skip the SSL certificate verification when communicating with the Codacy API")
   skipSslVerification: Int @@ Counter = Tag.of(0),

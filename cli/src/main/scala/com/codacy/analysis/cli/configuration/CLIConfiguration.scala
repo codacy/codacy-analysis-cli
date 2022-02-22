@@ -66,7 +66,7 @@ object CLIConfiguration {
     }
   }
 
-  final case class Upload(commitUuid: Option[Commit.Uuid], upload: Boolean)
+  final case class Upload(commitUuid: Option[Commit.Uuid], upload: Boolean, batchSize: Int)
   final case class Result(maxAllowedIssues: Int, failIfIncomplete: Boolean)
 
   final case class Output(format: String, file: Option[File], ghCodeScanningCompat: Boolean)
@@ -215,7 +215,7 @@ object CLIConfiguration {
         remoteProjectConfiguration,
         analyze.tmpDirectory,
         analyze.maxToolMemory)
-    val uploadConfiguration = Upload(commitUuid, analyze.uploadValue)
+    val uploadConfiguration = Upload(commitUuid, analyze.uploadValue, analyze.uploadBatchSize)
     val resultConfiguration = Result(analyze.maxAllowedIssues, analyze.failIfIncompleteValue)
 
     CLIConfiguration(analysisConfiguration, uploadConfiguration, resultConfiguration)

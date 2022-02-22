@@ -23,11 +23,8 @@ object ResultsUploader {
 
   private val logger: Logger = getLogger
 
-  def apply(codacyClientOpt: Option[CodacyClient],
-            upload: Boolean,
-            commitUuidOpt: Option[Commit.Uuid],
-            batchSize: Option[Int] = Option.empty[Int])(implicit
-    context: ExecutionContext): Either[String, Option[ResultsUploader]] = {
+  def apply(codacyClientOpt: Option[CodacyClient], upload: Boolean, commitUuidOpt: Option[Commit.Uuid], batchSize: Int)(
+    implicit context: ExecutionContext): Either[String, Option[ResultsUploader]] = {
     if (upload) {
       for {
         codacyClient <- codacyClientOpt.toRight("No credentials found.")
@@ -40,17 +37,17 @@ object ResultsUploader {
   }
 }
 
-class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClient, batchSizeOpt: Option[Int])(implicit
+class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClient, uploadBatchSize: Int)(implicit
   context: ExecutionContext) {
 
   private val logger: Logger = getLogger
 
-  private val batchSize: Int = batchSizeOpt.map {
+  private val batchSize: Int = uploadBatchSize match {
     case size if size > 0 => size
     case size =>
       logger.warn(s"Illegal value for upload batch size ($size), using default batch size")
       ResultsUploader.defaultBatchSize
-  }.getOrElse(ResultsUploader.defaultBatchSize)
+  }
 
   def sendResults(toolResults: Seq[ResultsUploader.ToolResults],
                   metricsResults: Seq[MetricsResult],
