@@ -40,6 +40,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
   }
   private val toolInput = Option("hey! i'm a tool!")
   private val commitUuid = Option(Commit.Uuid("uuid"))
+  private val batchSize = 5
 
   private val defaultAnalyse = Analyze(
     options = CommonOptions(),
@@ -49,7 +50,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
     format = Json.name,
     toolTimeout = Option.empty,
     commitUuid = commitUuid,
-    extras = ExtraOptions(analyser = Analyser.defaultAnalyser.name))
+    extras = ExtraOptions(analyser = Analyser.defaultAnalyser.name),
+    uploadBatchSize = batchSize)
   private val defaultEnvironment = new Environment(Map.empty)
   private val httpHelper = new HttpHelper(remoteUrl, Map.empty, false)
 
@@ -85,7 +87,8 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
           allowNetwork = Tag.of(1),
           upload = Tag.of(1),
           maxAllowedIssues = 5,
-          failIfIncomplete = Tag.of(1))
+          failIfIncomplete = Tag.of(1),
+          uploadBatchSize = batchSize)
 
         val expectedConfiguration = CLIConfiguration(
           analysis = CLIConfiguration.Analysis(
@@ -106,7 +109,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
               extraToolConfigurations = Option.empty,
               extensionsByLanguage = Map.empty),
             maxToolMemory = Some("3000000000")),
-          upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = true),
+          upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = true, batchSize = batchSize),
           result = CLIConfiguration.Result(maxAllowedIssues = 5, failIfIncomplete = true))
 
         val actualConfiguration =
@@ -169,7 +172,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
             extraToolConfigurations = Option.empty,
             extensionsByLanguage = Map.empty),
           maxToolMemory = Some("3000000000")),
-        upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
+        upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false, batchSize = batchSize),
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
       val actualConfiguration =
@@ -221,7 +224,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
                 .Extra(baseSubDir = engineConfig.baseSubDir, extraValues = engineConfig.extraValues))),
             extensionsByLanguage = Map(Languages.Scala -> Set(".scala", ".alacs"))),
           maxToolMemory = Some("3000000000")),
-        upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
+        upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false, batchSize = batchSize),
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
       val actualConfiguration =
@@ -254,7 +257,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
             extraToolConfigurations = Option.empty,
             extensionsByLanguage = Map.empty),
           maxToolMemory = Some("3000000000")),
-        upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
+        upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false, batchSize = batchSize),
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
       val actualConfiguration =
@@ -334,7 +337,7 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
                 .Extra(baseSubDir = engineConfig.baseSubDir, extraValues = engineConfig.extraValues))),
             extensionsByLanguage = Map(Languages.Scala -> Set(".sc"))),
           maxToolMemory = Some("3000000000")),
-        upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false),
+        upload = CLIConfiguration.Upload(commitUuid = commitUuid, upload = false, batchSize = batchSize),
         result = CLIConfiguration.Result(maxAllowedIssues = 0, failIfIncomplete = false))
 
       val actualConfiguration =

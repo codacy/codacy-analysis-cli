@@ -32,23 +32,24 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
   private val otherTool = "rubocop"
   private val otherFilenames = Set(Paths.get("src/things/Clazz.scala"))
   private val batchSize = 10
+  private val defaultBatchSize = 50000
 
   "ResultsUploader" should {
 
     "not create the uploader if upload is not requested" in {
       val codacyClient = mock[CodacyClient]
-      ResultsUploader(Option(codacyClient), upload = false, Option(commitUuid), Option(batchSize)) must beRight(
+      ResultsUploader(Option(codacyClient), upload = false, Option(commitUuid), batchSize) must beRight(
         Option.empty[ResultsUploader])
     }
 
     "fail to create the uploader if the client is not passed" in {
-      ResultsUploader(Option.empty[CodacyClient], upload = true, Option(commitUuid), Option(batchSize)) must beLeft(
+      ResultsUploader(Option.empty[CodacyClient], upload = true, Option(commitUuid), batchSize) must beLeft(
         "No credentials found.")
     }
 
     "fail to create the uploader if the commit is not passed" in {
       val codacyClient = mock[CodacyClient]
-      ResultsUploader(Option(codacyClient), upload = true, Option.empty[Commit.Uuid], Option(batchSize)) must beLeft(
+      ResultsUploader(Option(codacyClient), upload = true, Option.empty[Commit.Uuid], batchSize) must beLeft(
         "No commit found.")
     }
 
@@ -87,7 +88,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         .thenReturn(Future.successful(().asRight[String]))
 
       val uploader: ResultsUploader =
-        ResultsUploader(Option(codacyClient), upload = true, Some(commitUuid), None).right.get.get
+        ResultsUploader(Option(codacyClient), upload = true, Some(commitUuid), defaultBatchSize).right.get.get
 
       def testFileMetrics(i: Int) = {
         MetricsAnalysis.FileResults(
@@ -145,7 +146,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
         .thenReturn(Future.successful(().asRight[String]))
 
       val uploader: ResultsUploader =
-        ResultsUploader(Option(codacyClient), upload = true, Some(commitUuid), None).right.get.get
+        ResultsUploader(Option(codacyClient), upload = true, Some(commitUuid), defaultBatchSize).right.get.get
 
       def testClone(i: Int) = {
         DuplicationClone("", i, i, Set.empty)
@@ -184,7 +185,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       }
       val codacyClient = mock[CodacyClient]
       val uploader: ResultsUploader =
-        ResultsUploader(Option(codacyClient), upload = true, Option(commitUuid), Option(batchSize)).right.get.get
+        ResultsUploader(Option(codacyClient), upload = true, Option(commitUuid), batchSize).right.get.get
 
       when(
         codacyClient.sendRemoteIssues(

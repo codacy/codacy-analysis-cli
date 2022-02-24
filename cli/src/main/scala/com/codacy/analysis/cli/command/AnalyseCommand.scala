@@ -69,7 +69,11 @@ object AnalyseCommand {
         configuration.analysis,
         toolSelector)
     val uploaderOpt: Either[String, Option[ResultsUploader]] =
-      ResultsUploader(codacyClientOpt, configuration.upload.upload, configuration.upload.commitUuid)
+      ResultsUploader(
+        codacyClientOpt,
+        configuration.upload.upload,
+        configuration.upload.commitUuid,
+        configuration.upload.batchSize)
 
     new AnalyseCommand(analyze, configuration, analyseExecutor, uploaderOpt)
   }
