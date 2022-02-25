@@ -34,6 +34,10 @@ class ToolSelector(toolRepository: ToolRepository) {
       case Some("duplication") =>
         duplicationToolsEither.map(_.map(_.to[ITool]))
 
+      case Some("issues") =>
+        val toolsEither = tools(None, configuration, languages)
+        toolsEither.map(_.map(_.to[ITool]))
+
       case Some(_) =>
         val toolsEither = tools(toolInput, configuration, languages)
         toolsEither.map(_.map(_.to[ITool]))

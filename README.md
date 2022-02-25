@@ -196,7 +196,7 @@ Found [Clone] 7 duplicated lines with 10 tokens:
 * `analyze` - Run a Codacy analysis over a directory/files
     * `--help` - Displays all the configuration options, their meaning and possible values.
     * `--verbose` - Run the tool with verbose output
-    * `--tool` - [Choose the tool](https://docs.codacy.com/repositories-configure/codacy-configuration-file/#which-tools-can-be-configured-and-which-name-should-i-use) to analyze the code (e.g. brakeman)
+    * `--tool` - [Choose the tool](https://docs.codacy.com/repositories-configure/codacy-configuration-file/#which-tools-can-be-configured-and-which-name-should-i-use) to analyze the code (e.g. brakeman), or "metrics", "duplication", "issues" to run only a specific tool category
     * `--directory` - Choose the directory to be analysed
     * `--codacy-api-base-url` or env.`CODACY_API_BASE_URL` - Change the Codacy installation API URL to retrieve the configuration (e.g. Enterprise installation)
     * `--output` - Send the output results to a file
