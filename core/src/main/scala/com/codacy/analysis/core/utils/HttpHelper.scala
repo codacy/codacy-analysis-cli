@@ -2,7 +2,8 @@ package com.codacy.analysis.core.utils
 
 import io.circe.parser.parse
 import io.circe.{Json, ParsingFailure}
-import scalaj.http.{Http, HttpRequest, HttpResponse, HttpOptions}
+import org.log4s.{Logger, getLogger}
+import scalaj.http.{Http, HttpOptions, HttpRequest, HttpResponse}
 
 class HttpHelper(apiUrl: String, extraHeaders: Map[String, String], allowUnsafeSSL: Boolean) {
 
@@ -10,6 +11,8 @@ class HttpHelper(apiUrl: String, extraHeaders: Map[String, String], allowUnsafeS
   private lazy val readTimeoutMs = 5000
 
   private val remoteUrl = apiUrl + "/2.0"
+
+  private val logger: Logger = getLogger
 
   private def httpOptions = if (allowUnsafeSSL) Seq(HttpOptions.allowUnsafeSSL) else Seq.empty
 
@@ -40,7 +43,14 @@ class HttpHelper(apiUrl: String, extraHeaders: Map[String, String], allowUnsafeS
       .headers(headers)
       .timeout(connectionTimeoutMs, readTimeoutMs)
 
-    parse(request.asString.body)
+    val response = request.asString
+    val bodyAsString = response.body
+    parse(bodyAsString) match {
+      case failure @ Left(_) =>
+        logger.warn(s"Post to $endpoint failed. Response was a ${response.code} and returned $bodyAsString")
+        failure
+      case success => success
+    }
   }
 
 }
