@@ -3,24 +3,23 @@ package com.codacy.analysis.core.tools
 import java.nio.file.Paths
 
 import better.files.File
-import com.codacy.analysis.core.model.FileMetrics
+import com.codacy.analysis.core.model.{AnalyserError, FileMetrics, MetricsToolSpec}
 import com.codacy.plugins.api
 import com.codacy.plugins.api.Source
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.metrics.MetricsTool.CodacyConfiguration
 import com.codacy.plugins.metrics.traits
 import com.codacy.plugins.metrics.traits.{MetricsRequest, MetricsRunner}
-import com.codacy.plugins.metrics.utils.MetricsTools
 import com.codacy.plugins.runners.{BinaryDockerRunner, DockerRunner}
 import org.log4s.getLogger
 
 import scala.concurrent.duration.Duration
 import scala.util.Try
 
-class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun: Language) extends ITool {
+class MetricsTool(metricsToolSpec: MetricsToolSpec, val languageToRun: Language) extends ITool {
   override def name: String = "metrics"
 
-  override def supportedLanguages: Set[Language] = metricsTool.languages.to[Set]
+  override def supportedLanguages: Set[Language] = metricsToolSpec.languages.to[Set]
 
   def run(directory: File,
           files: Option[Set[Source.File]],
@@ -28,6 +27,8 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
           timeout: Option[Duration] = Option.empty[Duration],
           maxToolMemory: Option[String] = None): Try[List[FileMetrics]] = {
     val request = MetricsRequest(directory.pathAsString)
+
+    val metricsTool = new traits.MetricsTool(metricsToolSpec.dockerImage, metricsToolSpec.languages.toList)
 
     val dockerRunner = new BinaryDockerRunner[api.metrics.FileMetrics](
       metricsTool,
@@ -64,22 +65,22 @@ class MetricsTool(private val metricsTool: traits.MetricsTool, val languageToRun
   }
 }
 
-object MetricsToolCollector {
+class MetricsToolCollector(toolRepository: ToolRepository) {
 
   private val logger: org.log4s.Logger = getLogger
 
-  private val availableTools = MetricsTools.list
-
-  def fromLanguages(languages: Set[Language]): Set[MetricsTool] = {
-    languages.flatMap { lang =>
-      val collectedTools = availableTools.collect {
-        case tool if tool.languages.contains(lang) =>
-          new MetricsTool(tool, lang)
+  def fromLanguages(languages: Set[Language]): Either[AnalyserError, Set[MetricsTool]] = {
+    toolRepository.listMetricsTools().map { tools =>
+      languages.flatMap { lang =>
+        val collectedTools = tools.collect {
+          case tool if tool.languages.contains(lang) =>
+            new MetricsTool(tool, lang)
+        }
+        if (collectedTools.isEmpty) {
+          logger.info(s"No metrics tools found for language ${lang.name}")
+        }
+        collectedTools
       }
-      if (collectedTools.isEmpty) {
-        logger.info(s"No metrics tools found for language ${lang.name}")
-      }
-      collectedTools
     }
   }
 

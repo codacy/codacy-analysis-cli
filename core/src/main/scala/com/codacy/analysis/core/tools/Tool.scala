@@ -73,7 +73,7 @@ class Tool(fullToolSpec: FullToolSpec, val languageToRun: Language, defaultRunTi
     }
 
     val dockerInformation = new DockerInformation(
-      dockerImageName = fullToolSpec.tool.dockerImage,
+      dockerImage = fullToolSpec.tool.dockerImage,
       needsCompilation = fullToolSpec.tool.needsCompilation)
 
     val dockerRunner =

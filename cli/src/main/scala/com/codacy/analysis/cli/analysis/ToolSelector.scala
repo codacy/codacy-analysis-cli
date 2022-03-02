@@ -11,25 +11,28 @@ class ToolSelector(toolRepository: ToolRepository) {
 
   private val toolCollector = new ToolCollector(toolRepository)
   private val duplicationToolCollector = new DuplicationToolCollector(toolRepository)
+  private val metricsToolCollector = new MetricsToolCollector(toolRepository)
 
   def allTools(toolInput: Option[String],
                configuration: CLIConfiguration.Tool,
                languages: Set[Language]): Either[CLIError, Set[ITool]] = {
 
     def toolsEither = tools(toolInput, configuration, languages)
-    def metricsTools = MetricsToolCollector.fromLanguages(languages)
     def duplicationToolsEither =
       duplicationToolCollector.fromLanguages(languages).left.map(e => CLIError.CouldNotGetTools(e.message))
+    def metricsToolsEither =
+      metricsToolCollector.fromLanguages(languages).left.map(e => CLIError.CouldNotGetTools(e.message))
 
     toolInput match {
       case None =>
         for {
           tools <- toolsEither
           duplicationTools <- duplicationToolsEither
+          metricsTools <- metricsToolsEither
         } yield tools ++ metricsTools ++ duplicationTools
 
       case Some("metrics") =>
-        Right(metricsTools.map(_.to[ITool]))
+        duplicationToolsEither.map(_.map(_.to[ITool]))
 
       case Some("duplication") =>
         duplicationToolsEither.map(_.map(_.to[ITool]))

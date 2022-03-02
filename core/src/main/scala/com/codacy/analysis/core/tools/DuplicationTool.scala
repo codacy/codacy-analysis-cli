@@ -27,9 +27,8 @@ class DuplicationTool(duplicationToolSpec: DuplicationToolSpec, val languageToRu
           timeout: Option[Duration] = Option.empty[Duration],
           maxToolMemory: Option[String] = None): Try[Set[DuplicationClone]] = {
 
-    val Array(dockerName, dockerVersion) = duplicationToolSpec.dockerImage.split(':')
-
-    val duplicationTool = new traits.DuplicationTool(duplicationToolSpec.languages.toList, dockerName, dockerVersion) {}
+    val duplicationTool =
+      new traits.DuplicationTool(duplicationToolSpec.dockerImage, duplicationToolSpec.languages.toList)
 
     val dockerRunner = new BinaryDockerRunner[api.duplication.DuplicationClone](
       duplicationTool,
