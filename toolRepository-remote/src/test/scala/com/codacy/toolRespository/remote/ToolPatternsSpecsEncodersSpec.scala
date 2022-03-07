@@ -28,7 +28,7 @@ class ToolPatternsSpecsEncodersSpec extends Specification with NoLanguageFeature
       needsCompilation = false,
       hasConfigFile = true,
       configFilenames = Set.empty,
-      isClientSide = false,
+      standalone = false,
       hasUIConfiguration = true)
 
   def toolSpecAsJson(language: String = "Python"): String = s"""{
@@ -50,7 +50,7 @@ class ToolPatternsSpecsEncodersSpec extends Specification with NoLanguageFeature
                                                                |  "hasConfigFile" : true,
                                                                |  "configFilenames" : [
                                                                |  ],
-                                                               |  "isClientSide" : false,
+                                                               |  "standalone" : false,
                                                                |  "hasUIConfiguration" : true
                                                                |}""".stripMargin
 

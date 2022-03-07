@@ -39,7 +39,7 @@ final case class SubDirectory(sourceDirectory: String, protected val subDirector
     filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(fullToolSpec: FullToolSpec, val languageToRun: Language, defaultRunTimeout: Duration) extends ITool {
+class Tool(val fullToolSpec: FullToolSpec, val languageToRun: Language, defaultRunTimeout: Duration) extends ITool {
 
   private val tool = fullToolSpec.tool
 
@@ -166,12 +166,14 @@ class ToolCollector(toolRepository: ToolRepository) {
       Left(AnalyserError.NoActiveToolInConfiguration)
     } else {
       val toolsIdentified = toolUuids.flatMap { toolUuid =>
-        from(toolUuid, languages).fold(
-          { _ =>
+        from(toolUuid, languages) match {
+          case Left(_: AnalyserError.StandaloneToolInput) =>
+            Set.empty[Tool]
+          case Left(_) =>
             logger.warn(s"Failed to get tool for uuid:$toolUuid")
             Set.empty[Tool]
-          },
-          identity)
+          case Right(tools) => tools
+        }
       }
 
       if (toolsIdentified.size != toolUuids.size) {
@@ -193,9 +195,11 @@ class ToolCollector(toolRepository: ToolRepository) {
 
   private def find(value: String): Either[AnalyserError, ToolSpec] = {
     toolRepository.listTools().flatMap { availableTools =>
-      availableTools
-        .find(tool => tool.shortName.equalsIgnoreCase(value) || tool.uuid.equalsIgnoreCase(value))
-        .toRight(CodacyPluginsAnalyser.errors.missingTool(value))
+      availableTools.find(tool => tool.shortName.equalsIgnoreCase(value) || tool.uuid.equalsIgnoreCase(value)) match {
+        case Some(tool) if tool.standalone => Left(AnalyserError.StandaloneToolInput(tool.name))
+        case Some(tool)                    => Right(tool)
+        case None                          => Left(CodacyPluginsAnalyser.errors.missingTool(value))
+      }
     }
   }
 

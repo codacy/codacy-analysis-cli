@@ -187,21 +187,21 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
   private def toToolSpec(tool: definitions.Tool): ToolSpec = {
     val languages = tool.languages.flatMap(Languages.fromName).to[Set]
     ToolSpec(
-      tool.uuid,
-      tool.dockerImage,
-      tool.enabledByDefault,
-      tool.version,
-      languages,
-      tool.name,
-      tool.shortName,
-      tool.documentationUrl,
-      tool.sourceCodeUrl,
-      tool.prefix.getOrElse(""),
-      tool.needsCompilation,
+      uuid = tool.uuid,
+      dockerImage = tool.dockerImage,
+      isDefault = tool.enabledByDefault,
+      version = tool.version,
+      languages = languages,
+      name = tool.name,
+      shortName = tool.shortName,
+      documentationUrl = tool.documentationUrl,
+      sourceCodeUrl = tool.sourceCodeUrl,
+      prefix = tool.prefix.getOrElse(""),
+      needsCompilation = tool.needsCompilation,
       hasConfigFile = tool.configurationFilenames.nonEmpty,
-      tool.configurationFilenames.toSet,
-      tool.clientSide,
-      tool.configurable)
+      configFilenames = tool.configurationFilenames.toSet,
+      standalone = tool.standalone,
+      hasUIConfiguration = tool.configurable)
   }
 
   private def toPatternSpec(pattern: definitions.Pattern, patternPrefix: String): PatternSpec = {

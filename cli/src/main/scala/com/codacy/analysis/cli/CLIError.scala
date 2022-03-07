@@ -36,6 +36,13 @@ object CLIError {
                                       |Use the --help option to get more information about available tools""".stripMargin
   }
 
+  final case class StandaloneToolInput(toolName: String) extends CLIError {
+
+    override val message: String =
+      s"""The selected tool "$toolName" is standalone and can't be run in the CLI.
+      |Check https://docs.codacy.com/related-tools/local-analysis/client-side-tools for more info.""".stripMargin
+  }
+
   final case class NonExistentToolsFromRemoteConfiguration(tools: Set[String]) extends CLIError {
 
     override val message: String =

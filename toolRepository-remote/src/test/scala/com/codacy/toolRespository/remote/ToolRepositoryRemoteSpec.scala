@@ -43,6 +43,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
       dockerImage = "dockerImage",
       languages = Vector.empty,
       clientSide = false,
+      standalone = false,
       enabledByDefault = true,
       configurable = false)
 
@@ -75,7 +76,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
       needsCompilation = false,
       hasConfigFile = false,
       Set.empty,
-      isClientSide = false,
+      standalone = false,
       hasUIConfiguration = false)
 
   private def patternSpec(id: String): PatternSpec =

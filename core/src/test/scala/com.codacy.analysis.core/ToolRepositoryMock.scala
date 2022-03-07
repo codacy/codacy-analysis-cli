@@ -36,7 +36,7 @@ object ToolRepositoryMock extends ToolRepository {
           needsCompilation = false,
           hasConfigFile = true,
           configFilenames = Set.empty,
-          isClientSide = false,
+          standalone = false,
           hasUIConfiguration = true),
         ToolSpec(
           uuid = eslintId,
@@ -52,7 +52,7 @@ object ToolRepositoryMock extends ToolRepository {
           needsCompilation = false,
           hasConfigFile = true,
           configFilenames = Set.empty,
-          isClientSide = false,
+          standalone = false,
           hasUIConfiguration = true),
         ToolSpec(
           uuid = csslintId,
@@ -68,7 +68,7 @@ object ToolRepositoryMock extends ToolRepository {
           needsCompilation = false,
           hasConfigFile = true,
           configFilenames = Set.empty,
-          isClientSide = false,
+          standalone = false,
           hasUIConfiguration = true),
         ToolSpec(
           uuid = brakemanId,
@@ -84,7 +84,7 @@ object ToolRepositoryMock extends ToolRepository {
           needsCompilation = false,
           hasConfigFile = true,
           configFilenames = Set("config/brakeman.yml"),
-          isClientSide = false,
+          standalone = false,
           hasUIConfiguration = true),
         ToolSpec(
           uuid = scalastyleId,
@@ -100,7 +100,7 @@ object ToolRepositoryMock extends ToolRepository {
           needsCompilation = false,
           hasConfigFile = true,
           configFilenames = Set("scalastyle-config.xml", "scalastyle_config.xml"),
-          isClientSide = false,
+          standalone = false,
           hasUIConfiguration = true)))
 
   override def getTool(uuid: String): Either[AnalyserError, ToolSpec] =
