@@ -4,14 +4,13 @@ import better.files.File
 import com.codacy.analysis.cli.analysis.ToolSelector
 import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.core.files.FilesTarget
-import com.codacy.analysis.core.model.{AnalyserError, PatternSpec, ToolSpec}
+import com.codacy.analysis.core.model.{AnalyserError, DuplicationToolSpec, MetricsToolSpec, PatternSpec, ToolSpec}
 import com.codacy.analysis.core.tools.{Tool, ToolRepositoryStub}
 import com.codacy.analysis.core.utils.LanguagesHelper
 import com.codacy.plugins.api.languages.Languages.{Javascript, Python}
 import com.codacy.plugins.api.languages.{Language, Languages}
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
-import com.codacy.analysis.core.model.DuplicationToolSpec
 
 class ToolSelectorSpec extends Specification with NoLanguageFeatures {
 
@@ -51,6 +50,9 @@ class ToolSelectorSpec extends Specification with NoLanguageFeatures {
 
     override def listDuplicationTools(): Either[AnalyserError, Seq[DuplicationToolSpec]] =
       Right(Seq(DuplicationToolSpec("", Set(Languages.Ruby))))
+
+    override def listMetricsTools(): Either[AnalyserError, Seq[MetricsToolSpec]] =
+      Right(Seq(MetricsToolSpec("", Set(Languages.Ruby))))
   }
   val toolSelector: ToolSelector = new ToolSelector(toolRepository)
 

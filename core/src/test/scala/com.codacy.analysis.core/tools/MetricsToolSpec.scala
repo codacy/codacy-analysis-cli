@@ -3,16 +3,18 @@ package com.codacy.analysis.core.tools
 import java.nio.file.Paths
 
 import com.codacy.analysis.core.model.FileMetrics
+import com.codacy.analysis.core.model
 import com.codacy.analysis.core.utils.TestUtils._
 import com.codacy.plugins.api.Source
-import com.codacy.plugins.api.languages.{Language, Languages}
-import com.codacy.plugins.metrics.docker.Cloc
+import com.codacy.plugins.api.languages.Languages
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 
 import scala.util.Success
 
 class MetricsToolSpec extends Specification with NoLanguageFeatures {
+
+  val cloc = model.MetricsToolSpec("codacy/codacy-metrics-cloc:0.4.1", Set(Languages.Javascript))
 
   val jsTest2Metrics =
     FileMetrics(Paths.get("test2.js"), None, Some(25), Some(0), None, None, Set())
@@ -24,7 +26,7 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
       withClonedRepo("git://github.com/qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
         val testProjectFileMetrics = List(jsTest2Metrics, jsTestMetrics)
 
-        val metricsTool = new MetricsTool(Cloc, Languages.Javascript)
+        val metricsTool = new MetricsTool(cloc, Languages.Javascript)
 
         val result = metricsTool.run(directory, None)
 
@@ -42,7 +44,7 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
       withClonedRepo("git://github.com/qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
         val testProjectFileMetrics = List(jsTestMetrics)
 
-        val metricsTool = new MetricsTool(Cloc, Languages.Javascript)
+        val metricsTool = new MetricsTool(cloc, Languages.Javascript)
 
         val result = metricsTool.run(directory, Some(Set(Source.File("test.js"))))
 
@@ -53,18 +55,6 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
             metricsResults must containTheSameElementsAs(testProjectFileMetrics)
         }
       }
-    }
-  }
-
-  "MetricsToolCollector" should {
-    val languagesWithTools: Set[Language] = Set(Languages.Kotlin, Languages.Go, Languages.LESS)
-    s"detect the metrics tools for the given languages: ${languagesWithTools.mkString(", ")}" in {
-
-      val tools = MetricsToolCollector.fromLanguages(languagesWithTools)
-
-      tools must haveSize(5)
-
-      tools.map(_.languageToRun) must containTheSameElementsAs(languagesWithTools.to[Seq])
     }
   }
 }
