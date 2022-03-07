@@ -32,7 +32,7 @@ class ToolSelector(toolRepository: ToolRepository) {
         } yield tools ++ metricsTools ++ duplicationTools
 
       case Some("metrics") =>
-        duplicationToolsEither.map(_.map(_.to[ITool]))
+        metricsToolsEither.map(_.map(_.to[ITool]))
 
       case Some("duplication") =>
         duplicationToolsEither.map(_.map(_.to[ITool]))
