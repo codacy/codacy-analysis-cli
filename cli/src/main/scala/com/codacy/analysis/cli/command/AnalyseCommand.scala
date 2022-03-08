@@ -116,6 +116,10 @@ class AnalyseCommand(analyze: Analyze,
       _ <- upload(configuration.upload, analysisResults)
     } yield analysisResults
 
+    analysisAndUpload.left.foreach { error =>
+      logger.error(error.message)
+    }
+
     removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
 
     new ExitStatus(configuration.result.maxAllowedIssues, configuration.result.failIfIncomplete)

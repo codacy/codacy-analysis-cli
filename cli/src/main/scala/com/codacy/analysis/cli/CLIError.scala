@@ -34,7 +34,7 @@ object CLIError {
 
     override val message: String =
       s"""The selected tool "$toolName" is not supported or does not exist.
-                                      |Use the --help option to get more information about available tools""".stripMargin
+      |Use the --help option to get more information about available tools""".stripMargin
   }
 
   final case class StandaloneToolInput(toolName: String) extends CLIError {
