@@ -13,7 +13,7 @@ object Common {
   val scalaVersionNumber = s"$scalaBinaryVersionNumber.14"
 
   val scala213BinaryVersionNumber = "2.13"
-  val scala213VersionNumber = s"$scala213BinaryVersionNumber.3"
+  val scala213VersionNumber = s"$scala213BinaryVersionNumber.8"
   lazy val supportedScalaVersions = List(Common.scalaVersionNumber, Common.scala213VersionNumber)
 
   val genericSettings = Seq(
