@@ -15,6 +15,7 @@ object CLIError {
       case AnalyserError.ToolExecutionFailure(toolType, toolName) => CLIError.ToolExecutionFailure(toolType, toolName)
       case AnalyserError.ToolNeedsNetwork(toolName)               => CLIError.ToolNeedsNetwork(toolName)
       case AnalyserError.NonExistingToolInput(toolName)           => CLIError.NonExistingToolInput(toolName)
+      case AnalyserError.StandaloneToolInput(toolName)            => CLIError.StandaloneToolInput(toolName)
       case AnalyserError.NoActiveToolInConfiguration              => CLIError.NoActiveToolInConfiguration
       case AnalyserError.NoToolsFoundForFiles                     => CLIError.NoToolsFoundForFiles
       case AnalyserError.FailedToFetchTools(errorMessage)         => CLIError.CouldNotGetTools(errorMessage)
