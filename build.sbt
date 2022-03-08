@@ -23,7 +23,7 @@ inThisBuild(
     scalaVersion := Common.scalaVersionNumber,
     scalaBinaryVersion := Common.scalaBinaryVersionNumber,
     scapegoatDisabledInspections := Seq(),
-    scapegoatVersion := "1.4.6"))
+    scapegoatVersion := "1.4.11"))
 
 val sonatypeInformation = Seq(
   startYear := Some(2018),
@@ -111,8 +111,8 @@ lazy val downloadCodacyToolsSwaggerFile = Def.task[Unit] {
   }
 }
 
-val silencerSettings =
-  Seq(libraryDependencies ++= Dependencies.silencer, scalacOptions += "-P:silencer:pathFilters=src_managed")
+val noWarnSettings =
+  Seq(scalacOptions += "-Wconf:src=src_managed/.*:silent")
 
 lazy val codacyApiClient = project
   .in(file("codacy-api-client"))
@@ -136,4 +136,4 @@ lazy val codacyApiClient = project
           tracing = false,
           modules = List("circe", "akka-http")))
     },
-    silencerSettings)
+    noWarnSettings)

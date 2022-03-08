@@ -6,7 +6,6 @@ object Dependencies {
   val circeVersion = "0.12.3"
   val specs2Version = "4.8.1"
   val codacyApiVersion = "26.10.0"
-  val silencerVersion = "1.7.0"
 
   lazy val circe = List(
     "io.circe" %% "circe-core" % circeVersion,
@@ -54,7 +53,4 @@ object Dependencies {
 
   val macroParadise = "org.scalamacros" %% "paradise" % "2.1.1"
 
-  val silencer = Seq(
-    compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
-    "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full)
 }

@@ -10,7 +10,7 @@ object Common {
 
   private val defaultDockerInstallationPath = "/opt/codacy"
   val scalaBinaryVersionNumber = "2.12"
-  val scalaVersionNumber = s"$scalaBinaryVersionNumber.12"
+  val scalaVersionNumber = s"$scalaBinaryVersionNumber.14"
 
   val scala213BinaryVersionNumber = "2.13"
   val scala213VersionNumber = s"$scala213BinaryVersionNumber.3"
@@ -27,7 +27,6 @@ object Common {
     scalacOptions ++= Common.compilerFlags(scalaVersion.value),
     Test / scalacOptions += "-Yrangepos",
     Compile / console / scalacOptions --= Seq("-Ywarn-unused", "-Ywarn-unused:imports"),
-    scalacOptions -= "-Xfatal-warnings",
     Compile / doc / sources := Seq.empty)
 
   val dockerSettings: Seq[Def.Setting[_]] = Seq(
@@ -58,7 +57,7 @@ object Common {
     "-unchecked", // Enable additional warnings where generated code depends on assumptions.
     "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
     // Disabled because of zinc bug: https://github.com/sbt/zinc/issues/688
-    // "-Xfatal-warnings", // Fail the compilation if there are any warnings.
+    "-Xfatal-warnings", // Fail the compilation if there are any warnings.
     "-Xfuture", // Turn on future language features.
     "-Xlint",
     "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.
