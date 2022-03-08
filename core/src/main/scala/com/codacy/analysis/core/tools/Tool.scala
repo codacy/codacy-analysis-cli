@@ -39,7 +39,7 @@ final case class SubDirectory(sourceDirectory: String, protected val subDirector
     filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(val fullToolSpec: FullToolSpec, val languageToRun: Language, defaultRunTimeout: Duration) extends ITool {
+class Tool(fullToolSpec: FullToolSpec, val languageToRun: Language, defaultRunTimeout: Duration) extends ITool {
 
   private val tool = fullToolSpec.tool
 
