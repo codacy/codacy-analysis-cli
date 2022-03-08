@@ -1,7 +1,7 @@
 addSbtPlugin("com.codacy" % "codacy-sbt-plugin" % "22.0.1")
 
 // Coverage
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.9.3")
 
 // Static Analysis
 addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.1.0")
