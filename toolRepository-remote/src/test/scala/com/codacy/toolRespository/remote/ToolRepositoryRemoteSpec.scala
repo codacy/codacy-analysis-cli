@@ -28,7 +28,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
   implicit val actorSystem = ActorSystem("MyTest")
   implicit val materializer = ActorMaterializer()
 
-  private def getTool(uuid: String, name: String) =
+  private def getTool(uuid: String, name: String, standalone: Boolean = false) =
     Tool(
       uuid = uuid,
       name = name,
@@ -43,7 +43,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
       dockerImage = "dockerImage",
       languages = Vector.empty,
       clientSide = false,
-      standalone = false,
+      standalone = standalone,
       enabledByDefault = true,
       configurable = false)
 
@@ -130,9 +130,10 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
     EitherT(Future.successful(responseEither))
   }
 
-  "listTools" should {
+  "listSupportedTools" should {
 
-    "return the list of tools" in {
+    "return the list of supported tools" in {
+      // Arrange
       val mockedClient = mock[ToolsClient]
       val toolRepository =
         new ToolRepositoryRemote(mockedClient, emptyStorage, null, null, _ => emptyStorage)
@@ -187,6 +188,27 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
       toolsEither must beRight((x: Seq[ToolSpec]) => x.head.uuid must_== toolA.uuid)
     }
 
+    "not return standalone tools" in {
+      // Arrange
+      val mockedClient = mock[ToolsClient]
+      val toolRepository =
+        new ToolRepositoryRemote(mockedClient, emptyStorage, null, null, _ => emptyStorage)
+
+      val standalone = getTool("", "", standalone = true)
+
+      mockedClient
+        .listTools(cursor = None)
+        .returns(toEitherT(ListToolsResponse.OK(ToolListResponse(Vector(standalone, toolA), None))))
+
+      // Act
+      val toolsEither = toolRepository.listSupportedTools()
+
+      // Assert
+      toolsEither must beRight
+      toolsEither must beRight((t: Seq[ToolSpec]) => t must haveLength(1))
+      toolsEither must beRight((x: Seq[ToolSpec]) => x.head.uuid must_== toolA.uuid)
+    }
+
     "throw an exception if API returns BadRequest" in {
       val mockedClient = mock[ToolsClient]
       val toolRepository =
@@ -209,6 +231,29 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
 
       toolRepository.listSupportedTools() must beLeft(
         (e: AnalyserError) => e must beAnInstanceOf[AnalyserError.FailedToFetchTools])
+    }
+  }
+
+  "getTool" should {
+
+    "fail with standalone tools" in {
+      // Arrange
+      val mockedClient = mock[ToolsClient]
+      val toolRepository =
+        new ToolRepositoryRemote(mockedClient, emptyStorage, null, null, _ => emptyStorage)
+
+      val standaloneUuid = "standalone"
+      val standalone = getTool(standaloneUuid, "", standalone = true)
+
+      mockedClient
+        .listTools(cursor = None)
+        .returns(toEitherT(ListToolsResponse.OK(ToolListResponse(Vector(standalone), None))))
+
+      // Act
+      val toolEither = toolRepository.getTool(standaloneUuid)
+
+      // Assert
+      toolEither must beLeft((e: AnalyserError) => e must beAnInstanceOf[AnalyserError.StandaloneToolInput])
     }
   }
 
