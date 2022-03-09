@@ -37,7 +37,7 @@ class ToolSelectorSpec extends Specification with NoLanguageFeatures {
         standalone = false,
         hasUIConfiguration = true)
 
-    override def listTools(): Either[AnalyserError, Seq[ToolSpec]] =
+    override def listSupportedTools(): Either[AnalyserError, Seq[ToolSpec]] =
       Right(
         Seq(
           getToolSpec("34225275-f79e-4b85-8126-c7512c987c0d", "PyLint", Set(Python)),

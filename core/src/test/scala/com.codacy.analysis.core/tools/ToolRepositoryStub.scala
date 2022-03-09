@@ -5,7 +5,7 @@ import com.codacy.analysis.core.model.{AnalyserError, PatternSpec, ToolSpec}
 
 class ToolRepositoryStub extends ToolRepository {
 
-  def listTools(): Either[AnalyserError, Seq[ToolSpec]] = ???
+  def listSupportedTools(): Either[AnalyserError, Seq[ToolSpec]] = ???
   def listDuplicationTools(): Either[AnalyserError, Seq[model.DuplicationToolSpec]] = ???
   def listMetricsTools(): Either[AnalyserError, Seq[model.MetricsToolSpec]] = ???
   def getTool(uuid: String): Either[AnalyserError, ToolSpec] = ???

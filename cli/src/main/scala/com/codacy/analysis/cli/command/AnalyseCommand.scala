@@ -19,7 +19,7 @@ import com.codacy.analysis.cli.clients.Credentials
 import com.codacy.analysis.cli.configuration.{CLIConfiguration, Environment}
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.clientapi.tools.ToolsClient
-import com.codacy.analysis.core.analysis.Analyser
+import com.codacy.analysis.core.analysis.CodacyPluginsAnalyser
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.configuration.CodacyConfigurationFileLoader
 import com.codacy.analysis.core.files.FileCollector
@@ -62,12 +62,7 @@ object AnalyseCommand {
     val toolSelector = new ToolSelector(toolRepository(apiUrl))
 
     val analyseExecutor: AnalyseExecutor =
-      new AnalyseExecutor(
-        formatter,
-        Analyser(analyze.extras.analyser),
-        fileCollector,
-        configuration.analysis,
-        toolSelector)
+      new AnalyseExecutor(formatter, new CodacyPluginsAnalyser(), fileCollector, configuration.analysis, toolSelector)
     val uploaderOpt: Either[String, Option[ResultsUploader]] =
       ResultsUploader(
         codacyClientOpt,

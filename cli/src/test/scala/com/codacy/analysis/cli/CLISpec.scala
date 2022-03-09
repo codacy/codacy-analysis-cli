@@ -293,7 +293,6 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             tool = None,
             directory = Option(directory),
             upload = Tag.of(1),
-            extras = ExtraOptions(),
             toolTimeout = None)
 
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
@@ -312,7 +311,6 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             tool = None,
             directory = Option(directory),
             upload = Tag.of(1),
-            extras = ExtraOptions(),
             toolTimeout = None)
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
         }).get
@@ -333,7 +331,6 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             tool = None,
             directory = Option(directory),
             upload = Tag.of(0),
-            extras = ExtraOptions(),
             toolTimeout = None)
 
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
@@ -352,7 +349,6 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             tool = None,
             directory = Option(directory),
             upload = Tag.of(0),
-            extras = ExtraOptions(),
             commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
             toolTimeout = None)
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
@@ -371,7 +367,6 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             tool = None,
             directory = Option(directory),
             upload = Tag.of(0),
-            extras = ExtraOptions(),
             commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
             skipCommitUuidValidation = Tag.of(1),
             toolTimeout = None)

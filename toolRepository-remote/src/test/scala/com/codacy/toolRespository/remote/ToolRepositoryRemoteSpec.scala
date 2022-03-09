@@ -141,7 +141,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
         toEitherT(ListToolsResponse.OK(ToolListResponse(Vector(toolA), None))),
         toEitherT(ListToolsResponse.OK(ToolListResponse(Vector(toolB), None))))
 
-      val toolsEither = toolRepository.listTools
+      val toolsEither = toolRepository.listSupportedTools()
 
       toolsEither must beRight
       // toolB should not be returned because the first one returned an empty cursor
@@ -164,7 +164,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
         toEitherT(ListToolsResponse.OK(ToolListResponse(Vector(toolA), Some(paginationInfo)))),
         toEitherT(ListToolsResponse.OK(ToolListResponse(Vector(toolB), None))))
 
-      val toolsEither = toolRepository.listTools
+      val toolsEither = toolRepository.listSupportedTools()
 
       toolsEither must beRight
       // toolB should not be returned because the first one returned an empty cursor
@@ -180,7 +180,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
 
       mockedClient.listTools(cursor = None).returns(toEitherT(ListToolsResponse.BadRequest(BadRequest("error"))))
 
-      val toolsEither = toolRepository.listTools
+      val toolsEither = toolRepository.listSupportedTools()
 
       toolsEither must beRight
       toolsEither must beRight((t: Seq[ToolSpec]) => t must haveLength(1))
@@ -194,7 +194,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
 
       mockedClient.listTools(cursor = None).returns(toEitherT(ListToolsResponse.BadRequest(BadRequest("error"))))
 
-      toolRepository.listTools must beLeft(
+      toolRepository.listSupportedTools() must beLeft(
         (e: AnalyserError) => e must beAnInstanceOf[AnalyserError.FailedToFetchTools])
     }
 
@@ -207,7 +207,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
         .listTools(cursor = None)
         .returns(toEitherT(ListToolsResponse.InternalServerError(InternalServerError("error"))))
 
-      toolRepository.listTools must beLeft(
+      toolRepository.listSupportedTools() must beLeft(
         (e: AnalyserError) => e must beAnInstanceOf[AnalyserError.FailedToFetchTools])
     }
   }
@@ -248,7 +248,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
         toEitherT(ListToolsResponse.OK(ToolListResponse(Vector(toolA), Some(paginationInfo)))),
         toEitherT(ListToolsResponse.OK(ToolListResponse(Vector(toolB), None))))
 
-      val toolsEither = toolRepository.listTools
+      val toolsEither = toolRepository.listSupportedTools()
 
       toolsEither must beRight
       // toolB should not be returned because the first one returned an empty cursor

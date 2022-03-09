@@ -4,10 +4,10 @@ import com.codacy.analysis.core.model.{AnalyserError, DuplicationToolSpec, Metri
 
 trait ToolRepository {
 
-  def listTools(): Either[AnalyserError, Seq[ToolSpec]]
+  def listSupportedTools(): Either[AnalyserError, Seq[ToolSpec]]
   def listDuplicationTools(): Either[AnalyserError, Seq[DuplicationToolSpec]]
   def listMetricsTools(): Either[AnalyserError, Seq[MetricsToolSpec]]
-  def getTool(uuid: String): Either[AnalyserError, ToolSpec]
+  def getTool(queryString: String): Either[AnalyserError, ToolSpec]
   def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]]
 
 }

@@ -19,6 +19,7 @@ import org.specs2.mutable.Specification
 
 import scala.concurrent.duration._
 import scala.util.Try
+import com.codacy.analysis.core.analysis.CodacyPluginsAnalyser
 
 class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 
@@ -48,7 +49,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
               toolPatterns)),
           Set(FilePath(pathToIgnore)))
 
-        runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
+        runAnalyseExecutor(configuration)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -95,7 +96,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
               toolPatterns)),
           Set.empty)
 
-        runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
+        runAnalyseExecutor(configuration)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -141,7 +142,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
               })),
           Set.empty)
 
-        runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
+        runAnalyseExecutor(configuration)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -161,9 +162,9 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     }
   }
 
-  private def runAnalyseExecutor(analyserName: String, configuration: CLIConfiguration.Analysis) = {
+  private def runAnalyseExecutor(configuration: CLIConfiguration.Analysis) = {
     val formatter: Formatter = Formatter(configuration.output, configuration.projectDirectory)
-    val analyser: Analyser[Try] = Analyser(analyserName)
+    val analyser: Analyser = new CodacyPluginsAnalyser()
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
     val toolRepository = ToolRepositoryMock

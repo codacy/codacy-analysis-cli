@@ -43,7 +43,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
     extends ToolRepository {
   private val logger: Logger = getLogger
 
-  override lazy val listTools: Either[AnalyserError, Seq[ToolSpec]] = {
+  private lazy val allTools: Either[AnalyserError, Seq[ToolSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
       toolsClient.listTools(cursor).value.map {
         case Right(ListToolsResponse.OK(ToolListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
@@ -110,11 +110,16 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
     }
   }
 
-  override def getTool(uuid: String): Either[AnalyserError, ToolSpec] =
-    listTools.flatMap { toolsSpecs =>
-      toolsSpecs.find(_.uuid == uuid) match {
-        case None       => Left(AnalyserError.FailedToFindTool(uuid))
-        case Some(tool) => Right(tool)
+  override def listSupportedTools(): Either[AnalyserError, Seq[ToolSpec]] =
+    allTools.map(_.filterNot(_.standalone))
+
+  override def getTool(queryString: String): Either[AnalyserError, ToolSpec] =
+    allTools.flatMap { toolsSpecs =>
+      toolsSpecs.find(
+        tool => tool.shortName.equalsIgnoreCase(queryString) || tool.uuid.equalsIgnoreCase(queryString)) match {
+        case None                          => Left(AnalyserError.FailedToFindTool(queryString))
+        case Some(tool) if tool.standalone => Left(AnalyserError.StandaloneToolInput(queryString))
+        case Some(tool)                    => Right(tool)
       }
     }
 

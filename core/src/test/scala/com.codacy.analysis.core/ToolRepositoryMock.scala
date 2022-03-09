@@ -19,7 +19,7 @@ object ToolRepositoryMock extends ToolRepository {
   private val brakemanId = "c6273c22-5248-11e5-885d-feff819cdc9f"
   private val scalastyleId = "21586cd3-3eaa-4454-878e-ac0211a833c2"
 
-  override def listTools(): Either[AnalyserError, Seq[ToolSpec]] =
+  override def listSupportedTools(): Either[AnalyserError, Seq[ToolSpec]] =
     Right(
       Seq(
         ToolSpec(
@@ -104,7 +104,7 @@ object ToolRepositoryMock extends ToolRepository {
           hasUIConfiguration = true)))
 
   override def getTool(uuid: String): Either[AnalyserError, ToolSpec] =
-    listTools().flatMap(_.find(_.uuid == uuid).toRight(AnalyserError.FailedToFindTool(uuid)))
+    listSupportedTools().flatMap(_.find(_.uuid == uuid).toRight(AnalyserError.FailedToFindTool(uuid)))
 
   private def getSimplePattern(patternId: String): PatternSpec =
     PatternSpec(patternId, "Info", "ErrorProne", None, patternId, None, None, enabled = true, None, Seq(), Set())

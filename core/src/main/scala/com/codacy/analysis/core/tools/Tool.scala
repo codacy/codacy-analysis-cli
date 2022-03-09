@@ -186,20 +186,10 @@ class ToolCollector(toolRepository: ToolRepository) {
 
   def from(value: String, languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
     for {
-      tool <- find(value)
+      tool <- toolRepository.getTool(value)
       patterns <- toolRepository.listPatterns(tool)
     } yield {
       tool.languages.intersect(languages).map(language => Tool(FullToolSpec(tool, patterns), language))
-    }
-  }
-
-  private def find(value: String): Either[AnalyserError, ToolSpec] = {
-    toolRepository.listTools().flatMap { availableTools =>
-      availableTools.find(tool => tool.shortName.equalsIgnoreCase(value) || tool.uuid.equalsIgnoreCase(value)) match {
-        case Some(tool) if tool.standalone => Left(AnalyserError.StandaloneToolInput(tool.name))
-        case Some(tool)                    => Right(tool)
-        case None                          => Left(CodacyPluginsAnalyser.errors.missingTool(value))
-      }
     }
   }
 
@@ -215,7 +205,7 @@ class ToolCollector(toolRepository: ToolRepository) {
 
   def fromLanguages(languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
     for {
-      tools <- toolRepository.listTools()
+      tools <- toolRepository.listSupportedTools()
       toolsInfo <- tools.toList.flatTraverse(toolSpec => toTool(toolSpec, languages))
       _ <- if (toolsInfo.nonEmpty) Right(()) else Left(AnalyserError.NoToolsFoundForFiles)
     } yield {

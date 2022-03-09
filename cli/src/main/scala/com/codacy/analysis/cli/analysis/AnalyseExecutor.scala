@@ -22,7 +22,7 @@ import scala.sys.process.Process
 import scala.util.{Failure, Success, Try}
 
 class AnalyseExecutor(formatter: Formatter,
-                      analyser: Analyser[Try],
+                      analyser: Analyser,
                       fileCollector: FileCollector[Try],
                       configuration: CLIConfiguration.Analysis,
                       toolSelector: ToolSelector) {

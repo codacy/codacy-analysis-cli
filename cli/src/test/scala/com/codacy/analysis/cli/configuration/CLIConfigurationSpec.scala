@@ -2,9 +2,8 @@ package com.codacy.analysis.cli.configuration
 
 import better.files.File
 import caseapp.Tag
-import com.codacy.analysis.cli.command.{APIOptions, Analyze, CommonOptions, ExtraOptions}
+import com.codacy.analysis.cli.command.{APIOptions, Analyze, CommonOptions}
 import com.codacy.analysis.cli.formatter.Json
-import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients._
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.configuration.{
@@ -50,7 +49,6 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
     format = Json.name,
     toolTimeout = Option.empty,
     commitUuid = commitUuid,
-    extras = ExtraOptions(analyser = Analyser.defaultAnalyser.name),
     uploadBatchSize = batchSize)
   private val defaultEnvironment = new Environment(Map.empty)
   private val httpHelper = new HttpHelper(remoteUrl, Map.empty, false)
@@ -83,7 +81,6 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
           toolTimeout = Option(20.seconds),
           maxToolMemory = Some("3000000000"),
           forceFilePermissions = Tag.of(1),
-          extras = ExtraOptions(analyser = Analyser.defaultAnalyser.name),
           allowNetwork = Tag.of(1),
           upload = Tag.of(1),
           maxAllowedIssues = 5,
