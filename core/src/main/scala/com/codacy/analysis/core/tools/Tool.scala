@@ -168,8 +168,8 @@ class ToolCollector(toolRepository: ToolRepository) {
         val toolsIdentified: Set[Tool] = tools.map { tool =>
           if (toolUuids.contains(tool.uuid)) {
             from(tool, languages) match {
-              case Left(_) =>
-                logger.warn(s"Failed to get tool for uuid:${tool.uuid}")
+              case Left(error) =>
+                logger.warn(s"Failed to get tool for ${tool.name}.\nReason: ${error.message}")
                 Set.empty
               case Right(tools) => tools
             }
