@@ -20,6 +20,13 @@ object AnalyserError {
       s"""The selected tool "$toolName" is not supported or does not exist""".stripMargin
   }
 
+  final case class StandaloneToolInput(toolName: String) extends AnalyserError {
+
+    override val message: String =
+      s"""The selected tool "$toolName" is standalone and can't be run in the CLI.
+      |Check https://docs.codacy.com/related-tools/local-analysis/client-side-tools for more info.""".stripMargin
+  }
+
   case object NoActiveToolInConfiguration extends AnalyserError {
     override val message: String = "No active tool found on the remote configuration"
   }
@@ -30,10 +37,6 @@ object AnalyserError {
 
   final case class FailedToFetchTools(errorMessage: String) extends AnalyserError {
     override val message: String = s"Failed to list tools with error: $errorMessage"
-  }
-
-  final case class FailedToFindTool(toolUuid: String) extends AnalyserError {
-    override val message: String = s"Failed to find tool with UUID: $toolUuid"
   }
 
   final case class FailedToListPatterns(toolUuid: String, errorMessage: String) extends AnalyserError {

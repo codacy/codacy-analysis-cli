@@ -15,5 +15,5 @@ case class ToolSpec(uuid: String,
                     needsCompilation: Boolean,
                     hasConfigFile: Boolean,
                     configFilenames: Set[String],
-                    isClientSide: Boolean,
+                    standalone: Boolean,
                     hasUIConfiguration: Boolean)

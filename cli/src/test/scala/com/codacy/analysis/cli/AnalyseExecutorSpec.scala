@@ -5,7 +5,7 @@ import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ToolSelector}
 import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.core.ToolRepositoryMock
-import com.codacy.analysis.core.analysis.Analyser
+import com.codacy.analysis.core.analysis.{Analyser, CodacyPluginsAnalyser}
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.model._
@@ -48,7 +48,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
               toolPatterns)),
           Set(FilePath(pathToIgnore)))
 
-        runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
+        runAnalyseExecutor(configuration)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -95,7 +95,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
               toolPatterns)),
           Set.empty)
 
-        runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
+        runAnalyseExecutor(configuration)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -141,7 +141,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
               })),
           Set.empty)
 
-        runAnalyseExecutor(Analyser.defaultAnalyser.name, configuration)
+        runAnalyseExecutor(configuration)
 
         val result = for {
           responseJson <- parser.parse(file.contentAsString)
@@ -161,9 +161,9 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     }
   }
 
-  private def runAnalyseExecutor(analyserName: String, configuration: CLIConfiguration.Analysis) = {
+  private def runAnalyseExecutor(configuration: CLIConfiguration.Analysis) = {
     val formatter: Formatter = Formatter(configuration.output, configuration.projectDirectory)
-    val analyser: Analyser[Try] = Analyser(analyserName)
+    val analyser: Analyser = new CodacyPluginsAnalyser()
     val fileCollector: FileCollector[Try] = FileCollector.defaultCollector()
 
     val toolRepository = ToolRepositoryMock

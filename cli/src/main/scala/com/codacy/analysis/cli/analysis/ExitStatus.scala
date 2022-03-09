@@ -38,7 +38,7 @@ class ExitStatus(maxAllowedIssues: Int, failIfIncomplete: Boolean = false) {
         ExitStatus.ExitCodes.commitsDoNotMatch
       case Left(_: CLIError.UncommitedChanges) =>
         ExitStatus.ExitCodes.uncommittedChanges
-      case Left(_: CLIError.NonExistingToolInput) =>
+      case Left(_: CLIError.NonExistingToolInput | _: CLIError.StandaloneToolInput) =>
         ExitStatus.ExitCodes.nonExistentTool
       case Left(_: CLIError.UploadError | _: CLIError.MissingUploadRequisites) =>
         ExitStatus.ExitCodes.failedUpload

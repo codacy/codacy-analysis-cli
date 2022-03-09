@@ -6,7 +6,6 @@ import caseapp.core.ArgParser
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command.ArgumentParsers._
 import com.codacy.analysis.cli.formatter.Formatter
-import com.codacy.analysis.core.analysis.Analyser
 import com.codacy.analysis.core.clients.{OrganizationProvider, ProjectName, UserName}
 import com.codacy.analysis.core.configuration.AppConfiguration
 import com.codacy.analysis.core.git.Commit
@@ -124,10 +123,6 @@ final case class APIOptions(@ValueDescription("The project token.")
                             @ValueDescription("The codacy api base url.")
                             codacyApiBaseUrl: Option[String] = Some("https://api.codacy.com"))
 
-final case class ExtraOptions(
-  @Hidden @ValueDescription(s"The analyser to use. (${Analyser.allAnalysers.map(_.name).mkString(", ")})")
-  analyser: String = Analyser.defaultAnalyser.name)
-
 final case class Analyze(
   @Recurse
   options: CommonOptions,
@@ -174,8 +169,8 @@ final case class Analyze(
   @ValueDescription(
     "Reduce issue severity by one level, for non-security issues, for compatibility with GitHub's code scanning. Use in conjunction with `--format sarif`")
   ghCodeScanningCompat: Int @@ Counter = Tag.of(0),
-  @Recurse
-  extras: ExtraOptions)
+  @Hidden // left for backward compatibility
+  analyser: String = "")
     extends CommandOptions {
   val uploadValue: Boolean = upload.## > 0
   val failIfIncompleteValue: Boolean = failIfIncomplete.## > 0

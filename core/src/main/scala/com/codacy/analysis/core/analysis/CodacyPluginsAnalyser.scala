@@ -11,7 +11,7 @@ import org.log4s.{Logger, getLogger}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
-final class CodacyPluginsAnalyser extends Analyser[Try] {
+final class CodacyPluginsAnalyser() extends Analyser {
 
   private val logger: Logger = getLogger
 
@@ -72,20 +72,6 @@ final class CodacyPluginsAnalyser extends Analyser[Try] {
     }
 
     result.map(_.to[Set])
-  }
-
-}
-
-object CodacyPluginsAnalyser extends AnalyserCompanion[Try] {
-
-  val name: String = "codacy-plugins"
-
-  override def apply(): Analyser[Try] = new CodacyPluginsAnalyser()
-
-  object errors {
-
-    def missingTool(tool: String): AnalyserError =
-      AnalyserError.NonExistingToolInput(tool)
   }
 
 }

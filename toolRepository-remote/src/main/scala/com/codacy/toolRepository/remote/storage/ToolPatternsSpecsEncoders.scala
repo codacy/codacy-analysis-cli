@@ -31,24 +31,24 @@ object ToolPatternsSpecsEncoders {
       needsCompilation <- c.downField("needsCompilation").as[Boolean]
       hasConfigFile <- c.downField("hasConfigFile").as[Boolean]
       configFilenames <- c.downField("configFilenames").as[Set[String]]
-      isClientSide <- c.downField("isClientSide").as[Boolean]
+      standalone <- c.downField("standalone").as[Boolean]
       hasUIConfiguration <- c.downField("hasUIConfiguration").as[Boolean]
     } yield ToolSpec(
       uuid = uuid,
-      dockerImage,
-      isDefault,
-      version,
-      languages.filter(_ != null),
-      name,
-      shortName,
-      documentationUrl,
-      sourceCodeUrl,
-      prefix,
-      needsCompilation,
-      hasConfigFile,
-      configFilenames,
-      isClientSide,
-      hasUIConfiguration)
+      dockerImage = dockerImage,
+      isDefault = isDefault,
+      version = version,
+      languages = languages.filter(_ != null),
+      name = name,
+      shortName = shortName,
+      documentationUrl = documentationUrl,
+      sourceCodeUrl = sourceCodeUrl,
+      prefix = prefix,
+      needsCompilation = needsCompilation,
+      hasConfigFile = hasConfigFile,
+      configFilenames = configFilenames,
+      standalone = standalone,
+      hasUIConfiguration = hasUIConfiguration)
 
   implicit val duplicationToolEncoder: Encoder[DuplicationToolSpec] = deriveEncoder[DuplicationToolSpec]
 

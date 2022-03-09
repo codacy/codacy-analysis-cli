@@ -43,7 +43,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
     extends ToolRepository {
   private val logger: Logger = getLogger
 
-  override lazy val listTools: Either[AnalyserError, Seq[ToolSpec]] = {
+  override lazy val allTools: Either[AnalyserError, Seq[ToolSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
       toolsClient.listTools(cursor).value.map {
         case Right(ListToolsResponse.OK(ToolListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
@@ -109,14 +109,6 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
         metricsToolsDataStorage.get().toRight(AnalyserError.FailedToFetchTools(err))
     }
   }
-
-  override def getTool(uuid: String): Either[AnalyserError, ToolSpec] =
-    listTools.flatMap { toolsSpecs =>
-      toolsSpecs.find(_.uuid == uuid) match {
-        case None       => Left(AnalyserError.FailedToFindTool(uuid))
-        case Some(tool) => Right(tool)
-      }
-    }
 
   private def patternsFromApi(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
@@ -187,21 +179,21 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
   private def toToolSpec(tool: definitions.Tool): ToolSpec = {
     val languages = tool.languages.flatMap(Languages.fromName).to[Set]
     ToolSpec(
-      tool.uuid,
-      tool.dockerImage,
-      tool.enabledByDefault,
-      tool.version,
-      languages,
-      tool.name,
-      tool.shortName,
-      tool.documentationUrl,
-      tool.sourceCodeUrl,
-      tool.prefix.getOrElse(""),
-      tool.needsCompilation,
+      uuid = tool.uuid,
+      dockerImage = tool.dockerImage,
+      isDefault = tool.enabledByDefault,
+      version = tool.version,
+      languages = languages,
+      name = tool.name,
+      shortName = tool.shortName,
+      documentationUrl = tool.documentationUrl,
+      sourceCodeUrl = tool.sourceCodeUrl,
+      prefix = tool.prefix.getOrElse(""),
+      needsCompilation = tool.needsCompilation,
       hasConfigFile = tool.configurationFilenames.nonEmpty,
-      tool.configurationFilenames.toSet,
-      tool.clientSide,
-      tool.configurable)
+      configFilenames = tool.configurationFilenames.toSet,
+      standalone = tool.standalone,
+      hasUIConfiguration = tool.configurable)
   }
 
   private def toPatternSpec(pattern: definitions.Pattern, patternPrefix: String): PatternSpec = {

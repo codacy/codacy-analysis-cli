@@ -15,11 +15,10 @@ object CLIError {
       case AnalyserError.ToolExecutionFailure(toolType, toolName) => CLIError.ToolExecutionFailure(toolType, toolName)
       case AnalyserError.ToolNeedsNetwork(toolName)               => CLIError.ToolNeedsNetwork(toolName)
       case AnalyserError.NonExistingToolInput(toolName)           => CLIError.NonExistingToolInput(toolName)
+      case AnalyserError.StandaloneToolInput(toolName)            => CLIError.StandaloneToolInput(toolName)
       case AnalyserError.NoActiveToolInConfiguration              => CLIError.NoActiveToolInConfiguration
       case AnalyserError.NoToolsFoundForFiles                     => CLIError.NoToolsFoundForFiles
       case AnalyserError.FailedToFetchTools(errorMessage)         => CLIError.CouldNotGetTools(errorMessage)
-      case AnalyserError.FailedToFindTool(toolUuid) =>
-        CLIError.CouldNotGetTools(s"Failure to get tool with UUID: $toolUuid")
       case AnalyserError.FailedToListPatterns(toolUuid, errorMessage) =>
         CLIError.CouldNotGetTools(s"Failure getting patterns for tool with UUID $toolUuid. Error: $errorMessage")
     }
@@ -33,7 +32,14 @@ object CLIError {
 
     override val message: String =
       s"""The selected tool "$toolName" is not supported or does not exist.
-                                      |Use the --help option to get more information about available tools""".stripMargin
+      |Use the --help option to get more information about available tools""".stripMargin
+  }
+
+  final case class StandaloneToolInput(toolName: String) extends CLIError {
+
+    override val message: String =
+      s"""The selected tool "$toolName" is standalone and can't be run in the CLI.
+      |Check https://docs.codacy.com/related-tools/local-analysis/client-side-tools for more info.""".stripMargin
   }
 
   final case class NonExistentToolsFromRemoteConfiguration(tools: Set[String]) extends CLIError {
