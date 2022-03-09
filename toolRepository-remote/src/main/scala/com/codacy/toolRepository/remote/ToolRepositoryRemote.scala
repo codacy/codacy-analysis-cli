@@ -43,7 +43,7 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
     extends ToolRepository {
   private val logger: Logger = getLogger
 
-  private lazy val allTools: Either[AnalyserError, Seq[ToolSpec]] = {
+  override lazy val allTools: Either[AnalyserError, Seq[ToolSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>
       toolsClient.listTools(cursor).value.map {
         case Right(ListToolsResponse.OK(ToolListResponse(data, None | Some(PaginationInfo(None, _, _))))) =>
@@ -109,19 +109,6 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
         metricsToolsDataStorage.get().toRight(AnalyserError.FailedToFetchTools(err))
     }
   }
-
-  override def listSupportedTools(): Either[AnalyserError, Seq[ToolSpec]] =
-    allTools.map(_.filterNot(_.standalone))
-
-  override def getTool(queryString: String): Either[AnalyserError, ToolSpec] =
-    allTools.flatMap { toolsSpecs =>
-      toolsSpecs.find(
-        tool => tool.shortName.equalsIgnoreCase(queryString) || tool.uuid.equalsIgnoreCase(queryString)) match {
-        case None                          => Left(AnalyserError.FailedToFindTool(queryString))
-        case Some(tool) if tool.standalone => Left(AnalyserError.StandaloneToolInput(queryString))
-        case Some(tool)                    => Right(tool)
-      }
-    }
 
   private def patternsFromApi(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = {
     val source = PaginatedApiSourceFactory { cursor =>

@@ -37,14 +37,13 @@ class ToolSelectorSpec extends Specification with NoLanguageFeatures {
         standalone = false,
         hasUIConfiguration = true)
 
-    override def listSupportedTools(): Either[AnalyserError, Seq[ToolSpec]] =
-      Right(
-        Seq(
-          getToolSpec("34225275-f79e-4b85-8126-c7512c987c0d", "PyLint", Set(Python)),
-          getToolSpec("c6273c22-5248-11e5-885d-feff819cdc9f", "Brakeman", Set(Languages.Ruby)),
-          getToolSpec("724f98da-f616-4e37-9606-f16919137a1e", "Rubocop", Set(Languages.Ruby)),
-          getToolSpec("38794ba2-94d8-4178-ab99-1f5c1d12760c", "BundlerAudit", Set(Languages.Ruby)),
-          getToolSpec("cf05f3aa-fd23-4586-8cce-5368917ec3e5", "ESLint", Set(Languages.Javascript))))
+    override val allTools = Right(
+      Seq(
+        getToolSpec("34225275-f79e-4b85-8126-c7512c987c0d", "PyLint", Set(Python)),
+        getToolSpec("c6273c22-5248-11e5-885d-feff819cdc9f", "Brakeman", Set(Languages.Ruby)),
+        getToolSpec("724f98da-f616-4e37-9606-f16919137a1e", "Rubocop", Set(Languages.Ruby)),
+        getToolSpec("38794ba2-94d8-4178-ab99-1f5c1d12760c", "BundlerAudit", Set(Languages.Ruby)),
+        getToolSpec("cf05f3aa-fd23-4586-8cce-5368917ec3e5", "ESLint", Set(Languages.Javascript))))
 
     override def listPatterns(tool: ToolSpec): Either[AnalyserError, Seq[PatternSpec]] = Right(Seq.empty)
 

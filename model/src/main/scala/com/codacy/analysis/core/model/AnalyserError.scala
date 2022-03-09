@@ -39,10 +39,6 @@ object AnalyserError {
     override val message: String = s"Failed to list tools with error: $errorMessage"
   }
 
-  final case class FailedToFindTool(toolUuid: String) extends AnalyserError {
-    override val message: String = s"Failed to find tool with UUID: $toolUuid"
-  }
-
   final case class FailedToListPatterns(toolUuid: String, errorMessage: String) extends AnalyserError {
 
     override val message: String =
