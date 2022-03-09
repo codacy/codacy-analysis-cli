@@ -5,7 +5,7 @@ import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ToolSelector}
 import com.codacy.analysis.cli.configuration.CLIConfiguration
 import com.codacy.analysis.cli.formatter.{Formatter, Json}
 import com.codacy.analysis.core.ToolRepositoryMock
-import com.codacy.analysis.core.analysis.Analyser
+import com.codacy.analysis.core.analysis.{Analyser, CodacyPluginsAnalyser}
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.files.FileCollector
 import com.codacy.analysis.core.model._
@@ -19,7 +19,6 @@ import org.specs2.mutable.Specification
 
 import scala.concurrent.duration._
 import scala.util.Try
-import com.codacy.analysis.core.analysis.CodacyPluginsAnalyser
 
 class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Mockito with FutureMatchers {
 

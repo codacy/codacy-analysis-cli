@@ -3,7 +3,6 @@ package com.codacy.analysis.core.tools
 import java.nio.file.{Path, Paths}
 
 import better.files.File
-import com.codacy.analysis.core.analysis.CodacyPluginsAnalyser
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.utils.FileHelper
 import com.codacy.plugins.api
@@ -158,37 +157,37 @@ class ToolCollector(toolRepository: ToolRepository) {
   }
 
   def fromNameOrUUID(toolInput: String, languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
-    from(toolInput, languages)
+    toolRepository.getTool(toolInput).flatMap(from(_, languages))
   }
 
   def fromToolUUIDs(toolUuids: Set[String], languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
     if (toolUuids.isEmpty) {
       Left(AnalyserError.NoActiveToolInConfiguration)
     } else {
-      val toolsIdentified = toolUuids.flatMap { toolUuid =>
-        from(toolUuid, languages) match {
-          case Left(_: AnalyserError.StandaloneToolInput) =>
-            Set.empty[Tool]
-          case Left(_) =>
-            logger.warn(s"Failed to get tool for uuid:$toolUuid")
-            Set.empty[Tool]
-          case Right(tools) => tools
+      toolRepository.listSupportedTools().map { tools =>
+        val toolsIdentified: Set[Tool] = tools.map { tool =>
+          if (toolUuids.contains(tool.uuid)) {
+            from(tool, languages) match {
+              case Left(_) =>
+                logger.warn(s"Failed to get tool for uuid:${tool.uuid}")
+                Set.empty
+              case Right(tools) => tools
+            }
+          } else {
+            Set.empty
+          }
+        }.toSet.flatten
+        if (toolsIdentified.size != toolUuids.size) {
+          logger.warn("Some tools from remote configuration could not be found locally")
         }
-      }
 
-      if (toolsIdentified.size != toolUuids.size) {
-        logger.warn("Some tools from remote configuration could not be found locally")
+        toolsIdentified
       }
-
-      Right(toolsIdentified)
     }
   }
 
-  def from(value: String, languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
-    for {
-      tool <- toolRepository.getTool(value)
-      patterns <- toolRepository.listPatterns(tool)
-    } yield {
+  private def from(tool: ToolSpec, languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
+    toolRepository.listPatterns(tool).map { patterns =>
       tool.languages.intersect(languages).map(language => Tool(FullToolSpec(tool, patterns), language))
     }
   }

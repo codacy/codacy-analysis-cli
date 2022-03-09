@@ -6,7 +6,7 @@ import better.files.File
 import com.codacy.analysis.core.ToolRepositoryMock
 import com.codacy.analysis.core.clients.api.{FilePath, PathRegex}
 import com.codacy.analysis.core.tools.ToolCollector
-import com.codacy.plugins.api.languages.Languages
+import com.codacy.plugins.api.languages.{Language, Languages}
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.mutable.Specification
 
@@ -336,6 +336,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
   val expectedConfigFiles = List("src/main/resources/docs/directory-tests/rails3/config/brakeman.yml")
 
   val toolCollector = new ToolCollector(ToolRepositoryMock)
+  def getTool(name: String, language: Language) = toolCollector.fromNameOrUUID(name, Set(language)).right.get.head
 
   fileCollector.getClass.getName should {
     "list files and filter files per tool" in {
@@ -348,7 +349,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
 
         val emptyExclusionRules =
           FileExclusionRules(None, Set.empty, ExcludePaths(Set.empty, Map.empty), Map.empty)
-        val tool = toolCollector.from("brakeman", Set(Languages.Ruby)).right.get.head
+        val tool = getTool("brakeman", Languages.Ruby)
 
         val result = for {
           allFilesTarget <- fileCollector.list(directory)
@@ -391,7 +392,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         expectedToolFiles ++ expectedFiles.map(Paths.get(_)) + Paths.get("src/main/scala/codacy/brakeman/Test2.scala"),
         Set.empty[Path])
 
-      val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
+      val tool = getTool("scalastyle", Languages.Scala)
 
       val filesTargetGlobal = fileCollector.filterGlobal(allFilesTarget, exclusionRules)
       val result = fileCollector.filterTool(tool, filesTargetGlobal, exclusionRules)
@@ -422,7 +423,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         ExcludePaths(Set(Glob("**/Test1.scala")), Map("scalastyle" -> Set(Glob("**/brakeman/Test2.scala")))),
         Map(Languages.Scala -> Set(".sc")))
 
-      val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
+      val tool = getTool("scalastyle", Languages.Scala)
 
       val filesTargetGlobal = fileCollector.filterGlobal(allFilesTarget, exclusionRules)
       val result = fileCollector.filterTool(tool, filesTargetGlobal, exclusionRules)
@@ -453,7 +454,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         ExcludePaths(Set.empty, Map.empty),
         Map(Languages.Scala -> Set(".sc")))
 
-      val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
+      val tool = getTool("scalastyle", Languages.Scala)
 
       val filesTargetGlobal = fileCollector.filterGlobal(allFilesTarget, exclusionRules)
       val result = fileCollector.filterTool(tool, filesTargetGlobal, exclusionRules)
@@ -484,7 +485,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         ExcludePaths(Set(Glob("**/Test1.scala")), Map("scalastyle" -> Set(Glob("**/brakeman/Test2.scala")))),
         Map(Languages.Scala -> Set(".sc")))
 
-      val tool = toolCollector.from("scalastyle", Set(Languages.Scala)).right.get.head
+      val tool = getTool("scalastyle", Languages.Scala)
 
       val filesTargetGlobal = fileCollector.filterGlobal(allFilesTarget, exclusionRules)
       val result = fileCollector.filterTool(tool, filesTargetGlobal, exclusionRules)
