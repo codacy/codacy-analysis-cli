@@ -5,7 +5,6 @@ import java.nio.file.Path
 import better.files.File
 import com.codacy.analysis.core.model.{Configuration, DuplicationClone, FileMetrics, ToolResult}
 import com.codacy.analysis.core.tools.{DuplicationTool, MetricsTool, Tool}
-import org.log4s.{Logger, getLogger}
 
 import scala.concurrent.duration.Duration
 import scala.util.Try
