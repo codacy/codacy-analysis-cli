@@ -65,7 +65,6 @@ lazy val codacyAnalysisCli = project
   .settings(
     name := "codacy-analysis-cli",
     coverageExcludedPackages := "<empty>;com\\.codacy\\..*CLIError.*",
-    Common.dockerSettings,
     Common.genericSettings,
     Universal / javaOptions ++= Seq("-XX:MinRAMPercentage=60.0", "-XX:MaxRAMPercentage=90.0"),
     publish := (Docker / publish).value,

@@ -318,11 +318,9 @@ sbt codacyCoverage
 
 * **Local**
 
-        sbt 'set version in codacyAnalysisCli := "<VERSION>"' codacyAnalysisCli/docker:publishLocal
+        sbt 'codacyAnalysisCli/stage'
+        docker build -t codacy-analysis-cli .
 
-* **Release**
-
-        sbt 'set version in codacyAnalysisCli := "<VERSION>"' codacyAnalysisCli/docker:publish
 
 ### Library
 

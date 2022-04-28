@@ -176,7 +176,8 @@ workflows:
           install_sbt_version: 1.6.1
           cmd: |
             sbt "set codacyAnalysisCli / version := \"dev-snapshot\";
-                 codacyAnalysisCli/docker:publishLocal"
+                 codacyAnalysisCli/stage"
+            docker build -t $CIRCLE_PROJECT_REPONAME:dev-snapshot .
             docker save --output docker-image.tar $CIRCLE_PROJECT_REPONAME:dev-snapshot
           cache_prefix: *cache_prefix
           persist_to_workspace: true
