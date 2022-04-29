@@ -23,7 +23,7 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
   "MetricsTool" should {
     "analyze metrics on a project" in {
       val commitUuid = "625e19cd9be4898939a7c40dbeb2b17e40df9d54"
-      withClonedRepo("git://github.com/qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
+      withClonedRepo("git@github.com:qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
         val testProjectFileMetrics = List(jsTest2Metrics, jsTestMetrics)
 
         val metricsTool = new MetricsTool(cloc, Languages.Javascript)
@@ -41,7 +41,7 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
 
     "analyze metrics on a project, ignoring a file" in {
       val commitUuid = "625e19cd9be4898939a7c40dbeb2b17e40df9d54"
-      withClonedRepo("git://github.com/qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
+      withClonedRepo("git@github.com:qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
         val testProjectFileMetrics = List(jsTestMetrics)
 
         val metricsTool = new MetricsTool(cloc, Languages.Javascript)

@@ -31,7 +31,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
         | that ignores the files that start with the path $pathToIgnore
         | and considers just patterns ${pyLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
-      withClonedRepo("git://github.com/qamine-test/improver.git", commitUuid) { (file, directory) =>
+      withClonedRepo("git@github.com:qamine-test/improver.git", commitUuid) { (file, directory) =>
         val toolPatterns = pyLintPatternsInternalIds.map { patternId =>
           CLIConfiguration.IssuesTool.Pattern(patternId, Set.empty)
         }
@@ -79,7 +79,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
     s"""|analyze a javascript project with eslint, using a remote project configuration retrieved with an api token
         | that considers just patterns ${esLintPatternsInternalIds.mkString(", ")}""".stripMargin in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
-      withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
+      withClonedRepo("git@github.com:qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
         val toolPatterns = esLintPatternsInternalIds.map { patternId =>
           CLIConfiguration.IssuesTool.Pattern(patternId, Set.empty)
         }
@@ -119,7 +119,7 @@ class AnalyseExecutorSpec extends Specification with NoLanguageFeatures with Moc
 
     "analyze a javascript and css project" in {
       val commitUuid = "9232dbdcae98b19412c8dd98c49da8c391612bfa"
-      withClonedRepo("git://github.com/qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
+      withClonedRepo("git@github.com:qamine-test/Monogatari.git", commitUuid) { (file, directory) =>
         val configuration = analysisConfiguration(
           directory,
           file,

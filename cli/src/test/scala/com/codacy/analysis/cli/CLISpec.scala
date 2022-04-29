@@ -128,7 +128,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
     }
 
     "output correct issues for sample project without remote configuration" in {
-      withClonedRepo("git://github.com/qamine-test/codacy-brakeman", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38") {
+      withClonedRepo("git@github.com:qamine-test/codacy-brakeman", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38") {
         (file, directory) =>
           cli.main(
             Array(
@@ -159,7 +159,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
 
     "output correct issues for custom python version" in {
       withClonedRepo(
-        "git://github.com/qamine-test/nci-adult-match-treatment-arm-api",
+        "git@github.com:qamine-test/nci-adult-match-treatment-arm-api",
         "38e5ab22774c6061ce693efab4011d49b8feb5ca") { (file, directory) =>
         cli.main(
           Array(
@@ -186,7 +186,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
     }
 
     "output correct issues for custom brakeman basedir" in {
-      withClonedRepo("git://github.com/qamine-test/codacy-brakeman", "266c56a61d236ed6ee5efa58c0e621125498dd5f") {
+      withClonedRepo("git@github.com:qamine-test/codacy-brakeman", "266c56a61d236ed6ee5efa58c0e621125498dd5f") {
         (file, directory) =>
           cli.main(
             Array(
@@ -217,7 +217,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
     }
 
     "output correct metrics" in {
-      withClonedRepo("git://github.com/qamine-test/codacy-brakeman", "266c56a61d236ed6ee5efa58c0e621125498dd5f") {
+      withClonedRepo("git@github.com:qamine-test/codacy-brakeman", "266c56a61d236ed6ee5efa58c0e621125498dd5f") {
         (file, directory) =>
           cli.main(
             Array(
@@ -249,7 +249,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
     }
 
     "output correct duplication" in {
-      withClonedRepo("git://github.com/qamine-test/duplication-delta.git", "625e19cd9be4898939a7c40dbeb2b17e40df9d54") {
+      withClonedRepo("git@github.com:qamine-test/duplication-delta.git", "625e19cd9be4898939a7c40dbeb2b17e40df9d54") {
         (file, directory) =>
           cli.main(
             Array(
