@@ -344,7 +344,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         directory <- File.temporaryDirectory()
       } yield {
 
-        Process(Seq("git", "clone", "git://github.com/qamine-test/codacy-brakeman", directory.pathAsString)).!
+        Process(Seq("git", "clone", "git@github.com:qamine-test/codacy-brakeman", directory.pathAsString)).!
         Process(Seq("git", "reset", "--hard", "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38"), directory.toJava).!
 
         val emptyExclusionRules =

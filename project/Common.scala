@@ -30,20 +30,6 @@ object Common {
     scalacOptions -= "-Xfatal-warnings",
     Compile / doc / sources := Seq.empty)
 
-  val dockerSettings: Seq[Def.Setting[_]] = Seq(
-    Docker / packageName := packageName.value,
-    Docker / version := version.value,
-    dockerBaseImage := "openjdk:8-jre-alpine",
-    Docker / defaultLinuxInstallLocation := defaultDockerInstallationPath,
-    Docker / daemonUser := "root",
-    dockerEntrypoint := Seq(s"$defaultDockerInstallationPath/bin/${name.value}"),
-    dockerCmd := Seq(),
-    dockerCommands := dockerCommands.value.flatMap {
-      case cmd @ Cmd("WORKDIR", _) =>
-        Seq(Cmd("RUN", "apk add --no-cache --update bash docker"), cmd)
-      case other => List(other)
-    })
-
   val compilerFlagsDefault: Seq[String] = Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
     "-encoding",

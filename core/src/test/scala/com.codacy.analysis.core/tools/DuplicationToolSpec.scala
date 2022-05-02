@@ -20,7 +20,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
 
     "analyze duplication on a project" in {
       val commitUuid = "625e19cd9be4898939a7c40dbeb2b17e40df9d54"
-      withClonedRepo("git://github.com/qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
+      withClonedRepo("git@github.com:qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
         val expectedClones = Seq(
           model.DuplicationClone(
             "",
@@ -50,7 +50,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
 
     "analyze duplication on a project, ignoring a file" in {
       val commitUuid = "625e19cd9be4898939a7c40dbeb2b17e40df9d54"
-      withClonedRepo("git://github.com/qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
+      withClonedRepo("git@github.com:qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
         val expectedClones = Seq(
           model.DuplicationClone(
             "",
