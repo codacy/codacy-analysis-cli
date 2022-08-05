@@ -21,24 +21,6 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
   val jsTestMetrics = FileMetrics(Paths.get("test.js"), None, Some(60), Some(0), None, None, Set())
 
   "MetricsTool" should {
-    "analyze metrics on a project" in {
-      val commitUuid = "625e19cd9be4898939a7c40dbeb2b17e40df9d54"
-      withClonedRepo("git@github.com:qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
-        val testProjectFileMetrics = List(jsTest2Metrics, jsTestMetrics)
-
-        val metricsTool = new MetricsTool(cloc, Languages.Javascript)
-
-        val result = metricsTool.run(directory, None)
-
-        result must beSuccessfulTry
-        result must beLike {
-          case Success(metricsResults) =>
-            metricsResults must haveSize(testProjectFileMetrics.size)
-            metricsResults must containTheSameElementsAs(testProjectFileMetrics)
-        }
-      }
-    }
-
     "analyze metrics on a project, ignoring a file" in {
       val commitUuid = "625e19cd9be4898939a7c40dbeb2b17e40df9d54"
       withClonedRepo("git@github.com:qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
@@ -46,7 +28,7 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
 
         val metricsTool = new MetricsTool(cloc, Languages.Javascript)
 
-        val result = metricsTool.run(directory, Some(Set(Source.File("test.js"))))
+        val result = metricsTool.run(directory, Set(Source.File("test.js")))
 
         result must beSuccessfulTry
         result must beLike {
