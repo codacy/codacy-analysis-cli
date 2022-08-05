@@ -55,7 +55,9 @@ trait FileCollector[T[_]] {
       Set[Set[Path] => Set[Path]](
         filterByGlobs(_, exclusionRules.excludePaths.byTool.getOrElse(tool.name, Set.empty)),
         filterByLanguage(tool.languageToRun, exclusionRules.allowedExtensionsByLanguage))
+
     val filteredFiles = filters.foldLeft(target.readableFiles) { case (fs, filter) => filter(fs) }
+
     target.copy(readableFiles = filteredFiles)
   }
 

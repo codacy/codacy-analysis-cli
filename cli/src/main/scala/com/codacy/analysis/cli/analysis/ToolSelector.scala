@@ -16,9 +16,11 @@ class ToolSelector(toolRepository: ToolRepository) {
   def allTools(toolInputOpt: Option[String],
                configuration: CLIConfiguration.Tool,
                languages: Set[Language]): Either[CLIError, Set[ITool]] = {
-    def duplicationToolsEither =
+
+    def duplicationToolsEither: Either[CLIError.CouldNotGetTools, Set[DuplicationTool]] =
       duplicationToolCollector.fromLanguages(languages).left.map(e => CLIError.CouldNotGetTools(e.message))
-    def metricsToolsEither =
+
+    def metricsToolsEither: Either[CLIError.CouldNotGetTools, Set[MetricsTool]] =
       metricsToolCollector.fromLanguages(languages).left.map(e => CLIError.CouldNotGetTools(e.message))
 
     toolInputOpt match {
@@ -55,6 +57,7 @@ class ToolSelector(toolRepository: ToolRepository) {
           .map(_ => CLIError.NonExistentToolsFromRemoteConfiguration(toolUuids))
       }
     }
+
     def fromLocalConfig: Either[CLIError, Set[Tool]] = {
       toolCollector.fromLanguages(languages).left.map(CLIError.from)
     }

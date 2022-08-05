@@ -40,10 +40,9 @@ class AnalyseExecutor(formatter: Formatter,
     val filesTargetAndTool: Either[CLIError, (FilesTarget, FilesTarget, Set[ITool])] = for {
       allFilesTarget <- fileCollector.list(configuration.projectDirectory).toRight(CLIError.FilesAccessError)
       filesGlobalTarget = fileCollector.filterGlobal(allFilesTarget, configuration.fileExclusionRules)
-      tools <- toolSelector.allTools(
-        configuration.tool,
-        configuration.toolConfiguration,
-        LanguagesHelper.fromFileTarget(filesGlobalTarget, configuration.fileExclusionRules.allowedExtensionsByLanguage))
+      languages =
+        LanguagesHelper.fromFileTarget(filesGlobalTarget, configuration.fileExclusionRules.allowedExtensionsByLanguage)
+      tools <- toolSelector.allTools(configuration.tool, configuration.toolConfiguration, languages)
     } yield (allFilesTarget, filesGlobalTarget, tools)
 
     val analysisResult: Either[CLIError, Seq[ExecutorResult[_]]] = filesTargetAndTool.map {
@@ -56,6 +55,7 @@ class AnalyseExecutor(formatter: Formatter,
             case tool: Tool =>
               val fullToolSpec: Option[FullToolSpec] = toolSelector.fromUuid(tool.uuid).toOption
               val toolHasConfigFiles = fileCollector.hasConfigurationFiles(tool, allFiles)
+
               val analysisResults =
                 issues(
                   tool,
@@ -64,6 +64,7 @@ class AnalyseExecutor(formatter: Formatter,
                   toolHasConfigFiles,
                   configuration.tmpDirectory,
                   maxToolMemory = configuration.maxToolMemory)
+
               IssuesToolExecutorResult(
                 tool.name,
                 fullToolSpec.map(_.toolApiSpec),
@@ -71,15 +72,18 @@ class AnalyseExecutor(formatter: Formatter,
                 fullToolSpec.map(_.tool.prefix),
                 filteredFiles.readableFiles,
                 analysisResults)
+
             case metricsTool: MetricsTool =>
               val analysisResults =
                 analyser.metrics(
                   metricsTool,
                   filteredFiles.directory,
-                  Some(filteredFiles.readableFiles),
+                  filteredFiles.readableFiles,
                   configuration.tmpDirectory,
                   maxToolMemory = configuration.maxToolMemory)
+
               MetricsToolExecutorResult(metricsTool.languageToRun.name, filteredFiles.readableFiles, analysisResults)
+
             case duplicationTool: DuplicationTool =>
               val analysisResults =
                 analyser.duplication(
@@ -88,6 +92,7 @@ class AnalyseExecutor(formatter: Formatter,
                   filteredFiles.readableFiles,
                   configuration.tmpDirectory,
                   maxToolMemory = configuration.maxToolMemory)
+
               DuplicationToolExecutorResult(
                 duplicationTool.languageToRun.name,
                 filteredFiles.readableFiles,

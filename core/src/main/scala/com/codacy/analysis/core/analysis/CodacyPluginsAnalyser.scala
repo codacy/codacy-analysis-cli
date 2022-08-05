@@ -36,12 +36,12 @@ final class CodacyPluginsAnalyser() extends Analyser {
 
   override def metrics(metricsTool: MetricsTool,
                        directory: File,
-                       files: Option[Set[Path]],
+                       files: Set[Path],
                        tmpDirectory: Option[File],
                        timeout: Option[Duration] = Option.empty[Duration],
                        maxToolMemory: Option[String] = None): Try[Set[FileMetrics]] = {
 
-    val srcFiles = files.map(_.map(filePath => Source.File(filePath.toString)))
+    val srcFiles = files.map(filePath => Source.File(filePath.toString))
 
     val result = metricsTool.run(directory, srcFiles, tmpDirectory, timeout, maxToolMemory)
 
