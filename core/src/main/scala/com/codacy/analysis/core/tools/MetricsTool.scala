@@ -1,11 +1,10 @@
 package com.codacy.analysis.core.tools
 
 import java.nio.file.Paths
-
 import better.files.File
 import com.codacy.analysis.core.model.{AnalyserError, FileMetrics, MetricsToolSpec}
 import com.codacy.plugins.api
-import com.codacy.plugins.api.Source
+import com.codacy.plugins.api.{Source, metrics}
 import com.codacy.plugins.api.languages.Language
 import com.codacy.plugins.api.metrics.MetricsTool.CodacyConfiguration
 import com.codacy.plugins.metrics.traits
@@ -22,7 +21,7 @@ class MetricsTool(metricsToolSpec: MetricsToolSpec, val languageToRun: Language)
   override def supportedLanguages: Set[Language] = metricsToolSpec.languages.to[Set]
 
   def run(directory: File,
-          files: Option[Set[Source.File]],
+          files: Set[Source.File],
           tmpDirectory: Option[File] = None,
           timeout: Option[Duration] = Option.empty[Duration],
           maxToolMemory: Option[String] = None): Try[List[FileMetrics]] = {
@@ -35,19 +34,26 @@ class MetricsTool(metricsToolSpec: MetricsToolSpec, val languageToRun: Language)
       BinaryDockerRunner.Config(containerMemoryLimit = maxToolMemory))
     val runner = new MetricsRunner(metricsTool, dockerRunner)
 
-    val configuration = CodacyConfiguration(files, Some(languageToRun), None)
+    val configuration = CodacyConfiguration(Some(files), Some(languageToRun), None)
 
+    // protect not running metrics tools when files are empty.
+    // the normal linter tools are already protected against this case and
+    // are not called when that happens.
     val toolFileMetrics =
-      runner.run(
-        request,
-        configuration,
-        timeout.getOrElse(DockerRunner.defaultRunTimeout),
-        dockerConfig = None,
-        tmpDirectory.map(_.toJava))
+      if (files.isEmpty) {
+        Try(List.empty[metrics.FileMetrics])
+      } else {
+        runner.run(
+          request,
+          configuration,
+          timeout.getOrElse(DockerRunner.defaultRunTimeout),
+          dockerConfig = None,
+          tmpDirectory.map(_.toJava))
+      }
 
     toolFileMetrics.map {
       _.collect {
-        case fileMetrics if unignoredFile(fileMetrics, files) =>
+        case fileMetrics if unignoredFile(fileMetrics, Some(files)) =>
           FileMetrics(
             filename = Paths.get(fileMetrics.filename),
             complexity = fileMetrics.complexity,
@@ -76,9 +82,11 @@ class MetricsToolCollector(toolRepository: ToolRepository) {
           case tool if tool.languages.contains(lang) =>
             new MetricsTool(tool, lang)
         }
+
         if (collectedTools.isEmpty) {
           logger.info(s"No metrics tools found for language ${lang.name}")
         }
+
         collectedTools
       }
     }

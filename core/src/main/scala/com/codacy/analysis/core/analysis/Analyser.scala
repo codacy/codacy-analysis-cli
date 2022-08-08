@@ -21,7 +21,7 @@ trait Analyser {
 
   def metrics(metricsTool: MetricsTool,
               directory: File,
-              files: Option[Set[Path]],
+              files: Set[Path],
               tmpDirectory: Option[File],
               timeout: Option[Duration] = Option.empty[Duration],
               maxToolMemory: Option[String] = None): Try[Set[FileMetrics]]
