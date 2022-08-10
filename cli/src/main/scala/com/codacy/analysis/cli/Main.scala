@@ -2,6 +2,7 @@ package com.codacy.analysis.cli
 
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command.{AnalyseCommand, CLIApp, _}
+import com.codacy.analysis.core.utils.Logger
 
 object Main extends MainImpl()
 
@@ -11,6 +12,8 @@ class MainImpl(analyseCommand: Analyze => AnalyseCommand = AnalyseCommand(_, sys
     extends CLIApp {
 
   override def run(command: CommandOptions): ExitStatus.ExitCode = {
+    Logger.setLevel(command.options.verboseValue)
+
     runCommand(command)
   }
 

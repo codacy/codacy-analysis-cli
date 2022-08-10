@@ -27,7 +27,6 @@ import com.codacy.analysis.core.git.{Commit, Git, Repository}
 import com.codacy.analysis.core.model._
 import com.codacy.analysis.core.storage.FileDataStorage
 import com.codacy.analysis.core.upload.ResultsUploader
-import com.codacy.analysis.core.utils.Logger
 import com.codacy.analysis.core.utils.SeqOps._
 import com.codacy.toolRepository.remote.ToolRepositoryRemote
 import com.codacy.toolRepository.remote.storage.ToolPatternsSpecsEncoders._
@@ -97,9 +96,6 @@ class AnalyseCommand(analyze: Analyze,
                      configuration: CLIConfiguration,
                      analyseExecutor: AnalyseExecutor,
                      uploaderOpt: Either[String, Option[ResultsUploader]]) {
-
-  Logger.setLevel(analyze.options.verboseValue)
-
   private val logger: org.log4s.Logger = getLogger
 
   def run(): ExitStatus.ExitCode = {
