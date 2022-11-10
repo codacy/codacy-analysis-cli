@@ -1,8 +1,6 @@
 import java.nio.file.Files
 
 import sbt._
-import codacy.libs._
-import sbt._
 
 val assemblyCommon = Seq(
   assembly / test := {},
@@ -44,7 +42,7 @@ lazy val codacyAnalysisCore = project
     // App Dependencies
     libraryDependencies ++= Seq(
       Dependencies.caseApp,
-      betterFiles,
+      Dependencies.betterFiles,
       Dependencies.jodaTime,
       Dependencies.scalajHttp,
       Dependencies.jGit,
@@ -124,7 +122,7 @@ lazy val codacyApiClient = project
     libraryDependencies ++= Dependencies.akka ++ Dependencies.circe ++ Seq(
       Dependencies.typesafeConfig,
       Dependencies.cats,
-      scalatest % Test))
+      Dependencies.scalatest % Test))
   .settings(
     Compile / guardrail := (Compile / guardrail).dependsOn(downloadCodacyToolsSwaggerFile).value,
     Compile / guardrailTasks := {
