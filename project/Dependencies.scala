@@ -57,4 +57,7 @@ object Dependencies {
   val silencer = Seq(
     compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
     "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full)
+
+  val scalatest = "org.scalatest" %% "scalatest" % "3.0.8"
+  val betterFiles = "com.github.pathikrit" %% "better-files" % "3.8.0"
 }
