@@ -17,14 +17,6 @@ log_error() {
   exit 3
 }
 
-test_docker_socket() {
-  if [ ! -S /var/run/docker.sock ]; then
-    log_error "/var/run/docker.sock must exist as a Unix domain socket"
-  elif [ -n "${DOCKER_HOST}" ] && [ "${DOCKER_HOST}" != "unix:///var/run/docker.sock" ]; then
-    log_error "invalid DOCKER_HOST=${DOCKER_HOST}, must be unset or unix:///var/run/docker.sock"
-  fi
-}
-
 run() {
   local output_volume="";
   if [ -n "${OUTPUT_DIRECTORY}" ]; then
