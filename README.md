@@ -206,7 +206,6 @@ Found [Clone] 7 duplicated lines with 10 tokens:
     * `--skip-uncommitted-files-check` [default: false] - Skip check for uncommitted files in the analysis directory
     * `--upload` [default: false] - Request to push results to Codacy
     * `--upload-batch-size` [default: 50000] - Maximum number of results in each batch to upload to Codacy
-    * `--skip-docker-test` [default: false] - Skip testing if the default Unix socket for the Docker daemon exists
     * `--skip-ssl-verification` [default: false] - Skip the SSL certificate verification when communicating with the Codacy API
     * `--parallel` [default: 2] - Number of tools to run in parallel
     * `--max-allowed-issues` [default: 0] - Maximum number of issues allowed for the analysis to succeed
