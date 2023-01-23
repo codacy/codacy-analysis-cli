@@ -18,10 +18,12 @@ log_error() {
 }
 
 test_docker_socket() {
-  if [ ! -S /var/run/docker.sock ]; then
-    log_error "/var/run/docker.sock must exist as a Unix domain socket"
-  elif [ -n "${DOCKER_HOST}" ] && [ "${DOCKER_HOST}" != "unix:///var/run/docker.sock" ]; then
-    log_error "invalid DOCKER_HOST=${DOCKER_HOST}, must be unset or unix:///var/run/docker.sock"
+  if [ "${SKIP_DOCKER_TEST}" == false ]; then
+    if [ ! -S /var/run/docker.sock ]; then
+      log_error "/var/run/docker.sock must exist as a Unix domain socket"
+    elif [ -n "${DOCKER_HOST}" ] && [ "${DOCKER_HOST}" != "unix:///var/run/docker.sock" ]; then
+      log_error "invalid DOCKER_HOST=${DOCKER_HOST}, must be unset or unix:///var/run/docker.sock"
+    fi
   fi
 }
 
@@ -117,6 +119,13 @@ prep_args_with_output_absolute_path() {
   ARGUMENTS_WITH_ABSOLUTE_PATH_OUTPUT="$new_args"
 }
 
+SKIP_DOCKER_TEST=false
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --skip-docker-test) SKIP_DOCKER_TEST=true ;;
+    esac
+    shift
+done
 
 test_docker_socket
 
