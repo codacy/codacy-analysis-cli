@@ -150,6 +150,36 @@ workflows:
           cmd: sbt coverage +test:compile
           cache_prefix: *cache_prefix
           persist_to_workspace: true
+          steps_before_sbt:
+            - run:
+                name: Enable coverage
+                command: echo "ThisBuild / coverageEnabled := true" > coverage.sbt
+          steps:
+            - run:
+                name: Check formatting Sbt files
+                command: sbt scalafmtSbtCheck
+            - run:
+                name: Check formatting Scala files
+                command: sbt scalafmtCheckAll
+            - run:
+                name: Test compile
+                command: sbt test:compile
+            - run:
+                name: It compile
+                command: sbt it:compile
+            - run:
+                name: Unit testing
+                command: sbt test
+            - run:
+                name: Aggregate coverage reports
+                command: sbt coverageAggregate
+            - run:
+                name: Send coverage report to Codacy
+                command: |
+                  bash <(curl -Ls https://coverage.codacy.com/get.sh)
+            - run:
+                name: Clean coverage.sbt from cache
+                command: rm coverage.sbt
           requires:
             - codacy/checkout_and_version
       - codacy/sbt:

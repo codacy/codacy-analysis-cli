@@ -14,3 +14,5 @@ addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.15.0")
 addSbtPlugin("com.twilio" % "sbt-guardrail" % "0.59.0")
 
 ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
+
+evictionErrorLevel := Level.Warn
