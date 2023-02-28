@@ -31,7 +31,7 @@ val sonatypeInformation = Seq(
   scmInfo := Some(
     ScmInfo(
       url("https://github.com/codacy/codacy-analysis-cli"),
-      "scm:git:git@github.com:codacy/codacy-analysis-cli.git"))) ++ publicMvnPublish
+      "scm:git:git@github.com:codacy/codacy-analysis-cli.git")))
 
 lazy val codacyAnalysisCore = project
   .in(file("core"))
@@ -87,7 +87,6 @@ lazy val codacyAnalysisModels = project
     crossScalaVersions := Common.supportedScalaVersions,
     name := "codacy-analysis-cli-model",
     Common.genericSettings,
-    publishTo := sonatypePublishToBundle.value,
     libraryDependencies ++=
       Dependencies.circe ++ Seq(Dependencies.pluginsApi) ++ Dependencies.specs2,
     description := "Library with analysis models")
