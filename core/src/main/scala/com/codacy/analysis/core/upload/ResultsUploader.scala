@@ -68,7 +68,7 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
     val sendDuplicationFut = if (duplicationResults.nonEmpty) {
       codacyClient.sendRemoteDuplication(commitUuid, duplicationResults)
     } else {
-      logger.info("There are no metrics to upload.")
+      logger.info("There is no duplication to upload.")
       Future.successful(().asRight[String])
     }
 
