@@ -223,6 +223,7 @@ Found [Clone] 7 duplicated lines with 10 tokens:
 ### Environment Variables
 
 * `CODACY_ANALYSIS_CLI_VERSION` [default: stable] - Set an alternative version of the CLI to run. (e.g. latest, 0.1.0-alpha3.1350, ...)
+* `SKIP_CONTAINER_ENGINE_CHECK` [default: false] - Skip the initial test for presence of docker socket (useful when running in systems that dont have the docker socket available)
 
 ### Local configuration
 
