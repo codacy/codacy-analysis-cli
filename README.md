@@ -43,7 +43,7 @@ cd codacy-analysis-cli-* && sudo make install
 #### Docker Configuration
 Once the pre-requisites are met, it’s time to enable the connectivity between bash and docker.
 
-It’s mandatory that the daemon is exposed without LTS. In order to do that go to Docker Settings -> General. Just click on the checkbox with the label 'Expose daemon on tcp://localhost:2375 without TLS' and docker will reload.
+It’s mandatory that the daemon is exposed without TLS. In order to do that go to Docker Settings -> General. Just click on the checkbox with the label 'Expose daemon on tcp://localhost:2375 without TLS' and docker will reload.
 
 #### Preparing docker client on bash
 Now it’s time to go to the bash and install and configure the docker client.
