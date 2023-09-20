@@ -63,6 +63,12 @@ It’s also possible to add this variable to your .bashrc or .bash_profile files
 
 ```echo "export DOCKER_HOST=tcp://0.0.0.0:2375" >> ~/.bashrc```
 
+### Mac
+
+If you are using Apple silicon, please make sure to:
+- Update Docker to the latest version
+- Open Docker Settings
+- Turn on `Use Rosetta for x86/amd64 emulation on Apple Silicon` (under _Features in development_)
 
 #### Installing codacy-analysis-cli
 At this point, codacy-analysis-cli is ready to be installed.
@@ -340,6 +346,7 @@ sbt codacyCoverage
 
 - `4.0.0`: Rename `analyse` command to `analyze`. This is a breaking change if you are running the CLI by using the
   [jar](#java) or [`sbt`](#local), but not if you are using the [provided script](#script).
+
 
 ## What is Codacy
 
