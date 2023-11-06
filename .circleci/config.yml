@@ -89,7 +89,7 @@ references:
           webhook: https://hooks.slack.com/services/$SLACK_TOKEN
           failure_message: ":red_circle: A $CIRCLE_JOB job has failed! See more on: $RP_LAUNCH_URL, login with the default user."
 
-  cache_prefix: &cache_prefix sbt-cache-31012023
+  cache_prefix: &cache_prefix sbt-cache-06112023
 
 jobs:
   maven_dependencies:
