@@ -19,7 +19,7 @@ install:
 
 uninstall:
 	$(RM) $(DESTDIR)$(PREFIX)/bin/codacy-analysis-cli
-	docker rmi codacy/codacy-analysis-cli:latest
+	docker rmi codacy/codacy-analysis-cli:stable
 
 build: compile lint test
 	scripts/deploy.sh
