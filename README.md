@@ -362,8 +362,6 @@ Integrating seamlessly into workflows, Codacy helps engineering teams save time 
 - Leverage AI to automatically explain issues and suggest fixes
 - Integrate seamlessly with your favorite dev tools (Slack, Jira, Semgrep)
 - Commit and Pull Request Analysis with GitHub, Bitbucket, GitLab (and also direct git repositories)
-- Auto-comments on Commits and Pull Requests
-- Integrations with Slack, Jira
 
 Codacy also helps keep track of Code coverage, Code duplication, and Code complexity.
 
