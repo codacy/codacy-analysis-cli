@@ -350,8 +350,8 @@ sbt codacyCoverage
 
 ## What is Codacy
 
-[Codacy](https://www.codacy.com/) is a platform that monitors your technical debt, helps you improve your code quality and security, teaches best practices to your developers, and helps you save time in Code Reviews. We help developers ship billions of lines of code per day by automating and standardizing code reviews.  
-Integrating seamlessly into workflows, Codacy helps engineering teams save time in code reviews and find, fix, and prevent coding defects that would otherwise stack up as technical debt. Our platform uses Artificial Intelligence to suggest code quality fixes. Codacy supports 40+  languages & frameworks and is available in free open-source.
+[Codacy](https://www.codacy.com/) is a platform that monitors your technical debt, helps you improve your code quality and security, teaches best practices to your developers, and helps you save time in code reviews. We help developers ship billions of lines of code per day by automating and standardizing code reviews.  
+Integrating seamlessly into workflows, Codacy helps engineering teams save time in code reviews and find, fix, and prevent coding defects that would otherwise stack up as technical debt. Our platform uses Artificial Intelligence to suggest code quality fixes. Codacy supports 40+ languages & frameworks and is available in free open-source.
 
 [Start a free trial](https://www.codacy.com/signup-codacy) to learn more.
 
@@ -361,7 +361,7 @@ Integrating seamlessly into workflows, Codacy helps engineering teams save time 
 - Track issues in Code Style, Security, Error Proneness, Performance, Unused Code, and other categories
 - Leverage AI to automatically explain issues and suggest fixes
 - Integrate seamlessly with your favorite dev tools (Slack, Jira, Semgrep)
-- Commit and Pull Request Analysis with GitHub, BitBucket, GitLab (and also direct git repositories)
+- Commit and Pull Request Analysis with GitHub, Bitbucket, GitLab (and also direct git repositories)
 - Auto-comments on Commits and Pull Requests
 - Integrations with Slack, Jira
 
