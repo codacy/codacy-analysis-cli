@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  codacy: codacy/base@10.1.0
+  codacy: codacy/base@10.11.0
   slack: circleci/slack@3.3.0
 
 references:
@@ -61,7 +61,7 @@ references:
           name: Run tests
           command: |
             export EXECUTION_TIME=`date +%F_%Hh%M-%Z`
-            mvn test -DsuiteFile=$TEST_PATH -Drp.description=$EXECUTION_TIME -Drp.uuid=$RP_CIRCLECI_UUID -Drp.launch=$LAUNCH_NAME -Drp.project=$PROJECT_NAME -Drp.mode=DEFAULT -Drp.endpoint=$RP_ENDPOINT -Drp.tags=$LAUNCH_TAG
+            mvn test -DsuiteFile=$TEST_PATH -Drp.description=$EXECUTION_TIME -Drp.api.key=$RP_CIRCLECI_API_KEY -Drp.launch=$LAUNCH_NAME -Drp.project=$PROJECT_NAME -Drp.mode=DEFAULT -Drp.endpoint=$RP_ENDPOINT -Drp.tags=$LAUNCH_TAG
       - run:
           name: Save test results
           command: |
@@ -125,7 +125,7 @@ jobs:
       LAUNCH_TAG: CIRCLECI;CLI;STAGING
       PROJECT_NAME: codacy-analysis-cli
       LAUNCH_NAME: CLI_STAGING
-      RP_LAUNCH_URL: https://reportportal.staging.codacy.org/ui/#codacy-analysis-cli/launches
+      RP_LAUNCH_URL: https://rp.dev.codacy.org/ui/#codacy-analysis-cli/launches/all
       ENVIRONMENT: staging
   test_cli_production:
     <<: *run_integration_tests
@@ -135,7 +135,7 @@ jobs:
       LAUNCH_TAG: CIRCLECI;CLI;PROD
       PROJECT_NAME: codacy-analysis-cli
       LAUNCH_NAME: CLI_PROD
-      RP_LAUNCH_URL: https://reportportal.staging.codacy.org/ui/#codacy-analysis-cli/launches
+      RP_LAUNCH_URL: https://rp.dev.codacy.org/ui/#codacy-analysis-cli/launches/all
       ENVIRONMENT: production
 
 workflows:
