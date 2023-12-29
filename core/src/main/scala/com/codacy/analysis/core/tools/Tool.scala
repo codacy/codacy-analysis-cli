@@ -65,10 +65,10 @@ class Tool(fullToolSpec: FullToolSpec, val languageToRun: Language, defaultRunTi
             pt.parameters.map(pm => (pm.name, pm.value))(collection.breakOut)
           PatternRequest(pt.id, pms)
         }(collection.breakOut)
-        PluginConfiguration(Option(pts), convertExtraValues(extraValues))
+        PluginConfiguration(languageToRun, Option(pts), convertExtraValues(extraValues))
 
       case FileCfg(_, extraValues) =>
-        PluginConfiguration(None, convertExtraValues(extraValues))
+        PluginConfiguration(languageToRun, None, convertExtraValues(extraValues))
     }
 
     val dockerInformation = new DockerInformation(

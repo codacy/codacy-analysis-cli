@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
 
-  val codacyPluginsVersion = "26.2.2_play_2.7"
+  val codacyPluginsVersion = "0.1.0-SNAPSHOT_play_2.7"
   val circeVersion = "0.12.3"
   val specs2Version = "4.8.1"
   val codacyApiVersion = "26.20.0"
@@ -29,8 +29,6 @@ object Dependencies {
 
   val codacyPlugins =
     Seq("codacy-plugins", "codacy-plugins-runner-binary").map("com.codacy" %% _ % codacyPluginsVersion)
-
-  lazy val pluginsApi = "com.codacy" %% "codacy-plugins-api" % "8.0.0"
 
   lazy val pprint = "com.lihaoyi" %% "pprint" % "0.5.7"
 

@@ -88,7 +88,7 @@ lazy val codacyAnalysisModels = project
     name := "codacy-analysis-cli-model",
     Common.genericSettings,
     libraryDependencies ++=
-      Dependencies.circe ++ Seq(Dependencies.pluginsApi) ++ Dependencies.specs2,
+      Dependencies.circe ++ Dependencies.codacyPlugins ++ Dependencies.specs2,
     description := "Library with analysis models")
   .settings(assemblyCommon: _*)
   .settings(sonatypeInformation)
