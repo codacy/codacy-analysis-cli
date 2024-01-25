@@ -34,7 +34,7 @@ object Dependencies {
 
   lazy val pprint = "com.lihaoyi" %% "pprint" % "0.5.7"
 
-  lazy val scalajHttp = "org.scalaj" %% "scalaj-http" % "2.4.2"
+  lazy val scalajHttp = "com.codacy" %% "scalaj-http" % "2.5.0"
 
   lazy val cats = "org.typelevel" %% "cats-core" % "2.1.0"
 
