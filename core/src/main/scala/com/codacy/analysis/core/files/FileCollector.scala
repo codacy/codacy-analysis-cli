@@ -7,7 +7,7 @@ import better.files.File
 import cats.instances.try_.catsStdInstancesForTry
 import com.codacy.analysis.core.clients.api.{FilePath, PathRegex}
 import com.codacy.analysis.core.tools.{ITool, Tool}
-import com.codacy.plugins.api.languages.{Language, Languages}
+import com.codacy.plugins.api.languages.Language
 import org.log4s.{Logger, getLogger}
 
 import scala.util.Try
@@ -87,7 +87,11 @@ trait FileCollector[T[_]] {
 
   private def filterByLanguage(language: Language, extensionsByLanguage: Map[Language, Set[String]])(
     files: Set[Path]): Set[Path] = {
-    Languages.filter(files.map(_.toString), Set(language), extensionsByLanguage).map(Paths.get(_))
+    val allExtensions =
+      extensionsByLanguage.getOrElse(language, Set.empty) ++
+        language.extensions ++ language.files
+
+    files.map(_.toString).filter(file => allExtensions.exists(e => file.endsWith(e))).map(Paths.get(_))
   }
 
   protected def checkPermissions(directory: File, files: Set[Path]): CheckedFiles = {

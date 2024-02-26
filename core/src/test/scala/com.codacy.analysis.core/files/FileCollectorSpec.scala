@@ -331,7 +331,14 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
     "src/main/resources/docs/directory-tests/rails3/app/models/user.rb",
     "src/main/resources/docs/directory-tests/rails3/app/helpers/other_helper.rb",
     "src/main/resources/docs/directory-tests/rails4/config/initializers/wrap_parameters.rb",
-    "src/main/resources/docs/directory-tests/rails4/config/initializers/session_store.rb")
+    "src/main/resources/docs/directory-tests/rails4/config/initializers/session_store.rb",
+    "src/main/resources/docs/directory-tests/rails4/config.ru",
+    "src/main/resources/docs/directory-tests/rails3/config.ru",
+    "src/main/resources/docs/directory-tests/rails3/Gemfile.lock",
+    "src/main/resources/docs/directory-tests/rails4/Gemfile",
+    "src/main/resources/docs/directory-tests/rails3/Rakefile",
+    "src/main/resources/docs/directory-tests/rails3/Gemfile",
+    "src/main/resources/docs/directory-tests/rails4/Rakefile")
 
   val expectedConfigFiles = List("src/main/resources/docs/directory-tests/rails3/config/brakeman.yml")
 
