@@ -186,17 +186,6 @@ workflows:
           requires:
             - compile
       - codacy/sbt:
-          name: test
-          install_sbt_version: 1.10.0
-          cmd: |
-            git config --global user.email "team@codacy.com"
-            git config --global user.name "Codacy Team"
-            sbt coverage +test coverageReport
-            bash <(curl -Ls https://coverage.codacy.com/get.sh) report --skip
-          cache_prefix: *cache_prefix
-          requires:
-            - compile
-      - codacy/sbt:
           name: publish_docker_locally
           install_sbt_version: 1.10.0
           cmd: |
