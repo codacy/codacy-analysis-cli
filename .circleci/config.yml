@@ -176,7 +176,7 @@ workflows:
                 command: |
                   bash <(curl -Ls https://coverage.codacy.com/get.sh)
           requires:
-            - codacy/checkout_and_version
+            - compile
       - codacy/sbt:
           name: lint
           install_sbt_version: 1.10.0
