@@ -38,7 +38,11 @@ final case class SubDirectory(sourceDirectory: String, protected val subDirector
     filename.stripPrefix(subDirectory).stripPrefix(java.io.File.separator)
 }
 
-class Tool(fullToolSpec: FullToolSpec, val languageToRun: Language, defaultRunTimeout: Duration) extends ITool {
+class Tool(fullToolSpec: FullToolSpec,
+           val languageToRun: Language,
+           defaultRunTimeout: Duration,
+           registryAddress: String)
+    extends ITool {
 
   private val tool = fullToolSpec.tool
 
@@ -72,7 +76,7 @@ class Tool(fullToolSpec: FullToolSpec, val languageToRun: Language, defaultRunTi
     }
 
     val dockerInformation = new DockerInformation(
-      dockerImage = fullToolSpec.tool.dockerImage,
+      dockerImage = registryAddress + fullToolSpec.tool.dockerImage,
       needsCompilation = fullToolSpec.tool.needsCompilation)
 
     val dockerRunner =
@@ -138,8 +142,8 @@ class Tool(fullToolSpec: FullToolSpec, val languageToRun: Language, defaultRunTi
 
 object Tool {
 
-  def apply(fullToolSpec: FullToolSpec, languageToRun: Language): Tool = {
-    new Tool(fullToolSpec, languageToRun, DockerRunner.defaultRunTimeout)
+  def apply(fullToolSpec: FullToolSpec, languageToRun: Language, registryAddress: String): Tool = {
+    new Tool(fullToolSpec, languageToRun, DockerRunner.defaultRunTimeout, registryAddress)
   }
 }
 
@@ -156,18 +160,22 @@ class ToolCollector(toolRepository: ToolRepository) {
     }
   }
 
-  def fromNameOrUUID(toolInput: String, languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
-    toolRepository.getTool(toolInput).flatMap(from(_, languages))
+  def fromNameOrUUID(toolInput: String,
+                     languages: Set[Language],
+                     registryAddress: String): Either[AnalyserError, Set[Tool]] = {
+    toolRepository.getTool(toolInput).flatMap(from(_, languages, registryAddress))
   }
 
-  def fromToolUUIDs(toolUuids: Set[String], languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
+  def fromToolUUIDs(toolUuids: Set[String],
+                    languages: Set[Language],
+                    registryAddress: String): Either[AnalyserError, Set[Tool]] = {
     if (toolUuids.isEmpty) {
       Left(AnalyserError.NoActiveToolInConfiguration)
     } else {
       toolRepository.listSupportedTools().map { tools =>
         val toolsIdentified: Set[Tool] = tools.map { tool =>
           if (toolUuids.contains(tool.uuid)) {
-            from(tool, languages) match {
+            from(tool, languages, registryAddress) match {
               case Left(error) =>
                 logger.warn(s"Failed to get tool for ${tool.name}.\nReason: ${error.message}")
                 Set.empty
@@ -186,26 +194,30 @@ class ToolCollector(toolRepository: ToolRepository) {
     }
   }
 
-  private def from(tool: ToolSpec, languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
+  private def from(tool: ToolSpec,
+                   languages: Set[Language],
+                   registryAddress: String): Either[AnalyserError, Set[Tool]] = {
     toolRepository.listPatterns(tool).map { patterns =>
-      tool.languages.intersect(languages).map(language => Tool(FullToolSpec(tool, patterns), language))
+      tool.languages.intersect(languages).map(language => Tool(FullToolSpec(tool, patterns), language, registryAddress))
     }
   }
 
-  private def toTool(tool: ToolSpec, languages: Set[Language]): Either[AnalyserError, List[Tool]] = {
+  private def toTool(tool: ToolSpec,
+                     languages: Set[Language],
+                     registryAddress: String): Either[AnalyserError, List[Tool]] = {
     toolRepository.listPatterns(tool).map { patterns =>
       tool.languages
         .intersect(languages)
         .map { language =>
-          Tool(FullToolSpec(tool, patterns), language)
+          Tool(FullToolSpec(tool, patterns), language, registryAddress)
         }(collection.breakOut)
     }
   }
 
-  def fromLanguages(languages: Set[Language]): Either[AnalyserError, Set[Tool]] = {
+  def fromLanguages(languages: Set[Language], registryAddress: String): Either[AnalyserError, Set[Tool]] = {
     for {
       tools <- toolRepository.listSupportedTools()
-      toolsInfo <- tools.toList.flatTraverse(toolSpec => toTool(toolSpec, languages))
+      toolsInfo <- tools.toList.flatTraverse(toolSpec => toTool(toolSpec, languages, registryAddress))
       _ <- if (toolsInfo.nonEmpty) Right(()) else Left(AnalyserError.NoToolsFoundForFiles)
     } yield {
       toolsInfo.toSet

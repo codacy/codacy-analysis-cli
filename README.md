@@ -215,6 +215,7 @@ Found [Clone] 7 duplicated lines with 10 tokens:
     * `--skip-ssl-verification` [default: false] - Skip the SSL certificate verification when communicating with the Codacy API
     * `--parallel` [default: 2] - Number of tools to run in parallel
     * `--max-allowed-issues` [default: 0] - Maximum number of issues allowed for the analysis to succeed
+    * `--registry-address` [default: empty] - Alternative registry address (e.g. artprod.mycompany/)
     * `--fail-if-incomplete` [default: false] - Fail the analysis if any tool fails to run
     * `--allow-network` [default: false] - Allow network access, so tools that need it can execute (e.g. findbugs)
     * `--force-file-permissions` [default: false] - Force files to be readable by changing the permissions before running the analysis
