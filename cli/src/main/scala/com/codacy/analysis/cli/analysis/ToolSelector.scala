@@ -19,10 +19,13 @@ class ToolSelector(toolRepository: ToolRepository) {
                registryAddress: String): Either[CLIError, Set[ITool]] = {
 
     def duplicationToolsEither: Either[CLIError.CouldNotGetTools, Set[DuplicationTool]] =
-      duplicationToolCollector.fromLanguages(languages).left.map(e => CLIError.CouldNotGetTools(e.message))
+      duplicationToolCollector
+        .fromLanguages(languages, registryAddress)
+        .left
+        .map(e => CLIError.CouldNotGetTools(e.message))
 
     def metricsToolsEither: Either[CLIError.CouldNotGetTools, Set[MetricsTool]] =
-      metricsToolCollector.fromLanguages(languages).left.map(e => CLIError.CouldNotGetTools(e.message))
+      metricsToolCollector.fromLanguages(languages, registryAddress).left.map(e => CLIError.CouldNotGetTools(e.message))
 
     toolInputOpt match {
       case None =>

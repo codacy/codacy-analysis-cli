@@ -15,7 +15,8 @@ import org.log4s.getLogger
 import scala.concurrent.duration.Duration
 import scala.util.Try
 
-class MetricsTool(metricsToolSpec: MetricsToolSpec, val languageToRun: Language) extends ITool {
+class MetricsTool(metricsToolSpec: MetricsToolSpec, val languageToRun: Language, registryAddress: String)
+    extends ITool {
   override def name: String = "metrics"
 
   override def supportedLanguages: Set[Language] = metricsToolSpec.languages.to[Set]
@@ -27,7 +28,8 @@ class MetricsTool(metricsToolSpec: MetricsToolSpec, val languageToRun: Language)
           maxToolMemory: Option[String] = None): Try[List[FileMetrics]] = {
     val request = MetricsRequest(directory.pathAsString)
 
-    val metricsTool = new traits.MetricsTool(metricsToolSpec.dockerImage, metricsToolSpec.languages.toList)
+    val metricsTool =
+      new traits.MetricsTool(registryAddress + metricsToolSpec.dockerImage, metricsToolSpec.languages.toList)
 
     val dockerRunner = new BinaryDockerRunner[api.metrics.FileMetrics](
       metricsTool,
@@ -75,12 +77,12 @@ class MetricsToolCollector(toolRepository: ToolRepository) {
 
   private val logger: org.log4s.Logger = getLogger
 
-  def fromLanguages(languages: Set[Language]): Either[AnalyserError, Set[MetricsTool]] = {
+  def fromLanguages(languages: Set[Language], registryAddress: String): Either[AnalyserError, Set[MetricsTool]] = {
     toolRepository.listMetricsTools().map { tools =>
       languages.flatMap { lang =>
         val collectedTools = tools.collect {
           case tool if tool.languages.contains(lang) =>
-            new MetricsTool(tool, lang)
+            new MetricsTool(tool, lang, registryAddress)
         }
 
         if (collectedTools.isEmpty) {
