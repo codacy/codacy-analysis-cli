@@ -15,7 +15,8 @@ class ToolSelector(toolRepository: ToolRepository) {
 
   def allTools(toolInputOpt: Option[String],
                configuration: CLIConfiguration.Tool,
-               languages: Set[Language]): Either[CLIError, Set[ITool]] = {
+               languages: Set[Language],
+               registryAddress: String): Either[CLIError, Set[ITool]] = {
 
     def duplicationToolsEither: Either[CLIError.CouldNotGetTools, Set[DuplicationTool]] =
       duplicationToolCollector.fromLanguages(languages).left.map(e => CLIError.CouldNotGetTools(e.message))
@@ -26,7 +27,7 @@ class ToolSelector(toolRepository: ToolRepository) {
     toolInputOpt match {
       case None =>
         for {
-          tools <- tools(configuration, languages)
+          tools <- tools(configuration, languages, registryAddress)
           duplicationTools <- duplicationToolsEither
           metricsTools <- metricsToolsEither
         } yield tools ++ metricsTools ++ duplicationTools
@@ -38,28 +39,30 @@ class ToolSelector(toolRepository: ToolRepository) {
         duplicationToolsEither.map(_.map(_.to[ITool]))
 
       case Some("issues") =>
-        val toolsEither = tools(configuration, languages)
+        val toolsEither = tools(configuration, languages, registryAddress)
         toolsEither.map(_.map(_.to[ITool]))
 
       case Some(toolInput) =>
-        val toolEither = tool(toolInput, languages)
+        val toolEither = tool(toolInput, languages, registryAddress)
         toolEither.map(_.map(_.to[ITool]))
     }
   }
 
-  def tools(configuration: CLIConfiguration.Tool, languages: Set[Language]): Either[CLIError, Set[Tool]] = {
+  def tools(configuration: CLIConfiguration.Tool,
+            languages: Set[Language],
+            registryAddress: String): Either[CLIError, Set[Tool]] = {
     def fromRemoteConfig: Either[CLIError, Set[Tool]] = {
       configuration.toolConfigurations.left.map(CLIError.NoRemoteProjectConfiguration).flatMap { toolConfiguration =>
         val toolUuids = toolConfiguration.filter(_.enabled).map(_.uuid)
         toolCollector
-          .fromToolUUIDs(toolUuids, languages)
+          .fromToolUUIDs(toolUuids, languages, registryAddress)
           .left
           .map(_ => CLIError.NonExistentToolsFromRemoteConfiguration(toolUuids))
       }
     }
 
     def fromLocalConfig: Either[CLIError, Set[Tool]] = {
-      toolCollector.fromLanguages(languages).left.map(CLIError.from)
+      toolCollector.fromLanguages(languages, registryAddress).left.map(CLIError.from)
     }
 
     for {
@@ -68,8 +71,8 @@ class ToolSelector(toolRepository: ToolRepository) {
     } yield CLIError.CouldNotGetTools(s"${e1.message} and ${e2.message}")
   }
 
-  def tool(toolInput: String, languages: Set[Language]): Either[CLIError, Set[Tool]] = {
-    toolCollector.fromNameOrUUID(toolInput, languages).left.map(CLIError.from)
+  def tool(toolInput: String, languages: Set[Language], registryAddress: String): Either[CLIError, Set[Tool]] = {
+    toolCollector.fromNameOrUUID(toolInput, languages, registryAddress).left.map(CLIError.from)
   }
 
   def fromUuid(uuid: String): Either[AnalyserError, FullToolSpec] = {

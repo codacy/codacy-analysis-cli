@@ -157,6 +157,8 @@ final case class Analyze(
   maxAllowedIssues: Int = 0,
   @ValueDescription("Fail the analysis if any tool fails to run")
   failIfIncomplete: Int @@ Counter = Tag.of(0),
+  @ExtraName("r") @ValueDescription("[default: empty] - Alternative registry address (e.g. artprod.mycompany/)")
+  registryAddress: String = "",
   @ValueDescription("Force files to be readable by changing the permissions before running the analysis")
   forceFilePermissions: Int @@ Counter = Tag.of(0),
   @ValueDescription("Maximum time each tool has to execute")

@@ -60,7 +60,7 @@ class ToolSelectorSpec extends Specification with NoLanguageFeatures {
 
       val toolConfiguration =
         CLIConfiguration.Tool(Option.empty, allowNetwork = false, Left("no config"), Option.empty, Map.empty)
-      val rubyTools = toolSelector.allTools(None, toolConfiguration, Set(Languages.Ruby))
+      val rubyTools = toolSelector.allTools(None, toolConfiguration, Set(Languages.Ruby), "")
 
       rubyTools should beRight
       rubyTools must beLike {
@@ -79,7 +79,7 @@ class ToolSelectorSpec extends Specification with NoLanguageFeatures {
 
       val languages = LanguagesHelper.fromFileTarget(emptyFilesTarget, Map.empty)
 
-      val toolEither = toolSelector.tool(expectedToolName, languages)
+      val toolEither = toolSelector.tool(expectedToolName, languages, "")
       toolEither must beLeft(CLIError.NonExistingToolInput(expectedToolName))
     }
 
@@ -97,7 +97,7 @@ class ToolSelectorSpec extends Specification with NoLanguageFeatures {
       val toolConfiguration =
         CLIConfiguration.Tool(Option.empty, allowNetwork = false, Right(toolConfigs), Option.empty, Map.empty)
 
-      val toolEither = toolSelector.tools(toolConfiguration, Set(Javascript, Python))
+      val toolEither = toolSelector.tools(toolConfiguration, Set(Javascript, Python), "")
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -113,7 +113,7 @@ class ToolSelectorSpec extends Specification with NoLanguageFeatures {
         CLIConfiguration.Tool(Option.empty, allowNetwork = false, toolConfigs, Option.empty, Map.empty)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, Map.empty)
 
-      val toolEither = toolSelector.tools(toolConfiguration, languages)
+      val toolEither = toolSelector.tools(toolConfiguration, languages, "")
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>
@@ -129,7 +129,7 @@ class ToolSelectorSpec extends Specification with NoLanguageFeatures {
         CLIConfiguration.Tool(Option.empty, allowNetwork = true, toolConfigs, Option.empty, languageExtensions)
       val languages = LanguagesHelper.fromFileTarget(filesTarget, languageExtensions)
 
-      val toolEither = toolSelector.tools(toolConfiguration, languages)
+      val toolEither = toolSelector.tools(toolConfiguration, languages, "")
       toolEither must beRight
       toolEither must beLike {
         case Right(toolSet) =>

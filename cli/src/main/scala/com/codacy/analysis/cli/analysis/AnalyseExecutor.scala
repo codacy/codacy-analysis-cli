@@ -42,7 +42,11 @@ class AnalyseExecutor(formatter: Formatter,
       filesGlobalTarget = fileCollector.filterGlobal(allFilesTarget, configuration.fileExclusionRules)
       languages =
         LanguagesHelper.fromFileTarget(filesGlobalTarget, configuration.fileExclusionRules.allowedExtensionsByLanguage)
-      tools <- toolSelector.allTools(configuration.tool, configuration.toolConfiguration, languages)
+      tools <- toolSelector.allTools(
+        configuration.tool,
+        configuration.toolConfiguration,
+        languages,
+        configuration.registryAddress)
     } yield (allFilesTarget, filesGlobalTarget, tools)
 
     val analysisResult: Either[CLIError, Seq[ExecutorResult[_]]] = filesTargetAndTool.map {

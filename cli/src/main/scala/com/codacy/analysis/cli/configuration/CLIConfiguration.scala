@@ -37,7 +37,8 @@ object CLIConfiguration {
                             fileExclusionRules: CLIConfiguration.FileExclusionRules,
                             toolConfiguration: CLIConfiguration.Tool,
                             tmpDirectory: Option[File] = None,
-                            maxToolMemory: Option[String] = None)
+                            maxToolMemory: Option[String] = None,
+                            registryAddress: String = "")
 
   object Analysis {
 
@@ -62,7 +63,8 @@ object CLIConfiguration {
         fileExclusionRules,
         toolConfiguration,
         tmpDirectory,
-        maxToolMemory)
+        maxToolMemory,
+        analyze.registryAddress)
     }
   }
 
