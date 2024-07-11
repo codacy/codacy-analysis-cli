@@ -35,7 +35,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
 
         val result = for {
           fileTarget <- FileCollector.defaultCollector().list(directory)
-          duplicationTool = new DuplicationTool(duplicationToolSpec, Languages.Javascript)
+          duplicationTool = new DuplicationTool(duplicationToolSpec, Languages.Javascript, "")
           duplicationToolResult <- duplicationTool.run(directory, fileTarget.readableFiles)
         } yield duplicationToolResult
 
@@ -60,7 +60,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
 
         val result = for {
           fileTarget <- FileCollector.defaultCollector().list(directory)
-          duplicationTool = new DuplicationTool(duplicationToolSpec, Languages.Javascript)
+          duplicationTool = new DuplicationTool(duplicationToolSpec, Languages.Javascript, "")
           filteredFileTarget = fileTarget.readableFiles.filterNot(_.endsWith("test2.js"))
           duplicationToolResult <- duplicationTool.run(directory, filteredFileTarget)
         } yield duplicationToolResult
@@ -79,7 +79,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
     val languagesWithTools: Set[Language] = Set(Languages.Java, Languages.Python, Languages.Ruby)
     val duplicationToolCollector = new DuplicationToolCollector(ToolRepositoryMock)
     s"detect the duplication tools for the given languages: ${languagesWithTools.mkString(", ")}" in {
-      val toolsEither = duplicationToolCollector.fromLanguages(languagesWithTools)
+      val toolsEither = duplicationToolCollector.fromLanguages(languagesWithTools, "")
       toolsEither must beRight
       val tools = toolsEither.right.get
       tools must haveSize(3)
@@ -89,7 +89,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
     val languagesWithoutTools: Set[Language] = Set(Languages.R, Languages.Elixir, Languages.Elm)
 
     s"return no duplication tools for the given languages: ${languagesWithoutTools}" in {
-      val toolsEither = duplicationToolCollector.fromLanguages(languagesWithoutTools)
+      val toolsEither = duplicationToolCollector.fromLanguages(languagesWithoutTools, "")
       toolsEither must beRight
       val tools = toolsEither.right.get
       tools should beEmpty

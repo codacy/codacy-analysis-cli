@@ -43,7 +43,7 @@ run() {
     --volume "$CODACY_CODE":"$CODACY_CODE" \
     ${output_volume} \
     --volume /tmp:/tmp \
-    codacy/codacy-analysis-cli:${CODACY_ANALYSIS_CLI_VERSION} -- \
+    ${REGISTRY_ADDRESS}codacy/codacy-analysis-cli:${CODACY_ANALYSIS_CLI_VERSION} -- \
     "$@"
 }
 
@@ -118,7 +118,6 @@ prep_args_with_output_absolute_path() {
 
   ARGUMENTS_WITH_ABSOLUTE_PATH_OUTPUT="$new_args"
 }
-
 
 test_docker_socket
 

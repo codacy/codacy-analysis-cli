@@ -26,7 +26,7 @@ class MetricsToolSpec extends Specification with NoLanguageFeatures {
       withClonedRepo("git@github.com:qamine-test/duplication-delta.git", commitUuid) { (_, directory) =>
         val testProjectFileMetrics = List(jsTestMetrics)
 
-        val metricsTool = new MetricsTool(cloc, Languages.Javascript)
+        val metricsTool = new MetricsTool(cloc, Languages.Javascript, "")
 
         val result = metricsTool.run(directory, Set(Source.File("test.js")))
 

@@ -16,7 +16,8 @@ import scala.util.Try
 import com.codacy.analysis.core.model.DuplicationToolSpec
 import com.codacy.analysis.core.model.AnalyserError
 
-class DuplicationTool(duplicationToolSpec: DuplicationToolSpec, val languageToRun: Language) extends ITool {
+class DuplicationTool(duplicationToolSpec: DuplicationToolSpec, val languageToRun: Language, registryAddress: String)
+    extends ITool {
 
   override def name: String = "duplication"
   override def supportedLanguages: Set[Language] = duplicationToolSpec.languages
@@ -28,7 +29,9 @@ class DuplicationTool(duplicationToolSpec: DuplicationToolSpec, val languageToRu
           maxToolMemory: Option[String] = None): Try[Set[DuplicationClone]] = {
 
     val duplicationTool =
-      new traits.DuplicationTool(duplicationToolSpec.dockerImage, duplicationToolSpec.languages.toList)
+      new traits.DuplicationTool(
+        registryAddress + duplicationToolSpec.dockerImage,
+        duplicationToolSpec.languages.toList)
 
     val dockerRunner = new BinaryDockerRunner[api.duplication.DuplicationClone](
       duplicationTool,
@@ -77,12 +80,12 @@ class DuplicationToolCollector(toolRepository: ToolRepository) {
 
   private val logger: org.log4s.Logger = getLogger
 
-  def fromLanguages(languages: Set[Language]): Either[AnalyserError, Set[DuplicationTool]] = {
+  def fromLanguages(languages: Set[Language], registryAddress: String): Either[AnalyserError, Set[DuplicationTool]] = {
     toolRepository.listDuplicationTools().map { tools =>
       languages.flatMap { lang =>
         val collectedTools = tools.collect {
           case tool if tool.languages.contains(lang) =>
-            new DuplicationTool(tool, lang)
+            new DuplicationTool(tool, lang, registryAddress)
         }
         if (collectedTools.isEmpty) {
           logger.info(s"No duplication tools found for language ${lang.name}")
