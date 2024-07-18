@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  codacy: codacy/base@10.11.0
+  codacy: codacy/base@12.1.1
   slack: circleci/slack@3.3.0
 
 references:
