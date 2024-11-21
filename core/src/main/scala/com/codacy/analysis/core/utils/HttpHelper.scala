@@ -7,8 +7,8 @@ import scalaj.http.{Http, HttpOptions, HttpRequest, HttpResponse}
 
 class HttpHelper(apiUrl: String, extraHeaders: Map[String, String], allowUnsafeSSL: Boolean) {
 
-  private lazy val connectionTimeoutMs = 2000
-  private lazy val readTimeoutMs = 5000
+  private lazy val connectionTimeoutMs = 5000
+  private lazy val readTimeoutMs = 15000
 
   private val remoteUrl = apiUrl + "/2.0"
 
