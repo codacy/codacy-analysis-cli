@@ -18,10 +18,10 @@ class Repository(repository: JGitRepository) {
       val revCommit = gitLog.iterator().next()
 
       new Commit(repository, revCommit)
+    } catch (GitAPIException | IOException e) {
+      System.err.println("An error occurred while getting the latest commit: " + e.getMessage());
+      e.printStackTrace();
     }
-    catch (GitAPIException | IOException e) {
-            System.err.println("An error occurred while getting the latest commit: " + e.getMessage());
-            e.printStackTrace();
   }
 
   def uncommitedFiles: Try[Set[String]] = {
@@ -32,5 +32,4 @@ class Repository(repository: JGitRepository) {
       javaSet.asScala.toSet
     }
   }
-
 }
