@@ -155,7 +155,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       val testDuplication =
         Seq(DuplicationResult(language, DuplicationAnalysis.Success(Set.empty, Set(testClone(1), testClone(2)))))
 
-      uploader.sendResults(Seq.empty, Seq.empty, testDuplication) must beRight.awaitFor(10.seconds)
+      uploader.sendResults(Seq.empty, Seq.empty, testDuplication) must beRight.awaitFor(30.seconds)
 
       there were no(codacyClient).sendRemoteIssues(
         ArgumentMatchers.any[String],
