@@ -39,6 +39,7 @@ run() {
     --env CODACY_PROJECT_TOKEN="$CODACY_PROJECT_TOKEN" \
     --env CODACY_API_TOKEN="$CODACY_API_TOKEN" \
     --env CODACY_API_BASE_URL="$CODACY_API_BASE_URL" \
+    --env JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS" \
     --volume /var/run/docker.sock:/var/run/docker.sock \
     --volume "$CODACY_CODE":"$CODACY_CODE" \
     ${output_volume} \
