@@ -1,10 +1,10 @@
 addSbtPlugin("com.codacy" % "codacy-sbt-plugin" % "25.0.1")
 
 // Coverage
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.0.6")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.0.12")
 
 // Static Analysis
-addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.1.0")
+addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.2.4")
 addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.21")
 
 // Dependencies
