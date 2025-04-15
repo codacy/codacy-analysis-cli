@@ -207,8 +207,23 @@ workflows:
           cmd: |
             sbt "set codacyAnalysisCli / version := \"dev-snapshot\";
                  codacyAnalysisCli/stage"
-            docker build -t $CIRCLE_PROJECT_REPONAME:dev-snapshot .
+            docker buildx create --name builder --driver docker-container --use
+            docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7 -t $CIRCLE_PROJECT_REPONAME:dev-snapshot --output="type=image" .
             docker save --output docker-image.tar $CIRCLE_PROJECT_REPONAME:dev-snapshot
+          steps_before_sbt:
+            - run:
+                name: Install and set up Docker Buildx
+                command: |
+                  export DOCKER_BUILDX=1
+                  export BUILDX_VERSION=v0.22.0
+                  export BUILDX_PLATFORMS="linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7"
+                  mkdir -p ~/.docker/cli-plugins
+                  curl --output ~/.docker/cli-plugins/docker-buildx \
+                    --silent --show-error --location --fail --retry 3 \
+                    "https://github.com/docker/buildx/releases/download/${BUILDX_VERSION}/buildx-${BUILDX_VERSION}.linux-amd64"
+                  chmod +x ~/.docker/cli-plugins/docker-buildx
+                  docker buildx install
+                  docker run --rm --privileged tonistiigi/binfmt:latest --install "$BUILDX_PLATFORMS"
           cache_prefix: *cache_prefix
           persist_to_workspace: true
           requires:
