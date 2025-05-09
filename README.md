@@ -1,3 +1,7 @@
+> Codacy Analysis CLI is deprecated
+>
+> Use [Codacy CLI V2](https://github.com/codacy/codacy-cli-v2) instead
+
 # Codacy Analysis CLI
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2aa6927599ba4d9db6c9cfcb38e397e4)](https://www.codacy.com/gh/codacy/codacy-analysis-cli?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=codacy/codacy-analysis-cli&amp;utm_campaign=Badge_Grade)
