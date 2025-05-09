@@ -1,3 +1,8 @@
+> ⚠️ **Legacy Component Warning**  
+> This component is part of our **classic/legacy** implementation and is no longer actively maintained.  
+> For the latest features, updates, and ongoing support, please use the [new Codacy CLI v2 here](https://github.com/codacy/codacy-cli-v2/).
+
+
 # Codacy Analysis CLI
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2aa6927599ba4d9db6c9cfcb38e397e4)](https://www.codacy.com/gh/codacy/codacy-analysis-cli?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=codacy/codacy-analysis-cli&amp;utm_campaign=Badge_Grade)
