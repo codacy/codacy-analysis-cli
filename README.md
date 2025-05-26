@@ -1,6 +1,6 @@
 > ⚠️ **Legacy Component Warning**  
-> This component is part of our **classic/legacy** implementation and is no longer actively maintained.  
-> For the latest features, updates, and ongoing support, please use the [new Codacy CLI v2 here](https://github.com/codacy/codacy-cli-v2/).
+> This component is part of our **classic/legacy** implementation is no longer actively maintained for local analysis; please use the [new Codacy CLI v2 instead](https://github.com/codacy/codacy-cli-v2/).
+> For uploading results to Codacy, use this CLI.
 
 
 # Codacy Analysis CLI
