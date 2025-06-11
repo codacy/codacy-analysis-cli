@@ -234,7 +234,7 @@ workflows:
             sbt "retrieveGPGKeys;
                  codacyAnalysisCore/publishSigned;
                  +codacyAnalysisModels/publishSigned;
-                 sonatypeBundleRelease"
+                 sonatypeCentralRelease"
           cache_prefix: *cache_prefix
           requires:
             - publish_docker_locally
