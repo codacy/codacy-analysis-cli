@@ -102,6 +102,7 @@ class AnalyseCommand(analyze: Analyze,
     removeCodacyRuntimeConfigurationFiles(configuration.analysis.projectDirectory)
 
     val analysisAndUpload = for {
+
       _ <- validate(analyze, configuration)
       analysisResults <- analyseExecutor.run()
       _ <- upload(configuration.upload, analysisResults)
