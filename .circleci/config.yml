@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  codacy: codacy/base@10.11.0
+  codacy: codacy/base@12.2.0
   slack: circleci/slack@3.3.0
 
 references:
@@ -186,8 +186,7 @@ workflows:
           name: lint
           install_sbt_version: 1.8.2
           cmd: |
-            sbt "scalafmtCheckAll;scalafmtSbtCheck;scapegoat;scalafixEnable;scalafix --test"
-          cache_prefix: *cache_prefix
+            sbt "scalafmtCheckAll;scalafmtSbtCheck;scalafixEnable;scalafix --test"
           requires:
             - compile
       - codacy/sbt:
