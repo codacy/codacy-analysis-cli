@@ -188,7 +188,8 @@ workflows:
           install_sbt_version: 1.10.5
           openjdk_version: '17'
           cmd: |
-            sbt "scalafmtCheckAll;scalafmtSbtCheck;scalafixEnable;scalafix --test"
+            sbt "scalafmtCheckAll;scalafmtSbtCheck;scapegoat;scalafixEnable;scalafix --test"
+          cache_prefix: *cache_prefix
           requires:
             - compile
       - codacy/sbt:
