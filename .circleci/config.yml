@@ -146,7 +146,8 @@ workflows:
           write_sbt_version: true
       - codacy/sbt:
           name: compile
-          install_sbt_version: 1.8.2
+          install_sbt_version: 1.10.5
+          openjdk_version: '17'
           cmd: sbt coverage +test:compile
           cache_prefix: *cache_prefix
           persist_to_workspace: true
@@ -184,14 +185,16 @@ workflows:
             - codacy/checkout_and_version
       - codacy/sbt:
           name: lint
-          install_sbt_version: 1.8.2
+          install_sbt_version: 1.10.5
+          openjdk_version: '17'
           cmd: |
             sbt "scalafmtCheckAll;scalafmtSbtCheck;scalafixEnable;scalafix --test"
           requires:
             - compile
       - codacy/sbt:
           name: test
-          install_sbt_version: 1.8.2
+          install_sbt_version: 1.10.5
+          openjdk_version: '17'
           cmd: |
             git config --global user.email "team@codacy.com"
             git config --global user.name "Codacy Team"
@@ -202,7 +205,8 @@ workflows:
             - compile
       - codacy/sbt:
           name: publish_docker_locally
-          install_sbt_version: 1.8.2
+          install_sbt_version: 1.10.5
+          openjdk_version: '17'
           cmd: |
             sbt "set codacyAnalysisCli / version := \"dev-snapshot\";
                  codacyAnalysisCli/stage"
@@ -227,7 +231,8 @@ workflows:
       #       - maven_dependencies
       - codacy/sbt:
           name: publish_lib
-          install_sbt_version: 1.8.2
+          install_sbt_version: 1.10.5
+          openjdk_version: '17'
           context: CodacyAWS
           cmd: |
             sbt "retrieveGPGKeys;
@@ -254,6 +259,7 @@ workflows:
       - codacy/sbt:
           name: build_cli_jar
           install_sbt_version: 1.8.2
+          openjdk_version: '17'
           persist_to_workspace: true
           cmd: |
             sbt "set codacyAnalysisCli / version := \"$(cat .version)\";
