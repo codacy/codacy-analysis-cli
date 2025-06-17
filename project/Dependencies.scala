@@ -6,7 +6,7 @@ object Dependencies {
   val circeVersion = "0.12.3"
   val specs2Version = "4.8.1"
   val codacyApiVersion = "26.20.0"
-  val silencerVersion = "1.7.0"
+  val silencerVersion = "1.7.19"
 
   lazy val circe = List(
     "io.circe" %% "circe-core" % circeVersion,
@@ -42,8 +42,8 @@ object Dependencies {
 
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.0"
 
-  val akkaVersion = "2.5.26"
-  val akkaHttpVersion = "10.1.9"
+  val akkaVersion = "2.6.20"
+  val akkaHttpVersion = "10.2.10"
 
   val akka =
     Seq(

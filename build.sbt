@@ -16,12 +16,7 @@ val assemblyCommon = Seq(
       oldStrategy(x)
   })
 
-inThisBuild(
-  Seq(
-    scalaVersion := Common.scalaVersionNumber,
-    scalaBinaryVersion := Common.scalaBinaryVersionNumber,
-    scapegoatDisabledInspections := Seq(),
-    scapegoatVersion := "1.4.6"))
+inThisBuild(Seq(scalaVersion := Common.scalaVersionNumber, scalaBinaryVersion := Common.scalaBinaryVersionNumber))
 
 val sonatypeInformation = Seq(
   startYear := Some(2018),
