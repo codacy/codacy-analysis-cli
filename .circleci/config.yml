@@ -262,7 +262,6 @@ workflows:
           install_sbt_version: 1.10.5
           openjdk_version: '17'
           persist_to_workspace: true
-          attach_workspace: true
           cmd: |
             sbt "set codacyAnalysisCli / version := \"$(cat .version)\";
                  set assembly / test := {};
