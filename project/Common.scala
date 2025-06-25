@@ -11,10 +11,10 @@ object Common {
 
   private val defaultDockerInstallationPath = "/opt/codacy"
   val scalaBinaryVersionNumber = "2.12"
-  val scalaVersionNumber = s"$scalaBinaryVersionNumber.12"
+  val scalaVersionNumber = s"$scalaBinaryVersionNumber.19"
 
   val scala213BinaryVersionNumber = "2.13"
-  val scala213VersionNumber = s"$scala213BinaryVersionNumber.3"
+  val scala213VersionNumber = s"$scala213BinaryVersionNumber.16"
   lazy val supportedScalaVersions = List(Common.scalaVersionNumber, Common.scala213VersionNumber)
 
   val genericSettings = Seq(

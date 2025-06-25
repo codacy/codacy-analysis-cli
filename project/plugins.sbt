@@ -1,14 +1,14 @@
 addSbtPlugin("com.codacy" % "codacy-sbt-plugin" % "25.2.4")
 
 // Coverage
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.0.6")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.3.0")
 
 // Static Analysis
-addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.1.0")
-addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.21")
+addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.2.13")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.34")
 
 // Dependencies
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.15.0")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.5")
 
 // Swagger code generation
 addSbtPlugin("com.twilio" % "sbt-guardrail" % "0.59.0")
