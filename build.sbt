@@ -63,6 +63,7 @@ lazy val codacyAnalysisCli = project
     publish := (Docker / publish).value,
     publishLocal := (Docker / publishLocal).value,
     publishArtifact := false,
+    assembly / assemblyJarName := "codacy-analysis-cli-assembly.jar",
     libraryDependencies ++= Dependencies.pprint +: Dependencies.specs2)
   .settings(assemblyCommon: _*)
   .enablePlugins(JavaAppPackaging)

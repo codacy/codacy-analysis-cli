@@ -264,11 +264,12 @@ workflows:
           openjdk_version: '17'
           persist_to_workspace: true
           cmd: |
-            sbt "set codacyAnalysisCli / version := \"$(cat ~/workdir/.version)\";
+            VERSION=$(cat ~/workdir/.version)
+            sbt "set codacyAnalysisCli / version := \"$VERSION\";
                  set assembly / test := {};
                  codacyAnalysisCli/assembly"
             mkdir -p ~/workdir/artifacts/
-            mv ./cli/target/scala-2.12/codacy-analysis-cli-assembly-$(cat ~/workdir/.version).jar ~/workdir/artifacts/
+            cp ./cli/target/scala-2.12/codacy-analysis-cli-assembly.jar ~/workdir/artifacts/
           cache_prefix: *cache_prefix
           requires:
             - publish_docker_locally
