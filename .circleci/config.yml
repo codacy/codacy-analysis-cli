@@ -235,6 +235,7 @@ workflows:
           install_sbt_version: 1.10.5
           openjdk_version: '17'
           context: CodacyAWS
+          no_output_timeout: "30m"
           cmd: |
             sbt "retrieveGPGKeys;
                  codacyAnalysisCore/publishSigned;
