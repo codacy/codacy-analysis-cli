@@ -8,7 +8,7 @@
             "message": {
                 "text": "Unescaped model attribute rendered inline"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -26,7 +26,7 @@
             "message": {
                 "text": "User input in eval"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -44,7 +44,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -62,7 +62,7 @@
             "message": {
                 "text": "Possible command injection in open()"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -80,7 +80,7 @@
             "message": {
                 "text": "Parameter value used in file name"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -98,7 +98,7 @@
             "message": {
                 "text": "Rails 4.0.0 with globbing routes is vulnerable to directory traversal and remote code execution. Patch or upgrade to 4.0.5"
             },
-            "level": "Warning",
+            "level": "High",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -116,7 +116,7 @@
             "message": {
                 "text": "Detailed exceptions may be enabled in 'show_detailed_exceptions?'"
             },
-            "level": "Warning",
+            "level": "High",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -134,7 +134,7 @@
             "message": {
                 "text": "Possible command injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -152,7 +152,7 @@
             "message": {
                 "text": "Passing query parameters to render() is vulnerable in Rails 4.0.0 (CVE-2016-0752)"
             },
-            "level": "Warning",
+            "level": "High",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -170,7 +170,7 @@
             "message": {
                 "text": "Unescaped parameter value rendered inline"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -188,7 +188,7 @@
             "message": {
                 "text": "Parameter value used in regex"
             },
-            "level": "Warning",
+            "level": "High",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -206,7 +206,7 @@
             "message": {
                 "text": "Use whitelist (:only => [..]) when skipping CSRF check"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -224,7 +224,7 @@
             "message": {
                 "text": "create_with is vulnerable to strong params bypass. Upgrade to Rails 4.0.9 or patch"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -242,7 +242,7 @@
             "message": {
                 "text": "SSL certificate verification was bypassed"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -260,7 +260,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -278,7 +278,7 @@
             "message": {
                 "text": "Potentially dangerous attribute available for mass assignment"
             },
-            "level": "Warning",
+            "level": "High",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -296,7 +296,7 @@
             "message": {
                 "text": "User controlled method execution"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -314,7 +314,7 @@
             "message": {
                 "text": "Unescaped parameter value rendered inline"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -332,7 +332,7 @@
             "message": {
                 "text": "User input in eval"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -350,7 +350,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -368,7 +368,7 @@
             "message": {
                 "text": "Parameters should be whitelisted for mass assignment"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -386,7 +386,7 @@
             "message": {
                 "text": "Insufficient validation for 'email' using /^[a-z0-9]+@[a-z0-9]+\\.[a-z]+$/. Use \\A and \\z as anchors"
             },
-            "level": "Warning",
+            "level": "High",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -404,7 +404,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -422,7 +422,7 @@
             "message": {
                 "text": "Unescaped model attribute rendered inline"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -440,7 +440,7 @@
             "message": {
                 "text": "Passing query parameters to render() is vulnerable in Rails 4.0.0 (CVE-2016-0752)"
             },
-            "level": "Warning",
+            "level": "High",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -458,7 +458,7 @@
             "message": {
                 "text": "SSL certificate verification was bypassed"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -476,7 +476,7 @@
             "message": {
                 "text": "Possible command injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -494,7 +494,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -512,7 +512,7 @@
             "message": {
                 "text": "Parameter value used in file name"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -530,7 +530,7 @@
             "message": {
                 "text": "create_with is vulnerable to strong params bypass. Upgrade to Rails 4.0.9 or patch"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -548,7 +548,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -566,7 +566,7 @@
             "message": {
                 "text": "Possible command injection in open()"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -584,7 +584,7 @@
             "message": {
                 "text": "Parameters should be whitelisted for mass assignment"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -602,7 +602,7 @@
             "message": {
                 "text": "Unescaped model attribute rendered inline"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -620,7 +620,7 @@
             "message": {
                 "text": "Session secret should not be included in version control"
             },
-            "level": "Warning",
+            "level": "High",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -638,7 +638,7 @@
             "message": {
                 "text": "Detailed exceptions are enabled in production"
             },
-            "level": "Warning",
+            "level": "High",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -656,7 +656,7 @@
             "message": {
                 "text": "create_with is vulnerable to strong params bypass. Upgrade to Rails 4.0.9 or patch"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -674,7 +674,7 @@
             "message": {
                 "text": "Parameters should be whitelisted for mass assignment"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -692,7 +692,7 @@
             "message": {
                 "text": "Possible unprotected redirect"
             },
-            "level": "Warning",
+            "level": "High",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -710,7 +710,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -728,7 +728,7 @@
             "message": {
                 "text": "Parameters should be whitelisted for mass assignment"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -746,7 +746,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -764,7 +764,7 @@
             "message": {
                 "text": "create_with is vulnerable to strong params bypass. Upgrade to Rails 4.0.9 or patch"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -782,7 +782,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -800,7 +800,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -818,7 +818,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -836,7 +836,7 @@
             "message": {
                 "text": "Unescaped parameter value rendered inline"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -854,7 +854,7 @@
             "message": {
                 "text": "Parameter value used in file name"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -872,7 +872,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -890,7 +890,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -908,7 +908,7 @@
             "message": {
                 "text": "Parameter value used in file name"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -926,7 +926,7 @@
             "message": {
                 "text": "Possible command injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -944,7 +944,7 @@
             "message": {
                 "text": "Possible SQL injection"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -962,7 +962,7 @@
             "message": {
                 "text": "Rails 4.0.0 has a file existence disclosure. Upgrade to 4.0.12 or disable serving static assets"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -980,7 +980,7 @@
             "message": {
                 "text": "Rails 4.0.0 has a vulnerability in simple_format (CVE-2013-6416). Upgrade to Rails version 4.0.2"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -998,7 +998,7 @@
             "message": {
                 "text": "Rails 4.0.0 is vulnerable to denial of service via XML parsing (CVE-2015-3227). Upgrade to Rails version 4.2.2"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -1034,7 +1034,7 @@
             "message": {
                 "text": "Rails 4.0.0 content_tag does not escape double quotes in attribute values (CVE-2016-6316). Upgrade to 4.2.7.1"
             },
-            "level": "Warning",
+            "level": "High",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -1070,7 +1070,7 @@
             "message": {
                 "text": "Rails 4.0.0 contains a SQL injection vulnerability (CVE-2014-0080) with PostgreSQL. Upgrade to 4.0.3"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -1106,7 +1106,7 @@
             "message": {
                 "text": "Rails 4.0.0 has a denial of service vulnerability (CVE-2013-6414). Upgrade to Rails version 4.0.2"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {
@@ -1124,7 +1124,7 @@
             "message": {
                 "text": "Rails 4.0.0 is vulnerable to denial of service via mime type caching (CVE-2016-0751). Upgrade to Rails version 4.1.14.1"
             },
-            "level": "Warning",
+            "level": "Error",
             "category": null,
             "location": {
                 "LineLocation": {

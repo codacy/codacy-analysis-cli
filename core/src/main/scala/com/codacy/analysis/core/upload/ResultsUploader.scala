@@ -137,7 +137,8 @@ class ResultsUploader private (commitUuid: Commit.Uuid, codacyClient: CodacyClie
         case ((accumulatedFileResults, resultBatches), fileResults) =>
           (accumulatedFileResults + fileResults, resultBatches)
       }
-    fileResultBatches :+ remainingFileResults
+
+    (fileResultBatches :+ remainingFileResults).filter(_.nonEmpty)
   }
 
   private def groupResultsByFile(files: Set[Path], results: Set[ToolResult]): Set[FileResults] = {
