@@ -5,7 +5,7 @@ object Dependencies {
   val codacyPluginsVersion = "26.2.6_play_2.7"
   val circeVersion = "0.12.3"
   val specs2Version = "4.8.1"
-  val codacyApiVersion = "26.20.0"
+  val codacyApiVersion = "49.31.14"
   val silencerVersion = "1.7.19"
 
   lazy val circe = List(
@@ -30,7 +30,7 @@ object Dependencies {
   val codacyPlugins =
     Seq("codacy-plugins", "codacy-plugins-runner-binary").map("com.codacy" %% _ % codacyPluginsVersion)
 
-  lazy val pluginsApi = "com.codacy" %% "codacy-plugins-api" % "8.1.1"
+  lazy val pluginsApi = "com.codacy" %% "codacy-plugins-api" % "9.1.6"
 
   lazy val pprint = "com.lihaoyi" %% "pprint" % "0.5.7"
 

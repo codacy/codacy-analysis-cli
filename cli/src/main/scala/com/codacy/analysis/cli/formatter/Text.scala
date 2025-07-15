@@ -99,6 +99,7 @@ private[formatter] class Text(val stream: PrintStream) extends Formatter {
     level match {
       case results.Result.Level.Info => Console.BLUE
       case results.Result.Level.Warn => Console.YELLOW
+      case results.Result.Level.High => Console.RED
       case results.Result.Level.Err  => Console.RED
     }
   }

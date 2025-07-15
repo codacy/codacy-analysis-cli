@@ -172,6 +172,7 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
   private def securityIssueSeverity(level: results.Result.Level.Value): SarifReport.Level.Value = {
     level match {
       case results.Result.Level.Err  => SarifReport.Level.Error
+      case results.Result.Level.High => SarifReport.Level.Error
       case results.Result.Level.Warn => SarifReport.Level.Warning
       case _                         => SarifReport.Level.Note
     }
@@ -181,6 +182,7 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
   private def nonSecurityIssueSeverity(level: results.Result.Level.Value): SarifReport.Level.Value = {
     level match {
       case results.Result.Level.Err  => SarifReport.Level.Warning
+      case results.Result.Level.High => SarifReport.Level.Warning
       case results.Result.Level.Warn => SarifReport.Level.Note
       case _                         => SarifReport.Level.None
     }

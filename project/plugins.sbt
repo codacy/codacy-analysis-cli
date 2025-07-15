@@ -11,7 +11,7 @@ addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.9.34")
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "2.1.5")
 
 // Swagger code generation
-addSbtPlugin("com.twilio" % "sbt-guardrail" % "0.59.0")
+addSbtPlugin("dev.guardrail" % "sbt-guardrail" % "0.75.2")
 
 ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
 
