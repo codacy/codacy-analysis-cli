@@ -319,6 +319,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
           toolUuid = ArgumentMatchers.any[String],
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
+          enabled = ArgumentMatchers.any[Option[Boolean]],
           headers = ArgumentMatchers.any[List[HttpHeader]])).thenReturn(
         eitherListToolPatternsResponse(ListPatternsResponse.OK(PatternListResponse(Vector(patternA), None))),
         eitherListToolPatternsResponse(ListPatternsResponse.OK(PatternListResponse(Vector(patternB), None))))
@@ -347,6 +348,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
           toolUuid = ArgumentMatchers.any[String],
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
+          enabled = ArgumentMatchers.any[Option[Boolean]],
           headers = ArgumentMatchers.any[List[HttpHeader]])).thenReturn(
         eitherListToolPatternsResponse(
           ListPatternsResponse.OK(PatternListResponse(Vector(patternA), Some(paginationInfo)))),
@@ -375,6 +377,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
           toolUuid = ArgumentMatchers.any[String],
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
+          enabled = ArgumentMatchers.any[Option[Boolean]],
           headers = ArgumentMatchers.any[List[HttpHeader]]))
         .thenReturn(eitherListToolPatternsResponse(ListPatternsResponse.BadRequest(BadRequest("error"))))
 
@@ -399,6 +402,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
           toolUuid = ArgumentMatchers.any[String],
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
+          enabled = ArgumentMatchers.any[Option[Boolean]],
           headers = ArgumentMatchers.any[List[HttpHeader]]))
         .thenReturn(eitherListToolPatternsResponse(ListPatternsResponse.BadRequest(BadRequest("error"))))
 
@@ -423,6 +427,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
           toolUuid = ArgumentMatchers.any[String],
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
+          enabled = ArgumentMatchers.any[Option[Boolean]],
           headers = ArgumentMatchers.any[List[HttpHeader]]))
         .thenReturn(eitherListToolPatternsResponse(ListPatternsResponse.BadRequest(BadRequest("error"))))
 
@@ -443,6 +448,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
           toolUuid = ArgumentMatchers.any[String],
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
+          enabled = ArgumentMatchers.any[Option[Boolean]],
           headers = ArgumentMatchers.any[List[HttpHeader]]))
         .thenReturn(eitherListToolPatternsResponse(ListPatternsResponse.NotFound(NotFound("error"))))
 
@@ -464,6 +470,7 @@ class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMat
           toolUuid = ArgumentMatchers.any[String],
           cursor = ArgumentMatchers.any[Option[String]],
           limit = ArgumentMatchers.any[Option[Int]],
+          enabled = ArgumentMatchers.any[Option[Boolean]],
           headers = ArgumentMatchers.any[List[HttpHeader]])).thenReturn(
         eitherListToolPatternsResponse(ListPatternsResponse.InternalServerError(InternalServerError("error"))))
 
