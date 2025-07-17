@@ -2,8 +2,7 @@ FROM alpine:3.21.3
 
 RUN apk add --no-cache --update bash docker openjdk8
 
-RUN addgroup -g 999 docker \
-    && adduser -D -G docker analysisCli
+RUN adduser -D -G docker analysisCli
 
 WORKDIR /workdir
 COPY --chown=analysisCli:analysisCli cli/target/universal/stage /workdir
