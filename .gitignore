@@ -92,3 +92,7 @@ project/project/
 .vscode/
 
 .codacy
+
+
+#Ignore vscode AI rules
+.github/copilot-instructions.md
