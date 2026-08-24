@@ -16,6 +16,7 @@ import com.codacy.analysis.cli.analysis.AnalyseExecutor.{
 }
 import com.codacy.analysis.cli.analysis.{AnalyseExecutor, ExitStatus, ToolSelector}
 import com.codacy.analysis.cli.clients.Credentials
+import com.codacy.analysis.cli.command.Options.Analyze
 import com.codacy.analysis.cli.configuration.{CLIConfiguration, Environment}
 import com.codacy.analysis.cli.formatter.Formatter
 import com.codacy.analysis.clientapi.tools.ToolsClient
