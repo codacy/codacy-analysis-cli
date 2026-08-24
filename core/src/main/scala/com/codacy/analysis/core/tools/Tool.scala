@@ -94,15 +94,17 @@ class Tool(fullToolSpec: FullToolSpec,
 
     runner.run(request, timeout.getOrElse(defaultRunTimeout), configTmpDirectory = tmpDirectory.map(_.toJava)).map {
       res =>
-        (res.results.map(r =>
-          Issue(
-            results.Pattern.Id(r.patternIdentifier),
-            FileHelper.relativePath(sourceDirectory.appendPrefix(r.filename)),
-            Issue.Message(r.message),
-            r.level,
-            r.category,
-            LineLocation(r.line),
-            r.sourceId)).toSet[ToolResult]) ++
+        (res.results
+          .map(r =>
+            Issue(
+              results.Pattern.Id(r.patternIdentifier),
+              FileHelper.relativePath(sourceDirectory.appendPrefix(r.filename)),
+              Issue.Message(r.message),
+              r.level,
+              r.category,
+              LineLocation(r.line),
+              r.sourceId))
+          .toSet[ToolResult]) ++
           res.fileErrors.map(
             fe =>
               FileError(

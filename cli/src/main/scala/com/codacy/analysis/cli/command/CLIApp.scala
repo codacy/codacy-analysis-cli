@@ -24,6 +24,7 @@ import scala.util.{Failure, Success, Try}
   * types are triggered from within the same enclosing class.
   */
 private[command] object AnalyzeParsing {
+
   def parseAndRun(args: List[String],
                   run: Analyze => ExitStatus.ExitCode,
                   terminate: ExitStatus.ExitCode => Unit): Unit =
@@ -47,6 +48,7 @@ private[command] object AnalyzeParsing {
 
 /** Parses the `validate-configuration` command in isolation. See `AnalyzeParsing` for why. */
 private[command] object ValidateConfigurationParsing {
+
   def parseAndRun(args: List[String],
                   run: ValidateConfiguration => ExitStatus.ExitCode,
                   terminate: ExitStatus.ExitCode => Unit): Unit =
@@ -85,7 +87,7 @@ abstract class CLIApp {
       case ("-v" | "--version") :: _ =>
         Console.println(s"codacy-analysis-cli is on version ${Version.version}")
         terminate(ExitStatus.ExitCodes.success)
-      case "analyze" :: rest => AnalyzeParsing.parseAndRun(rest, run, terminate)
+      case "analyze" :: rest                => AnalyzeParsing.parseAndRun(rest, run, terminate)
       case "validate-configuration" :: rest => ValidateConfigurationParsing.parseAndRun(rest, run, terminate)
       case unknown :: _ =>
         Console.err.println(Error.CommandNotFound(unknown).message)
