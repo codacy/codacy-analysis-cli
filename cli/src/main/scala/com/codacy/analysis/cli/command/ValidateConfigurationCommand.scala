@@ -3,6 +3,7 @@ package com.codacy.analysis.cli.command
 import better.files.File
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.analysis.ExitStatus.ExitCodes
+import com.codacy.analysis.cli.command.Options.ValidateConfiguration
 import com.codacy.analysis.core.configuration.CodacyConfigurationFileLoader
 
 object ValidateConfigurationCommand {

@@ -3,7 +3,7 @@ package com.codacy.analysis.cli.configuration
 import better.files.File
 import cats.Foldable
 import cats.implicits._
-import com.codacy.analysis.cli.command.Analyze
+import com.codacy.analysis.cli.command.Options.Analyze
 import com.codacy.analysis.core.clients.CodacyClient
 import com.codacy.analysis.core.clients.api._
 import com.codacy.analysis.core.configuration.{

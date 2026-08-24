@@ -5,6 +5,7 @@ import caseapp.Tag
 import caseapp.core.Error
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command._
+import com.codacy.analysis.cli.command.Options._
 import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.{DuplicationClone, FileError, Result, ToolResult}
 import com.codacy.analysis.core.utils.TestUtils._
@@ -229,7 +230,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           result must beRight
           result must beLike {
             case Right((response, expected)) =>
-              response must containTheSameElementsAs(expected.to[Seq])
+              response must containTheSameElementsAs(expected.to(Seq))
           }
       }
     }
@@ -279,7 +280,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             tool = None,
             directory = Option(directory),
             upload = Tag.of(1),
-            toolTimeout = None)
+            advanced = AdvancedOptions())
 
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
         }).get
@@ -297,7 +298,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             tool = None,
             directory = Option(directory),
             upload = Tag.of(1),
-            toolTimeout = None)
+            advanced = AdvancedOptions())
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
         }).get
       }
@@ -317,7 +318,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             tool = None,
             directory = Option(directory),
             upload = Tag.of(0),
-            toolTimeout = None)
+            advanced = AdvancedOptions())
 
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
         }).get
@@ -336,7 +337,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             directory = Option(directory),
             upload = Tag.of(0),
             commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
-            toolTimeout = None)
+            advanced = AdvancedOptions())
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
         }).get
       }
@@ -355,7 +356,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             upload = Tag.of(0),
             commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
             skipCommitUuidValidation = Tag.of(1),
-            toolTimeout = None)
+            advanced = AdvancedOptions())
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
         }).get
       }

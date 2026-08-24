@@ -83,7 +83,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
       toolsEither must beRight
       val tools = toolsEither.right.get
       tools must haveSize(3)
-      tools.map(_.languageToRun) must containTheSameElementsAs(languagesWithTools.to[Seq])
+      tools.map(_.languageToRun) must containTheSameElementsAs(languagesWithTools.to(Seq))
     }
 
     val languagesWithoutTools: Set[Language] = Set(Languages.R, Languages.Elixir, Languages.Elm)
@@ -99,7 +99,7 @@ class DuplicationToolSpec extends Specification with NoLanguageFeatures {
   def assertDuplication(duplicationResults: Set[model.DuplicationClone],
                         expectedClones: Seq[model.DuplicationClone]): MatchResult[Set[model.DuplicationClone]] = {
     //ignore the clone lines field for assertion
-    duplicationResults.map(_.files.to[Set]) must containTheSameElementsAs(expectedClones.map(_.files.to[Set]))
+    duplicationResults.map(_.files.to(Set)) must containTheSameElementsAs(expectedClones.map(_.files.to(Set)))
     duplicationResults.map(_.copy(cloneLines = "", files = Set.empty)) must containTheSameElementsAs(
       expectedClones.map(_.copy(files = Set.empty)))
   }
