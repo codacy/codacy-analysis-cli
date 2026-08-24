@@ -19,7 +19,7 @@ class FileSystemFileCollector extends FileCollector[Try] {
           .listRecursively()
           .collect { case f if f.isRegularFile => directory.relativize(f) }
           .filterNot(_.startsWith(".git"))
-          .to[Set]
+          .toSet
 
       val checkedFiles = checkPermissions(directory, allFiles)
 

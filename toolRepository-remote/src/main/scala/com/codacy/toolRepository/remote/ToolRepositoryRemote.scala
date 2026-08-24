@@ -167,17 +167,17 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
   }
 
   private def toDuplicationToolSpec(tool: definitions.DuplicationTool): DuplicationToolSpec = {
-    val languages = tool.languages.flatMap(Languages.fromName).to[Set]
+    val languages = tool.languages.flatMap(Languages.fromName).toSet
     DuplicationToolSpec(tool.dockerImage, languages)
   }
 
   private def toMetricsToolSpec(tool: definitions.MetricsTool): MetricsToolSpec = {
-    val languages = tool.languages.flatMap(Languages.fromName).to[Set]
+    val languages = tool.languages.flatMap(Languages.fromName).toSet
     MetricsToolSpec(tool.dockerImage, languages)
   }
 
   private def toToolSpec(tool: definitions.Tool): ToolSpec = {
-    val languages = tool.languages.flatMap(Languages.fromName).to[Set]
+    val languages = tool.languages.flatMap(Languages.fromName).toSet
     ToolSpec(
       uuid = tool.uuid,
       dockerImage = tool.dockerImage,
@@ -205,7 +205,8 @@ class ToolRepositoryRemote(toolsClient: ToolsClient,
       .getOrElse(Set.empty)
       .flatMap { languageName =>
         Languages.fromName(languageName)
-      }(collection.breakOut)
+      }
+      .toSet
 
     PatternSpec(
       // plugins is expecting to receive patterns without prefixes

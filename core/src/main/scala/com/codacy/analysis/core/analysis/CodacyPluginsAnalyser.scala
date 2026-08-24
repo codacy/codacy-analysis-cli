@@ -52,7 +52,7 @@ final class CodacyPluginsAnalyser() extends Analyser {
         logger.error(e)(AnalyserError.ToolExecutionFailure("metrics", metricsTool.name).message)
     }
 
-    result.map(_.to[Set])
+    result.map(_.toSet)
   }
 
   override def duplication(duplicationTool: DuplicationTool,
@@ -71,7 +71,7 @@ final class CodacyPluginsAnalyser() extends Analyser {
         logger.error(e)(AnalyserError.ToolExecutionFailure("duplication", duplicationTool.name).message)
     }
 
-    result.map(_.to[Set])
+    result.map(_.toSet)
   }
 
 }

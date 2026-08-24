@@ -228,7 +228,7 @@ class AnalyseCommand(analyze: Analyze,
         MetricsResult(language, MetricsAnalysis.Success(fileWithMetrics(files, fileMetrics)))
       case MetricsToolExecutorResult(language, _, Failure(err)) =>
         MetricsResult(language, MetricsAnalysis.Failure(err.getMessage))
-    }(collection.breakOut)
+    }
   }
 
   private def fileWithMetrics(allFiles: Set[Path], fileMetrics: Set[FileMetrics]): Set[MetricsAnalysis.FileResults] = {
@@ -252,7 +252,7 @@ class AnalyseCommand(analyze: Analyze,
         ResultsUploader.ToolResults(toolName, files, Right(issues))
       case IssuesToolExecutorResult(toolName, _, _, _, files, Failure(error)) =>
         ResultsUploader.ToolResults(toolName, files, Left(error.getMessage))
-    }(collection.breakOut)
+    }
   }
 
   //TODO: this can be removed when all tools are using the 3.+ seed version.

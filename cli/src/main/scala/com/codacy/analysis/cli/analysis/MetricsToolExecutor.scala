@@ -29,7 +29,8 @@ object MetricsToolExecutor {
             Some(metricsExecutorResAcc.copy(files = allFiles, analysisResults = Success(reducedFileMetrics)))
           case (_, o) => Some(o)
         }
-      }(collection.breakOut) ++ failedMetricsResults
+      }
+      .toSeq ++ failedMetricsResults
   }
 
   private def reduceFileMetricsByFile(fileMetrics: Set[FileMetrics]): Set[FileMetrics] = {
@@ -51,7 +52,8 @@ object MetricsToolExecutor {
                 fMetricsElement.lineComplexities
               })
           }
-      }(collection.breakOut)
+      }
+      .toSet
   }
 
   def calculateMissingFileMetrics(
@@ -60,7 +62,7 @@ object MetricsToolExecutor {
 
     val fileMetricsByFilePath: Map[Path, FileMetrics] = metricsResults.flatMap { result =>
       result.analysisResults.map(_.map(fileMetrics => (fileMetrics.filename, fileMetrics))).getOrElse(Set.empty)
-    }(collection.breakOut)
+    }.toMap
 
     metricsResults.foldLeft(Seq.empty[MetricsToolExecutorResult]) {
       case (metricsAccumulator, res @ AnalyseExecutor.MetricsToolExecutorResult(_, _, Success(_))) =>

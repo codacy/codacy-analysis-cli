@@ -98,7 +98,7 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
     // HACK: Seems like the issues (`issue.category`) do not have the right category
     //   while in the specification (`toolSpec.patterns[].category`) the pattern has the right category
     val patternsCategoryMap: Map[String, Pattern.Category] =
-      toolSpec.patterns.map(pattern => (pattern.patternId.value, pattern.category))(collection.breakOut)
+      toolSpec.patterns.map(pattern => (pattern.patternId.value, pattern.category)).toMap
 
     analysisResults.foldLeft(CategorizedIssues(Seq.empty, Seq.empty)) {
 
@@ -118,7 +118,7 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
 
   private def createRules(issues: Seq[Issue], patternDescriptions: Set[PatternDescription]): List[SarifReport.Rule] = {
     val patternsMap: Map[String, PatternDescription] =
-      patternDescriptions.map(pattern => (pattern.patternId.value, pattern))(collection.breakOut)
+      patternDescriptions.map(pattern => (pattern.patternId.value, pattern)).toMap
 
     (for {
       issue <- issues.groupBy(_.patternId.value).collect { case (_, issue :: _) => issue }
@@ -134,8 +134,8 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
   }
 
   private def createArtifacts(issues: Seq[Issue]): List[SarifReport.Artifact] = {
-    val filenames: Set[String] = issues.map(_.filename.toString)(collection.breakOut)
-    filenames.map(filename => SarifReport.Artifact(SarifReport.ArtifactLocation(s"$filename")))(collection.breakOut)
+    val filenames: Set[String] = issues.map(_.filename.toString).toSet
+    filenames.map(filename => SarifReport.Artifact(SarifReport.ArtifactLocation(s"$filename"))).toList
   }
 
   private def createResults(

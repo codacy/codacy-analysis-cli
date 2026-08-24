@@ -25,7 +25,7 @@ case class FullToolSpec(tool: ToolSpec, patterns: Seq[PatternSpec]) {
         parameters = toParameterApiSpecification(pattern.parameters),
         languages = pattern.languages,
         enabled = pattern.enabled)
-    }(collection.breakOut)
+    }.toSet
   }
 
   private def toParameterApiSpecification(parameters: Seq[ParameterSpec]): Set[api.results.Parameter.Specification] = {
@@ -33,7 +33,7 @@ case class FullToolSpec(tool: ToolSpec, patterns: Seq[PatternSpec]) {
       api.results.Parameter.Specification(
         name = api.results.Parameter.Name(parameter.name),
         default = api.results.Parameter.Value(parameter.default))
-    }(collection.breakOut)
+    }.toSet
   }
 
   private def toToolApiPatternDescriptions(patterns: Seq[PatternSpec]): Set[api.PatternDescription] = {
@@ -45,13 +45,13 @@ case class FullToolSpec(tool: ToolSpec, patterns: Seq[PatternSpec]) {
         description = pattern.description,
         timeToFix = pattern.timeToFix,
         explanation = pattern.explanation)
-    }(collection.breakOut)
+    }.toSet
   }
 
   private def toToolApiParameterDescriptions(parameters: Seq[ParameterSpec]): Set[api.ParameterDescription] = {
     parameters.collect {
       case ParameterSpec(name, _, Some(description)) =>
         api.ParameterDescription(api.results.Parameter.Name(name), description)
-    }(collection.breakOut)
+    }.toSet
   }
 }
