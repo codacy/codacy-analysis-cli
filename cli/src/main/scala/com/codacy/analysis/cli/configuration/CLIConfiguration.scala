@@ -94,7 +94,7 @@ object CLIConfiguration {
         foldable.foldMap(localConfiguration)(
           localConfig =>
             localConfig.engines.fold(Map.empty[String, Set[Glob]])(
-              _.mapValues(_.excludePaths.getOrElse(Set.empty[Glob]))))
+              _.view.mapValues(_.excludePaths.getOrElse(Set.empty[Glob])).toMap))
       val excludeGlobal =
         foldable.foldMap(localConfiguration)(_.excludePaths.getOrElse(Set.empty[Glob]))
       val excludePaths = ExcludePaths(excludeGlobal, excludeByTool)
@@ -103,7 +103,7 @@ object CLIConfiguration {
         localConfiguration.map(_.languageCustomExtensions).getOrElse(Map.empty)
       val remoteCustomExtensionsByLanguage: Map[Language, Set[String]] =
         foldable.foldMap(remoteProjectConfiguration)(
-          _.projectExtensions.map(le => (le.language, le.extensions))(collection.breakOut))
+          _.projectExtensions.map(le => (le.language, le.extensions)).toMap)
 
       val allowedExtensionsByLanguage =
         MapOps.merge(localCustomExtensionsByLanguage, remoteCustomExtensionsByLanguage)
@@ -165,7 +165,7 @@ object CLIConfiguration {
     final case class Parameter(name: String, value: String)
 
     def extraFromApi(apiEngines: Map[String, EngineConfiguration]): Map[String, CLIConfiguration.IssuesTool.Extra] = {
-      apiEngines.mapValues(config => CLIConfiguration.IssuesTool.Extra(config.baseSubDir, config.extraValues))
+      apiEngines.view.mapValues(config => CLIConfiguration.IssuesTool.Extra(config.baseSubDir, config.extraValues)).toMap
     }
 
     def fromApi(apiToolConfigs: Set[ToolConfiguration]): Set[CLIConfiguration.IssuesTool] = {

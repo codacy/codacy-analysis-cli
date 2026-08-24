@@ -47,8 +47,7 @@ class DuplicationTool(duplicationToolSpec: DuplicationToolSpec, val languageToRu
         configTmpDirectory = tmpDirectory.map(_.toJava))
       clones = filterDuplicationClones(duplicationClones, files)
     } yield {
-      clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files.to[Set]))(
-        collection.breakOut): Set[DuplicationClone]
+      clones.map(clone => DuplicationClone(clone.cloneLines, clone.nrTokens, clone.nrLines, clone.files.toSet)).toSet
     }
   }
 

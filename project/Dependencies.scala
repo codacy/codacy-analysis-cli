@@ -25,7 +25,7 @@ object Dependencies {
       "org.specs2" %% "specs2-mock" % specs2Version,
       "org.specs2" %% "specs2-matcher-extra" % specs2Version).map(_ % Test)
 
-  lazy val caseApp = "com.github.alexarchambault" %% "case-app" % "1.2.0"
+  lazy val caseApp = "com.github.alexarchambault" %% "case-app" % "2.1.0"
 
   val codacyPlugins =
     Seq("codacy-plugins", "codacy-plugins-runner-binary").map("com.codacy" %% _ % codacyPluginsVersion)
@@ -52,12 +52,11 @@ object Dependencies {
       "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
       "com.typesafe.akka" %% "akka-http" % akkaHttpVersion)
 
-  val macroParadise = "org.scalamacros" %% "paradise" % "2.1.1"
-
   val silencer = Seq(
     compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
     "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full)
 
   val scalatest = "org.scalatest" %% "scalatest" % "3.0.8"
   val betterFiles = "com.github.pathikrit" %% "better-files" % "3.8.0"
+  val scalaParallelCollections = "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4"
 }

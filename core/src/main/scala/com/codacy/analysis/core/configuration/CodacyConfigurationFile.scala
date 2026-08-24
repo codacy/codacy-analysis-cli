@@ -67,7 +67,7 @@ object CodacyConfigurationFile {
 
       def apply(c: HCursor): Decoder.Result[EngineConfiguration] = {
         val extraKeys =
-          c.keys.fold(List.empty[String])(_.to[List]).filter(key => !engineConfigurationKeys.contains(key))
+          c.keys.fold(List.empty[String])(_.toList).filter(key => !engineConfigurationKeys.contains(key))
         for {
           excludePaths <- c.downField("exclude_paths").as[Option[Set[Glob]]]
           baseSubDir <- c.downField("base_sub_dir").as[Option[String]]
@@ -83,7 +83,7 @@ object CodacyConfigurationFile {
                   Try(play.api.libs.json.Json.parse(json.noSpaces)).toOption
                 })
               .map(value => (extraKey, value))
-          }(collection.breakOut)
+          }.toMap
 
           EngineConfiguration(excludePaths, baseSubDir, Option(extraToolConfigurations).filter(_.nonEmpty))
         }
