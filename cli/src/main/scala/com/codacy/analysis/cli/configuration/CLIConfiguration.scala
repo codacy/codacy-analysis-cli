@@ -102,8 +102,7 @@ object CLIConfiguration {
       val localCustomExtensionsByLanguage =
         localConfiguration.map(_.languageCustomExtensions).getOrElse(Map.empty)
       val remoteCustomExtensionsByLanguage: Map[Language, Set[String]] =
-        foldable.foldMap(remoteProjectConfiguration)(
-          _.projectExtensions.map(le => (le.language, le.extensions)).toMap)
+        foldable.foldMap(remoteProjectConfiguration)(_.projectExtensions.map(le => (le.language, le.extensions)).toMap)
 
       val allowedExtensionsByLanguage =
         MapOps.merge(localCustomExtensionsByLanguage, remoteCustomExtensionsByLanguage)
@@ -165,7 +164,9 @@ object CLIConfiguration {
     final case class Parameter(name: String, value: String)
 
     def extraFromApi(apiEngines: Map[String, EngineConfiguration]): Map[String, CLIConfiguration.IssuesTool.Extra] = {
-      apiEngines.view.mapValues(config => CLIConfiguration.IssuesTool.Extra(config.baseSubDir, config.extraValues)).toMap
+      apiEngines.view
+        .mapValues(config => CLIConfiguration.IssuesTool.Extra(config.baseSubDir, config.extraValues))
+        .toMap
     }
 
     def fromApi(apiToolConfigs: Set[ToolConfiguration]): Set[CLIConfiguration.IssuesTool] = {
