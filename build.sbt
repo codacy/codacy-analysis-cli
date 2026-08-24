@@ -16,7 +16,7 @@ val assemblyCommon = Seq(
       oldStrategy(x)
   })
 
-inThisBuild(Seq(scalaVersion := Common.scalaVersionNumber, scalaBinaryVersion := Common.scalaBinaryVersionNumber))
+inThisBuild(Seq(scalaVersion := Common.scalaVersionNumber))
 
 val sonatypeInformation = Seq(
   startYear := Some(2018),
@@ -42,7 +42,8 @@ lazy val codacyAnalysisCore = project
       Dependencies.scalajHttp,
       Dependencies.jGit,
       Dependencies.cats,
-      Dependencies.typesafeConfig) ++
+      Dependencies.typesafeConfig,
+      Dependencies.scalaParallelCollections) ++
       Dependencies.circe ++
       Dependencies.log4s ++
       Dependencies.codacyPlugins,
@@ -80,7 +81,6 @@ lazy val toolRepositoryRemote = project
 lazy val codacyAnalysisModels = project
   .in(file("model"))
   .settings(
-    crossScalaVersions := Common.supportedScalaVersions,
     name := "codacy-analysis-cli-model",
     Common.genericSettings,
     libraryDependencies ++=
@@ -105,15 +105,15 @@ lazy val downloadCodacyToolsSwaggerFile = Def.task[Unit] {
 }
 
 val silencerSettings =
-  Seq(libraryDependencies ++= Dependencies.silencer, scalacOptions += "-P:silencer:pathFilters=src_managed")
+  Seq(
+    libraryDependencies ++= Dependencies.silencer,
+    scalacOptions += "-P:silencer:pathFilters=src_managed",
+    // The whole module is generated code; lint noise from it isn't actionable.
+    scalacOptions -= "-Xlint")
 
 lazy val codacyApiClient = project
   .in(file("codacy-api-client"))
   .settings(name := "codacy-api-client", description := "Client library for codacy API")
-  .settings(
-    // Guardrail requirement
-    addCompilerPlugin(Dependencies.macroParadise.cross(CrossVersion.full)),
-    scalacOptions += "-Xexperimental")
   .settings(
     libraryDependencies ++= Dependencies.akka ++ Dependencies.circe ++ Seq(
       Dependencies.typesafeConfig,
