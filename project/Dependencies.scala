@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
 
   val codacyPluginsVersion = "29.1.5_play_2.7"
-  val circeVersion = "0.12.3"
+  val circeVersion = "0.14.5"
   val specs2Version = "4.8.1"
   val codacyApiVersion = "49.31.14"
   val silencerVersion = "1.7.19"
@@ -12,7 +12,7 @@ object Dependencies {
     "io.circe" %% "circe-core" % circeVersion,
     "io.circe" %% "circe-generic" % circeVersion,
     "io.circe" %% "circe-parser" % circeVersion,
-    "io.circe" %% "circe-yaml" % "0.13.1")
+    "io.circe" %% "circe-yaml" % "0.14.2")
 
   lazy val jodaTime = "joda-time" % "joda-time" % "2.10.6"
 
