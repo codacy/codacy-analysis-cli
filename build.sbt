@@ -130,3 +130,5 @@ lazy val codacyApiClient = project
           modules = List("circe", "akka-http")))
     },
     silencerSettings)
+
+privateMvnPublish

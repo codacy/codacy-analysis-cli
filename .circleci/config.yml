@@ -236,11 +236,7 @@ workflows:
           openjdk_version: '17'
           context: CodacyAWS
           no_output_timeout: "30m"
-          cmd: |
-            sbt "retrieveGPGKeys;
-                 codacyAnalysisCore/publishSigned;
-                 +codacyAnalysisModels/publishSigned;
-                 sonatypeCentralRelease"
+          cmd: sbt +publish
           cache_prefix: *cache_prefix
           requires:
             - publish_docker_locally
