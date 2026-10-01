@@ -110,6 +110,7 @@ val silencerSettings =
 lazy val codacyApiClient = project
   .in(file("codacy-api-client"))
   .settings(name := "codacy-api-client", description := "Client library for codacy API")
+  .settings(privateMvnPublish)
   .settings(
     // Guardrail requirement
     addCompilerPlugin(Dependencies.macroParadise.cross(CrossVersion.full)),
