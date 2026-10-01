@@ -1,4 +1,4 @@
-import codacy.CodacySbt.autoImport.{privateMvnPublish, publicMvnPublish}
+import codacy.CodacySbt.autoImport.privateMvnPublish
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport.Docker
 import com.typesafe.sbt.packager.docker.{Cmd, CmdLike, DockerAlias}
@@ -22,7 +22,7 @@ object Common {
     Test / scalacOptions += "-Yrangepos",
     Compile / console / scalacOptions --= Seq("-Ywarn-unused", "-Ywarn-unused:imports"),
     scalacOptions -= "-Xfatal-warnings",
-    Compile / doc / sources := Seq.empty) ++ publicMvnPublish ++ privateMvnPublish
+    Compile / doc / sources := Seq.empty) ++ privateMvnPublish
 
   val compilerFlagsDefault: Seq[String] = Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
