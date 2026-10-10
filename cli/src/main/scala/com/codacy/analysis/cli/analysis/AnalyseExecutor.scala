@@ -131,9 +131,9 @@ class AnalyseExecutor(formatter: Formatter,
                 toolResults.toolSpecification,
                 toolResults.patternDescriptions,
                 toolResults.prefix,
-                results.to[List]))
+                results.toList))
         case toolResults =>
-          toolResults.analysisResults.foreach(results => formatter.addAll(None, Set.empty, None, results.to[List]))
+          toolResults.analysisResults.foreach(results => formatter.addAll(None, Set.empty, None, results.toList))
       }
       formatter.end()
 

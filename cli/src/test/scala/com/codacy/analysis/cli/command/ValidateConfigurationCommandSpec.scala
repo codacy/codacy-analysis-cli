@@ -2,6 +2,7 @@ package com.codacy.analysis.cli.command
 
 import better.files.{File, Resource}
 import com.codacy.analysis.cli.analysis.ExitStatus.ExitCodes
+import com.codacy.analysis.cli.command.Options.{CommonOptions, ValidateConfiguration}
 import org.specs2.control.NoLanguageFeatures
 import org.specs2.matcher.FileMatchers
 import org.specs2.mutable.Specification

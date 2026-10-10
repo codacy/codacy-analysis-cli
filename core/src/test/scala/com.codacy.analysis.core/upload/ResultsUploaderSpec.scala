@@ -209,7 +209,7 @@ class ResultsUploaderSpec extends Specification with NoLanguageFeatures with Moc
       val filenames: Set[Path] = exampleResults.map {
         case i: Issue      => i.filename
         case fe: FileError => fe.filename
-      }(collection.breakOut)
+      }
 
       // scalafix:off NoInfer.any
       uploader.sendResults(

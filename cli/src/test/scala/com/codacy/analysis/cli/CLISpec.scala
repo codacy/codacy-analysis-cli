@@ -2,8 +2,10 @@ package com.codacy.analysis.cli
 
 import better.files.{File, Resource}
 import caseapp.Tag
+import caseapp.core.Error
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command._
+import com.codacy.analysis.cli.command.Options._
 import com.codacy.analysis.core.git.Commit
 import com.codacy.analysis.core.model.{DuplicationClone, FileError, Result, ToolResult}
 import com.codacy.analysis.core.utils.TestUtils._
@@ -20,31 +22,20 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
    * e.g.: Using the CLI token that is needed for coverage to retrieve configuration during the tests.
    */
   private val cli = new MainImpl(analyseCommand = AnalyseCommand(_, Map.empty)) {
-    override def exit(code: ExitStatus.ExitCode): Unit = ()
+    override def terminate(code: ExitStatus.ExitCode): Unit = ()
   }
 
   "CLIApp" should {
     "parse correctly" in {
 
-      cli.parse(Array()) must beLike {
-        case Right((DefaultCommand(_), _, parsed)) => parsed must beNone
-      }
-      cli.parse(Array("--version")) must beLike {
-        case Right((DefaultCommand(_), _, parsed)) => parsed must beNone
-      }
-      cli.parse(Array("analyze", "--directory", "/tmp", "--tool", "pylint")) must beLike {
-        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
-      }
-      cli.parse(Array("analyze", "--directory", "/tmp", "--tool", "pylint", "--output", "/tmp/test.txt")) must beLike {
-        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
-      }
-      cli.parse(Array("analyze", "--directory", "/tmp", "--tool", "pylint", "--verbose")) must beLike {
-        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
-      }
-      cli.parse(Array("analyze", "--directory", "/tmp", "--tool", "pylint", "--format", "json")) must beLike {
-        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
-      }
-      cli.parse(
+      cli.parseCommand(Array()) must beRight
+      cli.parseCommand(Array("--version")) must beRight
+      cli.parseCommand(Array("analyze", "--directory", "/tmp", "--tool", "pylint")) must beRight
+      cli.parseCommand(
+        Array("analyze", "--directory", "/tmp", "--tool", "pylint", "--output", "/tmp/test.txt")) must beRight
+      cli.parseCommand(Array("analyze", "--directory", "/tmp", "--tool", "pylint", "--verbose")) must beRight
+      cli.parseCommand(Array("analyze", "--directory", "/tmp", "--tool", "pylint", "--format", "json")) must beRight
+      cli.parseCommand(
         Array(
           "analyze",
           "--directory",
@@ -52,10 +43,8 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           "--tool",
           "pylint",
           "--commit-uuid",
-          "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38")) must beLike {
-        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
-      }
-      cli.parse(
+          "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38")) must beRight
+      cli.parseCommand(
         Array(
           "analyze",
           "--directory",
@@ -65,19 +54,17 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           "--commit-uuid",
           "b10790d724e5fd2ca98e8ba3711b6cb10d7f5e38",
           "--upload",
-          "--skip-ssl-verification")) must beLike {
-        case Right((DefaultCommand(_), _, Some(parsed))) => parsed must beRight
-      }
+          "--skip-ssl-verification")) must beRight
     }
 
     "fail parse" in {
-      cli.parse(Array("bad-command", "--directory", "/tmp", "--tool", "pylint")) must beEqualTo(
-        Right(errorMsg("Command not found: bad-command")))
-      cli.parse(Array("analyze", "--bad-parameter", "/tmp", "--tool", "pylint")) must beEqualTo(
-        Right(errorMsg("Unrecognized argument: --bad-parameter")))
-      cli.parse(Array("analyze", "analyze", "--tool-timeout", "1semilha")) must beEqualTo(
-        Right(errorMsg("Invalid duration 1semilha (e.g. 20minutes, 10seconds, ...)")))
-      cli.parse(
+      cli.parseCommand(Array("bad-command", "--directory", "/tmp", "--tool", "pylint")) must beEqualTo(
+        Left(Error.CommandNotFound("bad-command")))
+      cli.parseCommand(Array("analyze", "--bad-parameter", "/tmp", "--tool", "pylint")) must beEqualTo(
+        Left(Error.UnrecognizedArgument("--bad-parameter")))
+      cli.parseCommand(Array("analyze", "analyze", "--tool-timeout", "1semilha")) must beEqualTo(
+        Left(Error.Other("Invalid duration 1semilha (e.g. 20minutes, 10seconds, ...)")))
+      cli.parseCommand(
         Array(
           "analyze",
           "--directory",
@@ -86,7 +73,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           "pylint",
           "--commit-uuid",
           "hold-my-flappy-folds")) must beEqualTo(
-        Right(errorMsg("Invalid commit uuid hold-my-flappy-folds - it must be a valid SHA hash")))
+        Left(Error.Other("Invalid commit uuid hold-my-flappy-folds - it must be a valid SHA hash")))
     }
 
     // TODO: Move tests bellow to the integration project after Main refactor
@@ -243,7 +230,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           result must beRight
           result must beLike {
             case Right((response, expected)) =>
-              response must containTheSameElementsAs(expected.to[Seq])
+              response must containTheSameElementsAs(expected.to(Seq))
           }
       }
     }
@@ -293,7 +280,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             tool = None,
             directory = Option(directory),
             upload = Tag.of(1),
-            toolTimeout = None)
+            advanced = AdvancedOptions())
 
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
         }).get
@@ -311,7 +298,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             tool = None,
             directory = Option(directory),
             upload = Tag.of(1),
-            toolTimeout = None)
+            advanced = AdvancedOptions())
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.uncommittedChanges)
         }).get
       }
@@ -331,7 +318,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             tool = None,
             directory = Option(directory),
             upload = Tag.of(0),
-            toolTimeout = None)
+            advanced = AdvancedOptions())
 
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
         }).get
@@ -350,7 +337,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             directory = Option(directory),
             upload = Tag.of(0),
             commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
-            toolTimeout = None)
+            advanced = AdvancedOptions())
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.commitsDoNotMatch)
         }).get
       }
@@ -369,7 +356,7 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
             upload = Tag.of(0),
             commitUuid = Option(Commit.Uuid("Aw geez Rick, this isnt the commit uuid!")),
             skipCommitUuidValidation = Tag.of(1),
-            toolTimeout = None)
+            advanced = AdvancedOptions())
           cli.run(analyze) must beEqualTo(ExitStatus.ExitCodes.failedAnalysis)
         }).get
       }
@@ -393,11 +380,6 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
       case clone: DuplicationClone =>
         clone.copy(cloneLines = "")
     }
-  }
-
-  private def errorMsg(message: String)
-    : (DefaultCommand, List[String], Option[Either[String, (String, CommandOptions, Seq[String], Seq[String])]]) = {
-    (DefaultCommand(), List.empty[String], Some(Left(message)))
   }
 
 }

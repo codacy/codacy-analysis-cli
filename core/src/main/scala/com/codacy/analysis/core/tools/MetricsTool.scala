@@ -19,7 +19,7 @@ class MetricsTool(metricsToolSpec: MetricsToolSpec, val languageToRun: Language,
     extends ITool {
   override def name: String = "metrics"
 
-  override def supportedLanguages: Set[Language] = metricsToolSpec.languages.to[Set]
+  override def supportedLanguages: Set[Language] = metricsToolSpec.languages.toSet
 
   def run(directory: File,
           files: Set[Source.File],
