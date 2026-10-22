@@ -60,8 +60,7 @@ lazy val codacyAnalysisCli = project
     coverageExcludedPackages := "<empty>;com\\.codacy\\..*CLIError.*",
     Common.genericSettings,
     Universal / javaOptions ++= Seq("-XX:MinRAMPercentage=60.0", "-XX:MaxRAMPercentage=90.0"),
-    publish := (Docker / publish).value,
-    publishLocal := (Docker / publishLocal).value,
+    publish / skip := true,
     publishArtifact := false,
     assembly / assemblyJarName := "codacy-analysis-cli-assembly.jar",
     libraryDependencies ++= Dependencies.pprint +: Dependencies.specs2)
