@@ -2,7 +2,7 @@ package com.codacy.analysis.cli.configuration
 
 import better.files.File
 import caseapp.Tag
-import com.codacy.analysis.cli.command.{APIOptions, Analyze, CommonOptions}
+import com.codacy.analysis.cli.command.Options.{AdvancedOptions, APIOptions, Analyze, CommonOptions}
 import com.codacy.analysis.cli.formatter.Json
 import com.codacy.analysis.core.clients._
 import com.codacy.analysis.core.clients.api._
@@ -44,10 +44,10 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
   private val defaultAnalyse = Analyze(
     options = CommonOptions(),
     api = APIOptions(),
+    advanced = AdvancedOptions(toolTimeout = Option.empty),
     tool = toolInput,
     directory = Option.empty,
     format = Json.name,
-    toolTimeout = Option.empty,
     commitUuid = commitUuid,
     uploadBatchSize = batchSize)
   private val defaultEnvironment = new Environment(Map.empty)
@@ -72,19 +72,20 @@ class CLIConfigurationSpec extends Specification with NoLanguageFeatures {
         val analyze = Analyze(
           options = CommonOptions(),
           api = APIOptions(),
+          advanced = AdvancedOptions(
+            parallel = Option(2),
+            toolTimeout = Option(20.seconds),
+            maxToolMemory = Some("3000000000"),
+            forceFilePermissions = Tag.of(1),
+            allowNetwork = Tag.of(1),
+            maxAllowedIssues = 5,
+            failIfIncomplete = Tag.of(1)),
           tool = toolInput,
           directory = Option(directory),
           output = Option(outputFile),
           format = Json.name,
-          parallel = Option(2),
           commitUuid = commitUuid,
-          toolTimeout = Option(20.seconds),
-          maxToolMemory = Some("3000000000"),
-          forceFilePermissions = Tag.of(1),
-          allowNetwork = Tag.of(1),
           upload = Tag.of(1),
-          maxAllowedIssues = 5,
-          failIfIncomplete = Tag.of(1),
           uploadBatchSize = batchSize)
 
         val expectedConfiguration = CLIConfiguration(

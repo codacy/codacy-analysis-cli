@@ -66,9 +66,9 @@ class Tool(fullToolSpec: FullToolSpec,
       case CodacyCfg(patterns, _, extraValues) =>
         val pts: List[PatternRequest] = patterns.map { pt =>
           val pms: Map[String, String] =
-            pt.parameters.map(pm => (pm.name, pm.value))(collection.breakOut)
+            pt.parameters.map(pm => (pm.name, pm.value)).toMap
           PatternRequest(pt.id, pms)
-        }(collection.breakOut)
+        }.toList
         PluginConfiguration(Option(pts), convertExtraValues(extraValues))
 
       case FileCfg(_, extraValues) =>
@@ -89,20 +89,22 @@ class Tool(fullToolSpec: FullToolSpec,
     val request =
       PluginRequest(
         sourceDirectory.sourceDirectory,
-        files.to[List].map(f => sourceDirectory.removePrefix(f.toString)),
+        files.toList.map(f => sourceDirectory.removePrefix(f.toString)),
         pluginConfiguration)
 
     runner.run(request, timeout.getOrElse(defaultRunTimeout), configTmpDirectory = tmpDirectory.map(_.toJava)).map {
       res =>
-        (res.results.map(r =>
-          Issue(
-            results.Pattern.Id(r.patternIdentifier),
-            FileHelper.relativePath(sourceDirectory.appendPrefix(r.filename)),
-            Issue.Message(r.message),
-            r.level,
-            r.category,
-            LineLocation(r.line),
-            r.sourceId))(collection.breakOut): Set[ToolResult]) ++
+        (res.results
+          .map(r =>
+            Issue(
+              results.Pattern.Id(r.patternIdentifier),
+              FileHelper.relativePath(sourceDirectory.appendPrefix(r.filename)),
+              Issue.Message(r.message),
+              r.level,
+              r.category,
+              LineLocation(r.line),
+              r.sourceId))
+          .toSet[ToolResult]) ++
           res.fileErrors.map(
             fe =>
               FileError(
@@ -211,7 +213,8 @@ class ToolCollector(toolRepository: ToolRepository) {
         .intersect(languages)
         .map { language =>
           Tool(FullToolSpec(tool, patterns), language, registryAddress)
-        }(collection.breakOut)
+        }
+        .toList
     }
   }
 

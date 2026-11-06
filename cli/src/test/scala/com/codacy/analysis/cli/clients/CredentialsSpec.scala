@@ -1,6 +1,6 @@
 package com.codacy.analysis.cli.clients
 
-import com.codacy.analysis.cli.command.APIOptions
+import com.codacy.analysis.cli.command.Options.APIOptions
 import com.codacy.analysis.cli.configuration.Environment
 import com.codacy.analysis.core.clients._
 import org.specs2.control.NoLanguageFeatures

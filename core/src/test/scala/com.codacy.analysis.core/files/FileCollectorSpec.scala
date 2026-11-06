@@ -369,7 +369,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
         result must beLike {
           case Success((filesTargetGlobal, filesTargetTool)) =>
             filesTargetGlobal.directory must be(directory)
-            filesTargetGlobal.readableFiles.to[List].map(_.toString) must containTheSameElementsAs(expectedFiles)
+            filesTargetGlobal.readableFiles.to(List).map(_.toString) must containTheSameElementsAs(expectedFiles)
             fileCollector.hasConfigurationFiles(tool, filesTargetGlobal) must beTrue
 
             filesTargetTool.directory must be(directory)
@@ -405,7 +405,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
       val result = fileCollector.filterTool(tool, filesTargetGlobal, exclusionRules)
 
       result.directory must be(directory)
-      result.readableFiles must containTheSameElementsAs(expectedToolFiles.to[Seq])
+      result.readableFiles must containTheSameElementsAs(expectedToolFiles.to(Seq))
       fileCollector.hasConfigurationFiles(tool, result) must beFalse
     }
 
@@ -436,7 +436,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
       val result = fileCollector.filterTool(tool, filesTargetGlobal, exclusionRules)
 
       result.directory must be(directory)
-      result.readableFiles must containTheSameElementsAs(expectedToolFiles.to[Seq])
+      result.readableFiles must containTheSameElementsAs(expectedToolFiles.to(Seq))
       fileCollector.hasConfigurationFiles(tool, result) must beFalse
     }
 
@@ -467,7 +467,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
       val result = fileCollector.filterTool(tool, filesTargetGlobal, exclusionRules)
 
       result.directory must be(directory)
-      result.readableFiles must containTheSameElementsAs(expectedToolFiles.to[Seq])
+      result.readableFiles must containTheSameElementsAs(expectedToolFiles.to(Seq))
       fileCollector.hasConfigurationFiles(tool, result) must beFalse
     }
 
@@ -498,7 +498,7 @@ abstract class FileCollectorSpec(fileCollector: FileCollector[Try]) extends Spec
       val result = fileCollector.filterTool(tool, filesTargetGlobal, exclusionRules)
 
       result.directory must be(directory)
-      result.readableFiles must containTheSameElementsAs(expectedToolFiles.to[Seq])
+      result.readableFiles must containTheSameElementsAs(expectedToolFiles.to(Seq))
       fileCollector.hasConfigurationFiles(tool, result) must beFalse
     }
   }

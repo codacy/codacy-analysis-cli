@@ -2,6 +2,7 @@ package com.codacy.analysis.cli
 
 import com.codacy.analysis.cli.analysis.ExitStatus
 import com.codacy.analysis.cli.command.{AnalyseCommand, CLIApp, _}
+import com.codacy.analysis.cli.command.Options._
 import com.codacy.analysis.core.utils.Logger
 
 object Main extends MainImpl()

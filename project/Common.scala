@@ -10,15 +10,11 @@ import scala.util.Properties
 object Common {
 
   private val defaultDockerInstallationPath = "/opt/codacy"
-  val scalaBinaryVersionNumber = "2.12"
-  val scalaVersionNumber = s"$scalaBinaryVersionNumber.19"
-
-  val scala213BinaryVersionNumber = "2.13"
-  val scala213VersionNumber = s"$scala213BinaryVersionNumber.16"
-  lazy val supportedScalaVersions = List(Common.scalaVersionNumber, Common.scala213VersionNumber)
+  val scalaBinaryVersionNumber = "2.13"
+  val scalaVersionNumber = s"$scalaBinaryVersionNumber.16"
 
   val genericSettings = Seq(
-    scalacOptions ++= Common.compilerFlags(scalaVersion.value),
+    scalacOptions ++= Common.compilerFlagsDefault,
     Test / scalacOptions += "-Yrangepos",
     Compile / console / scalacOptions --= Seq("-Ywarn-unused", "-Ywarn-unused:imports"),
     scalacOptions -= "-Xfatal-warnings",
@@ -39,7 +35,6 @@ object Common {
     "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
     // Disabled because of zinc bug: https://github.com/sbt/zinc/issues/688
     // "-Xfatal-warnings", // Fail the compilation if there are any warnings.
-    "-Xfuture", // Turn on future language features.
     "-Xlint",
     "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.
     "-Xlint:constant", // Evaluation of a constant arithmetic expression results in an error.
@@ -48,7 +43,6 @@ object Common {
     "-Xlint:inaccessible", // Warn about inaccessible types in method signatures.
     "-Xlint:infer-any", // Warn when a type argument is inferred to be `Any`.
     "-Xlint:missing-interpolator", // A string literal appears to be missing an interpolator id.
-    "-Xlint:nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
     "-Xlint:nullary-unit", // Warn when nullary methods return Unit.
     "-Xlint:option-implicit", // Option.apply used implicit view.
     "-Xlint:package-object-classes", // Class or object defined in package object.
@@ -70,24 +64,5 @@ object Common {
     "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
     // "-Yrangepos" // Removed due to slow compilation times
   )
-
-  def compilerFlags(version: String) = {
-    if (version.startsWith(scalaBinaryVersionNumber)) {
-      compilerFlagsDefault ++ Seq(
-        "-Xlint:by-name-right-associative", // By-name parameter of right associative operator.
-        "-Xlint:unsound-match", // Pattern match may not be typesafe.
-        "-Yno-adapted-args", // Do not adapt an argument list (either by inserting () or creating a tuple) to match the receiver.
-        "-Ypartial-unification", // Enable partial unification in type constructor inference
-        "-Ywarn-inaccessible", // Warn about inaccessible types in method signatures.
-        "-Ywarn-infer-any", // Warn when a type argument is inferred to be `Any`.
-        "-Ywarn-nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
-        "-Ywarn-nullary-unit", // Warn when nullary methods return Unit.
-        "-Ywarn-unused-import")
-    } else if (version.startsWith(scala213BinaryVersionNumber)) {
-      compilerFlagsDefault
-    } else {
-      compilerFlagsDefault
-    }
-  }
 
 }
