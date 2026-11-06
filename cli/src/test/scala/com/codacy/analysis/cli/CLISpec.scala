@@ -62,8 +62,10 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
         Left(Error.CommandNotFound("bad-command")))
       cli.parseCommand(Array("analyze", "--bad-parameter", "/tmp", "--tool", "pylint")) must beEqualTo(
         Left(Error.UnrecognizedArgument("--bad-parameter")))
-      cli.parseCommand(Array("analyze", "analyze", "--tool-timeout", "1semilha")) must beEqualTo(
-        Left(Error.Other("Invalid duration 1semilha (e.g. 20minutes, 10seconds, ...)")))
+      cli.parseCommand(Array("analyze", "analyze", "--tool-timeout", "1semilha")) must beLeft(beLike[Error] {
+        case Error.ParsingArgument(_, Error.Other(msg), _) =>
+          msg must beEqualTo("Invalid duration 1semilha (e.g. 20minutes, 10seconds, ...)")
+      })
       cli.parseCommand(
         Array(
           "analyze",
@@ -72,8 +74,10 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           "--tool",
           "pylint",
           "--commit-uuid",
-          "hold-my-flappy-folds")) must beEqualTo(
-        Left(Error.Other("Invalid commit uuid hold-my-flappy-folds - it must be a valid SHA hash")))
+          "hold-my-flappy-folds")) must beLeft(beLike[Error] {
+        case Error.ParsingArgument(_, Error.Other(msg), _) =>
+          msg must beEqualTo("Invalid commit uuid hold-my-flappy-folds - it must be a valid SHA hash")
+      })
     }
 
     // TODO: Move tests bellow to the integration project after Main refactor
