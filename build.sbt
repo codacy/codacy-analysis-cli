@@ -108,7 +108,8 @@ val silencerSettings =
     libraryDependencies ++= Dependencies.silencer,
     scalacOptions += "-P:silencer:pathFilters=src_managed",
     // The whole module is generated code; lint noise from it isn't actionable.
-    scalacOptions -= "-Xlint")
+    scalacOptions -= "-Xlint",
+    scapegoatIgnoredFiles := Seq(".*/src_managed/.*"))
 
 lazy val codacyApiClient = project
   .in(file("codacy-api-client"))
