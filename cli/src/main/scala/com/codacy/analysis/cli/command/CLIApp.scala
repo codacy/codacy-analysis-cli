@@ -87,7 +87,7 @@ abstract class CLIApp {
 
   def main(args: Array[String]): Unit =
     args.toList match {
-      case Nil =>
+      case Nil | ("-h" | "--help") :: _ =>
         Console.println(usageMessage)
         terminate(ExitStatus.ExitCodes.success)
       case ("-v" | "--version") :: _ =>
@@ -101,7 +101,7 @@ abstract class CLIApp {
     }
 
   private def usageMessage: String =
-    s"Usage: $progName [--version] (analyze|validate-configuration) [options]"
+    s"Usage: $progName [--version] [--help] (analyze|validate-configuration) [options]"
 
   /** Parses `args` without running the resulting command. Used by tests to validate CLI parsing
     * in isolation.
@@ -109,6 +109,7 @@ abstract class CLIApp {
   def parseCommand(args: Array[String]): Either[Error, Unit] =
     args.toList match {
       case Nil                              => Right(())
+      case ("-h" | "--help") :: _           => Right(())
       case ("-v" | "--version") :: _        => Right(())
       case "analyze" :: rest                => AnalyzeParsing.parse(rest).map(_ => ())
       case "validate-configuration" :: rest => ValidateConfigurationParsing.parse(rest).map(_ => ())

@@ -57,6 +57,11 @@ class CLISpec extends Specification with NoLanguageFeatures with FileMatchers {
           "--skip-ssl-verification")) must beRight
     }
 
+    "accept top-level help flags" in {
+      cli.parseCommand(Array("--help")) must beRight
+      cli.parseCommand(Array("-h")) must beRight
+    }
+
     "fail parse" in {
       cli.parseCommand(Array("bad-command", "--directory", "/tmp", "--tool", "pylint")) must beEqualTo(
         Left(Error.CommandNotFound("bad-command")))
