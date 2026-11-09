@@ -1,7 +1,9 @@
-> ⚠️ **Legacy Component Warning**  
-> This component is part of our **classic/legacy** implementation is no longer actively maintained for local analysis; please use the [new Codacy CLI v2 instead](https://github.com/codacy/codacy-cli-v2/).
-> For uploading results to Codacy, use this CLI.
-
+> [!WARNING]
+> **Legacy component.** This CLI is no longer actively maintained. For local analysis
+> and for uploading results to Codacy, use the
+> [Codacy Analysis CLI](https://docs.codacy.com/codacy-analysis-cli/) (`npm i -g @codacy/analysis-cli`).
+> Keep using this CLI only for the containerized client-side tools the Analysis CLI
+> doesn't run: aligncheck, deadcode and SpotBugs.
 
 # Codacy Analysis CLI
 
